@@ -1,0 +1,299 @@
+{
+    "title": "Travel Request Form",
+    "fields": [
+        {
+            "section": "Basic Details",
+            "fields": [
+                {
+                    "name": "tripName",
+                    "label": "Trip Name",
+                    "type": "text",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Travel Details",
+            "fields": [
+                {
+                    "name": "travelMode",
+                    "label": "Travel Mode",
+                    "type": "select",
+                    "options": [
+                        "Flight",
+                        "Train",
+                        "Bus",
+                        "Car"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "fromPlace",
+                    "label": "From Place",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "toPlace",
+                    "label": "To Place",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "departureDate",
+                    "label": "Departure Date",
+                    "type": "datepicker",
+                    "required": true
+                },
+                {
+                    "name": "returnDate",
+                    "label": "Return Date",
+                    "type": "datepicker",
+                    "required": false
+                },
+                {
+                    "name": "additionalTravelSegments",
+                    "label": "Add Multiple Travel Details",
+                    "type": "dynamic-array",
+                    "fields": [
+                        {
+                            "name": "mode",
+                            "label": "Travel Mode",
+                            "type": "select",
+                            "options": [
+                                "Flight",
+                                "Train",
+                                "Bus",
+                                "Car"
+                            ]
+                        },
+                        {
+                            "name": "from",
+                            "label": "From Place",
+                            "type": "text"
+                        },
+                        {
+                            "name": "to",
+                            "label": "To Place",
+                            "type": "text"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Accommodation",
+            "fields": [
+                {
+                    "name": "accommodationRequired",
+                    "label": "Accommodation Required",
+                    "type": "select",
+                    "options": [
+                        "Yes",
+                        "No"
+                    ],
+                    "required": true,
+                    "dependant": true
+                },
+                {
+                    "name": "hotelName",
+                    "label": "Location/Hotel Name",
+                    "type": "text",
+                    "dependsOn": {
+                        "field": "accommodationRequired",
+                        "value": "Yes"
+                    }
+                },
+                {
+                    "name": "checkInDate",
+                    "label": "Check-in Date",
+                    "type": "datepicker",
+                    "dependsOn": {
+                        "field": "accommodationRequired",
+                        "value": "Yes"
+                    }
+                },
+                {
+                    "name": "checkOutDate",
+                    "label": "Check-out Date",
+                    "type": "datepicker",
+                    "dependsOn": {
+                        "field": "accommodationRequired",
+                        "value": "Yes"
+                    }
+                },
+                {
+                    "name": "additionalAccommodations",
+                    "label": "Add Multiple Accommodation Details",
+                    "type": "dynamic-array",
+                    "dependsOn": {
+                        "field": "accommodationRequired",
+                        "value": "Yes"
+                    },
+                    "fields": [
+                        {
+                            "name": "hotelName",
+                            "label": "Hotel Name",
+                            "type": "text"
+                        },
+                        {
+                            "name": "checkInDate",
+                            "label": "Check-in Date",
+                            "type": "datepicker"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Other Details",
+            "fields": [
+                {
+                    "name": "differentCostCenter",
+                    "label": "Travel for Different Cost Center",
+                    "type": "select",
+                    "options": [
+                        "Yes",
+                        "No"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "costCenter",
+                    "label": "Cost Center",
+                    "type": "select",
+                    "options": [
+                        "Project A",
+                        "Project B",
+                        "Project C"
+                    ],
+                    "dependsOn": {
+                        "field": "differentCostCenter",
+                        "value": "Yes"
+                    }
+                },
+                {
+                    "name": "clientBillable",
+                    "label": "Client Billable",
+                    "type": "select",
+                    "options": [
+                        "Yes",
+                        "No"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "insuranceRequired",
+                    "label": "Insurance Required",
+                    "type": "select",
+                    "options": [
+                        "Yes",
+                        "No"
+                    ],
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Traveler Details",
+            "fields": [
+                {
+                    "name": "personalTitle",
+                    "label": "Title",
+                    "type": "select",
+                    "options": [
+                        "Mr.",
+                        "Ms.",
+                        "Mrs.",
+                        "Dr."
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "firstName",
+                    "label": "First Name",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "middleName",
+                    "label": "Middle Name",
+                    "type": "text"
+                },
+                {
+                    "name": "lastName",
+                    "label": "Last Name",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "contactNumber",
+                    "label": "Contact Number",
+                    "type": "tel",
+                    "required": true,
+                    "validation": {
+                        "pattern": "^[0-9]{10}$"
+                    }
+                },
+                {
+                    "name": "email",
+                    "label": "Email",
+                    "type": "email",
+                    "required": true,
+                    "validation": {
+                        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                    }
+                },
+                {
+                    "name": "advanceRequest",
+                    "label": "Advance Required",
+                    "type": "select",
+                    "options": [
+                        "Yes",
+                        "No"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "advanceAmount",
+                    "label": "Advance Amount",
+                    "type": "number",
+                    "dependsOn": {
+                        "field": "advanceRequest",
+                        "value": "Yes"
+                    }
+                },
+                {
+                    "name": "additionalInformation",
+                    "label": "Additional Information",
+                    "type": "textarea"
+                }
+            ]
+        },
+        {
+            "section": "Confirmation",
+            "fields": [
+                {
+                    "name": "confirmationCheckbox",
+                    "label": "I confirm all details are correct",
+                    "type": "checkbox",
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "draft",
+            "label": "Save Draft"
+        },
+        {
+            "type": "submit",
+            "label": "Submit for Approval"
+        }
+    ]
+}

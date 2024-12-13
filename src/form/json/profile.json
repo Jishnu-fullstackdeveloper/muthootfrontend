@@ -1,0 +1,188 @@
+{
+    "title": "Profile Form",
+    "fields": [
+        {
+            "section": "Personal Information",
+            "fields": [
+                {
+                    "name": "title",
+                    "label": "Title",
+                    "type": "select",
+                    "options": [
+                        "Mr.",
+                        "Ms.",
+                        "Mrs.",
+                        "Dr."
+                    ]
+                },
+                {
+                    "name": "firstName",
+                    "label": "First Name",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "middleName",
+                    "label": "Middle Name",
+                    "type": "text"
+                },
+                {
+                    "name": "lastName",
+                    "label": "Last Name",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "dateOfBirth",
+                    "label": "Date of Birth",
+                    "type": "datepicker",
+                    "required": true
+                },
+                {
+                    "name": "gender",
+                    "label": "Gender",
+                    "type": "select",
+                    "options": [
+                        "Male",
+                        "Female",
+                        "Other"
+                    ],
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Contact Information",
+            "fields": [
+                {
+                    "name": "email",
+                    "label": "Email",
+                    "type": "email",
+                    "required": true,
+                    "validation": {
+                        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                    }
+                },
+                {
+                    "name": "phone",
+                    "label": "Phone Number",
+                    "type": "tel",
+                    "required": true,
+                    "validation": {
+                        "pattern": "^[0-9]{10}$"
+                    }
+                },
+                {
+                    "name": "address",
+                    "label": "Address",
+                    "type": "textarea",
+                    "required": true
+                },
+                {
+                    "name": "city",
+                    "label": "City",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "state",
+                    "label": "State",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "zipCode",
+                    "label": "Zip Code",
+                    "type": "text",
+                    "required": true,
+                    "validation": {
+                        "pattern": "^[0-9]{5}$"
+                    }
+                }
+            ]
+        },
+        {
+            "section": "Employment Details",
+            "fields": [
+                {
+                    "name": "employmentStatus",
+                    "label": "Employment Status",
+                    "type": "select",
+                    "options": [
+                        "Employed",
+                        "Self-Employed",
+                        "Unemployed",
+                        "Student",
+                        "Retired"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "companyName",
+                    "label": "Company Name",
+                    "type": "text",
+                    "dependsOn": {
+                        "field": "employmentStatus",
+                        "value": "Employed"
+                    }
+                },
+                {
+                    "name": "jobTitle",
+                    "label": "Job Title",
+                    "type": "text",
+                    "dependsOn": {
+                        "field": "employmentStatus",
+                        "value": "Employed"
+                    }
+                },
+                {
+                    "name": "startDate",
+                    "label": "Start Date",
+                    "type": "datepicker",
+                    "dependsOn": {
+                        "field": "employmentStatus",
+                        "value": "Employed"
+                    }
+                },
+                {
+                    "name": "income",
+                    "label": "Annual Income",
+                    "type": "number",
+                    "dependsOn": {
+                        "field": "employmentStatus",
+                        "value": "Employed"
+                    }
+                }
+            ]
+        },
+        {
+            "section": "Additional Information",
+            "fields": [
+                {
+                    "name": "hobbies",
+                    "label": "Hobbies/Interests",
+                    "type": "textarea"
+                },
+                {
+                    "name": "notes",
+                    "label": "Additional Notes",
+                    "type": "textarea"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "save",
+            "label": "Save Profile"
+        },
+        {
+            "type": "submit",
+            "label": "Submit Profile"
+        }
+    ]
+}

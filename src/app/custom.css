@@ -1,0 +1,32 @@
+.glass_card {
+  border-radius: 10px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #525252;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 4px 0 rgba(31, 38, 135, 0.57);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.custom-scrollbar {
+  overflow-y: auto; /* Enable vertical scrolling */
+  scrollbar-width: thin; /* Set the scrollbar width */
+  scrollbar-color: rgb(189, 189, 189) transparent; /* Set the scrollbar color */
+}
+
+.custom-scrollbar-xaxis {
+  overflow-x: auto; /* Enable vertical scrolling */
+  scrollbar-width: thin; /* Set the scrollbar width */
+  scrollbar-color: rgb(235, 235, 235) transparent; /* Set the scrollbar color */
+}
+
+/* Customize scrollbar track */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 1px; /* Set the width of the scrollbar */
+}
+
+/* Customize scrollbar thumb */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.5); /* Set the color of the thumb */
+  border-radius: 4px; /* Set the border radius of the thumb */
+}

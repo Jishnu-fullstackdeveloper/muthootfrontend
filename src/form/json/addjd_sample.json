@@ -1,0 +1,163 @@
+{
+    "title": "Job Description Form",
+    "fields": [
+        {
+            "section": "Job Roles",
+            "fields": [
+                {
+                    "name": "roleTitle",
+                    "label": "Role Title",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "reportingTo",
+                    "label": "Reporting To",
+                    "type": "select",
+                    "options": [],
+                    "required": true
+                },
+                {
+                    "name": "companyName",
+                    "label": "Company Name",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "functionOrDepartment",
+                    "label": "Function/Department",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "writtenBy",
+                    "label": "Written By",
+                    "type": "text",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Role Summary",
+            "fields": [
+                {
+                    "name": "roleSummary",
+                    "label": "Role Summary",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Key Responsibilities",
+            "fields": [
+                {
+                    "name": "keyResponsibilities",
+                    "label": "Key Responsibilities",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Key Challenges",
+            "fields": [
+                {
+                    "name": "keyChallenges",
+                    "label": "Key Challenges",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Key Decisions Taken",
+            "fields": [
+                {
+                    "name": "keyDecisions",
+                    "label": "Key Decisions Taken",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Key Interactions",
+            "fields": [
+                {
+                    "name": "internalStakeholders",
+                    "label": "Internal Stakeholders",
+                    "type": "textarea",
+                    "required": true
+                },
+                {
+                    "name": "externalStakeholders",
+                    "label": "External Stakeholders",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Key Skills and Behavioural Attributes",
+            "fields": [
+                {
+                    "name": "skillsAndAttributes",
+                    "label": "Key Skills and Behavioural Attributes",
+                    "type": "dynamic-array",
+                    "fields": [
+                        {
+                            "name": "competency",
+                            "label": "Competency",
+                            "type": "text",
+                            "required": true
+                        },
+                        {
+                            "name": "definition",
+                            "label": "Definition",
+                            "type": "textarea",
+                            "required": true
+                        },
+                        {
+                            "name": "behaviouralAttributes",
+                            "label": "Behavioural Attributes",
+                            "type": "textarea",
+                            "required": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Educational and Experience Requirements",
+            "fields": [
+                {
+                    "name": "minimumQualification",
+                    "label": "Minimum Qualification",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "experienceDescription",
+                    "label": "Experience Description",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "saveDraft",
+            "label": "Save Draft"
+        },
+        {
+            "type": "submit",
+            "label": "Submit"
+        }
+    ]
+}

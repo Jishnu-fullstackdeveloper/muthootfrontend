@@ -1,0 +1,105 @@
+{
+    "title": "Job Description Form",
+    "fields": [
+        {
+            "section": "Job Details",
+            "fields": [
+                {
+                    "name": "jobTitle",
+                    "label": "Job Title",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "jobDescription",
+                    "label": "Job Description",
+                    "type": "textarea",
+                    "required": true
+                },
+                {
+                    "name": "experience",
+                    "label": "Experience (in years)",
+                    "type": "number",
+                    "required": true,
+                    "validation": {
+                        "min": 0
+                    }
+                },
+                {
+                    "name": "jobPlacement",
+                    "label": "Job Placement",
+                    "type": "select",
+                    "options": [
+                        "On-site",
+                        "Remote",
+                        "Hybrid"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "jobType",
+                    "label": "Job Type",
+                    "type": "select",
+                    "options": [
+                        "Full Time",
+                        "Part Time",
+                        "Contract"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "jobRole",
+                    "label": "Job Role",
+                    "type": "select",
+                    "options": [
+                        "Research & Development",
+                        "Engineering",
+                        "Marketing",
+                        "Sales",
+                        "Human Resources"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "salaryRange",
+                    "label": "Salary Range",
+                    "type": "text",
+                    "placeholder": "e.g., 50000-80000 per annum",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Duties and Responsibilities",
+            "fields": [
+                {
+                    "name": "dutiesResponsibilities",
+                    "label": "Duties and Responsibilities",
+                    "type": "dynamic-array",
+                    "fields": [
+                        {
+                            "name": "responsibility",
+                            "label": "Responsibility",
+                            "type": "text",
+                            "required": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "save",
+            "label": "Save Draft"
+        },
+        {
+            "type": "submit",
+            "label": "Post Job"
+        }
+    ]
+}

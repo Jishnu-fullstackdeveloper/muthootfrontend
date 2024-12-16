@@ -134,7 +134,6 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   useEffect(() => {
     if (loginFailure) {
       if (Array.isArray(loginErrorMessage)) {
-        console.log('entered')
         loginErrorMessage?.map(x => {
           toast.error(x, {
             position: 'top-right',

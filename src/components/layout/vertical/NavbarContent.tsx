@@ -31,8 +31,17 @@ const NavbarContent = () => {
           {pathSegments.map((segment, index) => {
             const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
             const segmentText = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ')
+
+            // Disable navigation for "View" segment
+            const isViewSegment =
+              segment.toLowerCase() === 'view' || segment.toLowerCase() === 'edit' || segment.toLowerCase() === 'add'
+
             return index === pathSegments.length - 1 ? (
               <Typography key={breadcrumbPath} color='text.primary'>
+                {segmentText}
+              </Typography>
+            ) : isViewSegment ? (
+              <Typography key={breadcrumbPath} color='text.secondary'>
                 {segmentText}
               </Typography>
             ) : (
@@ -48,6 +57,7 @@ const NavbarContent = () => {
             )
           })}
         </Breadcrumbs>
+
         {/* <ModeDropdown /> */}
       </div>
       <div className='flex items-center'>

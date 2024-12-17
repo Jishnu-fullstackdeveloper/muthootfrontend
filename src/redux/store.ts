@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import loginReducer from './loginSlice'
+import userManagementReducer from './userManagementSlice'
 
 export const makeStore = () =>
   configureStore({
     reducer: {
-      loginReducer
+      loginReducer,
+      userManagementReducer
     }
   })
 

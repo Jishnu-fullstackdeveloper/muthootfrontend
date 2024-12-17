@@ -1,6 +1,7 @@
 import React from 'react'
 import Button from '@mui/material/Button'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
+import { SxProps, Theme } from '@mui/material/styles'
 
 interface ButtonProps {
   children: React.ReactNode // Use 'children' instead of 'label'
@@ -13,6 +14,7 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset'
   className?: string
   label?: string
+  sx?: SxProps<Theme>
 }
 
 const DynamicButton: React.FC<ButtonProps> = ({
@@ -25,7 +27,8 @@ const DynamicButton: React.FC<ButtonProps> = ({
   position,
   type,
   className,
-  label
+  label,
+  sx
 }) => {
   return (
     <Button

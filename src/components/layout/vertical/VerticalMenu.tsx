@@ -100,6 +100,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             JD Management
           </MenuItem>
         )}
+        <MenuItem href='/user-management' icon={<i className='tabler-file-description' />}>
+          User Management
+        </MenuItem>
 
         {/* <SubMenu label='Components'>
           <MenuItem href='/components/accordion'>Accordion</MenuItem>

@@ -31,7 +31,7 @@ interface DynamicTableProps<TData> {
   data: TData[]
 }
 export interface Person {
-  id: number // Add id property
+  id: number
   name: string
   age: number
   email: string
@@ -74,7 +74,6 @@ const DynamicTable = <TData extends { id: number }>({ columns, data }: DynamicTa
         <TableHead>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              {/* Checkbox for selecting all rows */}
               <TableCell padding='checkbox'>
                 <Checkbox
                   indeterminate={table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
@@ -83,7 +82,11 @@ const DynamicTable = <TData extends { id: number }>({ columns, data }: DynamicTa
                 />
               </TableCell>
               {headerGroup.headers.map(header => (
-                <TableCell key={header.id} sortDirection={header.column.getIsSorted() || false}>
+                <TableCell
+                  key={header.id}
+                  sortDirection={header.column.getIsSorted() || false}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
                   {header.isPlaceholder ? null : (
                     <div
                       {...{
@@ -103,7 +106,6 @@ const DynamicTable = <TData extends { id: number }>({ columns, data }: DynamicTa
         <TableBody>
           {table.getRowModel().rows.map(row => (
             <TableRow key={row.id} hover>
-              {/* Checkbox for individual row selection */}
               <TableCell padding='checkbox'>
                 <Checkbox
                   checked={row.getIsSelected()}
@@ -112,7 +114,9 @@ const DynamicTable = <TData extends { id: number }>({ columns, data }: DynamicTa
                 />
               </TableCell>
               {row.getVisibleCells().map(cell => (
-                <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                <TableCell key={cell.id} sx={{ whiteSpace: 'nowrap' }}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
               ))}
             </TableRow>
           ))}

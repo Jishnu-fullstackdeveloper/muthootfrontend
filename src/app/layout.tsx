@@ -16,8 +16,9 @@ import { getAccessToken, Logout } from '@/utils/functions'
 import 'react-quill/dist/quill.snow.css'
 
 export const metadata = {
-  title: 'Vuexy - MUI Next.js Admin Dashboard Template',
+  title: custom_theme_settings?.theme?.meta_text || 'Vuexy - MUI Next.js Admin Dashboard Template',
   description:
+    custom_theme_settings?.theme?.meta_text ||
     'Vuexy - MUI Next.js Admin Dashboard Template - is the most developer friendly & highly customizable Admin Dashboard Template based on MUI v5.'
 }
 

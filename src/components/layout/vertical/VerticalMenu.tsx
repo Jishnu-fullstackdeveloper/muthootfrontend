@@ -91,9 +91,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </MenuItem>
         ))}
 
-        <MenuItem href='/profile' icon={<i className='tabler-info-circle' />}>
-          Profile
-        </MenuItem>
         {isJDManagementPage ? (
           <MenuItem href={pathname} icon={<i className='tabler-file-description' />}>
             JD Management
@@ -104,10 +101,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </MenuItem>
         )}
 
-        <MenuItem href='/addtrip' icon={<i className='tabler-info-circle' />}>
-          Add Trip
-        </MenuItem>
-        <SubMenu label='Components'>
+        {/* <SubMenu label='Components'>
           <MenuItem href='/components/accordion'>Accordion</MenuItem>
           <MenuItem href='/components/alert'>Alert</MenuItem>
           <MenuItem href='/components/appbar'>App Bar</MenuItem>
@@ -136,7 +130,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href='/components/table'>Table</MenuItem>
           <MenuItem href='/components/textField'>Text Field</MenuItem>
           <MenuItem href='/components/tooltip'>Tooltip</MenuItem>
-        </SubMenu>
+        </SubMenu> */}
       </Menu>
 
       {/* <Menu

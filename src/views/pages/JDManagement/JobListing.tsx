@@ -37,8 +37,25 @@ import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filt
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [addMoreFilters, setAddMoreFilters] = useState(false)
-  const [moreFiltersApplied, setMoreFiltersApplied] = useState(false)
+  const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
+  const [filterBtnApplied, setFilterBtnApplied] = useState<any>(false)
+  const [selectedFilters, setSelectedFilters] = useState({
+    jobType: [], // Array for checkboxes
+    experience: [],
+    education: [],
+    skills: [],
+    salaryRange: [0, 0], // Default range for the slider
+    jobRole: '' // Default value for the select dropdown
+  })
+
+  const [appliedFilters, setAppliedFliters] = useState({
+    jobType: [], // Array for checkboxes
+    experience: [],
+    education: [],
+    skills: [],
+    salaryRange: [0, 0], // Default range for the slider
+    jobRole: '' // Default value for the select dropdown
+  })
 
   const jobs = [
     {
@@ -192,31 +209,45 @@ const JobListing = () => {
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
+  const removeItem = (itemToRemove: string) => {
+    // Dynamically find which array contains the item and remove it
+    const newFilters = Object.keys(selectedFilters).reduce(
+      (acc: any, key: any) => {
+        if (Array.isArray(selectedFilters[key])) {
+          acc[key] = selectedFilters[key].filter(item => item !== itemToRemove)
+        } else {
+          acc[key] = selectedFilters[key]
+        }
+        return acc
+      },
+      {} as typeof selectedFilters
+    )
+
+    setSelectedFilters(newFilters)
+  }
+
+  //to check whether that filter is applied or not
+  const isFilterApplied = (filterType: string[], appliedFilters: string[]) => {
+    return filterType.every(item => appliedFilters.includes(item))
+  }
+
+  const toggleFilter = (filterType: string, filterValue: string) => {
+    setAppliedFliters((prev: any) => ({
+      ...prev,
+      [filterType]: prev[filterType].includes(filterValue)
+        ? prev[filterType].filter((item: any) => item !== filterValue) // Remove
+        : [...prev[filterType], filterValue] // Add
+    }))
+  }
+
   return (
     <div className='min-h-screen'>
-      {/* <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          zIndex: 10,
-          top: 93,
-          backgroundColor: '#faf9f5',
-          mb: 5
-        }}
-      >
-        <Typography variant='h1' className='text-2xl font-bold mb-6'>
-          Job Description Management
-        </Typography>
-        <Box></Box>
-      </Box> */}
       <JobListingCustomFilters
         open={addMoreFilters}
         setOpen={setAddMoreFilters}
-        onApplyFilters={function (selectedFilters: Record<string, string[]>): void {
-          throw new Error('Function not implemented.')
-        }}
-        // onApplyFilters={setMoreFiltersApplied}
+        setSelectedFilters={setSelectedFilters}
+        selectedFilters={selectedFilters}
+        setAppliedFliters={setAppliedFliters}
       />
       <Card
         sx={{
@@ -414,7 +445,7 @@ const JobListing = () => {
             </Typography>
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
-            <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
+            {/* <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
             <Chip label='Filter2' variant='outlined' onDelete={() => {}} />
             <Chip label='Filter3' variant='outlined' onDelete={() => {}} />
             <Chip label='Filter4' variant='outlined' onDelete={() => {}} />
@@ -423,7 +454,81 @@ const JobListing = () => {
             <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
             <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
             <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
+            <Chip label='Filter1' variant='outlined' onDelete={() => {}} /> */}
+
+            <Box
+              sx={{
+                overflow: 'hidden',
+                maxWidth: '100%',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                p: 1
+              }}
+            >
+              {/* Map Experience Chips */}
+              {selectedFilters.experience.map(exp => (
+                <Chip
+                  key={exp}
+                  label={exp}
+                  variant='outlined'
+                  color={appliedFilters.experience.includes(exp) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('experience', exp)}
+                  onDelete={() => removeItem('experience', exp)}
+                />
+              ))}
+
+              {/* Map Education Chips */}
+              {selectedFilters.education.map(edu => (
+                <Chip
+                  key={edu}
+                  label={edu}
+                  variant='outlined'
+                  color={appliedFilters.education.includes(edu) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('education', edu)}
+                  onDelete={() => removeItem('education', edu)}
+                />
+              ))}
+
+              {/* Map Job Type Chips */}
+              {selectedFilters.jobType.map(type => (
+                <Chip
+                  key={type}
+                  label={type}
+                  variant='outlined'
+                  color={appliedFilters.jobType.includes(type) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('jobType', type)}
+                  onDelete={() => removeItem('jobType', type)}
+                />
+              ))}
+
+              {/* Map Skills Chips */}
+              {selectedFilters.skills.map(skill => (
+                <Chip
+                  key={skill}
+                  label={skill}
+                  variant='outlined'
+                  color={appliedFilters.skills.includes(skill) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('skills', skill)}
+                  onDelete={() => removeItem('skills', skill)}
+                />
+              ))}
+
+              {/* Handle Salary Range */}
+              {selectedFilters?.salaryRange[0] !== 0 || selectedFilters?.salaryRange[1] !== 0 ? (
+                <Chip
+                  key='salary-range'
+                  label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
+                  variant='outlined'
+                  onDelete={() => {
+                    setSelectedFilters({
+                      ...selectedFilters,
+                      salaryRange: [0, 0]
+                    })
+                  }}
+                />
+              ) : null}
+            </Box>
           </Stack>
         </Box>
       </Card>

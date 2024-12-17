@@ -22,7 +22,9 @@ import { Box, InputLabel, FormControl } from '@mui/material'
 type JobListingFiltersProps = {
   open: boolean
   setOpen: (open: boolean) => void
-  onApplyFilters: (selectedFilters: Record<string, string[] | number[] | string>) => void
+  setSelectedFilters: any
+  selectedFilters: any
+  setAppliedFliters: any
 }
 
 // Filter Data Example
@@ -33,21 +35,18 @@ const filterData = {
   skills: ['JavaScript', 'React', 'Python', 'SQL', 'Java', 'Project Management']
 }
 
-const JobListingCustomFilters = ({ open, setOpen, onApplyFilters }: JobListingFiltersProps) => {
+const JobListingCustomFilters = ({
+  open,
+  setOpen,
+  setSelectedFilters,
+  selectedFilters,
+  setAppliedFliters
+}: JobListingFiltersProps) => {
   // State for selected filters
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[] | number[] | string>>({
-    location: [],
-    jobType: [],
-    experience: [],
-    salaryRange: [0, 10000], // Default salary range
-    education: [],
-    skills: [],
-    jobRole: '' // Single select
-  })
 
   // Handle checkbox change
   const handleCheckboxChange = (category: string, value: string) => {
-    setSelectedFilters(prev => {
+    setSelectedFilters((prev: { [x: string]: string[] }) => {
       const categoryFilters = (prev[category] as string[]) || []
       const updatedFilters = categoryFilters.includes(value)
         ? categoryFilters.filter(item => item !== value)
@@ -58,15 +57,15 @@ const JobListingCustomFilters = ({ open, setOpen, onApplyFilters }: JobListingFi
 
   // Handle slider change
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
-    setSelectedFilters(prev => ({
+    setSelectedFilters((prev: any) => ({
       ...prev,
       salaryRange: newValue as number[]
     }))
   }
 
   // Handle select change
-  const handleSelectChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedFilters(prev => ({
+  const handleSelectChange = (event: any) => {
+    setSelectedFilters((prev: any) => ({
       ...prev,
       jobRole: event.target.value as string
     }))
@@ -79,8 +78,20 @@ const JobListingCustomFilters = ({ open, setOpen, onApplyFilters }: JobListingFi
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    onApplyFilters(selectedFilters)
+    // setSelectedFilters(selectedFilters)
+    setAppliedFliters(selectedFilters)
     setOpen(false)
+  }
+
+  const handleResetFilters = () => {
+    setSelectedFilters({
+      jobType: [], // Array for checkboxes
+      experience: [],
+      education: [],
+      skills: [],
+      salaryRange: [0, 0], // Default range for the slider
+      jobRole: '' // Default value for the select dropdown
+    })
   }
 
   return (
@@ -130,8 +141,11 @@ const JobListingCustomFilters = ({ open, setOpen, onApplyFilters }: JobListingFi
         </Box>
 
         <Box className='mb-4'>
+          <Typography variant='subtitle1' className='font-medium mb-2'>
+            Job Role
+          </Typography>
           <FormControl fullWidth>
-            <InputLabel id='job-role-label'>Job Role</InputLabel>
+            {/** <InputLabel id='job-role-label'>Job Role</InputLabel> */}
             <Select
               labelId='job-role-label'
               id='job-role'
@@ -152,9 +166,14 @@ const JobListingCustomFilters = ({ open, setOpen, onApplyFilters }: JobListingFi
         <Button variant='outlined' color='secondary' onClick={handleClose}>
           Cancel
         </Button>
-        <Button variant='contained' color='primary' onClick={handleApplyFilters}>
-          Apply Filters
-        </Button>
+        <Box>
+          <Button variant='outlined' color='secondary' onClick={handleResetFilters}>
+            Reset Filters
+          </Button>
+          <Button variant='contained' color='primary' onClick={handleApplyFilters}>
+            Apply Filters
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   )

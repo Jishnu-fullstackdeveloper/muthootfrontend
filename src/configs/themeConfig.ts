@@ -56,7 +56,7 @@ export type Config = {
 
 const themeConfig: Config = {
   templateName: custom_theme_settings?.theme?.logoText || 'Sample Name',
-  settingsCookieName: 'vuexy-mui-next-demo-1',
+  settingsCookieName: custom_theme_settings?.theme?.meta_text || 'vuexy-mui-next-demo-1',
   mode: 'light', // 'system', 'light', 'dark'
   skin: 'default', // 'default', 'bordered'
   semiDark: false, // true, false

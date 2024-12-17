@@ -5,7 +5,7 @@ import { SxProps, Theme } from '@mui/material/styles'
 import { InputProps as MuiInputProps } from '@mui/material/Input'
 
 interface FieldProps {
-  id?: string
+  id: string
   name?: string
   label?: string
   type?: string
@@ -21,7 +21,6 @@ interface FieldProps {
   value?: string | number
   rows?: number
   placeholder?: string
-  className?: string
   sx?: SxProps<Theme>
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   onFocus?: React.FocusEventHandler<HTMLInputElement>
@@ -49,7 +48,6 @@ export default function DynamicTextField({
   placeholder,
   sx,
   size,
-  className,
   InputProps // Destructure InputProps
 }: DynamicTextFieldProps) {
   return (
@@ -74,7 +72,6 @@ export default function DynamicTextField({
         onChange={onChange}
         onFocus={onFocus}
         InputProps={InputProps} // Pass InputProps here
-        className={className}
         fullWidth
       />
     </Box>

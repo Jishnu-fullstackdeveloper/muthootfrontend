@@ -103,9 +103,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/user-management' icon={<i className='tabler-file-description' />}>
           User Management
         </MenuItem>
-        <MenuItem href='/user-roles' icon={<i className='tabler-file-description' />}>
-          User Roles
-        </MenuItem>
 
         {/* <SubMenu label='Components'>
           <MenuItem href='/components/accordion'>Accordion</MenuItem>

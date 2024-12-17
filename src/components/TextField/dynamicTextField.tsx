@@ -1,27 +1,30 @@
 import * as React from 'react'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
+import { SxProps, Theme } from '@mui/material/styles'
+import { InputProps as MuiInputProps } from '@mui/material/Input'
 
 interface FieldProps {
   id: string
-  name?: string // Add the 'name' property here
+  name?: string
   label?: string
   type?: string
   defaultValue?: string
   helperText?: string
   variant?: 'outlined' | 'filled' | 'standard'
   required?: boolean
+  size?: 'small' | 'medium'
   disabled?: boolean
   readOnly?: boolean
   multiline?: boolean
   error?: boolean
   value?: string | number
   rows?: number
+  placeholder?: string
+  sx?: SxProps<Theme>
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   onFocus?: React.FocusEventHandler<HTMLInputElement>
-  placeholder?: any
-  className?: any
-  style?: any
+  InputProps?: MuiInputProps // Add InputProps here
 }
 
 interface DynamicTextFieldProps extends FieldProps {}
@@ -42,14 +45,14 @@ export default function DynamicTextField({
   onChange,
   onFocus,
   rows,
-  placeholder = '',
-  className = '',
-  style = {}
+  placeholder,
+  sx,
+  size,
+  InputProps // Destructure InputProps
 }: DynamicTextFieldProps) {
   return (
     <Box component='form' sx={{ '& .MuiTextField-root': { m: 1, width: '100%' } }} noValidate autoComplete='off'>
       <TextField
-        style={style}
         key={id}
         id={id}
         label={label}
@@ -62,15 +65,14 @@ export default function DynamicTextField({
         multiline={multiline}
         error={error}
         value={value}
+        size={size}
         rows={rows}
+        sx={sx}
+        placeholder={placeholder}
         onChange={onChange}
         onFocus={onFocus}
-        InputProps={{
-          readOnly: readOnly
-        }}
+        InputProps={InputProps} // Pass InputProps here
         fullWidth
-        placeholder
-        className
       />
     </Box>
   )

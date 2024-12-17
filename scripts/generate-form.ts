@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const schemaPath = path.join(__dirname, '../src/form/json/addjd_sample.json')
-const outputPath = path.join(__dirname, '../src/form/generatedForms/addNewJdSample.tsx')
+const schemaPath = path.join(__dirname, '../src/form/json/addTrip.json')
+const outputPath = path.join(__dirname, '../src/form/generatedForms/addtrip.tsx')
 
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'))
 
@@ -47,6 +47,33 @@ interface Schema {
   title: string
   fields: Section[]
   actions: Action[]
+}
+
+function validateSchema(schema: Schema): string[] {
+  const errors: string[] = []
+  const fieldNames = new Set<string>()
+
+  schema.fields.forEach(section => {
+    section.fields.forEach(field => {
+      if (fieldNames.has(field.name)) {
+        errors.push(`Duplicate field name detected: "${field.name}" in section "${section.section}"`)
+      } else {
+        fieldNames.add(field.name)
+      }
+    })
+  })
+
+  return errors
+}
+
+// Validate the schema before generating the form
+const validationErrors = validateSchema(schema)
+
+if (validationErrors.length > 0) {
+  console.error('Schema validation failed with the following errors:')
+  validationErrors.forEach(error => console.error(`- ${error}`))
+  console.log('Form generation aborted due to validation errors.')
+  process.exit(1) // Exit the script if validation fails
 }
 
 function generateFieldCode(field: SectionField): string {
@@ -289,7 +316,7 @@ import DynamicSelect from '@/components/Select/dynamicSelect';
 import DynamicButton from '@/components/Button/dynamicButton';
 import DynamicCheckbox from "@/components/Checkbox/dynamicCheckbox";
 import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
- 
+
 const validationSchema = Yup.object().shape({
   ${schema.fields
     .map(section =>
@@ -309,7 +336,7 @@ const validationSchema = Yup.object().shape({
     )
     .join(',\n')}
 });
- 
+
 const GeneratedForm: React.FC = () => {
   const formik: any = useFormik({
     initialValues: ${JSON.stringify(
@@ -328,7 +355,7 @@ const GeneratedForm: React.FC = () => {
       console.log("Form Submitted:", values);
     }
   });
- 
+
   return (
     <form onSubmit={formik.handleSubmit} className="p-6 bg-white shadow-md rounded">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">${schema.title}</h1>
@@ -339,7 +366,7 @@ const GeneratedForm: React.FC = () => {
     </form>
   );
 };
- 
+
 export default GeneratedForm;
 `
 }

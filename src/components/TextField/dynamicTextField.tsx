@@ -5,7 +5,7 @@ import { SxProps, Theme } from '@mui/material/styles'
 import { InputProps as MuiInputProps } from '@mui/material/Input'
 
 interface FieldProps {
-  id: string
+  id?: string
   name?: string
   label?: string
   type?: string

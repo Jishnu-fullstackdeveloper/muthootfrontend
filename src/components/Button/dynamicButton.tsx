@@ -5,7 +5,7 @@ import { SxProps, Theme } from '@mui/material/styles'
 
 interface ButtonProps {
   children: React.ReactNode // Use 'children' instead of 'label'
-  variant: 'text' | 'contained' | 'outlined' | 'tonal'
+  variant?: 'text' | 'contained' | 'outlined' | 'tonal'
   onClick?: () => void
   color?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'inherit'
   disabled?: boolean

@@ -7,7 +7,6 @@ import Typography from '@mui/material/Typography'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { FormControl } from '@mui/material'
-import { useEffect, useState } from 'react'
 import { filterData } from '@/shared/filterData'
 
 type JobListingFiltersProps = {
@@ -15,7 +14,7 @@ type JobListingFiltersProps = {
   setOpen: (open: boolean) => void
   setSelectedFilters: (filters: Record<string, any>) => void
   selectedFilters: Record<string, any>
-  onApplyFilters: (selectedFilters: Record<string, any>) => void // Ensure onApplyFilters is included in the props
+  onApplyFilters: (selectedFilters: Record<string, any>) => void
 }
 
 const JobListingCustomFilters = ({
@@ -38,7 +37,7 @@ const JobListingCustomFilters = ({
   }
 
   const handleApplyFilters = () => {
-    onApplyFilters(selectedFilters) // Apply the filters and pass them to the parent
+    onApplyFilters(selectedFilters)
     setOpen(false)
   }
 

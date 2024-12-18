@@ -15,6 +15,7 @@ interface DynamicSelectProps {
   children?: React.ReactNode
   required?: boolean
   onFocus?: React.FocusEventHandler<HTMLInputElement>
+  displayEmpty?: boolean // Add displayEmpty prop
 }
 
 export default function DynamicSelect({
@@ -26,7 +27,8 @@ export default function DynamicSelect({
   onFocus,
   error,
   helperText,
-  children
+  children,
+  displayEmpty = false // Default to false
 }: DynamicSelectProps) {
   return (
     <Box component='form' sx={{ '& .MuiTextField-root': { m: 1, width: '100%' } }} noValidate autoComplete='off'>
@@ -40,6 +42,7 @@ export default function DynamicSelect({
           onChange={onChange}
           onFocus={onFocus}
           fullWidth
+          displayEmpty={displayEmpty} // Pass displayEmpty to Select
         >
           {children}
         </Select>

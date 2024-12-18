@@ -2,11 +2,10 @@
 import React, { useEffect, useRef } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector } from '@mui/material'
+import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector, Button } from '@mui/material'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
-import dynamic from 'next/dynamic'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import ReactQuill from 'react-quill'
@@ -19,6 +18,7 @@ import {
   removeJDManagementAddFormValues,
   setJDManagementAddFormValues
 } from '@/utils/functions'
+import { ArrowBack } from '@mui/icons-material'
 type Props = {
   mode: any
   id: any
@@ -152,107 +152,92 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
   useEffect(() => {
     let completedSteps = 0
 
-    // Step 1: Check for basic fields
-    if (
-      AddNewJDFormik.values.roleTitle !== '' &&
-      AddNewJDFormik.values.reportingTo !== '' &&
-      AddNewJDFormik.values.companyName !== '' &&
-      AddNewJDFormik.values.functionOrDepartment !== '' &&
-      AddNewJDFormik.values.writtenBy !== ''
-    ) {
+    const {
+      roleTitle,
+      reportingTo,
+      companyName,
+      functionOrDepartment,
+      writtenBy,
+      roleSummary,
+      keyResponsibilities,
+      keyChallenges,
+      keyDecisions,
+      internalStakeholders,
+      externalStakeholders,
+      portfolioSize,
+      geographicalCoverage,
+      teamSize,
+      totalTeamSize,
+      skillsAndAttributesType,
+      skillsAndAttributesTypeDescriptionOnly,
+      skillsAndAttributesDetails,
+      minimumQualification,
+      experienceDescription
+    } = AddNewJDFormik.values
+
+    // Step 1: Basic fields
+    if (roleTitle && reportingTo && companyName && functionOrDepartment && writtenBy) {
       completedSteps = 1
-      setActiveStep(1)
     }
 
-    // Step 2: Check for role summary
-    if (completedSteps >= 1 && AddNewJDFormik.values.roleSummary !== '') {
+    // Step 2: Role summary
+    if (completedSteps >= 1 && roleSummary) {
       completedSteps = 2
-      setActiveStep(2)
     }
 
-    // Step 3: Check key responsibilities
-    if (
-      completedSteps >= 2 &&
-      AddNewJDFormik.values.keyResponsibilities.some((d: any) => d.title !== '' && d.description !== '')
-    ) {
+    // Step 3: Key responsibilities
+    if (completedSteps >= 2 && keyResponsibilities.some((d: any) => d.title && d.description)) {
       completedSteps = 3
-      setActiveStep(3)
     }
 
-    if (completedSteps >= 3 && AddNewJDFormik.values.keyChallenges !== '') {
+    // Step 4: Key challenges
+    if (completedSteps >= 3 && keyChallenges) {
       completedSteps = 4
-      setActiveStep(4)
     }
 
-    if (completedSteps >= 4 && AddNewJDFormik.values.keyDecisions !== '') {
+    // Step 5: Key decisions
+    if (completedSteps >= 4 && keyDecisions) {
       completedSteps = 5
-      setActiveStep(5)
     }
 
-    if (
-      completedSteps >= 5 &&
-      AddNewJDFormik.values.internalStakeholders !== '' &&
-      AddNewJDFormik.values.externalStakeholders !== ''
-    ) {
+    // Step 6: Stakeholders
+    if (completedSteps >= 5 && internalStakeholders && externalStakeholders) {
       completedSteps = 6
-      setActiveStep(6)
     }
 
-    if (
-      completedSteps >= 6 &&
-      AddNewJDFormik.values.portfolioSize !== '' &&
-      AddNewJDFormik.values.geographicalCoverage !== '' &&
-      AddNewJDFormik.values.teamSize !== '' &&
-      AddNewJDFormik.values.totalTeamSize !== ''
-    ) {
+    // Step 7: Portfolio and team details
+    if (completedSteps >= 6 && portfolioSize && geographicalCoverage && teamSize && totalTeamSize) {
       completedSteps = 7
-      setActiveStep(7)
     }
 
+    // Step 8: Skills and attributes
     if (
       completedSteps >= 7 &&
-      AddNewJDFormik.values.skillsAndAttributesType === 'description_only' &&
-      AddNewJDFormik.values.skillsAndAttributesTypeDescriptionOnly !== ''
+      ((skillsAndAttributesType === 'description_only' && skillsAndAttributesTypeDescriptionOnly) ||
+        (skillsAndAttributesType === 'in_detail' &&
+          Array.isArray(skillsAndAttributesDetails) &&
+          skillsAndAttributesDetails.every(
+            (item: any) =>
+              item.factor &&
+              Array.isArray(item.competency) &&
+              item.competency.every((comp: any) => comp.value) &&
+              Array.isArray(item.definition) &&
+              item.definition.every((def: any) => def.value) &&
+              Array.isArray(item.behavioural_attributes) &&
+              item.behavioural_attributes.every((attr: any) => attr.value)
+          )))
     ) {
       completedSteps = 8
-      setActiveStep(8)
-    } else if (completedSteps >= 7 && AddNewJDFormik.values.skillsAndAttributesType === 'in_detail') {
-      const skillsValid =
-        completedSteps >= 3 &&
-        Array.isArray(AddNewJDFormik.values.skillsAndAttributesDetails) &&
-        AddNewJDFormik.values.skillsAndAttributesDetails.every((item: any) => {
-          return (
-            item.factor.trim() !== '' &&
-            Array.isArray(item.competency) &&
-            item.competency.every((comp: any) => comp.value.trim() !== '') &&
-            Array.isArray(item.definition) &&
-            item.definition.every((def: any) => def.value.trim() !== '') &&
-            Array.isArray(item.behavioural_attributes) &&
-            item.behavioural_attributes.every((attr: any) => attr.value.trim() !== '')
-          )
-        })
-
-      if (skillsValid) {
-        completedSteps = 8
-        setActiveStep(8)
-      }
     }
 
-    if (
-      completedSteps >= 8 &&
-      AddNewJDFormik.values.minimumQualification !== '' &&
-      AddNewJDFormik.values.experienceDescription !== ''
-    ) {
+    // Step 9: Qualifications and experience
+    if (completedSteps >= 8 && minimumQualification && experienceDescription) {
       completedSteps = 9
-      setActiveStep(9)
     }
 
+    setActiveStep(completedSteps)
     setJDManagementAddFormValues(AddNewJDFormik.values)
   }, [AddNewJDFormik.values])
-
-  // skillsAndAttributesDetails: [
-  //   { competency: [{ value: '' }], definition: [{ value: '' }], behavioural_attributes: [{ value: '' }] }
-  // ],
 
   //for checking if react quill is empty
   const isEmptyContent = (value: any): boolean => {
@@ -306,8 +291,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           position: 'sticky',
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
-          backgroundColor: 'white',
-          height: 'auto'
+          backgroundColor: 'white'
+          // height: 'auto'
         }}
       >
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
@@ -327,10 +312,12 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
       </Card>
       <div
         // onScroll={handleScroll}
-        style={{
-          height: '530px',
-          overflowY: 'scroll'
-        }}
+        style={
+          {
+            // height: '530px',
+            // overflowY: 'scroll'
+          }
+        }
         className='custom-scrollbar'
       >
         <form onSubmit={AddNewJDFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
@@ -384,7 +371,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                   >
                     <MenuItem value='arun'>Arun PG</MenuItem>
                     <MenuItem value='jeevan'>Jeevan Jose</MenuItem>
-                    <MenuItem value='varun'>Varun V </MenuItem>
+                    <MenuItem value='vinduja'>Vinduja </MenuItem>
                   </DynamicSelect>
                 </FormControl>
               )}
@@ -518,7 +505,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                         [{ size: [] }],
                         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                         [{ list: 'ordered' }, { list: 'bullet' }],
-                        ['link', 'image', 'video'],
+                        // ['link', 'image', 'video'],
                         ['clean']
                       ]
                     }
@@ -615,7 +602,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                 [{ size: [] }],
                                 ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                                 [{ list: 'ordered' }, { list: 'bullet' }],
-                                ['link', 'image', 'video'],
+                                // ['link', 'image', 'video'],
                                 ['clean']
                               ]
                             }
@@ -725,7 +712,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                           [{ size: [] }],
                           ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                           [{ list: 'ordered' }, { list: 'bullet' }],
-                          ['link', 'image', 'video'],
+                          // ['link', 'image', 'video'],
                           ['clean']
                         ]
                       }
@@ -782,7 +769,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                           [{ size: [] }],
                           ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                           [{ list: 'ordered' }, { list: 'bullet' }],
-                          ['link', 'image', 'video'],
+                          // ['link', 'image', 'video'],
                           ['clean']
                         ]
                       }
@@ -974,7 +961,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                         [{ size: [] }],
                         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                         [{ list: 'ordered' }, { list: 'bullet' }],
-                        ['link', 'image', 'video'],
+                        // ['link', 'image', 'video'],
                         ['clean']
                       ]
                     }
@@ -1236,7 +1223,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Educational and Experience Requirements</h3>
-          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Educational and Experience Requirements</legend> */}
             <div className=''>
               {true && (
@@ -1290,8 +1277,13 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             </div>
           </fieldset>
 
-          <div className='flex justify-end space-x-4'>
-            <DynamicButton
+          <div className='flex justify-between space-x-4'>
+            <Box>
+              <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
+                Back to jd List
+              </Button>
+            </Box>
+            {/* <DynamicButton
               type='button'
               color='error'
               variant='outlined'
@@ -1299,13 +1291,15 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
               onClick={() => router.push('/jd-management')}
             >
               Back
-            </DynamicButton>
-            <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
-              Reset Form
-            </DynamicButton>
-            <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-              {mode === 'add' ? 'Add' : 'Update'}
-            </DynamicButton>
+            </DynamicButton> */}
+            <Box>
+              <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
+                Reset Form
+              </DynamicButton>
+              <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
+                {mode === 'add' ? 'Add' : 'Update'}
+              </DynamicButton>
+            </Box>
           </div>
         </form>
       </div>

@@ -57,6 +57,11 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
+  useEffect(() => {
+    console.log('selectedFilters', selectedFilters)
+    console.log('appliedFilters', appliedFilters)
+  }, [selectedFilters, appliedFilters])
+
   const jobs = [
     {
       id: 1,
@@ -209,21 +214,18 @@ const JobListing = () => {
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
-  const removeItem = (itemToRemove: string) => {
-    // Dynamically find which array contains the item and remove it
-    const newFilters = Object.keys(selectedFilters).reduce(
-      (acc: any, key: any) => {
-        if (Array.isArray(selectedFilters[key])) {
-          acc[key] = selectedFilters[key].filter(item => item !== itemToRemove)
-        } else {
-          acc[key] = selectedFilters[key]
+  // Function to remove a specific value from any filter array
+  // Function to remove a value dynamically from a filter array
+  const removeItem = (category: any, value: string) => {
+    setSelectedFilters((prev: any) => {
+      if (Array.isArray(prev[category])) {
+        return {
+          ...prev,
+          [category]: prev[category].filter((item: string) => item !== value)
         }
-        return acc
-      },
-      {} as typeof selectedFilters
-    )
-
-    setSelectedFilters(newFilters)
+      }
+      return prev
+    })
   }
 
   //to check whether that filter is applied or not
@@ -231,13 +233,27 @@ const JobListing = () => {
     return filterType.every(item => appliedFilters.includes(item))
   }
 
-  const toggleFilter = (filterType: string, filterValue: string) => {
-    setAppliedFliters((prev: any) => ({
-      ...prev,
-      [filterType]: prev[filterType].includes(filterValue)
-        ? prev[filterType].filter((item: any) => item !== filterValue) // Remove
-        : [...prev[filterType], filterValue] // Add
-    }))
+  const toggleFilter = (filterType: any, filterValue: any) => {
+    setAppliedFliters((prev: any) => {
+      if (filterType === 'salaryRange') {
+        // Toggle salary range: set to [0, 0] if already applied
+        return {
+          ...prev,
+          salaryRange:
+            prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
+              ? [0, 0] // Reset to default
+              : filterValue
+        }
+      } else {
+        // Toggle for other filters
+        return {
+          ...prev,
+          [filterType]: prev[filterType]?.includes(filterValue)
+            ? prev[filterType].filter((item: any) => item !== filterValue) // Remove filter value
+            : [...(prev[filterType] || []), filterValue] // Add filter value
+        }
+      }
+    })
   }
 
   return (
@@ -280,106 +296,6 @@ const JobListing = () => {
               }}
             />
 
-            {/* <CustomTextField
-              select
-              // value={status}
-              label='Job placement'
-              // onChange={e => setStatus(e.target.value)}
-              className='is-[150px]'
-              SelectProps={{ displayEmpty: true }}
-              data-testid='status-filter'
-              placeholder='Select Role'
-            >
-              <MenuItem value='in-progress'>On-site</MenuItem>
-              <MenuItem value='open'>Remote</MenuItem>
-            </CustomTextField>
-
-            <CustomTextField
-              select
-              // value={status}
-              label='Job type'
-              // onChange={e => setStatus(e.target.value)}
-              className='is-[150px]'
-              SelectProps={{ displayEmpty: true }}
-              data-testid='status-filter'
-              placeholder='Select Role'
-            >
-              <MenuItem value='in-progress'>Full-Time</MenuItem>
-              <MenuItem value='open'>Part-Time</MenuItem>
-              <MenuItem value='open'>Contract</MenuItem>
-              <MenuItem value='open'>Temporary</MenuItem>
-            </CustomTextField> */}
-
-            {/* <Box>
-              <Typography color='text.primary' sx={{ fontSize: 13 }}>
-                Location
-              </Typography>
-              <Autocomplete
-                id='size-small-outlined'
-                aria-label='Location'
-                // fullWidth
-                // options={filteredContactsListData || []} // Provide a fallback empty array
-                // getOptionLabel={(option: any) => option?.first_name + ' ' + option?.last_name || ''}
-                // defaultValue={filteredContactsListData?.[0] || null} // Provide a fallback value
-                // value={selectedConsumer}
-                // onChange={(e, newValue: any) => {
-                //   setSelectedConsumer(newValue)
-                //   TicketFormik.setFieldValue('consumer_id', newValue?.id || '')
-                // }}
-                size='small' // Reduces default padding
-                sx={{
-                  height: '40px', // Set the desired height
-                  '.MuiInputBase-root': {
-                    minHeight: '40px' // Ensures consistent height for the input box
-                  },
-                  width: '100%',
-                  minWidth: 250
-                }}
-                renderInput={params => <TextField {...params} placeholder='Select Location' />}
-                value=''
-                onChange={(e, newValue: any) => {
-                  // setSelectedConsumer(newValue)
-                  // TicketFormik.setFieldValue('consumer_id', newValue?.id || '')
-                }}
-                options={[]}
-              />
-            </Box> */}
-
-            {/* New Filter: Salary Range */}
-            {/* <CustomTextField
-              label='Salary Range'
-              placeholder='Select salary range'
-              value='10000 - 20000'
-              // onChange={e => setSelectedSalaryRange(e.target.value)}
-              select // Enables dropdown functionality
-              className='is-[200px]'
-            >
-              <MenuItem value='10000 - 20000'>10000 - 20000</MenuItem>
-              <MenuItem value='20000 - 40000'>20000 - 40000</MenuItem>
-              <MenuItem value='40000 - 60000'>40000 - 60000</MenuItem>
-              <MenuItem value='60000 - 80000'>60000 - 80000</MenuItem>
-              <MenuItem value='80000 - 100000'>80000 - 100000</MenuItem>
-              <MenuItem value='100000 - 120000'>100000 - 120000</MenuItem>
-            </CustomTextField> */}
-
-            {/* New Filter: Experience */}
-            {/* <CustomTextField
-              label='Experience'
-              placeholder='e.g., 2+ Years'
-              value=''
-              onChange={e => setExperience(e.target.value)}
-              className='is-[200px]'
-            /> */}
-            {/* <Button
-              variant='contained'
-              startIcon={<i className='tabler-refresh' />}
-              // onClick={() => resetFiltersFunction()}
-              className='is-full sm:is-auto w-100'
-              data-testid='reset-filters-button'
-              sx={{ ml: 3, mt: 4 }}
-            >
-              Reset Filters
-            </Button> */}
             <Box sx={{ mt: 5 }}>
               <DynamicButton
                 label='Add more filters'
@@ -445,16 +361,10 @@ const JobListing = () => {
             </Typography>
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
-            {/* <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
+            {/*
+            <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
             <Chip label='Filter2' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter3' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter4' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter5' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} />
-            <Chip label='Filter1' variant='outlined' onDelete={() => {}} /> */}
+            */}
 
             <Box
               sx={{
@@ -520,6 +430,12 @@ const JobListing = () => {
                   key='salary-range'
                   label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
                   variant='outlined'
+                  color={
+                    appliedFilters.salaryRange?.[0] !== 0 || appliedFilters.salaryRange?.[1] !== 0
+                      ? 'primary'
+                      : 'default'
+                  }
+                  onClick={() => toggleFilter('salaryRange', selectedFilters?.salaryRange)}
                   onDelete={() => {
                     setSelectedFilters({
                       ...selectedFilters,
@@ -528,6 +444,22 @@ const JobListing = () => {
                   }}
                 />
               ) : null}
+
+              {selectedFilters?.jobRole && (
+                <Chip
+                  key='job-role'
+                  label={selectedFilters?.jobRole}
+                  variant='outlined'
+                  color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
+                  onDelete={() => {
+                    setSelectedFilters({
+                      ...selectedFilters,
+                      salaryRange: [0, 0]
+                    })
+                  }}
+                />
+              )}
             </Box>
           </Stack>
         </Box>

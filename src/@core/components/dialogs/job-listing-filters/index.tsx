@@ -78,7 +78,6 @@ const JobListingCustomFilters = ({
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    // setSelectedFilters(selectedFilters)
     setAppliedFliters(selectedFilters)
     setOpen(false)
   }

@@ -21,6 +21,7 @@ interface FieldProps {
   value?: string | number
   rows?: number
   placeholder?: string
+  className?: string
   sx?: SxProps<Theme>
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   onFocus?: React.FocusEventHandler<HTMLInputElement>
@@ -48,6 +49,7 @@ export default function DynamicTextField({
   placeholder,
   sx,
   size,
+  className,
   InputProps // Destructure InputProps
 }: DynamicTextFieldProps) {
   return (
@@ -72,6 +74,7 @@ export default function DynamicTextField({
         onChange={onChange}
         onFocus={onFocus}
         InputProps={InputProps} // Pass InputProps here
+        className={className}
         fullWidth
       />
     </Box>

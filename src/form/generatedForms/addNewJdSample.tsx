@@ -14,6 +14,11 @@ import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import { useRouter } from 'next/navigation'
+import {
+  getJDManagementAddFormValues,
+  removeJDManagementAddFormValues,
+  setJDManagementAddFormValues
+} from '@/utils/functions'
 type Props = {
   mode: any
   id: any
@@ -50,21 +55,39 @@ const validationSchema = Yup.object().shape({
   keyDecisions: Yup.string().required('Key Decisions Taken is required'),
   internalStakeholders: Yup.string().required('Internal Stakeholders is required'),
   externalStakeholders: Yup.string().required('External Stakeholders is required'),
-  // skillsAndAttributesDetails: Yup.array()
-  //   .of(
-  //     Yup.object().shape({
-  //       competency: Yup.array()
-  //         .of(Yup.object().shape({ value: Yup.string().required('Competency is required') }))
-  //         .min(1, 'At least one Competency is required'),
-  //       definition: Yup.array()
-  //         .of(Yup.object().shape({ value: Yup.string().required('Definition is required') }))
-  //         .min(1, 'At least one Definition is required'),
-  //       behaviouralAttributes: Yup.array()
-  //         .of(Yup.object().shape({ value: Yup.string().required('Behavioural Attribute is required') }))
-  //         .min(1, 'At least one Behavioural Attribute is required')
-  //     })
-  //   )
-  //   .min(1, 'At least one section is required'),
+  skillsAndAttributesType: Yup.string().required('Skills and Attributes Type is required'),
+  skillsAndAttributesTypeDescriptionOnly: Yup.string().test(
+    'validate-description-only',
+    'Required if description_only is selected',
+    function (value) {
+      const { skillsAndAttributesType } = this.parent // Access sibling fields
+      if (skillsAndAttributesType === 'description_only') {
+        return !!value // Ensure value exists for 'description_only'
+      }
+      return true // Skip validation for other types
+    }
+  ),
+  skillsAndAttributesDetails: Yup.array()
+    .of(
+      Yup.object().shape({
+        competency: Yup.array()
+          .of(Yup.object().shape({ value: Yup.string().required('Competency is required') }))
+          .min(1, 'At least one Competency is required'),
+        definition: Yup.array()
+          .of(Yup.object().shape({ value: Yup.string().required('Definition is required') }))
+          .min(1, 'At least one Definition is required'),
+        behaviouralAttributes: Yup.array()
+          .of(Yup.object().shape({ value: Yup.string().required('Behavioural Attribute is required') }))
+          .min(1, 'At least one Behavioural Attribute is required')
+      })
+    )
+    .test('validate-details', 'At least one section is required', function (value) {
+      const { skillsAndAttributesType } = this.parent // Access sibling fields
+      if (skillsAndAttributesType !== 'description_only') {
+        return Array.isArray(value) && value.length > 0 // Ensure non-empty array for other types
+      }
+      return true // Skip validation for 'description_only'
+    }),
   minimumQualification: Yup.string().required('Minimum Qualification is required'),
   experienceDescription: Yup.string().required('Experience Description is required'),
   portfolioSize: Yup.string().required('Portfolio Size is required'),
@@ -86,37 +109,41 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
   //   setActiveStep(newActiveStep === -1 ? stepHeights.length : newActiveStep)
   // }
 
+  const formikValuesFromCache = getJDManagementAddFormValues()
   const AddNewJDFormik: any = useFormik({
-    initialValues: {
-      roleTitle: '',
-      reportingTo: '',
-      companyName: '',
-      functionOrDepartment: '',
-      writtenBy: '',
-      roleSummary: '',
-      keyResponsibilities: [{ title: '', description: '' }],
-      keyChallenges: '',
-      keyDecisions: '',
-      internalStakeholders: '',
-      externalStakeholders: '',
-      skillsAndAttributesType: 'description_only',
-      skillsAndAttributesDetails: [
-        {
-          factor: '',
-          competency: [{ value: '' }],
-          definition: [{ value: '' }],
-          behavioural_attributes: [{ value: '' }]
-        }
-      ],
-      minimumQualification: '',
-      experienceDescription: '',
-      portfolioSize: '',
-      geographicalCoverage: '',
-      teamSize: '',
-      totalTeamSize: '',
-      skillsAndAttributesType_description_only: ''
-    },
-    // validationSchema,
+    initialValues:
+      formikValuesFromCache && mode === 'add'
+        ? formikValuesFromCache
+        : {
+            roleTitle: '',
+            reportingTo: '',
+            companyName: '',
+            functionOrDepartment: '',
+            writtenBy: '',
+            roleSummary: '',
+            keyResponsibilities: [{ title: '', description: '' }],
+            keyChallenges: '',
+            keyDecisions: '',
+            internalStakeholders: '',
+            externalStakeholders: '',
+            skillsAndAttributesType: 'description_only',
+            skillsAndAttributesDetails: [
+              {
+                factor: '',
+                competency: [{ value: '' }],
+                definition: [{ value: '' }],
+                behavioural_attributes: [{ value: '' }]
+              }
+            ],
+            minimumQualification: '',
+            experienceDescription: '',
+            portfolioSize: '',
+            geographicalCoverage: '',
+            teamSize: '',
+            totalTeamSize: '',
+            skillsAndAttributesTypeDescriptionOnly: ''
+          },
+    validationSchema,
     onSubmit: values => {
       console.log('Form Submitted:', values)
     }
@@ -185,7 +212,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     if (
       completedSteps >= 7 &&
       AddNewJDFormik.values.skillsAndAttributesType === 'description_only' &&
-      AddNewJDFormik.values.skillsAndAttributesType_description_only !== ''
+      AddNewJDFormik.values.skillsAndAttributesTypeDescriptionOnly !== ''
     ) {
       completedSteps = 8
       setActiveStep(8)
@@ -219,34 +246,54 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
       completedSteps = 9
       setActiveStep(9)
     }
+
+    setJDManagementAddFormValues(AddNewJDFormik.values)
   }, [AddNewJDFormik.values])
 
-  // roleTitle: '',
-  // reportingTo: '',
-  // companyName: '',
-  // functionOrDepartment: '',
-  // writtenBy: '',
-  // roleSummary: '',
-  // keyResponsibilities: [{ title: '', description: '' }],
-  // keyChallenges: '',
-  // keyDecisions: '',
-  // internalStakeholders: '',
-  // externalStakeholders: '',
-  // skillsAndAttributesType: 'description_only',
   // skillsAndAttributesDetails: [
   //   { competency: [{ value: '' }], definition: [{ value: '' }], behavioural_attributes: [{ value: '' }] }
   // ],
-  // minimumQualification: '',
-  // experienceDescription: '',
-  // portfolioSize: '',
-  // geographicalCoverage: '',
-  // teamSize: '',
-  // totalTeamSize: '',
-  // skillsAndAttributesType_description_only: ''
 
-  //for
+  //for checking if react quill is empty
   const isEmptyContent = (value: any): boolean => {
     return value === '' || value === '<p><br></p>' || value.replace(/<\/?[^>]*>/g, '').trim() === ''
+  }
+
+  const handleResetForm = () => {
+    setActiveStep(0)
+    removeJDManagementAddFormValues()
+    AddNewJDFormik.resetForm()
+    AddNewJDFormik.resetForm({
+      values: {
+        roleTitle: '',
+        reportingTo: '',
+        companyName: '',
+        functionOrDepartment: '',
+        writtenBy: '',
+        roleSummary: '',
+        keyResponsibilities: [{ title: '', description: '' }],
+        keyChallenges: '',
+        keyDecisions: '',
+        internalStakeholders: '',
+        externalStakeholders: '',
+        skillsAndAttributesType: 'description_only',
+        skillsAndAttributesDetails: [
+          {
+            factor: '',
+            competency: [{ value: '' }],
+            definition: [{ value: '' }],
+            behavioural_attributes: [{ value: '' }]
+          }
+        ],
+        minimumQualification: '',
+        experienceDescription: '',
+        portfolioSize: '',
+        geographicalCoverage: '',
+        teamSize: '',
+        totalTeamSize: '',
+        skillsAndAttributesTypeDescriptionOnly: ''
+      }
+    })
   }
 
   return (
@@ -292,7 +339,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </h1>
 
           <h3>Job Roles</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6 mt-2'>
+          <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Job Roles</legend> */}
             <div className='grid grid-cols-2 gap-4'>
               {true && (
@@ -435,7 +482,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Role Summary</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded p-8 mb-6  mt-2'>
             <div className=''>
               <FormControl fullWidth>
                 {/* <DynamicTextField
@@ -487,7 +534,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Key Responsibilities</h3>
-          <fieldset className='border border-gray-300 rounded-lg p-6 mb-8 shadow-sm bg-white  mt-2'>
+          <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white  mt-2'>
             {/* <legend className='text-xl font-semibold text-gray-800 mb-4'>Key Responsibilities</legend> */}
             <div className='space-y-6'>
               {AddNewJDFormik.values.keyResponsibilities &&
@@ -636,14 +683,14 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Key Challenges</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6  mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Key Challenges</legend> */}
             <div className='grid grid-cols-1 gap-4'>
               {true && (
                 <FormControl fullWidth margin='normal'>
-                  <label htmlFor='keyChallenges' className='block text-sm font-medium text-gray-700'>
+                  {/* <label htmlFor='keyChallenges' className='block text-sm font-medium text-gray-700'>
                     Challenges *
-                  </label>
+                  </label> */}
                   {/* <DynamicTextField
                   id='keyChallenges'
                   multiline
@@ -693,7 +740,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Key Decisions Taken</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6  mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Key Decisions Taken</legend> */}
             <div className='grid grid-cols-1 gap-4'>
               {true && (
@@ -750,7 +797,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Key Interactions</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8  mt-2 mb-6'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Key Interactions</legend> */}
             <div className='grid grid-cols-2 gap-4'>
               {true && (
@@ -806,7 +853,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Key Role Dimensions</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6 mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
             <div className='grid grid-cols-2 gap-4'>
               {/* Portfolio Size */}
               <FormControl fullWidth margin='normal'>
@@ -903,32 +950,44 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             </FormControl>
           </Box>
 
-          <fieldset className='border border-gray-300 rounded-lg p-6 mb-8 shadow-sm bg-white  mt-2'>
+          <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white  mt-2'>
             {AddNewJDFormik.values.skillsAndAttributesType === 'description_only' ? (
-              <ReactQuill
-                id='skillsAndAttributesType_description_only'
-                style={{ height: '40vh', paddingBottom: 50 }}
-                value={AddNewJDFormik.values.skillsAndAttributesType_description_only}
-                onChange={(value: any) => {
-                  if (isEmptyContent(value)) {
-                    AddNewJDFormik.setFieldValue('skillsAndAttributesType_description_only', '')
-                  } else {
-                    AddNewJDFormik.setFieldValue('skillsAndAttributesType_description_only', value)
-                  }
-                }}
-                modules={{
-                  toolbar: {
-                    container: [
-                      [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
-                      [{ size: [] }],
-                      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                      [{ list: 'ordered' }, { list: 'bullet' }],
-                      ['link', 'image', 'video'],
-                      ['clean']
-                    ]
-                  }
-                }}
-              />
+              <>
+                <label htmlFor='reportingTo' className='block text-sm font-medium text-gray-700'>
+                  Description
+                </label>
+                <ReactQuill
+                  id='skillsAndAttributesTypeDescriptionOnly'
+                  style={{ height: '40vh', paddingBottom: 50 }}
+                  value={AddNewJDFormik.values.skillsAndAttributesTypeDescriptionOnly}
+                  onChange={(value: any) => {
+                    if (isEmptyContent(value)) {
+                      AddNewJDFormik.setFieldValue('skillsAndAttributesTypeDescriptionOnly', '')
+                    } else {
+                      AddNewJDFormik.setFieldValue('skillsAndAttributesTypeDescriptionOnly', value)
+                    }
+                  }}
+                  modules={{
+                    toolbar: {
+                      container: [
+                        [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
+                        [{ size: [] }],
+                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        ['link', 'image', 'video'],
+                        ['clean']
+                      ]
+                    }
+                  }}
+                />
+
+                {AddNewJDFormik.touched.skillsAndAttributesTypeDescriptionOnly &&
+                  AddNewJDFormik.errors.skillsAndAttributesTypeDescriptionOnly && (
+                    <div style={{ color: 'red', marginTop: '8px' }}>
+                      {AddNewJDFormik.errors.skillsAndAttributesTypeDescriptionOnly}
+                    </div>
+                  )}
+              </>
             ) : (
               <div className='space-y-6'>
                 {AddNewJDFormik.values.skillsAndAttributesDetails?.map((item: any, sectionIndex: number) => (
@@ -1146,22 +1205,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                             )}
                           </div>
                         ))}
-
-                        {/* <DynamicButton
-                      type='button'
-                      variant='contained'
-                      onClick={() => {
-                        const newAttribute = { value: '' }
-                        const updatedAttributes = [...item.behavioural_attributes, newAttribute]
-                        AddNewJDFormik.setFieldValue(
-                          `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
-                          updatedAttributes
-                        )
-                      }}
-                      className='mt-2'
-                    >
-                      Add Attribute
-                    </DynamicButton> */}
                       </div>
                     </Box>
                   </div>
@@ -1193,7 +1236,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Educational and Experience Requirements</h3>
-          <fieldset className='border border-gray-300 rounded p-4 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6  mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Educational and Experience Requirements</legend> */}
             <div className=''>
               {true && (
@@ -1232,7 +1275,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     name='experienceDescription'
                     value={AddNewJDFormik.values.experienceDescription}
                     onChange={AddNewJDFormik.handleChange}
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('experienceDescription', true)}
                     error={
                       AddNewJDFormik.touched.experienceDescription &&
                       Boolean(AddNewJDFormik.errors.experienceDescription)
@@ -1251,13 +1293,16 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           <div className='flex justify-end space-x-4'>
             <DynamicButton
               type='button'
-              variant='contained'
-              className='bg-blue-500 text-white hover:bg-blue-700'
+              color='error'
+              variant='outlined'
+              className=''
               onClick={() => router.push('/jd-management')}
             >
-              Cancel
+              Back
             </DynamicButton>
-
+            <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
+              Reset Form
+            </DynamicButton>
             <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
               {mode === 'add' ? 'Add' : 'Update'}
             </DynamicButton>

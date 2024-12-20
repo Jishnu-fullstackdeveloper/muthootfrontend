@@ -100,6 +100,27 @@ export const removeUserId = () => {
   }
 }
 
+export const setJDManagementAddFormValues = (addFormikValues: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('AddNewJDFormValues', JSON.stringify(addFormikValues))
+  }
+}
+
+export const getJDManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    const savedValues = localStorage.getItem('AddNewJDFormValues')
+    if (savedValues) {
+      return JSON.parse(savedValues)
+    }
+  }
+}
+
+export const removeJDManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('AddNewJDFormValues')
+  }
+}
+
 export const Logout = () => {
   removeAccessToken()
   removeRefreshToken()

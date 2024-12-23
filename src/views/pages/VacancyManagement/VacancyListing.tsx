@@ -1,12 +1,7 @@
 'use client'
 import {
-  Autocomplete,
-  AutocompleteRenderInputParams,
   Box,
-  Button,
-  ButtonGroup,
   Card,
-  CardHeader,
   Chip,
   FormControl,
   IconButton,
@@ -14,7 +9,8 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField,
+  Tab,
+  Tabs,
   Tooltip,
   Typography
 } from '@mui/material'
@@ -30,15 +26,12 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
-import DynamicChip from '@/components/Chip/dynamicChip'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
 
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
-  const [filterBtnApplied, setFilterBtnApplied] = useState<any>(false)
   const [selectedFilters, setSelectedFilters] = useState({
     jobType: [], // Array for checkboxes
     experience: [],
@@ -57,133 +50,92 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
-  useEffect(() => {
-    console.log('selectedFilters', selectedFilters)
-    console.log('appliedFilters', appliedFilters)
-  }, [selectedFilters, appliedFilters])
-
-  const jobs = [
+  const vacancies = [
     {
       id: 1,
       title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Kochi, Bengaluru, Thiruvananthapuram',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development', 'ERP', 'python', 'openrep', 'development']
+      jobType: 'Full-time',
+      numberOfOpenings: 5,
+      branch: 'IT Department',
+      city: 'New York',
+      experience: 3,
+      startDate: '2024-01-15',
+      endDate: '2024-02-15',
+      contactPerson: 'John Doe',
+      status: 'Open' // Possible values: Open, Closed, On Hold
     },
     {
       id: 2,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Mumbai, Pune, Hyderabad',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
+      title: 'Marketing Manager',
+      jobType: 'Part-time',
+      numberOfOpenings: 2,
+      branch: 'Marketing',
+      city: 'San Francisco',
+      experience: 5,
+      startDate: '2024-01-01',
+      endDate: '2024-01-30',
+      contactPerson: 'Jane Smith',
+      status: 'On Hold'
     },
     {
       id: 3,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Delhi, Gurugram, Noida',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
+      title: 'Data Scientist',
+      jobType: 'Full-time',
+      numberOfOpenings: 3,
+      branch: 'Data Analytics',
+      city: 'Los Angeles',
+      experience: 4,
+      startDate: '2024-02-01',
+      endDate: '2024-03-01',
+      contactPerson: 'Emily Zhang',
+      status: 'Open'
     },
     {
       id: 4,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
-      location: 'Chennai, Coimbatore, Bengaluru',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
+      title: 'HR Specialist',
+      jobType: 'Full-time',
+      numberOfOpenings: 1,
+      branch: 'Human Resources',
+      city: 'Chicago',
+      experience: 3,
+      startDate: '2024-02-15',
+      endDate: '2024-03-15',
+      contactPerson: 'Michael Johnson',
+      status: 'Closed'
     },
     {
       id: 5,
-      title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Ahmedabad, Surat, Vadodara',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
+      title: 'Sales Executive',
+      jobType: 'Full-time',
+      numberOfOpenings: 4,
+      branch: 'Sales',
+      city: 'Dallas',
+      experience: 2,
+      startDate: '2024-01-10',
+      endDate: '2024-02-10',
+      contactPerson: 'Sarah Williams',
+      status: 'On Hold'
     },
     {
       id: 6,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Kolkata, Bhubaneswar, Guwahati',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 7,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Lucknow, Kanpur, Varanasi',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 8,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
-      location: 'Indore, Bhopal, Raipur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 9,
-      title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Jaipur, Jodhpur, Udaipur',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 10,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Patna, Ranchi, Jamshedpur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 11,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Goa, Panaji, Vasco da Gama',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development', 'openrep']
-    },
-    {
-      id: 12,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
-      location: 'Chandigarh, Mohali, Zirakpur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
+      title: 'Product Manager',
+      jobType: 'Full-time',
+      numberOfOpenings: 2,
+      branch: 'Product Development',
+      city: 'Austin',
+      experience: 5,
+      startDate: '2024-01-25',
+      endDate: '2024-02-25',
+      contactPerson: 'David Lee',
+      status: 'Open'
     }
   ]
+
+  const [selectedTab, setSelectedTab] = useState(0) // Track selected tab index
+
+  const handleTabChange = (event: any, newValue: number) => {
+    setSelectedTab(newValue) // Update the selected tab index
+  }
 
   const DebouncedInput = ({
     value: initialValue,
@@ -214,37 +166,11 @@ const JobListing = () => {
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
-  const CheckAllFiltersEmpty = (filters: any): boolean => {
-    return Object.entries(filters).every(([key, value]) => {
-      if (Array.isArray(value)) {
-        // For arrays, check if empty or salaryRange specifically equals [0, 0]
-        return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
-      }
-      if (typeof value === 'string') {
-        // For strings, check if empty
-        return value.trim() === ''
-      }
-      if (typeof value === 'object' && value !== null) {
-        // For objects, check if they are empty
-        return Object.keys(value).length === 0
-      }
-      return !value // Handles numbers, null, undefined, etc.
-    })
-  }
-
-  if (CheckAllFiltersEmpty(selectedFilters)) {
-    console.log('All filters are empty')
-  } else {
-    console.log('Some filters are applied')
-  }
-
   // Function to remove a specific value from any filter array
   // Function to remove a value dynamically from a filter array
   const removeItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
-      if (category === 'jobRole') {
-        setSelectedFilters({ ...selectedFilters, jobRole: '' })
-      } else if (Array.isArray(prev[category])) {
+      if (Array.isArray(prev[category])) {
         return {
           ...prev,
           [category]: prev[category].filter((item: string) => item !== value)
@@ -252,6 +178,11 @@ const JobListing = () => {
       }
       return prev
     })
+  }
+
+  //to check whether that filter is applied or not
+  const isFilterApplied = (filterType: string[], appliedFilters: string[]) => {
+    return filterType.every(item => appliedFilters.includes(item))
   }
 
   const toggleFilter = (filterType: any, filterValue: any) => {
@@ -264,11 +195,6 @@ const JobListing = () => {
             prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
               ? [0, 0] // Reset to default
               : filterValue
-        }
-      } else if (filterType === 'jobRole') {
-        return {
-          ...prev,
-          jobRole: prev.jobRole === filterValue ? '' : filterValue // Reset if matched, otherwise set new value
         }
       } else {
         // Toggle for other filters
@@ -295,23 +221,22 @@ const JobListing = () => {
         sx={{
           mb: 4,
           position: 'sticky',
-          top: 70, // Sticks the card at the top of the viewport
-          zIndex: 10, // Ensures it stays above other elements
+          top: 70,
+          zIndex: 10,
           backgroundColor: 'white',
-          height: 'auto', // Automatically adjusts height based on content
-          paddingBottom: 2 // Adds some space at the bottom
+          height: 'auto',
+          paddingBottom: 2
         }}
       >
-        {/* <CardHeader title='Filters' className='pbe-4' /> */}
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
-              label='Search JD'
+              label='Search Vacancy'
               // value={search}
               // onChange={value => setSearch(String(value))}
               value=''
               onChange={() => {}}
-              placeholder='Search by Job Title or Job Description, Category...'
+              placeholder='Search by Job Title or skill...'
               className='is-full sm:is-[400px]'
               InputProps={{
                 endAdornment: (
@@ -334,22 +259,14 @@ const JobListing = () => {
             </Box>
           </div>
 
-          {/* Buttons */}
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
             <DynamicButton
-              label='Upload JD'
-              variant='tonal'
-              icon={<i className='tabler-upload' />}
-              position='start'
-              children='Upload JD'
-            />
-            <DynamicButton
-              label='New JD'
+              label='New Vacancy'
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push(`/jd-management/add/jd`)}
-              children='New JD'
+              onClick={() => router.push(`/vacancy-management/add/new-vacancy`)}
+              children='New Vacancy'
             />
             <Box
               sx={{
@@ -382,18 +299,11 @@ const JobListing = () => {
         {/* Reset Filters */}
         <Box>
           <Stack direction='row' spacing={1} ml={5}>
-            {!CheckAllFiltersEmpty(selectedFilters) && (
-              <Typography component='h3' color='black'>
-                Filters
-              </Typography>
-            )}
+            <Typography component='h3' color='black'>
+              Filters
+            </Typography>
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
-            {/*
-            <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
-            <Chip label='Filter2' variant='outlined' onDelete={() => {}} />
-            */}
-
             <Box
               sx={{
                 overflow: 'hidden',
@@ -480,7 +390,12 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
-                  onDelete={() => removeItem('jobRole', '')}
+                  onDelete={() => {
+                    setSelectedFilters({
+                      ...selectedFilters,
+                      salaryRange: [0, 0]
+                    })
+                  }}
                 />
               )}
             </Box>
@@ -489,80 +404,119 @@ const JobListing = () => {
       </Card>
       {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
       {/* <div className='space-y-4'> */}
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
-        {jobs.map(job => (
+      {/* <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}> */}
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-4'} `}>
+        {vacancies.map(vacancy => (
           <Box
-            sx={{ cursor: 'pointer' }}
-            key={job.id}
-            className='bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition transform hover:-translate-y-1'
-            onClick={() => router.push(`/jd-management/view/${job.id}`)}
+            key={vacancy.id}
+            className='bg-white rounded-lg shadow-lg border border-gray-300 hover:shadow-xl transition-transform transform hover:-translate-y-1'
+            sx={{
+              cursor: 'pointer'
+            }}
           >
-            {/* Title and Icons Container */}
-            <Box className='flex justify-between items-center'>
-              {/* Job Title */}
-              <h2 className='text-lg font-semibold text-gray-800'>{job.title}</h2>
-
-              {/* Icons */}
-              <div className='flex items-center space-x-2'>
-                <Tooltip title='Edit JD' placement='top'>
+            {/* Header Section with Action Buttons */}
+            <Box className='p-4 flex justify-between items-center'>
+              <div className='flex items-center'>
+                <h2 className='text-lg font-bold text-gray-800'>{vacancy.title}</h2>
+              </div>
+              <div className='flex space-x-2'>
+                <Stack sx={{ marginTop: 2 }}>
+                  <Chip
+                    label={vacancy.status}
+                    color={vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'}
+                    size='small'
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '0.8rem',
+                      textTransform: 'uppercase'
+                    }}
+                  />
+                </Stack>
+                <Tooltip title='Edit Vacancy' placement='top'>
                   <IconButton
                     onClick={e => {
                       e.stopPropagation() // Prevent card click
-                      router.push(`/jd-management/edit/${job.id}`)
+                      router.push(`/vacancy-management/edit/${vacancy.id}`)
                     }}
                   >
                     <i className='tabler-edit' />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title='Delete JD' placement='top'>
+                <Tooltip title='Delete Vacancy' placement='top'>
                   <IconButton
                     onClick={e => {
                       e.stopPropagation() // Prevent card click
+                      // Add delete logic here
                     }}
                   >
                     <i className='tabler-trash' />
                   </IconButton>
                 </Tooltip>
-
-                {/* <Tooltip title='Edit JD' placement='top'>
-                  <IconButton
-                    aria-label='edit'
-                    component='span'
-                    onClick={e => {
-                      e.stopPropagation()
-                      router.push(`/jd-management/edit/${job.id}`)
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-
-                <Tooltip title='Delete JD' placement='top'>
-                  <IconButton color='secondary' aria-label='delete' component='span' onClick={e => e.stopPropagation()}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip> */}
               </div>
             </Box>
 
-            {/* Job Details */}
-            <p className='text-sm text-gray-500 mb-2'>
-              <strong>Experience:</strong> {job.experience}
-            </p>
-            <p className='text-gray-600 text-sm mb-4'>
-              <strong>Role Description: </strong>
-              {job.description}
-            </p>
+            {/* Tabbed Details Section */}
+            <Box className='p-4 border-t'>
+              <Tabs
+                value={selectedTab} // Control the selected tab
+                onChange={handleTabChange} // Update selected tab on change
+                aria-label='vacancy details'
+              >
+                {/* Tab Labels */}
+                <Tab label='Details' />
+                <Tab label='Dates' />
+                <Tab label='Contact' />
+              </Tabs>
 
-            {/* Job Tags */}
-            <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-              {job.tags.map((tag, index) => (
-                <Chip key={index} label={tag} variant='outlined' />
-              ))}
-            </Stack>
+              {/* Tab Content */}
+              <Box className='mt-4'>
+                {/* Details Tab Content */}
+                {selectedTab === 0 && (
+                  <Box className='space-y-2 text-sm text-gray-700'>
+                    <p>
+                      <strong>Job Type:</strong> {vacancy.jobType}
+                    </p>
+                    <p>
+                      <strong>Openings:</strong> {vacancy.numberOfOpenings}
+                    </p>
+                    <p>
+                      <strong>Branch:</strong> {vacancy.branch}
+                    </p>
+                    <p>
+                      <strong>City:</strong> {vacancy.city}
+                    </p>
+                    <p>
+                      <strong>Experience:</strong> {vacancy.experience} years
+                    </p>
+                  </Box>
+                )}
+
+                {/* Dates Tab Content */}
+                {selectedTab === 1 && (
+                  <Box className='space-y-2 text-sm text-gray-700'>
+                    <p>
+                      <strong>Start Date:</strong> {vacancy.startDate}
+                    </p>
+                    <p>
+                      <strong>End Date:</strong> {vacancy.endDate}
+                    </p>
+                  </Box>
+                )}
+
+                {/* Contact Tab Content */}
+                {selectedTab === 2 && (
+                  <Box className='space-y-2 text-sm text-gray-700'>
+                    <p>
+                      <strong>Contact Person:</strong> {vacancy.contactPerson}
+                    </p>
+                  </Box>
+                )}
+              </Box>
+            </Box>
           </Box>
         ))}
       </div>
+
       <div className='flex items-center justify-end mt-6'>
         {/* Center-aligned "Load More" Button */}
         {/* <Box className='flex items-center justify-start flex-grow gap-4'>

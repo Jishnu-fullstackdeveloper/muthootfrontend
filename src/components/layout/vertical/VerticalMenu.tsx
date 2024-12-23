@@ -91,6 +91,12 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </MenuItem>
         ))}
 
+        <MenuItem href='/user-management' icon={<i className='tabler-users' />}>
+          User Management
+        </MenuItem>
+        <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
+          User Roles
+        </MenuItem>
         {isJDManagementPage ? (
           <MenuItem href={pathname} icon={<i className='tabler-file-description' />}>
             JD Management
@@ -100,11 +106,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             JD Management
           </MenuItem>
         )}
-        <MenuItem href='/user-management' icon={<i className='tabler-file-description' />}>
-          User Management
-        </MenuItem>
-        <MenuItem href='/user-roles' icon={<i className='tabler-file-description' />}>
-          User Roles
+
+        <MenuItem href='/vacancy-management' icon={<i className='tabler-briefcase' />}>
+          Vacancy Management
         </MenuItem>
 
         {/* <SubMenu label='Components'>

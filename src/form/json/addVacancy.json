@@ -1,0 +1,157 @@
+{
+    "title": "Vacancy Management Form",
+    "fields": [
+        {
+            "section": "Basic Details",
+            "fields": [
+                {
+                    "name": "vacancyTitle",
+                    "label": "Vacancy Title",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "jobType",
+                    "label": "Job Type",
+                    "type": "select",
+                    "options": [
+                        "Full-time",
+                        "Part-time",
+                        "Contract",
+                        "Internship"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "jobDescription",
+                    "label": "Job Description",
+                    "type": "textarea",
+                    "required": true
+                },
+                {
+                    "name": "numberOfOpenings",
+                    "label": "Number of Openings",
+                    "type": "number",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Job Location",
+            "fields": [
+                {
+                    "name": "branch",
+                    "label": "Branch",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "city",
+                    "label": "City",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "stateOrRegion",
+                    "label": "State/Region",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "country",
+                    "label": "Country",
+                    "type": "text",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Qualification Needed",
+            "fields": [
+                {
+                    "name": "educationalQualification",
+                    "label": "Educational Qualification",
+                    "type": "textarea",
+                    "required": true
+                },
+                {
+                    "name": "experienceInYears",
+                    "label": "Experience (in years)",
+                    "type": "number",
+                    "required": true
+                },
+                {
+                    "name": "skillsNeeded",
+                    "label": "Skills Needed",
+                    "type": "textarea",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Salary Details",
+            "fields": [
+                {
+                    "name": "salaryRange",
+                    "label": "Salary Range",
+                    "type": "text",
+                    "required": false
+                },
+                {
+                    "name": "additionalBenefits",
+                    "label": "Additional Benefits",
+                    "type": "textarea",
+                    "required": false
+                }
+            ]
+        },
+        {
+            "section": "Application Details",
+            "fields": [
+                {
+                    "name": "vacancyStartDate",
+                    "label": "Vacancy Start Date",
+                    "type": "date",
+                    "required": true
+                },
+                {
+                    "name": "vacancyEndDate",
+                    "label": "Vacancy End Date",
+                    "type": "date",
+                    "required": true
+                },
+                {
+                    "name": "contactPerson",
+                    "label": "Contact Person",
+                    "type": "text",
+                    "required": true
+                },
+                {
+                    "name": "vacancyStatus",
+                    "label": "Vacancy Status",
+                    "type": "select",
+                    "options": [
+                        "Open",
+                        "Closed",
+                        "On Hold"
+                    ],
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "saveDraft",
+            "label": "Save Draft"
+        },
+        {
+            "type": "submit",
+            "label": "Submit"
+        }
+    ]
+}

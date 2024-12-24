@@ -4,6 +4,7 @@ import {
   Card,
   Chip,
   FormControl,
+  Grid,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -15,8 +16,6 @@ import {
   Typography
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
 import { useRouter } from 'next/navigation'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
@@ -26,29 +25,39 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
-import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
+import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
+import { RestartAlt } from '@mui/icons-material'
 
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
   const [selectedFilters, setSelectedFilters] = useState({
-    jobType: [], // Array for checkboxes
+    location: [],
+    department: [],
+    employmentType: [],
     experience: [],
-    education: [],
     skills: [],
-    salaryRange: [0, 0], // Default range for the slider
-    jobRole: '' // Default value for the select dropdown
+    salaryRange: [0, 0],
+    jobRole: ''
   })
 
-  const [appliedFilters, setAppliedFliters] = useState({
-    jobType: [], // Array for checkboxes
+  const [appliedFilters, setAppliedFilters] = useState({
+    location: [],
+    department: [],
+    employmentType: [],
     experience: [],
-    education: [],
     skills: [],
-    salaryRange: [0, 0], // Default range for the slider
-    jobRole: '' // Default value for the select dropdown
+    salaryRange: [0, 0],
+    jobRole: ''
   })
+
+  const handleTabChange = (vacancyId: any, newValue: number) => {
+    setSelectedTabs(prev => ({
+      ...prev,
+      [vacancyId]: newValue // Update the tab index for the specific vacancy
+    }))
+  }
 
   const vacancies = [
     {
@@ -130,12 +139,15 @@ const JobListing = () => {
       status: 'Open'
     }
   ]
-
-  const [selectedTab, setSelectedTab] = useState(0) // Track selected tab index
-
-  const handleTabChange = (event: any, newValue: number) => {
-    setSelectedTab(newValue) // Update the selected tab index
-  }
+  const [selectedTabs, setSelectedTabs] = useState<{ [key: string]: number }>(() =>
+    vacancies?.reduce(
+      (acc, vacancy) => {
+        acc[vacancy.id] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+        return acc
+      },
+      {} as { [key: string]: number }
+    )
+  )
 
   const DebouncedInput = ({
     value: initialValue,
@@ -166,11 +178,43 @@ const JobListing = () => {
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
+  const CheckAllFiltersEmpty = (filters: any): boolean => {
+    return Object.entries(filters).every(([key, value]) => {
+      if (Array.isArray(value)) {
+        // For arrays, check if empty or salaryRange specifically equals [0, 0]
+        return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
+      }
+      if (typeof value === 'string') {
+        // For strings, check if empty
+        return value.trim() === ''
+      }
+      if (typeof value === 'object' && value !== null) {
+        // For objects, check if they are empty
+        return Object.keys(value).length === 0
+      }
+      return !value // Handles numbers, null, undefined, etc.
+    })
+  }
+
+  const handleResetFilters = () => {
+    setSelectedFilters({
+      location: [],
+      department: [],
+      employmentType: [],
+      experience: [],
+      skills: [],
+      salaryRange: [0, 0],
+      jobRole: ''
+    })
+  }
+
   // Function to remove a specific value from any filter array
   // Function to remove a value dynamically from a filter array
   const removeItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
-      if (Array.isArray(prev[category])) {
+      if (category === 'jobRole') {
+        setSelectedFilters({ ...selectedFilters, jobRole: '' })
+      } else if (Array.isArray(prev[category])) {
         return {
           ...prev,
           [category]: prev[category].filter((item: string) => item !== value)
@@ -180,13 +224,8 @@ const JobListing = () => {
     })
   }
 
-  //to check whether that filter is applied or not
-  const isFilterApplied = (filterType: string[], appliedFilters: string[]) => {
-    return filterType.every(item => appliedFilters.includes(item))
-  }
-
   const toggleFilter = (filterType: any, filterValue: any) => {
-    setAppliedFliters((prev: any) => {
+    setAppliedFilters((prev: any) => {
       if (filterType === 'salaryRange') {
         // Toggle salary range: set to [0, 0] if already applied
         return {
@@ -195,6 +234,11 @@ const JobListing = () => {
             prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
               ? [0, 0] // Reset to default
               : filterValue
+        }
+      } else if (filterType === 'jobRole') {
+        return {
+          ...prev,
+          jobRole: prev.jobRole === filterValue ? '' : filterValue // Reset if matched, otherwise set new value
         }
       } else {
         // Toggle for other filters
@@ -210,12 +254,13 @@ const JobListing = () => {
 
   return (
     <div className='min-h-screen'>
-      <JobListingCustomFilters
+      <VacancyManagementFilters
         open={addMoreFilters}
         setOpen={setAddMoreFilters}
         setSelectedFilters={setSelectedFilters}
         selectedFilters={selectedFilters}
-        setAppliedFliters={setAppliedFliters}
+        setAppliedFilters={setAppliedFilters}
+        handleResetFilters={handleResetFilters}
       />
       <Card
         sx={{
@@ -255,6 +300,17 @@ const JobListing = () => {
                 position='start'
                 children='Add more filters'
                 onClick={() => setAddMoreFilters(true)}
+              />
+            </Box>
+            <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
+              <DynamicButton
+                label='Reset Filters'
+                variant='outlined'
+                icon={<RestartAlt />} // Proper reset icon from MUI
+                position='start'
+                onClick={handleResetFilters}
+                children='Reset Filters'
+                disabled={CheckAllFiltersEmpty(selectedFilters)}
               />
             </Box>
           </div>
@@ -299,9 +355,11 @@ const JobListing = () => {
         {/* Reset Filters */}
         <Box>
           <Stack direction='row' spacing={1} ml={5}>
-            <Typography component='h3' color='black'>
-              Filters
-            </Typography>
+            {!CheckAllFiltersEmpty(selectedFilters) && (
+              <Typography component='h3' color='black'>
+                Filters
+              </Typography>
+            )}
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
             <Box
@@ -327,30 +385,41 @@ const JobListing = () => {
               ))}
 
               {/* Map Education Chips */}
-              {selectedFilters.education.map(edu => (
+              {selectedFilters.location.map(loc => (
                 <Chip
-                  key={edu}
-                  label={edu}
+                  key={loc}
+                  label={loc}
                   variant='outlined'
-                  color={appliedFilters.education.includes(edu) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('education', edu)}
-                  onDelete={() => removeItem('education', edu)}
+                  color={appliedFilters.location.includes(loc) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('location', loc)}
+                  onDelete={() => removeItem('location', loc)}
                 />
               ))}
 
               {/* Map Job Type Chips */}
-              {selectedFilters.jobType.map(type => (
+              {selectedFilters.department.map(dept => (
                 <Chip
-                  key={type}
-                  label={type}
+                  key={dept}
+                  label={dept}
                   variant='outlined'
-                  color={appliedFilters.jobType.includes(type) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('jobType', type)}
-                  onDelete={() => removeItem('jobType', type)}
+                  color={appliedFilters.department.includes(dept) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('department', dept)}
+                  onDelete={() => removeItem('department', dept)}
                 />
               ))}
 
               {/* Map Skills Chips */}
+              {selectedFilters.employmentType.map(emp_type => (
+                <Chip
+                  key={emp_type}
+                  label={emp_type}
+                  variant='outlined'
+                  color={appliedFilters.employmentType.includes(emp_type) ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('employmentType', emp_type)}
+                  onDelete={() => removeItem('employmentType', emp_type)}
+                />
+              ))}
+
               {selectedFilters.skills.map(skill => (
                 <Chip
                   key={skill}
@@ -390,129 +459,190 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
-                  onDelete={() => {
-                    setSelectedFilters({
-                      ...selectedFilters,
-                      salaryRange: [0, 0]
-                    })
-                  }}
+                  onDelete={() => removeItem('jobRole', '')}
                 />
               )}
             </Box>
           </Stack>
         </Box>
       </Card>
-      {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
-      {/* <div className='space-y-4'> */}
-      {/* <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}> */}
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-4'} `}>
+
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {vacancies.map(vacancy => (
           <Box
+            onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
             key={vacancy.id}
-            className='bg-white rounded-lg shadow-lg border border-gray-300 hover:shadow-xl transition-transform transform hover:-translate-y-1'
+            className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
+              viewMode !== 'grid' && 'p-6'
+            }`}
             sx={{
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minHeight: viewMode !== 'grid' ? '150px' : 'auto'
             }}
           >
-            {/* Header Section with Action Buttons */}
-            <Box className='p-4 flex justify-between items-center'>
-              <div className='flex items-center'>
-                <h2 className='text-lg font-bold text-gray-800'>{vacancy.title}</h2>
-              </div>
-              <div className='flex space-x-2'>
-                <Stack sx={{ marginTop: 2 }}>
-                  <Chip
-                    label={vacancy.status}
-                    color={vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'}
-                    size='small'
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '0.8rem',
-                      textTransform: 'uppercase'
-                    }}
-                  />
-                </Stack>
-                <Tooltip title='Edit Vacancy' placement='top'>
-                  <IconButton
-                    onClick={e => {
-                      e.stopPropagation() // Prevent card click
-                      router.push(`/vacancy-management/edit/${vacancy.id}`)
-                    }}
+            {viewMode === 'grid' ? (
+              // Grid View
+              <>
+                {/* Header Section with Action Buttons */}
+                <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
+                  <div className='flex items-center'>
+                    <Typography variant='h5' mt={2} fontWeight='bold' color='primary' gutterBottom>
+                      {vacancy.title}
+                    </Typography>
+                  </div>
+                  <div className='flex space-x-2'>
+                    <Stack sx={{ marginTop: 2 }}>
+                      <Chip
+                        label={vacancy.status}
+                        color={
+                          vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'
+                        }
+                        size='small'
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem', // Slightly increased font size
+                          textTransform: 'uppercase'
+                        }}
+                      />
+                    </Stack>
+                    <Tooltip title='Edit Vacancy' placement='top'>
+                      <IconButton
+                        onClick={e => {
+                          e.stopPropagation() // Prevent card click
+                          router.push(`/vacancy-management/edit/${vacancy.id}`)
+                        }}
+                      >
+                        <i className='tabler-edit' />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Delete Vacancy' placement='top'>
+                      <IconButton
+                        onClick={e => {
+                          e.stopPropagation() // Prevent card click
+                          // Add delete logic here
+                        }}
+                      >
+                        <i className='tabler-trash' />
+                      </IconButton>
+                    </Tooltip>
+                  </div>
+                </Box>
+
+                {/* Tabbed Details Section */}
+                <Box className='p-4 border-t'>
+                  <Tabs
+                    value={selectedTabs[vacancy.id] || 0} // Get the selected tab for the current vacancy
+                    onClick={e => e.stopPropagation()}
+                    onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)} // Pass vacancy ID to handleTabChange
+                    aria-label='vacancy details'
                   >
-                    <i className='tabler-edit' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Delete Vacancy' placement='top'>
-                  <IconButton
-                    onClick={e => {
-                      e.stopPropagation() // Prevent card click
-                      // Add delete logic here
-                    }}
-                  >
-                    <i className='tabler-trash' />
-                  </IconButton>
-                </Tooltip>
-              </div>
-            </Box>
+                    {/* Tab Labels */}
+                    <Tab label='Details' />
+                    <Tab label='Dates' />
+                    <Tab label='Contact' />
+                  </Tabs>
 
-            {/* Tabbed Details Section */}
-            <Box className='p-4 border-t'>
-              <Tabs
-                value={selectedTab} // Control the selected tab
-                onChange={handleTabChange} // Update selected tab on change
-                aria-label='vacancy details'
-              >
-                {/* Tab Labels */}
-                <Tab label='Details' />
-                <Tab label='Dates' />
-                <Tab label='Contact' />
-              </Tabs>
-
-              {/* Tab Content */}
-              <Box className='mt-4'>
-                {/* Details Tab Content */}
-                {selectedTab === 0 && (
-                  <Box className='space-y-2 text-sm text-gray-700'>
-                    <p>
-                      <strong>Job Type:</strong> {vacancy.jobType}
-                    </p>
-                    <p>
-                      <strong>Openings:</strong> {vacancy.numberOfOpenings}
-                    </p>
-                    <p>
-                      <strong>Branch:</strong> {vacancy.branch}
-                    </p>
-                    <p>
-                      <strong>City:</strong> {vacancy.city}
-                    </p>
-                    <p>
-                      <strong>Experience:</strong> {vacancy.experience} years
-                    </p>
+                  {/* Tab Content */}
+                  <Box className='mt-4'>
+                    {selectedTabs[vacancy.id] === 0 && (
+                      <Box className='space-y-2 text-sm text-gray-700'>
+                        <p>
+                          <strong>Job Type:</strong> {vacancy.jobType}
+                        </p>
+                        <p>
+                          <strong>Openings:</strong> {vacancy.numberOfOpenings}
+                        </p>
+                        <p>
+                          <strong>Branch:</strong> {vacancy.branch}
+                        </p>
+                        <p>
+                          <strong>City:</strong> {vacancy.city}
+                        </p>
+                        <p>
+                          <strong>Experience:</strong> {vacancy.experience} years
+                        </p>
+                      </Box>
+                    )}
+                    {selectedTabs[vacancy.id] === 1 && (
+                      <Box className='space-y-2 text-sm text-gray-700'>
+                        <p>
+                          <strong>Start Date:</strong> {vacancy.startDate}
+                        </p>
+                        <p>
+                          <strong>End Date:</strong> {vacancy.endDate}
+                        </p>
+                      </Box>
+                    )}
+                    {selectedTabs[vacancy.id] === 2 && (
+                      <Box className='space-y-2 text-sm text-gray-700'>
+                        <p>
+                          <strong>Contact Person:</strong> {vacancy.contactPerson}
+                        </p>
+                      </Box>
+                    )}
                   </Box>
-                )}
+                </Box>
+              </>
+            ) : (
+              // List View
+              <Grid container spacing={4} alignItems='center'>
+                {/* Column 1 */}
+                <Grid item xs={12} md={4}>
+                  <Typography variant='h5' fontWeight='bold' color='primary' gutterBottom>
+                    {/* Increased size for title */}
+                    {vacancy.title}
+                  </Typography>
+                  <Typography variant='body1'>
+                    {/* Larger font for body text */}
+                    <strong>Job Type:</strong> {vacancy.jobType}
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>Openings:</strong> {vacancy.numberOfOpenings}
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>Branch:</strong> {vacancy.branch}
+                  </Typography>
+                </Grid>
 
-                {/* Dates Tab Content */}
-                {selectedTab === 1 && (
-                  <Box className='space-y-2 text-sm text-gray-700'>
-                    <p>
-                      <strong>Start Date:</strong> {vacancy.startDate}
-                    </p>
-                    <p>
-                      <strong>End Date:</strong> {vacancy.endDate}
-                    </p>
-                  </Box>
-                )}
+                {/* Column 2 */}
+                <Grid item xs={12} md={4}>
+                  <Typography variant='body1'>
+                    <strong>City:</strong> {vacancy.city}
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>Experience:</strong> {vacancy.experience} years
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>Start Date:</strong> {vacancy.startDate}
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>End Date:</strong> {vacancy.endDate}
+                  </Typography>
+                </Grid>
 
-                {/* Contact Tab Content */}
-                {selectedTab === 2 && (
-                  <Box className='space-y-2 text-sm text-gray-700'>
-                    <p>
-                      <strong>Contact Person:</strong> {vacancy.contactPerson}
-                    </p>
-                  </Box>
-                )}
-              </Box>
-            </Box>
+                {/* Column 3 */}
+                <Grid item xs={12} md={4}>
+                  <Typography variant='body1'>
+                    <strong>Status:</strong>{' '}
+                    <Chip
+                      label={vacancy.status}
+                      color={
+                        vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'
+                      }
+                      size='small'
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem',
+                        textTransform: 'uppercase'
+                      }}
+                    />
+                  </Typography>
+                  <Typography variant='body1'>
+                    <strong>Contact Person:</strong> {vacancy.contactPerson}
+                  </Typography>
+                </Grid>
+              </Grid>
+            )}
           </Box>
         ))}
       </div>

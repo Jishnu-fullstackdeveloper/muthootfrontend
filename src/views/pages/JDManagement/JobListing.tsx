@@ -33,6 +33,7 @@ import DynamicButton from '@/components/Button/dynamicButton'
 import DynamicChip from '@/components/Chip/dynamicChip'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
+import { RestartAlt } from '@mui/icons-material'
 
 const JobListing = () => {
   const router = useRouter()
@@ -48,7 +49,7 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
-  const [appliedFilters, setAppliedFliters] = useState({
+  const [appliedFilters, setAppliedFilters] = useState({
     jobType: [], // Array for checkboxes
     experience: [],
     education: [],
@@ -57,10 +58,21 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
-  useEffect(() => {
-    console.log('selectedFilters', selectedFilters)
-    console.log('appliedFilters', appliedFilters)
-  }, [selectedFilters, appliedFilters])
+  const handleResetFilters = () => {
+    setSelectedFilters({
+      jobType: [], // Array for checkboxes
+      experience: [],
+      education: [],
+      skills: [],
+      salaryRange: [0, 0], // Default range for the slider
+      jobRole: '' // Default value for the select dropdown
+    })
+  }
+
+  // useEffect(() => {
+  //   console.log('selectedFilters', selectedFilters)
+  //   console.log('appliedFilters', appliedFilters)
+  // }, [selectedFilters, appliedFilters])
 
   const jobs = [
     {
@@ -97,7 +109,8 @@ const JobListing = () => {
       id: 4,
       title: 'Data Scientist',
       experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
+      description:
+        'As a member of the software engineering division, you will take an active role in the definition and evolution of standard practices and procedures. You will be responsible for defining and developing software for tasks associated with the developing, designing and debugging of software applications or operating systems.',
       location: 'Chennai, Coimbatore, Bengaluru',
       job_type: 'Onsite',
       job_placement: 'Part-Time',
@@ -232,12 +245,6 @@ const JobListing = () => {
     })
   }
 
-  if (CheckAllFiltersEmpty(selectedFilters)) {
-    console.log('All filters are empty')
-  } else {
-    console.log('Some filters are applied')
-  }
-
   // Function to remove a specific value from any filter array
   // Function to remove a value dynamically from a filter array
   const removeItem = (category: any, value: string) => {
@@ -255,7 +262,7 @@ const JobListing = () => {
   }
 
   const toggleFilter = (filterType: any, filterValue: any) => {
-    setAppliedFliters((prev: any) => {
+    setAppliedFilters((prev: any) => {
       if (filterType === 'salaryRange') {
         // Toggle salary range: set to [0, 0] if already applied
         return {
@@ -289,7 +296,8 @@ const JobListing = () => {
         setOpen={setAddMoreFilters}
         setSelectedFilters={setSelectedFilters}
         selectedFilters={selectedFilters}
-        setAppliedFliters={setAppliedFliters}
+        setAppliedFilters={setAppliedFilters}
+        handleResetFilters={handleResetFilters}
       />
       <Card
         sx={{
@@ -298,7 +306,7 @@ const JobListing = () => {
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
           backgroundColor: 'white',
-          height: 'auto', // Automatically adjusts height based on content
+          // height: 'auto', // Automatically adjusts height based on content
           paddingBottom: 2 // Adds some space at the bottom
         }}
       >
@@ -330,6 +338,18 @@ const JobListing = () => {
                 position='start'
                 children='Add more filters'
                 onClick={() => setAddMoreFilters(true)}
+              />
+            </Box>
+
+            <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
+              <DynamicButton
+                label='Reset Filters'
+                variant='outlined'
+                icon={<RestartAlt />} // Proper reset icon from MUI
+                position='start'
+                onClick={handleResetFilters}
+                children='Reset Filters'
+                disabled={CheckAllFiltersEmpty(selectedFilters)}
               />
             </Box>
           </div>
@@ -489,7 +509,7 @@ const JobListing = () => {
       </Card>
       {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
       {/* <div className='space-y-4'> */}
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
+      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
         {jobs.map(job => (
           <Box
             sx={{ cursor: 'pointer' }}
@@ -551,7 +571,7 @@ const JobListing = () => {
             </p>
             <p className='text-gray-600 text-sm mb-4'>
               <strong>Role Description: </strong>
-              {job.description}
+              {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
             </p>
 
             {/* Job Tags */}
@@ -562,7 +582,7 @@ const JobListing = () => {
             </Stack>
           </Box>
         ))}
-      </div>
+      </Box>
       <div className='flex items-center justify-end mt-6'>
         {/* Center-aligned "Load More" Button */}
         {/* <Box className='flex items-center justify-start flex-grow gap-4'>

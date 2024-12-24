@@ -107,9 +107,15 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </MenuItem>
         )}
 
-        <MenuItem href='/vacancy-management' icon={<i className='tabler-briefcase' />}>
-          Vacancy Management
-        </MenuItem>
+        {pathname.startsWith('/vacancy-management/') ? (
+          <MenuItem href={pathname} icon={<i className='tabler-briefcase' />}>
+            Vacancy Management
+          </MenuItem>
+        ) : (
+          <MenuItem href='/vacancy-management' icon={<i className='tabler-briefcase' />}>
+            Vacancy Management
+          </MenuItem>
+        )}
 
         {/* <SubMenu label='Components'>
           <MenuItem href='/components/accordion'>Accordion</MenuItem>

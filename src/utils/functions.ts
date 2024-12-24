@@ -121,6 +121,27 @@ export const removeJDManagementAddFormValues = () => {
   }
 }
 
+export const setVacancyManagementAddFormValues = (addFormikValues: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('AddNewVacancyFormValues', JSON.stringify(addFormikValues))
+  }
+}
+
+export const getVacancyManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    const savedValues = localStorage.getItem('AddNewVacancyFormValues')
+    if (savedValues) {
+      return JSON.parse(savedValues)
+    }
+  }
+}
+
+export const removeVacancyManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('AddNewVacancyFormValues')
+  }
+}
+
 export const Logout = () => {
   removeAccessToken()
   removeRefreshToken()

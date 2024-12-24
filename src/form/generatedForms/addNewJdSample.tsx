@@ -6,7 +6,6 @@ import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, Step
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
-import dynamic from 'next/dynamic'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import ReactQuill from 'react-quill'
@@ -295,8 +294,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           position: 'sticky',
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
-          backgroundColor: 'white',
-          height: 'auto'
+          backgroundColor: 'white'
+          // height: 'auto'
         }}
       >
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
@@ -316,10 +315,12 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
       </Card>
       <div
         // onScroll={handleScroll}
-        style={{
-          height: '530px',
-          overflowY: 'scroll'
-        }}
+        style={
+          {
+            // height: '530px',
+            // overflowY: 'scroll'
+          }
+        }
         className='custom-scrollbar'
       >
         <form onSubmit={AddNewJDFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>

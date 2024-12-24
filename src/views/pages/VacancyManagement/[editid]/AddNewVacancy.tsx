@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
 const GeneratedAddVacancyForm = dynamic(() => import('@/form/generatedForms/addVacancy'), { ssr: false })
 import { usePathname } from 'next/navigation'
+const JobVacancyView = dynamic(() => import('../ViewVacancy'), { ssr: false })
 
 const AddNewVacancy = () => {
   // Example: location.pathname = "/jd-management/add/jd"
@@ -20,7 +21,7 @@ const AddNewVacancy = () => {
         </>
       )}
 
-      {/* {mode === 'view' && <ViewJd mode={mode} id={id} />} */}
+      {mode === 'view' && <JobVacancyView mode={mode} id={id} />}
     </>
   )
 }

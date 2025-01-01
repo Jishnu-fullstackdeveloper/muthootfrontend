@@ -27,6 +27,11 @@ import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
 import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
 import { RestartAlt } from '@mui/icons-material'
+import {
+  getVacancyManagementFiltersFromCookie,
+  removeVacancyManagementFiltersFromCookie,
+  setVacancyManagementFiltersToCookie
+} from '@/utils/functions'
 
 const JobListing = () => {
   const router = useRouter()
@@ -51,6 +56,15 @@ const JobListing = () => {
     salaryRange: [0, 0],
     jobRole: ''
   })
+
+  const FiltersFromCookie = getVacancyManagementFiltersFromCookie()
+
+  useEffect(() => {
+    setVacancyManagementFiltersToCookie({
+      selectedFilters,
+      appliedFilters
+    })
+  }, [selectedFilters, appliedFilters])
 
   const handleTabChange = (vacancyId: any, newValue: number) => {
     setSelectedTabs(prev => ({
@@ -139,6 +153,30 @@ const JobListing = () => {
       status: 'Open'
     }
   ]
+
+  useEffect(() => {
+    if (FiltersFromCookie?.selectedFilters) {
+      setSelectedFilters(FiltersFromCookie?.selectedFilters)
+    }
+    if (FiltersFromCookie?.appliedFilters) {
+      setAppliedFilters(FiltersFromCookie?.appliedFilters)
+    }
+  }, [])
+
+  const [paginationState, setPaginationState] = useState({
+    page: 1,
+    limit: 10,
+    display_numbers_count: 5
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPaginationState({ ...paginationState, page: value })
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState({ ...paginationState, limit: value })
+  }
+
   const [selectedTabs, setSelectedTabs] = useState<{ [key: string]: number }>(() =>
     vacancies?.reduce(
       (acc, vacancy) => {
@@ -206,11 +244,12 @@ const JobListing = () => {
       salaryRange: [0, 0],
       jobRole: ''
     })
+    removeVacancyManagementFiltersFromCookie()
   }
 
   // Function to remove a specific value from any filter array
   // Function to remove a value dynamically from a filter array
-  const removeItem = (category: any, value: string) => {
+  const removeSelectedFilterItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
       if (category === 'jobRole') {
         setSelectedFilters({ ...selectedFilters, jobRole: '' })
@@ -253,7 +292,7 @@ const JobListing = () => {
   }
 
   return (
-    <div className='min-h-screen'>
+    <div className=''>
       <VacancyManagementFilters
         open={addMoreFilters}
         setOpen={setAddMoreFilters}
@@ -380,7 +419,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.experience.includes(exp) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('experience', exp)}
-                  onDelete={() => removeItem('experience', exp)}
+                  onDelete={() => removeSelectedFilterItem('experience', exp)}
                 />
               ))}
 
@@ -392,7 +431,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.location.includes(loc) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('location', loc)}
-                  onDelete={() => removeItem('location', loc)}
+                  onDelete={() => removeSelectedFilterItem('location', loc)}
                 />
               ))}
 
@@ -404,7 +443,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.department.includes(dept) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('department', dept)}
-                  onDelete={() => removeItem('department', dept)}
+                  onDelete={() => removeSelectedFilterItem('department', dept)}
                 />
               ))}
 
@@ -416,7 +455,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.employmentType.includes(emp_type) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('employmentType', emp_type)}
-                  onDelete={() => removeItem('employmentType', emp_type)}
+                  onDelete={() => removeSelectedFilterItem('employmentType', emp_type)}
                 />
               ))}
 
@@ -427,7 +466,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.skills.includes(skill) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('skills', skill)}
-                  onDelete={() => removeItem('skills', skill)}
+                  onDelete={() => removeSelectedFilterItem('skills', skill)}
                 />
               ))}
 
@@ -459,7 +498,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
-                  onDelete={() => removeItem('jobRole', '')}
+                  onDelete={() => removeSelectedFilterItem('jobRole', '')}
                 />
               )}
             </Box>
@@ -468,7 +507,7 @@ const JobListing = () => {
       </Card>
 
       <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
-        {vacancies.map(vacancy => (
+        {vacancies?.map(vacancy => (
           <Box
             onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
             key={vacancy.id}
@@ -486,7 +525,7 @@ const JobListing = () => {
                 {/* Header Section with Action Buttons */}
                 <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
                   <div className='flex items-center'>
-                    <Typography variant='h5' mt={2} fontWeight='bold' color='primary' gutterBottom>
+                    <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
                       {vacancy.title}
                     </Typography>
                   </div>
@@ -588,7 +627,7 @@ const JobListing = () => {
               <Grid container spacing={4} alignItems='center'>
                 {/* Column 1 */}
                 <Grid item xs={12} md={4}>
-                  <Typography variant='h5' fontWeight='bold' color='primary' gutterBottom>
+                  <Typography variant='h5' fontWeight='bold' gutterBottom>
                     {/* Increased size for title */}
                     {vacancy.title}
                   </Typography>
@@ -648,22 +687,15 @@ const JobListing = () => {
       </div>
 
       <div className='flex items-center justify-end mt-6'>
-        {/* Center-aligned "Load More" Button */}
-        {/* <Box className='flex items-center justify-start flex-grow gap-4'>
-          <Button variant='outlined' color='primary' endIcon={<ArrowDropDownIcon />}>
-            Load More
-          </Button>
-        </Box> */}
-
         {/* Right-aligned Pagination */}
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
-            value='10'
-            // onChange={handleCountChange}
-            label='Count per page'
+            value={paginationState?.limit}
+            onChange={e => handleChangeLimit(e.target.value)}
+            label='Limit per page'
           >
-            {[10, 20, 30, 50].map(option => (
+            {[10, 25, 50, 100].map(option => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
@@ -671,7 +703,15 @@ const JobListing = () => {
           </Select>
         </FormControl>
         <div>
-          <Pagination count={10} color='primary' />
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count} //pagination numbers display count
+            page={paginationState?.page} //current page
+            onChange={handlePageChange} //changing page function
+          />
         </div>
       </div>
     </div>

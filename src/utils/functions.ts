@@ -121,6 +121,69 @@ export const removeJDManagementAddFormValues = () => {
   }
 }
 
+export const setJDManagementFiltersToCookie = (JDManagementFilters: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('JDManagementFilters', JSON.stringify(JDManagementFilters))
+  }
+}
+
+export const getJDManagementFiltersFromCookie = () => {
+  if (typeof window !== 'undefined') {
+    const savedValues = localStorage.getItem('JDManagementFilters')
+    if (savedValues) {
+      return JSON.parse(savedValues)
+    }
+  }
+}
+
+export const removeJDManagementFiltersFromCookie = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('JDManagementFilters')
+  }
+}
+
+export const setVacancyManagementAddFormValues = (addFormikValues: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('AddNewVacancyFormValues', JSON.stringify(addFormikValues))
+  }
+}
+
+export const getVacancyManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    const savedValues = localStorage.getItem('AddNewVacancyFormValues')
+    if (savedValues) {
+      return JSON.parse(savedValues)
+    }
+  }
+}
+
+export const removeVacancyManagementAddFormValues = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('AddNewVacancyFormValues')
+  }
+}
+
+export const setVacancyManagementFiltersToCookie = (VacancyManagementFilters: any) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('VacancyManagementFilters', JSON.stringify(VacancyManagementFilters))
+  }
+}
+
+export const getVacancyManagementFiltersFromCookie = () => {
+  if (typeof window !== 'undefined') {
+    const savedValues = localStorage.getItem('VacancyManagementFilters')
+    if (savedValues) {
+      return JSON.parse(savedValues)
+    }
+  }
+}
+
+export const removeVacancyManagementFiltersFromCookie = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('VacancyManagementFilters')
+  }
+}
+
 export const Logout = () => {
   removeAccessToken()
   removeRefreshToken()

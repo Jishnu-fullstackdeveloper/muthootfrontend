@@ -1,12 +1,7 @@
 'use client'
 import {
-  Autocomplete,
-  AutocompleteRenderInputParams,
   Box,
-  Button,
-  ButtonGroup,
   Card,
-  CardHeader,
   Chip,
   FormControl,
   IconButton,
@@ -14,13 +9,10 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField,
   Tooltip,
   Typography
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
 import { useRouter } from 'next/navigation'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
@@ -30,15 +22,20 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
-import DynamicChip from '@/components/Chip/dynamicChip'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
+import { RestartAlt } from '@mui/icons-material'
+import {
+  getJDManagementFiltersFromCookie,
+  removeJDManagementFiltersFromCookie,
+  setJDManagementFiltersToCookie
+} from '@/utils/functions'
 
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
-  const [filterBtnApplied, setFilterBtnApplied] = useState<any>(false)
+  const FiltersFromCookie = getJDManagementFiltersFromCookie()
+
   const [selectedFilters, setSelectedFilters] = useState({
     jobType: [], // Array for checkboxes
     experience: [],
@@ -48,7 +45,7 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
-  const [appliedFilters, setAppliedFliters] = useState({
+  const [appliedFilters, setAppliedFilters] = useState({
     jobType: [], // Array for checkboxes
     experience: [],
     education: [],
@@ -58,8 +55,31 @@ const JobListing = () => {
   })
 
   useEffect(() => {
-    console.log('selectedFilters', selectedFilters)
-    console.log('appliedFilters', appliedFilters)
+    if (FiltersFromCookie?.selectedFilters) {
+      setSelectedFilters(FiltersFromCookie?.selectedFilters)
+    }
+    if (FiltersFromCookie?.appliedFilters) {
+      setAppliedFilters(FiltersFromCookie?.appliedFilters)
+    }
+  }, [])
+
+  const handleResetFilters = () => {
+    setSelectedFilters({
+      jobType: [], // Array for checkboxes
+      experience: [],
+      education: [],
+      skills: [],
+      salaryRange: [0, 0], // Default range for the slider
+      jobRole: '' // Default value for the select dropdown
+    })
+    removeJDManagementFiltersFromCookie()
+  }
+
+  useEffect(() => {
+    setJDManagementFiltersToCookie({
+      selectedFilters,
+      appliedFilters
+    })
   }, [selectedFilters, appliedFilters])
 
   const jobs = [
@@ -97,7 +117,8 @@ const JobListing = () => {
       id: 4,
       title: 'Data Scientist',
       experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
+      description:
+        'As a member of the software engineering division, you will take an active role in the definition and evolution of standard practices and procedures. You will be responsible for defining and developing software for tasks associated with the developing, designing and debugging of software applications or operating systems.',
       location: 'Chennai, Coimbatore, Bengaluru',
       job_type: 'Onsite',
       job_placement: 'Part-Time',
@@ -195,7 +216,6 @@ const JobListing = () => {
     onChange: (value: string | number) => void
     debounce?: number
   } & Omit<TextFieldProps, 'onChange'>) => {
-    // States
     const [value, setValue] = useState(initialValue)
 
     useEffect(() => {
@@ -208,17 +228,49 @@ const JobListing = () => {
       }, debounce)
 
       return () => clearTimeout(timeout)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value])
 
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
-  // Function to remove a specific value from any filter array
+  const [paginationState, setPaginationState] = useState({
+    page: 1,
+    limit: 10,
+    display_numbers_count: 5
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPaginationState({ ...paginationState, page: value })
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState({ ...paginationState, limit: value })
+  }
+
+  const CheckAllFiltersEmpty = (filters: any): boolean => {
+    return Object.entries(filters).every(([key, value]) => {
+      if (Array.isArray(value)) {
+        // For arrays, check if empty or salaryRange specifically equals [0, 0]
+        return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
+      }
+      if (typeof value === 'string') {
+        // For strings, check if empty
+        return value.trim() === ''
+      }
+      if (typeof value === 'object' && value !== null) {
+        // For objects, check if they are empty
+        return Object.keys(value).length === 0
+      }
+      return !value // Handles numbers, null, undefined, etc.
+    })
+  }
+
   // Function to remove a value dynamically from a filter array
-  const removeItem = (category: any, value: string) => {
+  const removeSelectedFilterItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
-      if (Array.isArray(prev[category])) {
+      if (category === 'jobRole') {
+        setSelectedFilters({ ...selectedFilters, jobRole: '' })
+      } else if (Array.isArray(prev[category])) {
         return {
           ...prev,
           [category]: prev[category].filter((item: string) => item !== value)
@@ -228,13 +280,8 @@ const JobListing = () => {
     })
   }
 
-  //to check whether that filter is applied or not
-  const isFilterApplied = (filterType: string[], appliedFilters: string[]) => {
-    return filterType.every(item => appliedFilters.includes(item))
-  }
-
   const toggleFilter = (filterType: any, filterValue: any) => {
-    setAppliedFliters((prev: any) => {
+    setAppliedFilters((prev: any) => {
       if (filterType === 'salaryRange') {
         // Toggle salary range: set to [0, 0] if already applied
         return {
@@ -243,6 +290,11 @@ const JobListing = () => {
             prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
               ? [0, 0] // Reset to default
               : filterValue
+        }
+      } else if (filterType === 'jobRole') {
+        return {
+          ...prev,
+          jobRole: prev.jobRole === filterValue ? '' : filterValue // Reset if matched, otherwise set new value
         }
       } else {
         // Toggle for other filters
@@ -263,7 +315,8 @@ const JobListing = () => {
         setOpen={setAddMoreFilters}
         setSelectedFilters={setSelectedFilters}
         selectedFilters={selectedFilters}
-        setAppliedFliters={setAppliedFliters}
+        setAppliedFilters={setAppliedFilters}
+        handleResetFilters={handleResetFilters}
       />
       <Card
         sx={{
@@ -272,7 +325,7 @@ const JobListing = () => {
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
           backgroundColor: 'white',
-          height: 'auto', // Automatically adjusts height based on content
+          // height: 'auto', // Automatically adjusts height based on content
           paddingBottom: 2 // Adds some space at the bottom
         }}
       >
@@ -304,6 +357,18 @@ const JobListing = () => {
                 position='start'
                 children='Add more filters'
                 onClick={() => setAddMoreFilters(true)}
+              />
+            </Box>
+
+            <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
+              <DynamicButton
+                label='Reset Filters'
+                variant='outlined'
+                icon={<RestartAlt />} // Proper reset icon from MUI
+                position='start'
+                onClick={handleResetFilters}
+                children='Reset Filters'
+                disabled={CheckAllFiltersEmpty(selectedFilters)}
               />
             </Box>
           </div>
@@ -356,9 +421,11 @@ const JobListing = () => {
         {/* Reset Filters */}
         <Box>
           <Stack direction='row' spacing={1} ml={5}>
-            <Typography component='h3' color='black'>
-              Filters
-            </Typography>
+            {!CheckAllFiltersEmpty(selectedFilters) && (
+              <Typography component='h3' color='black'>
+                Filters
+              </Typography>
+            )}
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
             {/*
@@ -384,7 +451,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.experience.includes(exp) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('experience', exp)}
-                  onDelete={() => removeItem('experience', exp)}
+                  onDelete={() => removeSelectedFilterItem('experience', exp)}
                 />
               ))}
 
@@ -396,7 +463,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.education.includes(edu) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('education', edu)}
-                  onDelete={() => removeItem('education', edu)}
+                  onDelete={() => removeSelectedFilterItem('education', edu)}
                 />
               ))}
 
@@ -408,7 +475,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.jobType.includes(type) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobType', type)}
-                  onDelete={() => removeItem('jobType', type)}
+                  onDelete={() => removeSelectedFilterItem('jobType', type)}
                 />
               ))}
 
@@ -420,7 +487,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.skills.includes(skill) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('skills', skill)}
-                  onDelete={() => removeItem('skills', skill)}
+                  onDelete={() => removeSelectedFilterItem('skills', skill)}
                 />
               ))}
 
@@ -452,12 +519,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
-                  onDelete={() => {
-                    setSelectedFilters({
-                      ...selectedFilters,
-                      salaryRange: [0, 0]
-                    })
-                  }}
+                  onDelete={() => removeSelectedFilterItem('jobRole', '')}
                 />
               )}
             </Box>
@@ -466,12 +528,12 @@ const JobListing = () => {
       </Card>
       {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
       {/* <div className='space-y-4'> */}
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
+      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
         {jobs.map(job => (
           <Box
             sx={{ cursor: 'pointer' }}
             key={job.id}
-            className='bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition'
+            className='bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition transform hover:-translate-y-1'
             onClick={() => router.push(`/jd-management/view/${job.id}`)}
           >
             {/* Title and Icons Container */}
@@ -481,13 +543,32 @@ const JobListing = () => {
 
               {/* Icons */}
               <div className='flex items-center space-x-2'>
-                {/* Edit Icon */}
                 <Tooltip title='Edit JD' placement='top'>
+                  <IconButton
+                    onClick={e => {
+                      e.stopPropagation() // Prevent card click
+                      router.push(`/jd-management/edit/${job.id}`)
+                    }}
+                  >
+                    <i className='tabler-edit' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Delete JD' placement='top'>
+                  <IconButton
+                    onClick={e => {
+                      e.stopPropagation() // Prevent card click
+                    }}
+                  >
+                    <i className='tabler-trash' />
+                  </IconButton>
+                </Tooltip>
+
+                {/* <Tooltip title='Edit JD' placement='top'>
                   <IconButton
                     aria-label='edit'
                     component='span'
                     onClick={e => {
-                      e.stopPropagation() // Prevent triggering the parent's onClick
+                      e.stopPropagation()
                       router.push(`/jd-management/edit/${job.id}`)
                     }}
                   >
@@ -495,12 +576,11 @@ const JobListing = () => {
                   </IconButton>
                 </Tooltip>
 
-                {/* Delete Icon */}
                 <Tooltip title='Delete JD' placement='top'>
                   <IconButton color='secondary' aria-label='delete' component='span' onClick={e => e.stopPropagation()}>
                     <DeleteIcon />
                   </IconButton>
-                </Tooltip>
+                </Tooltip> */}
               </div>
             </Box>
 
@@ -510,7 +590,7 @@ const JobListing = () => {
             </p>
             <p className='text-gray-600 text-sm mb-4'>
               <strong>Role Description: </strong>
-              {job.description}
+              {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
             </p>
 
             {/* Job Tags */}
@@ -521,7 +601,7 @@ const JobListing = () => {
             </Stack>
           </Box>
         ))}
-      </div>
+      </Box>
       <div className='flex items-center justify-end mt-6'>
         {/* Center-aligned "Load More" Button */}
         {/* <Box className='flex items-center justify-start flex-grow gap-4'>
@@ -530,15 +610,14 @@ const JobListing = () => {
           </Button>
         </Box> */}
 
-        {/* Right-aligned Pagination */}
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
-            value='10'
-            // onChange={handleCountChange}
-            label='Count per page'
+            value={paginationState?.limit}
+            onChange={e => handleChangeLimit(e.target.value)}
+            label='Limit per page'
           >
-            {[10, 20, 30, 50].map(option => (
+            {[10, 25, 50, 100].map(option => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
@@ -546,7 +625,15 @@ const JobListing = () => {
           </Select>
         </FormControl>
         <div>
-          <Pagination count={10} color='primary' />
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count} //pagination numbers display count
+            page={paginationState?.page} //current page
+            onChange={handlePageChange} //changing page function
+          />
         </div>
       </div>
     </div>

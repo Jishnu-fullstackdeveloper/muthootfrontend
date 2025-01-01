@@ -1,3 +1,5 @@
+// Vacancy Management Filters Page
+
 'use client'
 
 // React Imports
@@ -19,7 +21,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { Box, InputLabel, FormControl } from '@mui/material'
 
 // Type Imports
-type JobListingFiltersProps = {
+type VacancyFiltersProps = {
   open: boolean
   setOpen: (open: boolean) => void
   setSelectedFilters: any
@@ -30,22 +32,21 @@ type JobListingFiltersProps = {
 
 // Filter Data Example
 const filterData = {
-  jobType: ['Remote', 'On-site', 'Hybrid'],
+  location: ['Remote', 'On-site', 'Hybrid'],
+  department: ['IT', 'HR', 'Marketing', 'Finance'],
+  employmentType: ['Full-time', 'Part-time', 'Contract', 'Internship'],
   experience: ['Fresher', '1-3 years', '3+ years'],
-  education: ['High School', "Bachelor's Degree", "Master's Degree", 'PhD'],
-  skills: ['JavaScript', 'React', 'Python', 'SQL', 'Java', 'Project Management']
+  skills: ['JavaScript', 'Python', 'SQL', 'React', 'Leadership']
 }
 
-const JobListingCustomFilters = ({
+const VacancyManagementFilters = ({
   open,
   setOpen,
   setSelectedFilters,
   selectedFilters,
   setAppliedFilters,
   handleResetFilters
-}: JobListingFiltersProps) => {
-  // State for selected filters
-
+}: VacancyFiltersProps) => {
   // Handle checkbox change
   const handleCheckboxChange = (category: string, value: string) => {
     setSelectedFilters((prev: { [x: string]: string[] }) => {
@@ -92,7 +93,7 @@ const JobListingCustomFilters = ({
       onClose={handleClose}
       sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: '600px', padding: '16px' } }}
     >
-      <DialogTitle variant='h5'>Customize Job Filters</DialogTitle>
+      <DialogTitle variant='h5'>Customize Vacancy Filters</DialogTitle>
       <DialogContent>
         {Object.entries(filterData).map(([category, options]) => (
           <Box key={category} className='mb-4'>
@@ -135,7 +136,6 @@ const JobListingCustomFilters = ({
             Job Role
           </Typography>
           <FormControl fullWidth>
-            {/** <InputLabel id='job-role-label'>Job Role</InputLabel> */}
             <Select
               labelId='job-role-label'
               id='job-role'
@@ -169,4 +169,4 @@ const JobListingCustomFilters = ({
   )
 }
 
-export default JobListingCustomFilters
+export default VacancyManagementFilters

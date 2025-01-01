@@ -14,6 +14,7 @@ import '@/app/custom.css'
 import { getAccessToken, Logout } from '@/utils/functions'
 
 import 'react-quill/dist/quill.snow.css'
+import 'react-datepicker/dist/react-datepicker.css'
 
 export const metadata = {
   title: custom_theme_settings?.theme?.meta_text || 'Vuexy - MUI Next.js Admin Dashboard Template',

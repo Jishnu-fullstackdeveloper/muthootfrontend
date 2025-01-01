@@ -238,10 +238,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     setJDManagementAddFormValues(AddNewJDFormik.values)
   }, [AddNewJDFormik.values])
 
-  // skillsAndAttributesDetails: [
-  //   { competency: [{ value: '' }], definition: [{ value: '' }], behavioural_attributes: [{ value: '' }] }
-  // ],
-
   //for checking if react quill is empty
   const isEmptyContent = (value: any): boolean => {
     return value === '' || value === '<p><br></p>' || value.replace(/<\/?[^>]*>/g, '').trim() === ''

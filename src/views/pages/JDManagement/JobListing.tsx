@@ -1,12 +1,7 @@
 'use client'
 import {
-  Autocomplete,
-  AutocompleteRenderInputParams,
   Box,
-  Button,
-  ButtonGroup,
   Card,
-  CardHeader,
   Chip,
   FormControl,
   IconButton,
@@ -14,13 +9,10 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField,
   Tooltip,
   Typography
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
 import { useRouter } from 'next/navigation'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
@@ -30,16 +22,20 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
-import DynamicChip from '@/components/Chip/dynamicChip'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
 import { RestartAlt } from '@mui/icons-material'
+import {
+  getJDManagementFiltersFromCookie,
+  removeJDManagementFiltersFromCookie,
+  setJDManagementFiltersToCookie
+} from '@/utils/functions'
 
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
-  const [filterBtnApplied, setFilterBtnApplied] = useState<any>(false)
+  const FiltersFromCookie = getJDManagementFiltersFromCookie()
+
   const [selectedFilters, setSelectedFilters] = useState({
     jobType: [], // Array for checkboxes
     experience: [],
@@ -58,6 +54,15 @@ const JobListing = () => {
     jobRole: '' // Default value for the select dropdown
   })
 
+  useEffect(() => {
+    if (FiltersFromCookie?.selectedFilters) {
+      setSelectedFilters(FiltersFromCookie?.selectedFilters)
+    }
+    if (FiltersFromCookie?.appliedFilters) {
+      setAppliedFilters(FiltersFromCookie?.appliedFilters)
+    }
+  }, [])
+
   const handleResetFilters = () => {
     setSelectedFilters({
       jobType: [], // Array for checkboxes
@@ -67,12 +72,15 @@ const JobListing = () => {
       salaryRange: [0, 0], // Default range for the slider
       jobRole: '' // Default value for the select dropdown
     })
+    removeJDManagementFiltersFromCookie()
   }
 
-  // useEffect(() => {
-  //   console.log('selectedFilters', selectedFilters)
-  //   console.log('appliedFilters', appliedFilters)
-  // }, [selectedFilters, appliedFilters])
+  useEffect(() => {
+    setJDManagementFiltersToCookie({
+      selectedFilters,
+      appliedFilters
+    })
+  }, [selectedFilters, appliedFilters])
 
   const jobs = [
     {
@@ -208,7 +216,6 @@ const JobListing = () => {
     onChange: (value: string | number) => void
     debounce?: number
   } & Omit<TextFieldProps, 'onChange'>) => {
-    // States
     const [value, setValue] = useState(initialValue)
 
     useEffect(() => {
@@ -221,10 +228,23 @@ const JobListing = () => {
       }, debounce)
 
       return () => clearTimeout(timeout)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value])
 
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+  }
+
+  const [paginationState, setPaginationState] = useState({
+    page: 1,
+    limit: 10,
+    display_numbers_count: 5
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPaginationState({ ...paginationState, page: value })
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState({ ...paginationState, limit: value })
   }
 
   const CheckAllFiltersEmpty = (filters: any): boolean => {
@@ -245,9 +265,8 @@ const JobListing = () => {
     })
   }
 
-  // Function to remove a specific value from any filter array
   // Function to remove a value dynamically from a filter array
-  const removeItem = (category: any, value: string) => {
+  const removeSelectedFilterItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
       if (category === 'jobRole') {
         setSelectedFilters({ ...selectedFilters, jobRole: '' })
@@ -432,7 +451,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.experience.includes(exp) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('experience', exp)}
-                  onDelete={() => removeItem('experience', exp)}
+                  onDelete={() => removeSelectedFilterItem('experience', exp)}
                 />
               ))}
 
@@ -444,7 +463,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.education.includes(edu) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('education', edu)}
-                  onDelete={() => removeItem('education', edu)}
+                  onDelete={() => removeSelectedFilterItem('education', edu)}
                 />
               ))}
 
@@ -456,7 +475,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.jobType.includes(type) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobType', type)}
-                  onDelete={() => removeItem('jobType', type)}
+                  onDelete={() => removeSelectedFilterItem('jobType', type)}
                 />
               ))}
 
@@ -468,7 +487,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters.skills.includes(skill) ? 'primary' : 'default'}
                   onClick={() => toggleFilter('skills', skill)}
-                  onDelete={() => removeItem('skills', skill)}
+                  onDelete={() => removeSelectedFilterItem('skills', skill)}
                 />
               ))}
 
@@ -500,7 +519,7 @@ const JobListing = () => {
                   variant='outlined'
                   color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
                   onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
-                  onDelete={() => removeItem('jobRole', '')}
+                  onDelete={() => removeSelectedFilterItem('jobRole', '')}
                 />
               )}
             </Box>
@@ -591,15 +610,14 @@ const JobListing = () => {
           </Button>
         </Box> */}
 
-        {/* Right-aligned Pagination */}
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
-            value='10'
-            // onChange={handleCountChange}
-            label='Count per page'
+            value={paginationState?.limit}
+            onChange={e => handleChangeLimit(e.target.value)}
+            label='Limit per page'
           >
-            {[10, 20, 30, 50].map(option => (
+            {[10, 25, 50, 100].map(option => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
@@ -607,7 +625,15 @@ const JobListing = () => {
           </Select>
         </FormControl>
         <div>
-          <Pagination count={10} color='primary' />
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count} //pagination numbers display count
+            page={paginationState?.page} //current page
+            onChange={handlePageChange} //changing page function
+          />
         </div>
       </div>
     </div>

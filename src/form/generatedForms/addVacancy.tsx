@@ -19,7 +19,11 @@ import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
 import { CalendarToday } from '@mui/icons-material'
-import { getVacancyManagementAddFormValues, setVacancyManagementAddFormValues } from '@/utils/functions'
+import {
+  getVacancyManagementAddFormValues,
+  removeVacancyManagementAddFormValues,
+  setVacancyManagementAddFormValues
+} from '@/utils/functions'
 
 type Props = {
   mode: any
@@ -83,6 +87,32 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
       console.log('Form Submitted:', values)
     }
   })
+
+  const handleResetForm = () => {
+    setActiveStep(0)
+    removeVacancyManagementAddFormValues()
+    VacancyFormik.resetForm({
+      values: {
+        vacancyTitle: '',
+        jobType: '',
+        jobDescription: '',
+        numberOfOpenings: '',
+        branch: '',
+        city: '',
+        stateOrRegion: '',
+        country: '',
+        educationalQualification: '',
+        experienceInYears: '',
+        skillsNeeded: '',
+        salaryRange: '',
+        additionalBenefits: '',
+        vacancyStartDate: '',
+        vacancyEndDate: '',
+        contactPerson: '',
+        vacancyStatus: ''
+      }
+    })
+  }
 
   useEffect(() => {
     let completedSteps = 0
@@ -362,6 +392,27 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
           <div className='grid grid-cols-2 gap-4'>
             {true && (
               <FormControl fullWidth margin='normal'>
+                <label htmlFor='experienceInYears' className='block text-sm font-medium text-gray-700'>
+                  Experience (in years) *
+                </label>
+                <DynamicTextField
+                  id='experienceInYears'
+                  name='experienceInYears'
+                  type='number'
+                  value={VacancyFormik.values.experienceInYears}
+                  onChange={VacancyFormik.handleChange}
+                  onFocus={() => VacancyFormik.setFieldTouched('experienceInYears', true)}
+                  error={VacancyFormik.touched.experienceInYears && Boolean(VacancyFormik.errors.experienceInYears)}
+                  helperText={
+                    VacancyFormik.touched.experienceInYears && VacancyFormik.errors.experienceInYears
+                      ? VacancyFormik.errors.experienceInYears
+                      : undefined
+                  }
+                />
+              </FormControl>
+            )}
+            {true && (
+              <FormControl fullWidth margin='normal'>
                 <label htmlFor='educationalQualification' className='block text-sm font-medium text-gray-700'>
                   Educational Qualification *
                 </label>
@@ -386,7 +437,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
               </FormControl>
             )}
 
-            {true && (
+            {/* {true && (
               <FormControl fullWidth margin='normal'>
                 <label htmlFor='experienceInYears' className='block text-sm font-medium text-gray-700'>
                   Experience (in years) *
@@ -406,7 +457,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
                   }
                 />
               </FormControl>
-            )}
+            )} */}
 
             {true && (
               <FormControl fullWidth margin='normal'>
@@ -613,8 +664,12 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
             Cancel
           </DynamicButton>
 
+          <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
+            Reset Form
+          </DynamicButton>
+
           <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-            Submit
+            {mode === 'add' ? 'Add' : 'Update'}
           </DynamicButton>
         </div>
       </form>

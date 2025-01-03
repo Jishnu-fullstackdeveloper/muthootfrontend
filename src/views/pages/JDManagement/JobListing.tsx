@@ -239,12 +239,12 @@ const JobListing = () => {
     display_numbers_count: 5
   })
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPaginationState({ ...paginationState, page: value })
+  const handlePageChange = (event: any, value: any) => {
+    setPaginationState(prev => ({ ...prev, page: value }))
   }
 
   const handleChangeLimit = (value: any) => {
-    setPaginationState({ ...paginationState, limit: value })
+    setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
   const CheckAllFiltersEmpty = (filters: any): boolean => {

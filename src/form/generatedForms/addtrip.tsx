@@ -7,7 +7,7 @@ import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
 import DynamicCheckbox from '@/components/Checkbox/dynamicCheckbox'
-import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
+// import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
 
 const validationSchema = Yup.object().shape({
   tripName: Yup.string().required('Trip Name is required'),
@@ -173,7 +173,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='departureDate' className='block text-sm font-medium text-gray-700'>
                 Departure Date *
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 
@@ -182,7 +182,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='returnDate' className='block text-sm font-medium text-gray-700'>
                 Return Date
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 
@@ -360,7 +360,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='checkInDate' className='block text-sm font-medium text-gray-700'>
                 Check-in Date
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 
@@ -369,7 +369,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='checkOutDate' className='block text-sm font-medium text-gray-700'>
                 Check-out Date
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 
@@ -422,7 +422,7 @@ const GeneratedForm: React.FC = () => {
                           <label htmlFor='checkInDate' className='block text-sm font-medium text-gray-700'>
                             Check-in Date
                           </label>
-                          <DynamicDatepicker />
+                          {/* <DynamicDatepicker /> */}
                         </FormControl>
                       )}
                     </div>

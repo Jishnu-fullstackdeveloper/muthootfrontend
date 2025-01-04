@@ -14,19 +14,37 @@ import {
   MenuItem,
   Pagination,
   Chip,
-  Divider
+  Divider,
+  Button
 } from '@mui/material'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useRouter } from 'next/navigation'
+import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import SettingsIcon from '@mui/icons-material/Settings'
 
 const ResignedEmployeesList = () => {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState('grid')
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
+  const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
+  const [xFactorValue, setXFactorValue] = useState(5)
   const router = useRouter()
+
+  const handleXFactorDialogOpen = () => {
+    setXFactorDialogOpen(true)
+  }
+
+  const handleXFactorDialogClose = () => {
+    setXFactorDialogOpen(false)
+  }
+
+  const handleSaveXFactor = (newXFactor: number) => {
+    setXFactorValue(newXFactor)
+  }
+
   const employees = [
     {
       employeeCode: 'EMP001',
@@ -246,6 +264,13 @@ const ResignedEmployeesList = () => {
 
   return (
     <div className='min-h-screen'>
+      <XFactorDialog
+        open={XFactorDialogOpen}
+        onClose={handleXFactorDialogClose}
+        onSave={handleSaveXFactor}
+        currentXFactor={xFactorValue}
+      />
+
       <Card
         sx={{
           mb: 4,
@@ -256,6 +281,32 @@ const ResignedEmployeesList = () => {
           paddingBottom: 2
         }}
       >
+        <Box
+          sx={{
+            // backgroundColor: '#ffffff',
+            paddingTop: 3,
+            paddingLeft: 3,
+            borderRadius: 2,
+            // boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            // textAlign: 'center',
+            marginBottom: 5
+            // border: '1px solid #e0e0e0'
+          }}
+        >
+          <Typography
+            component='h1'
+            variant='h4'
+            sx={{
+              fontWeight: 'bold',
+              color: '#333',
+              marginBottom: 2,
+              // textTransform: 'uppercase',
+              letterSpacing: 1
+            }}
+          >
+            Resigned Employees Listing
+          </Typography>
+        </Box>
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
@@ -275,6 +326,16 @@ const ResignedEmployeesList = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+            <Box mt={1}>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<SettingsIcon />}
+                onClick={handleXFactorDialogOpen}
+              >
+                Set X-Factor
+              </Button>
+            </Box>
             <Box
               sx={{
                 display: 'flex',
@@ -310,7 +371,7 @@ const ResignedEmployeesList = () => {
           viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6' : 'space-y-4'
         }`}
       >
-        {employees?.map((employee: any) => (
+        {employees?.map((employee: any, index: number) => (
           <Box
             sx={{
               cursor: 'pointer',
@@ -327,7 +388,7 @@ const ResignedEmployeesList = () => {
               },
               marginBottom: 4
             }}
-            key={employee.employeeCode}
+            key={index}
             onClick={() => router.push(`/recruitment-management/view/${employee.employeeCode}`)}
           >
             <Box

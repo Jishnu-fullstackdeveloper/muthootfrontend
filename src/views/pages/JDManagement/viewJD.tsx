@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, Card, Divider, Link, Typography, Grid } from '@mui/material'
+import { Box, Card, Divider, Link, Typography, Grid, Button } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+import { useRouter } from 'next/navigation'
 
 type Props = {
   mode: any
@@ -7,6 +9,7 @@ type Props = {
 }
 
 const viewJD: React.FC<Props> = ({ mode, id }) => {
+  const router = useRouter()
   let keyResponsibilities = [
     { title: 'Lead development', description: 'Manage the end-to-end product development lifecycle' },
     { title: 'Review processes', description: 'Ensure team compliance with coding best practices' }
@@ -34,6 +37,11 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
 
   return (
     <>
+      <Box display='flex' alignItems='center' justifyContent='space-between' marginBottom={4}>
+        <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
+          Back to JD List
+        </Button>
+      </Box>
       {/* Header Section */}
       <Box
         sx={{

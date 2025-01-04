@@ -9,8 +9,8 @@ type Props = {
 }
 
 const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
-  // Sample employee data
   const router = useRouter()
+  // Sample employee data
   const employee = {
     employeeCode: 'EMP001',
     employmentStatus: 'Resigned',
@@ -39,7 +39,8 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
     mobileNumber: '+1-234-567-8901',
     dateOfResignation: '2024-12-01',
     lastWorkingDay: '2025-01-01',
-    additionalDetails: 'Relocating to another city for personal reasons.'
+    additionalDetails:
+      'Relocating to another city for personal reasons. Leaving your job might seem like a daunting task. However, under certain circumstances, quitting might be beneficial for you. As of 2024, 88% of professionals in India are considering a new job.* Some of the common reasons are work-life balance and higher compensation. Several professionals also consider leaving their jobs to upskill themselves. Education not only adds more skills but can also help one find their purpose. As per one LinkedIn study, 8 out of 10 people say that learning adds purpose to their work.'
   }
 
   return (
@@ -56,24 +57,76 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
         <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/recruitment-management')}>
           Back to Employee List
         </Button>
-        {/* <Button variant='contained' startIcon={<Edit />}>
-          Edit Employee
-        </Button> */}
       </Box>
-      <Box sx={{ backgroundColor: '#f0f4f7', padding: 3, borderRadius: 3, marginBottom: 4 }}>
-        <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333' }}>
-          {employee.title} {employee.employeeName}
-        </Typography>
-        <Typography variant='body1' sx={{ color: '#666' }}>
-          {employee.designation} - {employee.department}
-        </Typography>
-        <Typography variant='body2' sx={{ color: '#888' }}>
-          {employee.company}
-        </Typography>
+      <Box
+        sx={{
+          backgroundColor: '#ffffff',
+          padding: 3,
+          borderRadius: 2,
+          marginBottom: 4,
+          boxShadow: 3,
+          //   transition: 'all 0.3s ease-in-out',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+          //   '&:hover': {
+          //     transform: 'translateY(-8px)',
+          //     boxShadow: 6,
+          //     cursor: 'pointer'
+          //   }
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Typography
+            variant='h5'
+            sx={{
+              fontWeight: '700',
+              color: '#2e2e2e',
+              fontSize: '25px',
+              marginBottom: 0.5,
+              textTransform: 'capitalize'
+            }}
+          >
+            {employee.title} {employee.employeeName}
+          </Typography>
+
+          <Typography
+            variant='body1'
+            sx={{
+              color: '#555',
+              marginBottom: 0.5,
+              fontWeight: '500'
+            }}
+          >
+            {employee.designation} - {employee.department}
+          </Typography>
+
+          <Typography
+            variant='body2'
+            sx={{
+              color: '#777',
+              marginBottom: 1
+            }}
+          >
+            {employee.company}
+          </Typography>
+        </Box>
+
         <Chip
           label={employee.employmentStatus}
           color={employee.employmentStatus === 'Resigned' ? 'error' : 'success'}
-          sx={{ marginTop: 1 }}
+          sx={{
+            fontWeight: '600',
+            paddingX: 3,
+            paddingY: 1,
+            borderRadius: '20px',
+            boxShadow: 2,
+            textTransform: 'capitalize',
+            backgroundColor: employee.employmentStatus === 'Resigned' ? '#ffebee' : '#e8f5e9',
+            color: employee.employmentStatus === 'Resigned' ? '#d32f2f' : '#388e3c',
+            maxWidth: '120px' // Restrict the chip size for better visual balance
+          }}
         />
       </Box>
 

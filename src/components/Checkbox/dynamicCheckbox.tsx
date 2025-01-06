@@ -4,15 +4,15 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 
 interface DynamicCheckboxProps {
-  id: string
+  id?: string
   name?: string
   label?: string
   checked?: boolean
   required?: boolean
   disabled?: boolean
   icon?: React.ReactNode
-  onChange: React.ChangeEventHandler<HTMLInputElement>
-  onFocus?: () => void // Added onFocus to the props
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
+  onFocus?: () => void
 }
 
 const DynamicCheckbox: React.FC<DynamicCheckboxProps> = ({

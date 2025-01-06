@@ -24,7 +24,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 import { usePathname } from 'next/navigation'
-
+import ApprovalIcon from '@mui/icons-material/Approval'
 type RenderExpandIconProps = {
   open?: boolean
   transitionDuration?: VerticalMenuContextProps['transitionDuration']
@@ -100,6 +100,18 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
         <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
           User Roles
+        </MenuItem>
+        {isJDManagementPage ? (
+          <MenuItem href={pathname} icon={<i className='tabler-file-description' />}>
+            JD Management
+          </MenuItem>
+        ) : (
+          <MenuItem href='/jd-management' icon={<i className='tabler-file-description' />}>
+            JD Management
+          </MenuItem>
+        )}
+        <MenuItem href='/approval-management' icon={<ApprovalIcon />}>
+          Approval Management
         </MenuItem>
 
         <MenuItem

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Card, Divider, Link, Typography, Grid, Button } from '@mui/material'
+import { Box, Card, Divider, Link, Typography, Grid, Button, Stack } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 import { useRouter } from 'next/navigation'
 
@@ -35,6 +35,214 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
     }
   ]
 
+  const chartData = {
+    title: 'CEO',
+    children: [
+      {
+        title: 'CTO',
+        children: [{ title: 'Lead Developer' }, { title: 'QA Manager' }]
+      },
+      {
+        title: 'CFO',
+        children: [{ title: 'Finance Manager' }, { title: 'Accountant' }]
+      }
+    ]
+  }
+
+  // Recursive function to render the tree
+  // const renderNode = (node: any) => (
+  //   <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
+  //     {/* Parent Node */}
+  //     <Box
+  //       sx={{
+  //         width: 160,
+  //         height: 50,
+  //         backgroundColor: '#2196F3',
+  //         borderRadius: 8,
+  //         display: 'flex',
+  //         alignItems: 'center',
+  //         justifyContent: 'center',
+  //         fontWeight: 'bold',
+  //         color: '#fff',
+  //         margin: '0 auto'
+  //       }}
+  //     >
+  //       {node.title}
+  //     </Box>
+
+  //     {/* Render children recursively */}
+  //     {node.children && (
+  //       <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+  //         {/* Vertical line connecting parent to the children */}
+  //         <Box
+  //           sx={{
+  //             position: 'absolute',
+  //             top: 0,
+  //             left: '50%',
+  //             width: 2,
+  //             height: 30,
+  //             backgroundColor: '#3f51b5'
+  //           }}
+  //         />
+
+  //         {/* Horizontal lines to connect left and right children */}
+  //         <Box
+  //           sx={{
+  //             position: 'absolute',
+  //             top: 30,
+  //             // left: 0,
+  //             width: '20%',
+  //             height: 2,
+  //             backgroundColor: '#3f51b5'
+  //           }}
+  //         />
+  //         <Box
+  //           sx={{
+  //             position: 'absolute',
+  //             top: 30,
+  //             // right: 0,
+  //             width: '20%',
+  //             height: 2,
+  //             backgroundColor: '#3f51b5'
+  //           }}
+  //         />
+
+  //         {/* Render child nodes */}
+  //         <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '50%' }}>
+  //           {node.children.map((child: any, index: number) => (
+  //             <Box
+  //               key={index}
+  //               sx={{
+  //                 display: 'flex',
+  //                 flexDirection: 'column',
+  //                 alignItems: 'center',
+  //                 position: 'relative'
+  //               }}
+  //             >
+  //               {/* Child Node */}
+  //               <Box
+  //                 sx={{
+  //                   width: 140,
+  //                   height: 50,
+  //                   marginTop: 2,
+  //                   backgroundColor: '#e3f2fd',
+  //                   borderRadius: 8,
+  //                   display: 'flex',
+  //                   alignItems: 'center',
+  //                   justifyContent: 'center',
+  //                   fontWeight: 'bold',
+  //                   color: '#1e88e5'
+  //                 }}
+  //               >
+  //                 {child.title}
+  //               </Box>
+
+  //               {/* Recursively render child nodes */}
+  //               {child.children && (
+  //                 <Box sx={{ mt: 3 }}>
+  //                   {child.children.map((subChild: any, subIndex: number) => (
+  //                     <Box
+  //                       key={subIndex}
+  //                       sx={{
+  //                         display: 'flex',
+  //                         flexDirection: 'row',
+  //                         alignItems: 'center',
+  //                         position: 'relative'
+  //                       }}
+  //                     >
+  //                       {/* Render sub-child node */}
+  //                       <Box
+  //                         sx={{
+  //                           width: 140,
+  //                           height: 50,
+  //                           backgroundColor: '#e3f2fd',
+  //                           borderRadius: 8,
+  //                           display: 'flex',
+  //                           alignItems: 'center',
+  //                           justifyContent: 'center',
+  //                           fontWeight: 'bold',
+  //                           color: '#1e88e5'
+  //                         }}
+  //                       >
+  //                         {subChild.title}
+  //                       </Box>
+  //                     </Box>
+  //                   ))}
+  //                 </Box>
+  //               )}
+  //             </Box>
+  //           ))}
+  //         </Box>
+  //       </Box>
+  //     )}
+  //   </Box>
+  // )
+
+  const renderNode = (node: any) => (
+    <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
+      {/* Parent Node */}
+      <Box
+        sx={{
+          width: 160,
+          height: 50,
+          backgroundColor: '#2196F3',
+          borderRadius: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 'bold',
+          color: '#fff',
+          margin: '0 auto'
+        }}
+      >
+        {node.title}
+      </Box>
+
+      {/* Render children recursively */}
+      {node.children && (
+        <Box sx={{ position: 'relative' }}>
+          {/* Vertical Line */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -16,
+              left: '50%',
+              width: 2,
+              height: 62,
+              backgroundColor: '#3f51b5'
+              // transform: 'translateX(-50%)'
+            }}
+          />
+
+          {/* Children Container */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 4 }}>
+            {node.children.map((child: any, index: number) => (
+              <Box key={index} sx={{ position: '', textAlign: 'center' }}>
+                {/* Horizontal Line */}
+                {node.children.length > 1 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 45,
+                      left: '50%',
+                      width: index === 0 ? 'calc(50% + 40px)' : '0',
+                      height: 2,
+                      backgroundColor: '#3f51b5',
+                      transform: 'translateX(-50%)'
+                    }}
+                  />
+                )}
+
+                {/* Render Child Node */}
+                <Box sx={{ mt: 5, zIndex: 100, marginRight: 10, marginLeft: 10 }}>{renderNode(child)}</Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  )
+
   return (
     <>
       <Box display='flex' alignItems='center' justifyContent='space-between' marginBottom={4}>
@@ -45,8 +253,6 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
       {/* Header Section */}
       <Box
         sx={{
-          position: 'sticky',
-          top: 0,
           mb: 4,
           backgroundColor: '#f5f5f5',
           padding: 2,
@@ -59,6 +265,27 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
         </Typography>
       </Box>
 
+      {/* Oragnizational chart */}
+
+      <Box
+        sx={{
+          // position: 'sticky',
+          top: 0,
+          mb: 4,
+          backgroundColor: '#fff',
+          padding: 2,
+          borderRadius: 2,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}
+      >
+        <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#3f51b5', mb: 2, pl: 4, pt: 2 }}>
+          Organizational Chart
+        </Typography>
+
+        {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}> */}
+        {renderNode(chartData)}
+        {/* </Box> */}
+      </Box>
       <Grid container spacing={6}>
         {/* Left Side Content */}
         <Grid item xs={8}>

@@ -15,6 +15,7 @@ interface ButtonProps {
   className?: string
   label?: string
   sx?: SxProps<Theme>
+  size?: 'small' | 'medium' | 'large'
 }
 
 const DynamicButton: React.FC<ButtonProps> = ({
@@ -28,12 +29,14 @@ const DynamicButton: React.FC<ButtonProps> = ({
   type,
   className,
   label,
-  sx
+  sx,
+  size = 'medium'
 }) => {
   return (
     <Button
       sx={{
-        borderRadius: custom_theme_settings?.theme?.primary_button?.cornerRadius || '5px'
+        borderRadius: '1px solid black',
+        ...sx
       }}
       variant={variant}
       onClick={onClick}
@@ -42,7 +45,8 @@ const DynamicButton: React.FC<ButtonProps> = ({
       startIcon={position === 'start' ? icon : undefined}
       endIcon={position === 'end' ? icon : undefined}
       type={type}
-      className={className || label} // Pass className for custom styling if needed
+      className={className || label}
+      size={size}
     >
       {children}
     </Button>

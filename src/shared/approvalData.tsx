@@ -1,0 +1,136 @@
+export const approvalData = [
+  {
+    id: 1,
+    title: 'New Requirement Request - Resignation',
+    description: 'Approval for resignation request of an employee.',
+    startDate: '2024-12-01',
+    approvalDueDate: '2025-12-10',
+    status: 'Completed'
+  },
+  {
+    id: 2,
+    title: 'New Vacancy Request',
+    description: 'Approval to create a new vacancy for a department.',
+    startDate: '2024-12-02',
+    approvalDueDate: '2025-01-12',
+    status: 'Pending'
+  },
+  {
+    id: 3,
+    title: 'JD Validation',
+    description: 'Approval to validate the job description for a new role.',
+    startDate: '2024-12-03',
+    approvalDueDate: '2024-12-13',
+    status: 'Overdue'
+  },
+  {
+    id: 4,
+    title: 'Budget Increase Approval',
+    description: 'Approval for an increase in the department budget.',
+    startDate: '2024-12-05',
+    approvalDueDate: '2025-12-15',
+    status: 'Completed'
+  },
+  {
+    id: 5,
+    title: 'Branch Bucket Change Request',
+    description: 'Approval to change the branch allocation for projects.',
+    startDate: '2024-12-06',
+    approvalDueDate: '2024-12-30',
+    status: 'Pending'
+  },
+  {
+    id: 6,
+    title: 'Position Hike',
+    description: 'Approval to increase the position or salary of an employee.',
+    startDate: '2024-12-07',
+    approvalDueDate: '2024-12-17',
+    status: 'Overdue'
+  },
+  {
+    id: 7,
+    title: 'Transfer Approval',
+    description: 'Approval for transferring an employee to another department.',
+    startDate: '2024-12-08',
+    approvalDueDate: '2025-12-18',
+    status: 'Completed'
+  },
+  {
+    id: 8,
+    title: 'Transfer Approval',
+    description: 'Approval for transferring an employee to another department.',
+    startDate: '2024-12-08',
+    approvalDueDate: '2025-12-18',
+    status: 'Completed'
+  }
+]
+export const tabledatas = [
+  {
+    title: 'Mr. John Doe',
+    user_code: 'U12345',
+    user_name: 'John Doe',
+    branch: 'Main Branch',
+    branch_code: 'B001',
+    user_status: 'Active',
+    user_type: 'Employee',
+    date_of_birth: '1985-05-15',
+    gender: 'Male',
+    company: 'XYZ Ltd.',
+    business_unit_or_function: 'Sales',
+    department: 'Marketing',
+    territory: 'North',
+    zone: 'Zone 1',
+    region: 'Region A',
+    area: 'Area 5',
+    cluster: 'Cluster A',
+    city_classification: 'Metropolitan',
+    state: 'California',
+    personal_email_address: 'johndoe@gmail.com',
+    office_email_address: 'johndoe@xyz.com',
+    date_of_joining: '2010-04-12',
+    designation: 'Senior Manager',
+    user_category_type: 'Full-time',
+    permanent_address_line1: '123 Main St.',
+    permanent_city: 'Los Angeles',
+    permanent_state: 'California',
+    permanent_country: 'USA',
+    permanent_postal_code: '90001',
+    permanent_mobile: '+1234567890',
+    createdAt: '2023-01-01T12:00:00Z',
+    updatedAt: '2024-01-01T12:00:00Z'
+  },
+  {
+    title: 'Ms. Jane Smith',
+    user_code: 'U67890',
+    user_name: 'Jane Smith',
+    branch: 'Secondary Branch',
+    branch_code: 'B002',
+    user_status: 'Inactive',
+    user_type: 'Contractor',
+    date_of_birth: '1990-08-22',
+    gender: 'Female',
+    company: 'ABC Corp.',
+    business_unit_or_function: 'Operations',
+    department: 'HR',
+    territory: 'South',
+    zone: 'Zone 2',
+    region: 'Region B',
+    area: 'Area 3',
+    cluster: 'Cluster B',
+    city_classification: 'Urban',
+    state: 'Texas',
+    personal_email_address: 'janesmith@yahoo.com',
+    office_email_address: 'janesmith@abccorp.com',
+    date_of_joining: '2015-06-25',
+    designation: 'HR Specialist',
+    user_category_type: 'Contract',
+    permanent_address_line1: '456 Oak Rd.',
+    permanent_city: 'Dallas',
+    permanent_state: 'Texas',
+    permanent_country: 'USA',
+    permanent_postal_code: '75201',
+    permanent_mobile: '+1987654321',
+    createdAt: '2023-02-15T08:30:00Z',
+    updatedAt: '2024-01-10T14:00:00Z'
+  }
+]

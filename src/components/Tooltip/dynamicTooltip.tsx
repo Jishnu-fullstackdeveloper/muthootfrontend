@@ -1,18 +1,15 @@
 import * as React from 'react'
-import DeleteIcon from '@mui/icons-material/Delete'
-import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
+import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
 
-interface BasicTooltipProps {
+interface BasicTooltipProps extends Omit<TooltipProps, 'children'> {
   title: string
+  children: React.ReactElement // Restrict children to valid React elements
 }
 
-const DynamicTooltip: React.FC<BasicTooltipProps> = ({ title }) => {
+const DynamicTooltip: React.FC<BasicTooltipProps> = ({ title, children, ...props }) => {
   return (
-    <Tooltip title={title}>
-      <IconButton>
-        <DeleteIcon />
-      </IconButton>
+    <Tooltip title={title} {...props}>
+      {children}
     </Tooltip>
   )
 }

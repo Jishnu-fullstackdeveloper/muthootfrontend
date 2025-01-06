@@ -20,7 +20,7 @@ export const fetchUser = createAsyncThunk<any, FetchUserParams>(
       params.append('page', page.toString())
 
       //   let api = `${process.env.NEXT_PUBLIC_API_BASE_URL}/user?search=${search}`
-      let api = process.env.NEXT_PUBLIC_API_BASE_URL + `/user?${params.toString()}`
+      let api = process.env.NEXT_PUBLIC_API_BASE_URL + `/gate/user?${params.toString()}`
       const response = await AxiosLib.get(
         api
         // `${process.env.NEXT_PUBLIC_API_BASE_URL}/user?${params.toString()}`
@@ -32,10 +32,10 @@ export const fetchUser = createAsyncThunk<any, FetchUserParams>(
   }
 )
 
-export const fetchUserbyId = createAsyncThunk<any, any>('/userbyid', async (params: any, { rejectWithValue }) => {
+export const fetchUserbyId = createAsyncThunk<any, any>('/gate/userbyid', async (params: any, { rejectWithValue }) => {
   console.log('id in slice', params)
   try {
-    const response = await AxiosLib.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/${params.id}`)
+    const response = await AxiosLib.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/gate/user/${params.id}`)
     return response.data
   } catch (error: any) {
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch user data')

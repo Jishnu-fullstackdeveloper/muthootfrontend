@@ -1292,12 +1292,12 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             >
               Back
             </DynamicButton> */}
-            <Box>
+            <Box sx={{ display: 'flex', gap: 5 }}>
               <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
                 Reset Form
               </DynamicButton>
               <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-                {mode === 'add' ? 'Add' : 'Update'}
+                {mode === 'add' ? 'Create Request' : 'Update Request'}
               </DynamicButton>
             </Box>
           </div>

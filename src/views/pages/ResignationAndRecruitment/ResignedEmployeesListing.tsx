@@ -17,6 +17,7 @@ import {
   Divider,
   Button
 } from '@mui/material'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
@@ -48,7 +49,7 @@ const ResignedEmployeesList = () => {
   const employees = [
     {
       employeeCode: 'EMP001',
-      employmentStatus: 'Resigned',
+      employmentStatus: 'Approval Pending',
       employmentType: 'Full-time',
       title: 'Mr.',
       employeeName: 'John Doe',
@@ -78,7 +79,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP002',
-      employmentStatus: 'Resigned',
+      employmentStatus: 'Approval Pending',
       employmentType: 'Part-time',
       title: 'Ms.',
       employeeName: 'Jane Smith',
@@ -168,7 +169,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP005',
-      employmentStatus: 'Resigned',
+      employmentStatus: 'Approval Pending',
       employmentType: 'Full-time',
       title: 'Mrs.',
       employeeName: 'Emily Clark',
@@ -270,7 +271,6 @@ const ResignedEmployeesList = () => {
         onSave={handleSaveXFactor}
         currentXFactor={xFactorValue}
       />
-
       <Card
         sx={{
           mb: 4,
@@ -283,14 +283,12 @@ const ResignedEmployeesList = () => {
       >
         <Box
           sx={{
-            // backgroundColor: '#ffffff',
-            paddingTop: 3,
-            paddingLeft: 3,
-            borderRadius: 2,
-            // boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            // textAlign: 'center',
-            marginBottom: 5
-            // border: '1px solid #e0e0e0'
+            padding: 3,
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2
           }}
         >
           <Typography
@@ -299,13 +297,28 @@ const ResignedEmployeesList = () => {
             sx={{
               fontWeight: 'bold',
               color: '#333',
-              marginBottom: 2,
-              // textTransform: 'uppercase',
               letterSpacing: 1
             }}
           >
             Resigned Employees Listing
           </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center'
+            }}
+          >
+            <Typography variant='body2' color='textSecondary'>
+              Last Bot Update on: <span style={{ fontWeight: 'bold', color: '#2d2c2c' }}>January 6, 2025</span>
+            </Typography>
+
+            <Tooltip title='Click here for help'>
+              <IconButton size='small'>
+                <HelpOutlineIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
@@ -412,8 +425,8 @@ const ResignedEmployeesList = () => {
               <Chip
                 label={employee.employmentStatus}
                 color={
-                  employee.employmentStatus === 'Resigned'
-                    ? 'error'
+                  employee.employmentStatus === 'Approval Pending'
+                    ? 'warning'
                     : employee.employmentStatus === 'Active'
                       ? 'success'
                       : 'default'

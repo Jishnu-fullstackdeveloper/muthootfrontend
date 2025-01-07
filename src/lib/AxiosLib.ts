@@ -17,11 +17,9 @@ const AxiosLib = axios.create({
 if (accessToken) {
   const decodedToken: any = jwtDecode(accessToken)
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-
   AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
   AxiosLib.defaults.headers.common['refreshtoken'] = `${refreshToken}`
   AxiosLib.defaults.headers.common['x-tenant-id'] = `${decodedToken?.schema}`
-  AxiosLib.defaults.headers.common['time-zone'] = `${userTimeZone}`
 }
 
 AxiosLib.interceptors.response.use(

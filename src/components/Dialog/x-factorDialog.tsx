@@ -16,9 +16,11 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
   }
 
   const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value, 10)
-    if (!isNaN(value) && value >= 1 && value <= 30) {
-      setXFactor(value)
+    const value = event.target.value
+
+    // Check if the value is a valid number and does not start with 0
+    if (value && parseInt(value, 10) > 0 && !value.startsWith('0')) {
+      setXFactor(parseInt(value, 10))
     }
   }
 
@@ -54,6 +56,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
           onChange={handleTextFieldChange}
           inputProps={{ min: 1, max: 30 }}
           fullWidth
+          autoComplete='off'
         />
       </DialogContent>
       <DialogActions>

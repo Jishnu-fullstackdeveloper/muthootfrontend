@@ -94,38 +94,31 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/user-management' icon={<i className='tabler-users' />}>
           User Management
         </MenuItem>
+
         <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
           User Roles
         </MenuItem>
-        {isJDManagementPage ? (
-          <MenuItem href={pathname} icon={<i className='tabler-file-description' />}>
-            JD Management
-          </MenuItem>
-        ) : (
-          <MenuItem href='/jd-management' icon={<i className='tabler-file-description' />}>
-            JD Management
-          </MenuItem>
-        )}
 
-        {pathname.startsWith('/vacancy-management/') ? (
-          <MenuItem href={pathname} icon={<i className='tabler-briefcase' />}>
-            Vacancy Management
-          </MenuItem>
-        ) : (
-          <MenuItem href='/vacancy-management' icon={<i className='tabler-briefcase' />}>
-            Vacancy Management
-          </MenuItem>
-        )}
+        <MenuItem
+          href={isJDManagementPage ? pathname : '/jd-management'}
+          icon={<i className='tabler-file-description' />}
+        >
+          JD Management
+        </MenuItem>
 
-        {pathname.startsWith('/recruitment-management/') ? (
-          <MenuItem href={pathname} icon={<i className='tabler-briefcase' />}>
-            Recruitment Management
-          </MenuItem>
-        ) : (
-          <MenuItem href='/recruitment-management' icon={<i className='tabler-briefcase' />}>
-            Recruitment Management
-          </MenuItem>
-        )}
+        <MenuItem
+          href={pathname.startsWith('/vacancy-management/') ? pathname : '/vacancy-management'}
+          icon={<i className='tabler-briefcase' />}
+        >
+          Vacancy Management
+        </MenuItem>
+
+        <MenuItem
+          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management'}
+          icon={<i className='tabler-user-plus' />}
+        >
+          Recruitment Management
+        </MenuItem>
 
         {/* <MenuItem href='/recruitment-management' icon={<i className='tabler-report-search' />}>
           Recruitment Management

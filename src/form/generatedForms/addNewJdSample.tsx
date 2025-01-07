@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector } from '@mui/material'
+import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector, Button } from '@mui/material'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -18,6 +18,7 @@ import {
   removeJDManagementAddFormValues,
   setJDManagementAddFormValues
 } from '@/utils/functions'
+import { ArrowBack } from '@mui/icons-material'
 type Props = {
   mode: any
   id: any
@@ -1222,7 +1223,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           </fieldset>
 
           <h3>Educational and Experience Requirements</h3>
-          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6  mt-2'>
+          <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
             {/* <legend className='text-lg font-semibold text-gray-700'>Educational and Experience Requirements</legend> */}
             <div className=''>
               {true && (
@@ -1276,8 +1277,13 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             </div>
           </fieldset>
 
-          <div className='flex justify-end space-x-4'>
-            <DynamicButton
+          <div className='flex justify-between space-x-4'>
+            <Box>
+              <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
+                Back to jd List
+              </Button>
+            </Box>
+            {/* <DynamicButton
               type='button'
               color='error'
               variant='outlined'
@@ -1285,13 +1291,15 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
               onClick={() => router.push('/jd-management')}
             >
               Back
-            </DynamicButton>
-            <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
-              Reset Form
-            </DynamicButton>
-            <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-              {mode === 'add' ? 'Add' : 'Update'}
-            </DynamicButton>
+            </DynamicButton> */}
+            <Box>
+              <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
+                Reset Form
+              </DynamicButton>
+              <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
+                {mode === 'add' ? 'Add' : 'Update'}
+              </DynamicButton>
+            </Box>
           </div>
         </form>
       </div>

@@ -15,57 +15,26 @@ type CustomRoleProps = {
   setSelectedRole: (filters: Record<string, any>) => void
   selectedFilters: Record<string, any>
   onApplyRoles: (selectedFilters: Record<string, any>) => void
+  onAddRole: (newRole: Record<string, any>) => void // New prop
 }
 
-const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyRoles }: CustomRoleProps) => {
+const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyRoles, onAddRole }: CustomRoleProps) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     dropdownValue: ''
   })
 
-  const dropdownOptions = [
-    { label: 'Role 1', value: 'role1' },
-    { label: 'Role 2', value: 'role2' },
-    { label: 'Role 3', value: 'role3' }
-  ]
-
-  const handleSelectChange = (field: string) => (event: SelectChangeEvent) => {
-    const value = event.target.value
-    setSelectedRole((prev: Record<string, any>) => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleFormInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: event.target.value }))
-  }
-
-  const handleDropdownChange = (event: SelectChangeEvent) => {
-    setFormData(prev => ({ ...prev, dropdownValue: event.target.value }))
-  }
-
-  const handleClose = () => {
-    setOpen(false)
-  }
-
-  const handleApplyFilters = () => {
-    onApplyRoles(selectedFilters)
-    setOpen(false)
-  }
-
   const handleFormSubmit = () => {
-    console.log('Form Data Submitted:', formData)
-    setOpen(false)
+    setSelectedRole(formData) // Update the selected role in the parent
+    setOpen(false) // Close the dialog
   }
-
   return (
     <Dialog
       maxWidth='sm'
       scroll='body'
       open={open}
-      onClose={handleClose}
+      onClose={() => setOpen(false)}
       sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: '600px', padding: '16px' } }}
     >
       <DialogTitle variant='h5'>Add Roles</DialogTitle>
@@ -75,31 +44,35 @@ const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyR
             <DynamicTextField
               label='Name'
               value={formData.name}
-              onChange={handleFormInputChange('name')}
+              onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder='Enter name'
               variant='outlined'
             />
+
+            <DynamicSelect
+              value={formData.dropdownValue}
+              onChange={e => setFormData(prev => ({ ...prev, dropdownValue: e.target.value }))}
+              displayEmpty
+            >
+              <MenuItem value=''>Select a Role</MenuItem>
+              <MenuItem value='Manager'>Manager</MenuItem>
+              <MenuItem value='role2'>Role 2</MenuItem>
+              <MenuItem value='role3'>Role 3</MenuItem>
+            </DynamicSelect>
+
             <DynamicTextField
               label='Description'
               value={formData.description}
-              onChange={handleFormInputChange('description')}
+              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder='Enter description'
               variant='outlined'
             />
-            <DynamicSelect value={formData.dropdownValue} onChange={handleDropdownChange} displayEmpty>
-              <MenuItem value=''>Select a Role</MenuItem>
-              {dropdownOptions.map(option => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </DynamicSelect>
           </div>
         </form>
       </DialogContent>
 
       <DialogActions>
-        <DynamicButton onClick={handleClose}>Cancel</DynamicButton>
+        <DynamicButton onClick={() => setOpen(false)}>Cancel</DynamicButton>
         <DynamicButton variant='contained' onClick={handleFormSubmit}>
           Submit Form
         </DynamicButton>

@@ -23,7 +23,7 @@ import BotRunStatus from '@/views/dashboards/resignationReport/BotRunStatus'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 
 const ResignationReportData = () => {
-  // Vars
+  // Vars just a comment added
   const serverMode = getServerMode()
 
   return (

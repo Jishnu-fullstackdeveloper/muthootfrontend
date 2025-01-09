@@ -25,6 +25,7 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import { useRouter } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import SettingsIcon from '@mui/icons-material/Settings'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 
 const ResignedEmployeesList = () => {
   const [search, setSearch] = useState('')
@@ -339,6 +340,16 @@ const ResignedEmployeesList = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+            <Box mt={1}>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<AssessmentIcon />}
+                onClick={() => router.push('/recruitment-management/resignation-report')}
+              >
+                Reports Dashboard
+              </Button>
+            </Box>
             <Box mt={1}>
               <Button
                 variant='contained'

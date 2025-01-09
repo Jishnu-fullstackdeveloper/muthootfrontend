@@ -52,8 +52,13 @@ function Page() {
 
   return (
     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-      <DynamicAutocomplete label='State' options={allStates} onOptionSelect={option => handleStateChange(option)} />
-      <DynamicAutocomplete label='District' options={districts} />
+      <DynamicAutocomplete
+        label='State'
+        options={allStates}
+        onOptionSelect={option => handleStateChange(option)}
+        sx={{}}
+      />
+      <DynamicAutocomplete label='District' options={districts} sx={{}} />
     </div>
   )
 }

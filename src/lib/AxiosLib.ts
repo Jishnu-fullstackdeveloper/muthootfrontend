@@ -16,7 +16,7 @@ const AxiosLib = axios.create({
 // Set Authorization header if accessToken is available
 if (accessToken) {
   const decodedToken: any = jwtDecode(accessToken)
-  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  // const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
   AxiosLib.defaults.headers.common['refreshtoken'] = `${refreshToken}`
   AxiosLib.defaults.headers.common['x-tenant-id'] = `${decodedToken?.schema}`

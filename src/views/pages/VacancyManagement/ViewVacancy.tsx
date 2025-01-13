@@ -14,7 +14,7 @@ import {
   CardContent,
   Button
 } from '@mui/material'
-import { LocationOn, Work, DateRange, Person, MonetizationOn, CheckCircle } from '@mui/icons-material'
+import { LocationOn, Work, DateRange, Person, MonetizationOn, CheckCircle, ArrowBack } from '@mui/icons-material'
 import { useRouter } from 'next/navigation'
 
 type Props = {
@@ -236,8 +236,11 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
 
       {/* Back Button */}
       <Box mb={2} mt={5} display='flex' justifyContent='space-between'>
-        <Button variant='outlined' onClick={handleBack}>
+        {/* <Button variant='outlined' onClick={handleBack}>
           Back to listing page
+        </Button> */}
+        <Button startIcon={<ArrowBack />} variant='text' onClick={handleBack}>
+          Back to Vacancies List
         </Button>
       </Box>
     </Paper>

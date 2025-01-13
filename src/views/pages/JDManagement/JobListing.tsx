@@ -29,11 +29,13 @@ import {
   removeJDManagementFiltersFromCookie,
   setJDManagementFiltersToCookie
 } from '@/utils/functions'
+import FileUploadDialog from '@/components/Dialog/jdFileUploadDialog'
 
 const JobListing = () => {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
+  const [fileUploadDialogOpen, setFileUploadDialogOpen] = useState<any>(false)
   const FiltersFromCookie = getJDManagementFiltersFromCookie()
 
   const [selectedFilters, setSelectedFilters] = useState({
@@ -239,12 +241,12 @@ const JobListing = () => {
     display_numbers_count: 5
   })
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPaginationState({ ...paginationState, page: value })
+  const handlePageChange = (event: any, value: any) => {
+    setPaginationState(prev => ({ ...prev, page: value }))
   }
 
   const handleChangeLimit = (value: any) => {
-    setPaginationState({ ...paginationState, limit: value })
+    setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
   const CheckAllFiltersEmpty = (filters: any): boolean => {
@@ -318,6 +320,17 @@ const JobListing = () => {
         setAppliedFilters={setAppliedFilters}
         handleResetFilters={handleResetFilters}
       />
+
+      <FileUploadDialog
+        open={fileUploadDialogOpen}
+        onClose={() => setFileUploadDialogOpen(false)}
+        onUpload={file => {
+          if (file) {
+            console.log('File uploaded:', file)
+          }
+        }}
+      />
+
       <Card
         sx={{
           mb: 4,
@@ -380,6 +393,7 @@ const JobListing = () => {
               variant='tonal'
               icon={<i className='tabler-upload' />}
               position='start'
+              onClick={() => setFileUploadDialogOpen(true)}
               children='Upload JD'
             />
             <DynamicButton
@@ -542,7 +556,17 @@ const JobListing = () => {
               <h2 className='text-lg font-semibold text-gray-800'>{job.title}</h2>
 
               {/* Icons */}
-              <div className='flex items-center space-x-2'>
+              <div className='flex items-center space-x-0'>
+                <Tooltip title='Download JD' placement='top'>
+                  <IconButton
+                    onClick={e => {
+                      e.stopPropagation() // Prevent card click
+                      // router.push(`/jd-management/edit/${job.id}`)
+                    }}
+                  >
+                    <i className='tabler-download' />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title='Edit JD' placement='top'>
                   <IconButton
                     onClick={e => {

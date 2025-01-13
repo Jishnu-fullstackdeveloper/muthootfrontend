@@ -7,7 +7,7 @@ import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
 import DynamicCheckbox from '@/components/Checkbox/dynamicCheckbox'
-import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
+// import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
 
 const validationSchema = Yup.object().shape({
   title: Yup.string().required('Title is required'),
@@ -158,7 +158,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='dateOfBirth' className='block text-sm font-medium text-gray-700'>
                 Date of Birth *
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 
@@ -374,7 +374,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor='startDate' className='block text-sm font-medium text-gray-700'>
                 Start Date
               </label>
-              <DynamicDatepicker />
+              {/* <DynamicDatepicker /> */}
             </FormControl>
           )}
 

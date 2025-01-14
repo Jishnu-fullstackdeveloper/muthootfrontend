@@ -44,7 +44,7 @@ const approvers = [
   }
 ]
 
-const xDesignationOverview = () => {
+const DesignationOverview = () => {
   const router = useRouter()
   const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)

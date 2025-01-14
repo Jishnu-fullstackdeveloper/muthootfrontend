@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import SettingsIcon from '@mui/icons-material/Settings'
 import AssessmentIcon from '@mui/icons-material/Assessment'
+import AddIcon from '@mui/icons-material/Add';
 
 const ResignedEmployeesList = () => {
   const [search, setSearch] = useState('')
@@ -360,6 +361,16 @@ const ResignedEmployeesList = () => {
                 Set X-Factor
               </Button>
             </Box>
+            <Box mt={1}>
+                <Button
+                  variant='contained'
+                  color='primary'
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/recruitment-management/add/new-request')}
+                >
+                  Add Request
+                </Button>
+              </Box>
             <Box
               sx={{
                 display: 'flex',

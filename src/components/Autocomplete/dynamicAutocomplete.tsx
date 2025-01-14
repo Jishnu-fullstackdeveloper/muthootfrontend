@@ -7,9 +7,19 @@ interface dynamicAutocompleteProps {
   options: { name: string }[]
   onOptionSelect?: (option: { name: string } | null) => void
   sx: any
+  PopperComponent?: any
+  ListboxProps?: any
+  renderInput?: any
 }
 
-const DynamicAutocomplete = ({ label, options, onOptionSelect, sx }: dynamicAutocompleteProps) => {
+const DynamicAutocomplete = ({
+  label,
+  options,
+  onOptionSelect,
+  sx,
+  PopperComponent = '',
+  ListboxProps = ''
+}: dynamicAutocompleteProps) => {
   return (
     <Autocomplete
       disablePortal
@@ -18,6 +28,7 @@ const DynamicAutocomplete = ({ label, options, onOptionSelect, sx }: dynamicAuto
       onChange={(_, value) => onOptionSelect?.(value)}
       sx={sx}
       renderInput={params => <TextField {...params} label={label} />}
+      PopperComponent={PopperComponent}
     />
   )
 }

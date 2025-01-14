@@ -13,6 +13,11 @@ const nextConfig = {
         source: '/jd-management/add',
         destination: '/jd-management/add/jd',
         permanent: true
+      },
+      {
+        source: '/recruitment-management',
+        destination: 'recruitment-management/request-listing',
+        permanent: true
       }
     ]
   },

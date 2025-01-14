@@ -9,13 +9,14 @@ import Typography from '@mui/material/Typography'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-import { Box, Grid, IconButton, Tooltip } from '@mui/material'
+import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { Clear } from '@mui/icons-material'
 import CalendarToday from '@mui/icons-material/CalendarToday'
+import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import { useState } from 'react'
 
 // Data Type for the Resigned Report
@@ -85,6 +86,20 @@ const DesignationResignedReport = () => {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null])
   const [startDate, endDate] = dateRange
+
+  const [paginationState, setPaginationState] = useState({
+    page: 1,
+    limit: 10,
+    display_numbers_count: 5
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPaginationState({ ...paginationState, page: value })
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState({ ...paginationState, limit: value })
+  }
 
   // Function to handle View Details action
   const onViewDetails = (employeeId: string) => {
@@ -191,11 +206,11 @@ const DesignationResignedReport = () => {
             backgroundColor: '#f0f0f0'
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#d4d4d4',
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
             borderRadius: '4px'
           },
           '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#bfbfbf'
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
           }
         }}
       >
@@ -241,6 +256,34 @@ const DesignationResignedReport = () => {
           </tbody>
         </table>
       </Box>
+      <div className='flex items-center justify-end mt-6 pt-5 pb-5 border'>
+        {/* Right-aligned Pagination */}
+        <FormControl size='small' sx={{ minWidth: 70 }}>
+          <InputLabel>Count</InputLabel>
+          <Select
+            value={paginationState?.limit}
+            onChange={e => handleChangeLimit(e.target.value)}
+            label='Limit per page'
+          >
+            {[10, 25, 50, 100].map(option => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <div>
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count} //pagination numbers display count
+            page={paginationState?.page} //current page
+            onChange={handlePageChange} //changing page function
+          />
+        </div>
+      </div>
     </Card>
   )
 }

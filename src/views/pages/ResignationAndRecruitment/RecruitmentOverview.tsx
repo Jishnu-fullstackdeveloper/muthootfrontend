@@ -54,7 +54,7 @@ const DesignationOverview = () => {
     setAcceptAllDialogOpen(true)
   }
 
-  const handleViewRequest = name => {
+  const handleViewRequest = (name: any) => {
     router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
   }
 

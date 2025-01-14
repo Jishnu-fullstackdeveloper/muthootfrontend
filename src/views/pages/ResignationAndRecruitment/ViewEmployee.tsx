@@ -121,7 +121,8 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
             Software Engineer
           </Typography>
           <Typography variant='body1' sx={{ color: '#555', marginBottom: 0.5, fontWeight: '500', paddingY: 1 }}>
-            {employee.designation} - {employee.department}
+            {/* {employee.designation} - {employee.department} */}
+            Information Technology
           </Typography>
           {/* <Typography
             variant="body2"
@@ -205,15 +206,15 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 5 }}>
         <DesignationResignedReport />
-        <ChartSample />
+        {/* <ChartSample /> */}
       </Box>
 
-      <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2 }}>
+      {/* <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2 }}>
         Employee Details
       </Typography>
-      <Divider sx={{ marginBottom: 3 }} />
-      <Grid container spacing={3}>
-        <Grid item xs={6}>
+      <Divider sx={{ marginBottom: 3 }} /> */}
+      {/* <Grid container spacing={3}> */}
+      {/* <Grid item xs={6}>
           <Typography variant='body1'>
             <strong>Employee Code:</strong> {employee.employeeCode}
           </Typography>
@@ -241,8 +242,8 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           <Typography variant='body1'>
             <strong>City Classification:</strong> {employee.cityClassification}
           </Typography>
-        </Grid>
-      </Grid>
+        </Grid> */}
+      {/* </Grid> */}
       {/* Contact Information */}
       {/* <Typography variant='h6' sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2 }}>
         Contact Information
@@ -265,7 +266,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
             Office Email: {employee.officeEmail}
           </Typography>
         </Grid>
-      </Grid>
+      </Grid> */}
       {/* Resignation Details */}
       {/* <Typography variant='h6' sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2 }}>
         Resignation Details
@@ -284,7 +285,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
             Last Working Day: {employee.lastWorkingDay || 'N/A'}
           </Typography>
         </Grid>
-      </Grid>
+      </Grid> */}
       {/* Approval Status Stepper */}
       <Typography variant='h6' sx={{ fontWeight: 'bold', marginTop: 4, marginBottom: 2 }}>
         Approval Status

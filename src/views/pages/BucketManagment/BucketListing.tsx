@@ -154,7 +154,7 @@ const BucketListing = () => {
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push(`/bucket-management/add/bucket`)}
+              onClick={() => router.push(`bucket-management/add/new-bucket`)}
               children='New Bucket'
             />
 

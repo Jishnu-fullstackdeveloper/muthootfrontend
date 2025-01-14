@@ -19,7 +19,7 @@ const validationSchema = Yup.object().shape({
   teamRoles: Yup.string()
 })
 
-const GeneratedForm: React.FC = () => {
+const AddNewBucket: React.FC = () => {
   const Bucketformik: any = useFormik({
     initialValues: {
       bucketName: '',
@@ -339,4 +339,4 @@ const GeneratedForm: React.FC = () => {
   )
 }
 
-export default GeneratedForm
+export default AddNewBucket

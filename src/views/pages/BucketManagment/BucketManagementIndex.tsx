@@ -1,21 +1,17 @@
 'use client'
-import AddOrEditBucket from '@/form/generatedForms/addBucket'
+import AddNewBucket from '@/form/generatedForms/addBucket'
 import { usePathname } from 'next/navigation'
 import React from 'react'
-import BucketView from './BucketView'
 
 const BucketManagementIndex = () => {
   const pathname = usePathname() // Gets the full pathname
   const segments = pathname.split('/') // Split by "/"
-  const mode = segments[2] // Extract "add, edit, or view"
-  const id = segments[3] // Extract the id if available
-
+  const mode = segments[2] // Extract "add, view or edit"
+  const id = segments[3]
   return (
     <>
-      {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditBucket mode={mode} id={id} />}
-      {mode === 'view' && <BucketView mode={mode} id={id} />}
+      <AddNewBucket />
     </>
   )
 }
-
 export default BucketManagementIndex

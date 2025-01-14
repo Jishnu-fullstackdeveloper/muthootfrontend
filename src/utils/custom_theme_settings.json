@@ -1,73 +1,73 @@
 {
-    "theme": {
-        "logoText": "Muthoot",
-        "login_welcome_text_head": "Welcome to dynamic website",
-        "login_welcome_secondary_text": "Please sign-in to your account and start the adventure",
-        "login_remember_me_checkbox_text": "Remember me dynamic text",
-        "login_background_color": "white",
-        "register_new_account_text": "Do you want to create an account?",
-        "register_new_account_link_text": "Create an account",
-        "primaryColor": "#0095da",
-        "backgroundColor": "#fffff",
-        "primary_button": {
-            "cornerRadius": "8px"
-        },
-        "meta_text": "Muthoot Finance - India's Largest Gold Loan NBFC",
-        "images": {
-            "logo": {
-                "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
-                "altText": "Website Logo",
-                "width": {
-                    "xs_phones": 30,
-                    "sm_tablets": 40,
-                    "md_desktops": 50
-                },
-                "height": "auto"
-            },
-            "favicon": {
-                "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
-                "altText": "Website Logo"
-            },
-            "login_illustration": {
-                "src": "https://www.signxca.com/images/ekyclogin.png",
-                "altText": "alt_img"
-            }
-        },
-        "fonts": {},
-        "styles": {
-            "verticalMenuLockedIcon": "tabler-chevron-left text-xxl",
-            "verticalMenuUnlockedIcon": "tabler-chevron-right text-xxl"
-        },
-        "colors": {
-            "primary": "#d303fc",
-            "secondary": "#ff030f",
-            "background": "#000000",
-            "text": "#333333",
-            "menuText": "#333333",
-            "menuHover": "#2ecc71",
-            "buttonText": "#ffffff",
-            "buttonHover": "#2980b9",
-            "footerBackground": "#f8f8f8",
-            "footerText": "#666666",
-            "footerLinks": "#3498db"
-        },
-        "vertical_menu": {
-            "icons": [
-                {
-                    "label": "Home",
-                    "path": "/home",
-                    "iconClass": "tabler-smart-home"
-                }
-            ],
-            "header_backgroundColor": "00FFFFFF",
-            "backgroundColor": "#fffff",
-            "textColor": "#333333",
-            "hoverColor": "#2ecc71"
-        }
+  "theme": {
+    "logoText": "Muthoot",
+    "login_welcome_text_head": "Welcome to dynamic website",
+    "login_welcome_secondary_text": "Please sign-in to your account and start the adventure",
+    "login_remember_me_checkbox_text": "Remember me dynamic text",
+    "login_background_color": "white",
+    "register_new_account_text": "Do you want to create an account?",
+    "register_new_account_link_text": "Create an account",
+    "primaryColor": "#0095da",
+    "backgroundColor": "#fffff",
+    "primary_button": {
+      "cornerRadius": "8px"
     },
-    "footer": {
-        "backgroundColor": "rgba(28, 46, 146, 0)",
-        "textColor": "#1303fc",
-        "linksColor": "#1303fc"
+    "meta_text": "Muthoot Finance - India's Largest Gold Loan NBFC",
+    "images": {
+      "logo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
+        "altText": "Website Logo",
+        "width": {
+          "xs_phones": 30,
+          "sm_tablets": 40,
+          "md_desktops": 50
+        },
+        "height": "auto"
+      },
+      "favicon": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
+        "altText": "Website Logo"
+      },
+      "login_illustration": {
+        "src": "https://www.signxca.com/images/ekyclogin.png",
+        "altText": "alt_img"
+      }
+    },
+    "fonts": {},
+    "styles": {
+      "verticalMenuLockedIcon": "tabler-chevron-left text-xxl",
+      "verticalMenuUnlockedIcon": "tabler-chevron-right text-xxl"
+    },
+    "colors": {
+      "primary": "#d303fc",
+      "secondary": "#ff030f",
+      "background": "#000000",
+      "text": "#333333",
+      "menuText": "#333333",
+      "menuHover": "#2ecc71",
+      "buttonText": "#ffffff",
+      "buttonHover": "#2980b9",
+      "footerBackground": "#f8f8f8",
+      "footerText": "#666666",
+      "footerLinks": "#3498db"
+    },
+    "vertical_menu": {
+      "icons": [
+        {
+          "label": "Home",
+          "path": "/home",
+          "iconClass": "tabler-smart-home"
+        }
+      ],
+      "header_backgroundColor": "00FFFFFF",
+      "backgroundColor": "#fffff",
+      "textColor": "#333333",
+      "hoverColor": "#2ecc71"
     }
+  },
+  "footer": {
+    "backgroundColor": "rgba(28, 46, 146, 0)",
+    "textColor": "#1303fc",
+    "linksColor": "#1303fc"
+  }
 }

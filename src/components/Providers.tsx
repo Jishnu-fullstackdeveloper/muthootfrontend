@@ -45,10 +45,10 @@ const Providers = (props: Props) => {
   const privateRoute = ![...guestRoutes].some(route => pathName.includes(route))
   const access_token = getAccessToken()
 
-  var url: any
-  if (typeof window !== 'undefined') {
-    url = window.location.pathname
-  }
+  // var url: any
+  // if (typeof window !== 'undefined') {
+  //   url = window.location.pathname
+  // }
 
   // useEffect(() => {
   //   if (!access_token && privateRoute && typeof window !== 'undefined') {
@@ -59,22 +59,22 @@ const Providers = (props: Props) => {
   // }, [])
 
   // useEffect(() => {
-    //   if (!access_token && privateRoute) {
-    //     setTimeout(() => {
-    //       Logout()
-    //       return router.push('/login')
-    //     }, 3000)
-    //   }
-    //   var url
-    //   if (typeof window !== 'undefined') {
-    //     url = window.location.pathname
-    //   }
-    //   if (url?.includes('login/pass_update')) {
-    //     setTimeout(() => {
-    //       Logout()
-    //       router.push('/login')
-    //     }, 3000)
-    //   }
+  //   //   if (!access_token && privateRoute) {
+  //   //     setTimeout(() => {
+  //   //       Logout()
+  //   //       return router.push('/login')
+  //   //     }, 3000)
+  //   //   }
+  //   //   var url
+  //   //   if (typeof window !== 'undefined') {
+  //   //     url = window.location.pathname
+  //   //   }
+  //   //   if (url?.includes('login/pass_update')) {
+  //   //     setTimeout(() => {
+  //   //       Logout()
+  //   //       router.push('/login')
+  //   //     }, 3000)
+  //   //   }
   //   if (url?.includes('login/*')) {
   //     Logout()
   //     router.push('/login')

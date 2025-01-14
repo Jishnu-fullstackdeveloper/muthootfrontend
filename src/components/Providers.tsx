@@ -59,22 +59,22 @@ const Providers = (props: Props) => {
   // }, [])
 
   // useEffect(() => {
-    //   if (!access_token && privateRoute) {
-    //     setTimeout(() => {
-    //       Logout()
-    //       return router.push('/login')
-    //     }, 3000)
-    //   }
-    //   var url
-    //   if (typeof window !== 'undefined') {
-    //     url = window.location.pathname
-    //   }
-    //   if (url?.includes('login/pass_update')) {
-    //     setTimeout(() => {
-    //       Logout()
-    //       router.push('/login')
-    //     }, 3000)
-    //   }
+  //   //   if (!access_token && privateRoute) {
+  //   //     setTimeout(() => {
+  //   //       Logout()
+  //   //       return router.push('/login')
+  //   //     }, 3000)
+  //   //   }
+  //   //   var url
+  //   //   if (typeof window !== 'undefined') {
+  //   //     url = window.location.pathname
+  //   //   }
+  //   //   if (url?.includes('login/pass_update')) {
+  //   //     setTimeout(() => {
+  //   //       Logout()
+  //   //       router.push('/login')
+  //   //     }, 3000)
+  //   //   }
   //   if (url?.includes('login/*')) {
   //     Logout()
   //     router.push('/login')

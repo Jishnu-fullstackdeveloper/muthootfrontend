@@ -1,10 +1,11 @@
+
 import GeneratedForm from '@/form/generatedForms/addNewRequest'
 import React from 'react'
 
 type Props = {
-  mode: string
-  id: string
-}
+    mode: string
+    id: string
+  }
 
 const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
   return (
@@ -15,4 +16,3 @@ const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
 }
 
 export default AddNewRequest
-

@@ -27,20 +27,20 @@ const RootLayout = ({ children }: ChildrenType) => {
   // Vars
   const direction = 'ltr'
 
-  var url: any
-  if (typeof window !== 'undefined') {
-    url = window.location.pathname
-  }
+  // var url: any
+  // if (typeof window !== 'undefined') {
+  //   url = window.location.pathname
+  // }
 
-  const guestRoutes = ['login', 'Login2Redirect']
-  const privateRoute = ![...guestRoutes].some(route => url?.endsWith(route))
-  const access_token = getAccessToken()
+  // const guestRoutes = ['login', 'Login2Redirect']
+  // const privateRoute = ![...guestRoutes].some(route => url?.endsWith(route))
+  // const access_token = getAccessToken()
 
-  if (!access_token && privateRoute) {
-    setTimeout(() => {
-      Logout()
-    }, 3000)
-  }
+  // if (!access_token && privateRoute) {
+  //   setTimeout(() => {
+  //     Logout()
+  //   }, 3000)
+  // }
 
   return (
     <html id='__next' lang='en' dir={direction}>

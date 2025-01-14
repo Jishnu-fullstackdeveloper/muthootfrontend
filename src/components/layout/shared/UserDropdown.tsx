@@ -106,70 +106,70 @@ const UserDropdown = () => {
   const guestRoutes = ['login', 'login-Redirect']
   const privateRoute = ![...guestRoutes].some(route => pathName.endsWith(route))
 
-  useEffect(() => {
-    if (!access_token && privateRoute) {
-      setTimeout(() => {
-        Logout()
-        return router.push('/login')
-      }, 3000)
-    }
+  // useEffect(() => {
+  //   if (!access_token && privateRoute) {
+  //     setTimeout(() => {
+  //       Logout()
+  //       return router.push('/login')
+  //     }, 3000)
+  //   }
 
-    var url
-    if (typeof window !== 'undefined') {
-      url = window.location.pathname
-    }
+  //   var url
+  //   if (typeof window !== 'undefined') {
+  //     url = window.location.pathname
+  //   }
 
-    if (url?.includes('login/pass_update')) {
-      setTimeout(() => {
-        Logout()
-        router.push('/login')
-      }, 3000)
-    }
-  }, [])
+  //   if (url?.includes('login/pass_update')) {
+  //     setTimeout(() => {
+  //       Logout()
+  //       router.push('/login')
+  //     }, 3000)
+  //   }
+  // }, [])
 
-  /** Author : Siyad-M
-   functionality: Fetching new access token to avoid unauthorization issue*/
-  useEffect(() => {
-    if (newAccessTokenApiSuccess && newAccessTokenApiData?.access_token) {
-      setAccessToken(newAccessTokenApiData.access_token)
-      if (newAccessTokenApiData?.refresh_token) {
-        setRefreshToken(newAccessTokenApiData?.refresh_token)
-      }
-    }
+  // /** Author : Siyad-M
+  //  functionality: Fetching new access token to avoid unauthorization issue*/
+  // useEffect(() => {
+  //   if (newAccessTokenApiSuccess && newAccessTokenApiData?.access_token) {
+  //     setAccessToken(newAccessTokenApiData.access_token)
+  //     if (newAccessTokenApiData?.refresh_token) {
+  //       setRefreshToken(newAccessTokenApiData?.refresh_token)
+  //     }
+  //   }
 
-    if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
-      // handleUserLogout()
-      dispatch(LoginDataDismiss())
-    }
-  }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
+  //   if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
+  //     // handleUserLogout()
+  //     dispatch(LoginDataDismiss())
+  //   }
+  // }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
 
-  // to call this api in every 2 minitues
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (access_token && refresh_token) {
-        const decodedToken: any = jwtDecode(access_token)
-        const params: any = {
-          realm: decodedToken?.realm,
-          refreshtoken: refresh_token
-        }
-        dispatch(fetchNewAccessToken(params))
-      }
-    }, 300000)
-    return () => clearInterval(intervalId)
-  }, [])
+  // // to call this api in every 2 minitues
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     if (access_token && refresh_token) {
+  //       const decodedToken: any = jwtDecode(access_token)
+  //       const params: any = {
+  //         realm: decodedToken?.realm,
+  //         refreshtoken: refresh_token
+  //       }
+  //       dispatch(fetchNewAccessToken(params))
+  //     }
+  //   }, 300000)
+  //   return () => clearInterval(intervalId)
+  // }, [])
 
-  useEffect(() => {
-    if (changePasswordData) {
-      window.location.replace(changePasswordData)
-    }
-  }, [changePasswordData])
+  // useEffect(() => {
+  //   if (changePasswordData) {
+  //     window.location.replace(changePasswordData)
+  //   }
+  // }, [changePasswordData])
 
-  useEffect(() => {
-    if (access_token) {
-      let temp = jwtDecode(access_token)
-      setDecodedAccessToken(temp)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (access_token) {
+  //     let temp = jwtDecode(access_token)
+  //     setDecodedAccessToken(temp)
+  //   }
+  // }, [])
 
   return (
     <>

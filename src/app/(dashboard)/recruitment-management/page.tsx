@@ -1,6 +1,5 @@
-'use client'
-import { useRouter } from 'next/navigation'
-import React, { useEffect } from 'react'
+import { Button } from '@mui/material'
+import ResignedEmployeesListing from '@/views/pages/ResignationAndRecruitment/ResignedDesignationsListing'
 
 const page = () => {
   const router = useRouter()

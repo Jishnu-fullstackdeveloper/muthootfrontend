@@ -1,13 +1,28 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { Box, Card, IconButton, InputAdornment, Typography, Tooltip, Divider, Button } from '@mui/material'
+import {
+  Box,
+  Card,
+  IconButton,
+  InputAdornment,
+  Typography,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination,
+  Chip,
+  Divider,
+  Button
+} from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CustomTextField from '@/@core/components/mui/TextField'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import DynamicButton from '@/components/Button/dynamicButton'
 import RecruitmentLocationFilter from '@/@core/components/dialogs/recruitment-location-filters'
@@ -20,8 +35,6 @@ const ResignedDesignationsListing = () => {
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const filterParams = searchParams.get('filter')
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -746,7 +759,7 @@ const ResignedDesignationsListing = () => {
           page={paginationState?.page}
           onChange={handlePageChange}
         />
-      </div> */}
+      </div>
     </div>
   )
 }

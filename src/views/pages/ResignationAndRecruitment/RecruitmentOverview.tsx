@@ -1,11 +1,12 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Typography, Grid, Button, LinearProgress, Card } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import WarningIcon from '@mui/icons-material/Warning'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
+import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
 
 const approvers = [
   {
@@ -45,13 +46,20 @@ const approvers = [
 
 const DesignationOverview = () => {
   const router = useRouter()
+  const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
+  const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
 
   const handleApproveAll = () => {
-    alert('All requests approved!')
+    // alert('All requests approved!')
+    setAcceptAllDialogOpen(true)
   }
 
   const handleViewRequest = name => {
     router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
+  }
+
+  const handleConfirmAllRequestAccepted = (val: boolean) => {
+    setAcceptAllConfirmed(val)
   }
 
   const progressBar = approvers.map(approver => {
@@ -60,113 +68,122 @@ const DesignationOverview = () => {
   })
 
   return (
-    <Box sx={{ padding: 4, minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#333' }}>
-          Recruitment Request Overview
-        </Typography>
-        <Button
-          variant='contained'
-          color='success'
-          size='medium'
-          startIcon={<CheckCircleOutlineIcon />}
-          onClick={handleApproveAll}
-        >
-          Approve All Requests
-        </Button>
-      </Box>
+    <>
+      <WarningDialog
+        open={acceptAllDialogOpen}
+        tooltipText={'Are you sure you want accept all requests?'}
+        HeadingText={'Accept All Requests'}
+        setOpen={setAcceptAllDialogOpen}
+        setAcceptAllConfirmed={setAcceptAllConfirmed}
+      />
+      <Box sx={{ padding: 4, minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#333' }}>
+            Recruitment Request Overview
+          </Typography>
+          <Button
+            variant='contained'
+            color='success'
+            size='medium'
+            startIcon={<CheckCircleOutlineIcon />}
+            onClick={handleApproveAll}
+          >
+            Approve All Requests
+          </Button>
+        </Box>
 
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={12}>
-          <Card sx={{ padding: 3, boxShadow: 3, borderRadius: 2 }}>
-            <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 3 }}>
-              Request Progress Overview
-            </Typography>
-            {approvers.map((approver, index) => (
-              <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
-                <Typography variant='body1' sx={{ color: '#555' }}>
-                  {approver.name} - {approver.requests} Requests
-                </Typography>
-                <LinearProgress
-                  variant='determinate'
-                  value={progressBar[index]}
-                  sx={{
-                    height: 5,
-                    borderRadius: 10,
-                    backgroundColor: '#f0f0f0',
-                    '& .MuiLinearProgress-bar': {
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={12}>
+            <Card sx={{ padding: 3, boxShadow: 3, borderRadius: 2 }}>
+              <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 3 }}>
+                Request Progress Overview
+              </Typography>
+              {approvers.map((approver, index) => (
+                <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
+                  <Typography variant='body1' sx={{ color: '#555' }}>
+                    {approver.name} - {approver.requests} Requests
+                  </Typography>
+                  <LinearProgress
+                    variant='determinate'
+                    value={progressBar[index]}
+                    sx={{
+                      height: 5,
                       borderRadius: 10,
-                      backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
-                    }
-                  }}
-                />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
-                    <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
-                      {approver.warning}
-                    </Typography>
-                  </Box>
-                  {/* <VisibilityIcon
+                      backgroundColor: '#f0f0f0',
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 10,
+                        backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
+                      }
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
+                      <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
+                        {approver.warning}
+                      </Typography>
+                    </Box>
+                    {/* <VisibilityIcon
                     sx={{ cursor: 'pointer', color: '#0095da' }}
                     onClick={() => handleViewRequest(approver.name)}
                   /> */}
+                  </Box>
                 </Box>
-              </Box>
-            ))}
-          </Card>
+              ))}
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
 
-      <Box sx={{ marginTop: 5 }}>
-        <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333' }}>
-          Request Summary
-        </Typography>
-        <Grid container spacing={4} sx={{ marginTop: 2 }}>
-          {approvers.map((approver, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card sx={{ padding: 3, boxShadow: 3, borderRadius: 2 }}>
-                <Typography variant='h6' sx={{ fontWeight: 'bold', color: '#333' }}>
-                  {approver.name}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#555' }}>
-                  <strong>Request Type:</strong> {approver.requestType}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#555' }}>
-                  <strong>Requests:</strong> {approver.requests}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#555' }}>
-                  <strong>Bubble Positions: </strong> {approver.bubblePositionsCount}
-                </Typography>
-
-                <Typography variant='body1' sx={{ color: '#777' }}>
-                  <strong>Branch:</strong> {approver.branchDetails}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#777' }}>
-                  <strong>Approval Levels:</strong> {approver.approvalLevels.join(', ')}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
-                  <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
-                  <Typography variant='body1' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
-                    {approver.warning}
+        <Box sx={{ marginTop: 5 }}>
+          <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333' }}>
+            Request Summary
+          </Typography>
+          <Grid container spacing={4} sx={{ marginTop: 2 }}>
+            {approvers.map((approver, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Card sx={{ padding: 3, boxShadow: 3, borderRadius: 2 }}>
+                  <Typography variant='h6' sx={{ fontWeight: 'bold', color: '#333' }}>
+                    {approver.name}
                   </Typography>
-                </Box>
-                <Button
-                  variant='outlined'
-                  color='primary'
-                  fullWidth
-                  sx={{ marginTop: 2 }}
-                  startIcon={<VisibilityIcon />}
-                  onClick={() => handleViewRequest(approver.name)}
-                >
-                  View Request
-                </Button>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                  <Typography variant='body1' sx={{ color: '#555' }}>
+                    <strong>Request Type:</strong> {approver.requestType}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555' }}>
+                    <strong>Requests:</strong> {approver.requests}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555' }}>
+                    <strong>Bubble Positions: </strong> {approver.bubblePositionsCount}
+                  </Typography>
+
+                  <Typography variant='body1' sx={{ color: '#777' }}>
+                    <strong>Branch:</strong> {approver.branchDetails}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#777' }}>
+                    <strong>Approval Levels:</strong> {approver.approvalLevels.join(', ')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
+                    <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
+                    <Typography variant='body1' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
+                      {approver.warning}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant='outlined'
+                    color='primary'
+                    fullWidth
+                    sx={{ marginTop: 2 }}
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => handleViewRequest(approver.name)}
+                  >
+                    View Request
+                  </Button>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }
 

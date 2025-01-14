@@ -109,7 +109,7 @@ const DesignationOverview = () => {
       <WarningDialog
         open={acceptAllDialogOpen}
         tooltipText={'Are you sure you want accept all requests?'}
-        headingText={'Accept All Requests'}
+        HeadingText={'Accept All Requests'}
         setOpen={setAcceptAllDialogOpen}
         setAcceptAllConfirmed={setAcceptAllConfirmed}
       />

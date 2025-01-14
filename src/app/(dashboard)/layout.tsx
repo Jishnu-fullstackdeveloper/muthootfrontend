@@ -28,20 +28,20 @@ const Layout = async ({ children }: ChildrenType) => {
   const mode = getMode()
   const systemMode = getSystemMode()
 
-  var url: any
-  if (typeof window !== 'undefined') {
-    url = window.location.pathname
-  }
+  // var url: any
+  // if (typeof window !== 'undefined') {
+  //   url = window.location.pathname
+  // }
 
-  const guestRoutes = ['login', 'login-Redirect']
-  const privateRoute = ![...guestRoutes].some(route => url?.endsWith(route))
-  const access_token = getAccessToken()
+  // const guestRoutes = ['login', 'login-Redirect']
+  // const privateRoute = ![...guestRoutes].some(route => url?.endsWith(route))
+  // const access_token = getAccessToken()
 
-  if (!access_token && privateRoute) {
-    setTimeout(() => {
-      Logout()
-    }, 3000)
-  }
+  // if (!access_token && privateRoute) {
+  //   setTimeout(() => {
+  //     Logout()
+  //   }, 3000)
+  // }
 
   return (
     <Providers direction={direction}>

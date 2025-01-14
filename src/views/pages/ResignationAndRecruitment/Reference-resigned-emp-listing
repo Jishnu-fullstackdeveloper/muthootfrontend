@@ -28,7 +28,7 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import AddIcon from '@mui/icons-material/Add';
 
-const ResignedEmployeesList = () => {
+const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState('grid')
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
@@ -111,7 +111,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP003',
-      employmentStatus: 'Active',
+      employmentStatus: 'Approved',
       employmentType: 'Full-time',
       title: 'Dr.',
       employeeName: 'Alice Brown',
@@ -141,7 +141,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP004',
-      employmentStatus: 'Active',
+      employmentStatus: 'Approved',
       employmentType: 'Part-time',
       title: 'Mr.',
       employeeName: 'Michael Lee',
@@ -171,7 +171,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP005',
-      employmentStatus: 'Approval Pending',
+      employmentStatus: 'Rejected',
       employmentType: 'Full-time',
       title: 'Mrs.',
       employeeName: 'Emily Clark',
@@ -200,7 +200,7 @@ const ResignedEmployeesList = () => {
     },
     {
       employeeCode: 'EMP004',
-      employmentStatus: 'Active',
+      employmentStatus: 'Approved',
       employmentType: 'Part-time',
       title: 'Mr.',
       employeeName: 'Michael Lee',
@@ -302,7 +302,7 @@ const ResignedEmployeesList = () => {
               letterSpacing: 1
             }}
           >
-            Resigned Employees Listing
+            Designation Requests
           </Typography>
           <Box
             sx={{
@@ -325,10 +325,10 @@ const ResignedEmployeesList = () => {
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
-              label='Search Employee'
+              label='Search Designation'
               value={search}
               onChange={(value: any) => setSearch(value)}
-              placeholder='Search by Employee Name, Code, Email...'
+              placeholder='Search by Designation...'
               className='is-full sm:is-[400px]'
               InputProps={{
                 endAdornment: (
@@ -444,14 +444,17 @@ const ResignedEmployeesList = () => {
               >
                 {employee.title} {employee.employeeName}
               </Typography>
-              <Chip
+
+              {/* <Chip
                 label={employee.employmentStatus}
                 color={
                   employee.employmentStatus === 'Approval Pending'
                     ? 'warning'
-                    : employee.employmentStatus === 'Active'
+                    : employee.employmentStatus === 'Approved'
                       ? 'success'
-                      : 'default'
+                      : employee.employmentStatus === 'Rejected'
+                        ? 'error'
+                        : 'default'
                 }
                 sx={{
                   fontWeight: 'bold',
@@ -459,7 +462,42 @@ const ResignedEmployeesList = () => {
                   padding: '0 8px',
                   borderRadius: 2
                 }}
-              />
+              /> */}
+
+              {/* Approve and Reject Buttons */}
+              {employee.employmentStatus === 'Approval Pending' && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                    marginTop: 2
+                  }}
+                >
+                  <Button
+                    variant='contained'
+                    color='success'
+                    onClick={e => {
+                      e.stopPropagation()
+                    }}
+                    sx={{ padding: '6px 16px' }}
+                    startIcon={<i className='tabler-check' />}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant='contained'
+                    color='error'
+                    onClick={e => {
+                      e.stopPropagation()
+                    }}
+                    sx={{ padding: '6px 16px' }}
+                    startIcon={<i className='tabler-playstation-x' />}
+                  >
+                    Reject
+                  </Button>
+                </Box>
+              )}
             </Box>
             <Box
               sx={{
@@ -492,6 +530,25 @@ const ResignedEmployeesList = () => {
                   <strong>Last Working Day:</strong> {employee.lastWorkingDay}
                 </Typography>
               </Box>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
+                <strong>Status:</strong>&nbsp;
+                <span
+                  style={{
+                    color:
+                      employee.employmentStatus === 'Approval Pending'
+                        ? '#ff9800' // Orange for Pending
+                        : employee.employmentStatus === 'Approved'
+                          ? '#4caf50' // Green for Approved
+                          : employee.employmentStatus === 'Rejected'
+                            ? '#f44336' // Red for Rejected
+                            : '#757575' // Default grey
+                  }}
+                >
+                  {employee.employmentStatus}
+                </span>
+              </Typography>
             </Box>
             <Divider sx={{ marginY: 2 }} /> {/* Divider to separate the sections */}
             <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
@@ -532,4 +589,4 @@ const ResignedEmployeesList = () => {
   )
 }
 
-export default ResignedEmployeesList
+export default ResignedDesignationsListing

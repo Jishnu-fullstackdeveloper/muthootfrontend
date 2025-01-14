@@ -50,15 +50,15 @@ const Providers = (props: Props) => {
     url = window.location.pathname
   }
 
-  useEffect(() => {
-    if (!access_token && privateRoute && typeof window !== 'undefined') {
-      Logout()
-      let path = process.env.NEXT_PUBLIC_URL + '/login'
-      window.location.replace(path)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (!access_token && privateRoute && typeof window !== 'undefined') {
+  //     Logout()
+  //     let path = process.env.NEXT_PUBLIC_URL + '/login'
+  //     window.location.replace(path)
+  //   }
+  // }, [])
 
-  useEffect(() => {
+  // useEffect(() => {
     //   if (!access_token && privateRoute) {
     //     setTimeout(() => {
     //       Logout()
@@ -75,15 +75,15 @@ const Providers = (props: Props) => {
     //       router.push('/login')
     //     }, 3000)
     //   }
-    if (url?.includes('login/*')) {
-      Logout()
-      router.push('/login')
-    }
+  //   if (url?.includes('login/*')) {
+  //     Logout()
+  //     router.push('/login')
+  //   }
 
-    if (url?.endsWith('jd-management')) {
-      router.push('/jd-management')
-    }
-  }, [])
+  //   if (url?.endsWith('jd-management')) {
+  //     router.push('/jd-management')
+  //   }
+  // }, [])
 
   const storeRef = useRef<AppStore | null>(null)
 

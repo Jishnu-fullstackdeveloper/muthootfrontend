@@ -1,0 +1,181 @@
+{
+    "title": "Resignation Request Form",
+    "fields": [
+        {
+            "section": "Employee Category Details",
+            "fields": [
+                {
+                    "name": "designation",
+                    "label": "Designation",
+                    "type": "select",
+                    "options": [
+                        "Software Engineer",
+                        "Project Manager",
+                        "UI/UX Designer",
+                        "Data Scientist"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "department",
+                    "label": "Department",
+                    "type": "select",
+                    "options": [
+                        "IT",
+                        "HR",
+                        "Finance",
+                        "Operations"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "empCategoryType",
+                    "label": "Employee Category Type",
+                    "type": "select",
+                    "options": [
+                        "Software Engineer",
+                        "Project Manager",
+                        "UI/UX Designer",
+                        "Data Scientist"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "grade",
+                    "label": "Grade",
+                    "type": "select",
+                    "options": [
+                        "G1",
+                        "G2",
+                        "G3",
+                        "G4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "band",
+                    "label": "Band",
+                    "type": "select",
+                    "options": [
+                        "B1",
+                        "B2",
+                        "B3",
+                        "B4"
+                    ],
+                    "required": true
+                }
+            ]
+        },
+        {
+            "section": "Location Category Details",
+            "fields": [
+                {
+                    "name": "company",
+                    "label": "Company",
+                    "type": "select",
+                    "options": [
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "businessUnit",
+                    "label": "Business Unit",
+                    "type": "select",
+                    "options": [
+                        "BU1",
+                        "BU2",
+                        "BU3",
+                        "BU4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "territory",
+                    "label": "Territory",
+                    "type": "select",
+                    "options": [
+                        "T1",
+                        "T2",
+                        "T3",
+                        "T4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "zone",
+                    "label": "Zone",
+                    "type": "select",
+                    "options": [
+                        "Z1",
+                        "Z2",
+                        "Z3",
+                        "Z4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "region",
+                    "label": "Region",
+                    "type": "select",
+                    "options": [
+                        "R1",
+                        "R2",
+                        "R3",
+                        "R4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "area",
+                    "label": "Area",
+                    "type": "select",
+                    "options": [
+                        "A1",
+                        "A2",
+                        "A3",
+                        "A4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "cluster",
+                    "label": "Cluster",
+                    "type": "select",
+                    "options": [
+                        "CL1",
+                        "CL2",
+                        "CL3",
+                        "CL4"
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "branch",
+                    "label": "Branch",
+                    "type": "select",
+                    "options": [
+                        "R1",
+                        "R2",
+                        "R3",
+                        "R4"
+                    ],
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "cancel",
+            "label": "Cancel"
+        },
+        {
+            "type": "submit",
+            "label": "Submit"
+        }
+    ]
+}

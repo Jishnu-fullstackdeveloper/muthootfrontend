@@ -1,6 +1,7 @@
 'use client'
 import { Box, Card, Divider, Link, Typography } from '@mui/material'
 import dynamic from 'next/dynamic'
+import AddNewRequest from '../AddNewRequest'
 const ViewEmployee = dynamic(() => import('../ViewEmployee'), { ssr: false })
 
 import React, { useState } from 'react'
@@ -22,6 +23,7 @@ const EmployeeDetails = () => {
       )} */}
 
       {mode === 'view' && <ViewEmployee mode={mode} id={id} />}
+      {mode === 'add' && <AddNewRequest mode={mode} id={id} />}
     </>
   )
 }

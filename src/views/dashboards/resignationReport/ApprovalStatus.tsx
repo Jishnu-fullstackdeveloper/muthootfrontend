@@ -8,6 +8,7 @@ import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import { Box } from '@mui/material'
 import { CheckCircle, Error, HourglassEmpty, AccessTime, Warning } from '@mui/icons-material'
+import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Components Imports
 import OptionMenu from '@core/components/option-menu'
@@ -76,11 +77,11 @@ const ApprovalStatus = () => {
             backgroundColor: '#f0f0f0'
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#d4d4d4',
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
             borderRadius: '4px'
           },
           '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#bfbfbf'
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
           }
         }}
         // className='custom-scrollbar'

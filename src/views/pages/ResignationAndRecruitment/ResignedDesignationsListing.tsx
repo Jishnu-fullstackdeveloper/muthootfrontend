@@ -22,7 +22,7 @@ import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import CustomTextField from '@/@core/components/mui/TextField'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import SettingsIcon from '@mui/icons-material/Settings'
 import AssessmentIcon from '@mui/icons-material/Assessment'
@@ -34,6 +34,8 @@ const ResignedDesignationsListing = () => {
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const filterParams = searchParams.get('filter')
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -395,47 +397,49 @@ const ResignedDesignationsListing = () => {
           viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6' : 'space-y-4'
         }`}
       >
-        {employees?.map((employee: any, index: number) => (
-          <Box
-            sx={{
-              cursor: 'pointer',
-              backgroundColor: '#ffffff',
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.1)',
-              border: '1px solid',
-              borderColor: '#e0e0e0',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0px 12px 25px rgba(0, 0, 0, 0.15)'
-              },
-              marginBottom: 4
-            }}
-            key={index}
-            onClick={() => router.push(`/recruitment-management/view/${employee.employeeCode}`)}
-          >
+        {employees
+          ?.filter((d: any) => d.designation === filterParams?.replace(/-/g, ' '))
+          ?.map((employee: any, index: number) => (
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 3
+                cursor: 'pointer',
+                backgroundColor: '#ffffff',
+                padding: 3,
+                borderRadius: 2,
+                boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.1)',
+                border: '1px solid',
+                borderColor: '#e0e0e0',
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-8px)',
+                  boxShadow: '0px 12px 25px rgba(0, 0, 0, 0.15)'
+                },
+                marginBottom: 4
               }}
+              key={index}
+              onClick={() => router.push(`/recruitment-management/view/${employee.employeeCode}`)}
             >
-              <Typography
-                variant='h6'
+              <Box
                 sx={{
-                  fontWeight: 'bold',
-                  color: '#333',
-                  fontSize: '1.2rem'
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 3
                 }}
               >
-                {/* {employee.title} {employee.employeeName} */}
-                {employee.designation}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#333',
+                    fontSize: '1.2rem'
+                  }}
+                >
+                  {/* {employee.title} {employee.employeeName} */}
+                  {employee.designation}
+                </Typography>
 
-              {/* <Chip
+                {/* <Chip
                 label={employee.employmentStatus}
                 color={
                   employee.employmentStatus === 'Approval Pending'
@@ -454,103 +458,103 @@ const ResignedDesignationsListing = () => {
                 }}
               /> */}
 
-              {/* Approve and Reject Buttons */}
-              {employee.employmentStatus === 'Approval Pending' && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: 2,
-                    marginTop: 2
-                  }}
-                >
-                  <Button
-                    variant='contained'
-                    color='success'
-                    onClick={e => {
-                      e.stopPropagation()
+                {/* Approve and Reject Buttons */}
+                {employee.employmentStatus === 'Approval Pending' && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: 2,
+                      marginTop: 2
                     }}
-                    sx={{ padding: '6px 16px' }}
-                    startIcon={<i className='tabler-check' />}
                   >
-                    Approve
-                  </Button>
-                  <Button
-                    variant='contained'
-                    color='error'
-                    onClick={e => {
-                      e.stopPropagation()
-                    }}
-                    sx={{ padding: '6px 16px' }}
-                    startIcon={<i className='tabler-playstation-x' />}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              )}
-            </Box>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)', // Two columns
-                gap: 2,
-                padding: '8px 0'
-              }}
-            >
-              <Box>
-                {/* <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <Button
+                      variant='contained'
+                      color='success'
+                      onClick={e => {
+                        e.stopPropagation()
+                      }}
+                      sx={{ padding: '6px 16px' }}
+                      startIcon={<i className='tabler-check' />}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant='contained'
+                      color='error'
+                      onClick={e => {
+                        e.stopPropagation()
+                      }}
+                      sx={{ padding: '6px 16px' }}
+                      startIcon={<i className='tabler-playstation-x' />}
+                    >
+                      Reject
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)', // Two columns
+                  gap: 2,
+                  padding: '8px 0'
+                }}
+              >
+                <Box>
+                  {/* <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
                   <strong>Designation:</strong> {employee.designation}
                 </Typography> */}
-                <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Department:</strong> {employee.department}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Branch:</strong> {employee.branch}
-                </Typography>
-                <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Band </strong> B1
-                </Typography>
-              </Box>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <strong>Department:</strong> {employee.department}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <strong>Branch:</strong> {employee.branch}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <strong>Band </strong> B1
+                  </Typography>
+                </Box>
 
-              <Box>
-                <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Grade:</strong> G1
+                <Box>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <strong>Grade:</strong> G1
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                    <strong>Company:</strong> Muthoot Fincorp
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
+                  <strong>Status:</strong>&nbsp;
+                  <span
+                    style={{
+                      color:
+                        employee.employmentStatus === 'Approval Pending'
+                          ? '#ff9800' // Orange for Pending
+                          : employee.employmentStatus === 'Approved'
+                            ? '#4caf50' // Green for Approved
+                            : employee.employmentStatus === 'Rejected'
+                              ? '#f44336' // Red for Rejected
+                              : '#757575' // Default grey
+                    }}
+                  >
+                    {employee.employmentStatus}
+                  </span>
                 </Typography>
-                <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Company:</strong> Muthoot Fincorp
+              </Box>
+              <Divider sx={{ marginY: 2 }} /> {/* Divider to separate the sections */}
+              <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
+                <Typography variant='body2' sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                  Additional Details: {employee.additionalDetails || 'N/A'}
                 </Typography>
               </Box>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
-                <strong>Status:</strong>&nbsp;
-                <span
-                  style={{
-                    color:
-                      employee.employmentStatus === 'Approval Pending'
-                        ? '#ff9800' // Orange for Pending
-                        : employee.employmentStatus === 'Approved'
-                          ? '#4caf50' // Green for Approved
-                          : employee.employmentStatus === 'Rejected'
-                            ? '#f44336' // Red for Rejected
-                            : '#757575' // Default grey
-                  }}
-                >
-                  {employee.employmentStatus}
-                </span>
-              </Typography>
-            </Box>
-            <Divider sx={{ marginY: 2 }} /> {/* Divider to separate the sections */}
-            <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
-              <Typography variant='body2' sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                Additional Details: {employee.additionalDetails || 'N/A'}
-              </Typography>
-            </Box>
-          </Box>
-        ))}
+          ))}
       </Box>
 
-      <div className='flex items-center justify-end mt-6'>
+      {/* <div className='flex items-center justify-end mt-6'>
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
@@ -574,7 +578,7 @@ const ResignedDesignationsListing = () => {
           page={paginationState?.page}
           onChange={handlePageChange}
         />
-      </div>
+      </div> */}
     </div>
   )
 }

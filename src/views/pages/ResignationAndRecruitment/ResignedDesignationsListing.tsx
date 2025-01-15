@@ -22,7 +22,7 @@ import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CustomTextField from '@/@core/components/mui/TextField'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import DynamicButton from '@/components/Button/dynamicButton'
 import RecruitmentLocationFilter from '@/@core/components/dialogs/recruitment-location-filters'
@@ -35,6 +35,8 @@ const ResignedDesignationsListing = () => {
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const filterParams = searchParams.get('filter')
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -759,7 +761,7 @@ const ResignedDesignationsListing = () => {
           page={paginationState?.page}
           onChange={handlePageChange}
         />
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -26,6 +26,12 @@
             }
           },
           {
+            "name": "turnoverId",
+            "label": "Turnover ID",
+            "type": "text",
+            "required": true
+          },
+          {
             "name": "bucketType",
             "label": "Bucket Type",
             "type": "select",
@@ -49,22 +55,11 @@
             "required": true
           },
           {
-            "name": "designation",
-            "label": "Designation",
-            "type": "select",
-            "options": [
-              "Manager",
-              "Lead",
-              "Member"
-            ],
-            "required": true
-          },
-          {
-            "name": "budgetRange",
-            "label": "Budget Range",
-            "type": "text",
-            "placeholder": "e.g., 10000-50000",
-            "required": true
+            "name": "note",
+            "label": "Note",
+            "type": "textarea",
+            "placeholder": "Add any additional notes...",
+            "required": false
           }
         ]
       },
@@ -72,14 +67,21 @@
         "section": "Team and Role Details",
         "fields": [
           {
-            "name": "teamRoles",
-            "label": "Team Roles",
+            "name": "designations",
+            "label": "Designations",
             "type": "dynamic-array",
             "fields": [
               {
-                "name": "roleName",
-                "label": "Role Name",
-                "type": "text",
+                "name": "designationName",
+                "label": "Designation",
+                "type": "autocomplete",
+                "options": [
+                  "Manager",
+                  "Lead",
+                  "Member",
+                  "Assistant",
+                  "Director"
+                ],
                 "required": true
               },
               {

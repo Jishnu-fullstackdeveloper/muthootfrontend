@@ -421,6 +421,150 @@ const DesignationOverview = () => {
                 </Card>
               </Grid>
             ))}
+          </Grid> */}
+
+          <Grid container spacing={4} mt={2}>
+            {approvers.map((approver, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Card
+                  sx={{
+                    padding: 3,
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    position: 'relative',
+                    minHeight: 350,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                  className='transition transform hover:-translate-y-1'
+                  onClick={() => {
+                    const displayName = approver.name.replace(/\s+/g, '-') // Replace spaces with dashes
+                    router.push(`/recruitment-management/request-listing?filter=${displayName}`)
+                  }}
+                >
+                  {/* Request Count Badge */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      padding: '5px 12px',
+                      background: 'linear-gradient(135deg, #42a5f5 30%, #64b5f6 90%)',
+                      color: '#fff',
+                      borderRadius: '10px',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    {approver.requests} Requests
+                  </Box>
+
+                  {/* Designation Name */}
+                  <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
+                    {approver.name}
+                  </Typography>
+
+                  {/* Bubble Position Availability */}
+                  <Box sx={{ marginBottom: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 1
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          backgroundColor: approver.bubblePositionsCount > 0 ? '#eceaea' : '#e0e0e0',
+                          // color: approver.bubblePositionsCount > 0 ? '#fff' : '#555',
+                          borderRadius: '12px',
+                          padding: '6px 12px',
+                          fontWeight: 'bold',
+                          fontSize: '0.95rem'
+                        }}
+                      >
+                        Bubble Positions:
+                        {approver.bubblePositionsCount > 0 ? ` ${approver.bubblePositionsCount}` : 'No Positions'}
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* Request Type */}
+                  <Typography variant='body1' sx={{ color: '#555' }}>
+                    <strong>Request Type:</strong> {approver.requestType}
+                  </Typography>
+
+                  {/* Branch Details */}
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
+                    <strong>Branch:</strong> {approver.branchDetails}
+                  </Typography>
+
+                  {/* Approval Levels */}
+                  <Box
+                    sx={{
+                      backgroundColor: '#f9f9f9',
+                      padding: 2,
+                      borderRadius: 2,
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                      marginBottom: 2
+                    }}
+                  >
+                    <Typography variant='body1' sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                      Approval Levels: {approver.approvalLevels?.length}
+                    </Typography>
+                    <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                      {approver.approvalLevels.map((level, i) => (
+                        <li
+                          key={i}
+                          style={{
+                            marginBottom: '4px',
+                            color: getLevelColor(level.status),
+                            fontSize: '0.95rem'
+                          }}
+                        >
+                          {`${level.level} - ${level.status}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </Box>
+
+                  {/* Approve & Reject Buttons */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: 1
+                    }}
+                  >
+                    <Tooltip title='Approve Request'>
+                      <Button
+                        variant='contained'
+                        color='success'
+                        onClick={e => e.stopPropagation()}
+                        sx={{ padding: '6px 16px' }}
+                        startIcon={<i className='tabler-check' />}
+                      >
+                        Approve All
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title='Reject Request'>
+                      <Button
+                        variant='contained'
+                        color='error'
+                        onClick={e => e.stopPropagation()}
+                        sx={{ padding: '6px 16px' }}
+                        startIcon={<i className='tabler-playstation-x' />}
+                      >
+                        Reject All
+                      </Button>
+                    </Tooltip>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </Box>
       </Box>

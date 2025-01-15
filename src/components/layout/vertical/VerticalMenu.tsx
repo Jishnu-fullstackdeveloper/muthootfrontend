@@ -118,7 +118,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </MenuItem>
 
         <MenuItem
-          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management'}
+          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management/overview'}
           icon={<i className='tabler-user-plus' />}
         >
           Recruitment Management

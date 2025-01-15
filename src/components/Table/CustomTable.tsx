@@ -24,27 +24,25 @@ import {
   Switch,
   Checkbox,
   Box,
-  IconButton
+  Button
 } from '@mui/material'
-
-interface ActionButton<TData> {
-  icon: React.ReactNode
-  onClick: (rowData: TData) => void
-  tooltip?: string
-}
 
 interface CustomTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
   showCheckbox?: boolean
-  actionButtons?: ActionButton<TData>[]
+  showActionButton?: boolean
+  buttonLabel?: string
+  buttonAction?: (rowData: TData) => void
 }
 
 const CustomTable = <TData extends { id: number }>({
   columns,
   data,
   showCheckbox = false,
-  actionButtons = []
+  showActionButton = false,
+  buttonLabel = 'Action',
+  buttonAction
 }: CustomTableProps<TData>) => {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -110,7 +108,7 @@ const CustomTable = <TData extends { id: number }>({
                   )}
                 </TableCell>
               ))}
-              {actionButtons.length > 0 && <TableCell>Actions</TableCell>}
+              {showActionButton && <TableCell>Actions</TableCell>}
             </TableRow>
           ))}
         </TableHead>
@@ -131,13 +129,16 @@ const CustomTable = <TData extends { id: number }>({
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
-              {actionButtons.length > 0 && (
+              {showActionButton && (
                 <TableCell>
-                  {actionButtons.map((button, index) => (
-                    <IconButton key={index} onClick={() => button.onClick(row.original)} title={button.tooltip || ''}>
-                      {button.icon}
-                    </IconButton>
-                  ))}
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    size='small'
+                    onClick={() => buttonAction && buttonAction(row.original)}
+                  >
+                    {buttonLabel}
+                  </Button>
                 </TableCell>
               )}
             </TableRow>
@@ -145,7 +146,7 @@ const CustomTable = <TData extends { id: number }>({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={columns.length + (showCheckbox ? 1 : 0) + (actionButtons.length > 0 ? 1 : 0)}>
+            <TableCell colSpan={columns.length + (showCheckbox ? 1 : 0) + (showActionButton ? 1 : 0)}>
               <Box
                 sx={{
                   display: 'flex',

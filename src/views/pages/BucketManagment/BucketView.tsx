@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -7,15 +6,14 @@ import Typography from '@mui/material/Typography'
 import { Box, Card, CardContent, Button } from '@mui/material'
 
 type Props = {
-    mode: any
-    id: any
-  }
-  
-  const BucketView: React.FC<Props> = ({ mode, id }) => {
-   
+  mode: any
+  id: any
+}
+
+const BucketView: React.FC<Props> = ({ mode, id }) => {
   const [bucket, setBucket] = useState<any>(null)
   const router = useRouter()
-//   const { id } = router.query 
+  //   const { id } = router.query
 
   // The mock bucket data you have in the listing
   const buckets = [
@@ -67,14 +65,16 @@ type Props = {
     <Box sx={{ padding: 3 }}>
       <Card sx={{ boxShadow: 3 }}>
         <CardContent>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          <Typography variant='h4' sx={{ fontWeight: 'bold' }}>
             {bucket.name}
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', marginTop: 2 }}>
+          <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
             Turnover Limit: {bucket.turnover_limit}
           </Typography>
-          
-          <Typography variant="h6" sx={{ color: 'text.secondary', marginTop: 2 }}>
+          <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
+            Turnover ID: {bucket.turnover_id}
+          </Typography>
+          <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
             Designations:
             <ul>
               {bucket.designation.map((designation: any, index: number) => (
@@ -87,15 +87,12 @@ type Props = {
         </CardContent>
       </Card>
       <Box sx={{ marginTop: 3 }}>
-        <Button variant="outlined" onClick={() => router.back()}>
+        <Button variant='outlined' onClick={() => router.back()}>
           Go Back
         </Button>
       </Box>
     </Box>
   )
 }
-
-
-
 
 export default BucketView

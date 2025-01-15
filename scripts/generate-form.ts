@@ -188,6 +188,39 @@ function generateFieldCode(field: SectionField): string {
     `
   }
 
+  // if (field.type === 'autocomplete') {
+  //   fieldType = 'string'
+  //   const optionsCode = [
+  //     { value: '', label: '' },
+  //     ...(field.options?.map(option => ({
+  //       value: option,
+  //       label: option
+  //     })) || [])
+  //   ]
+
+  //   return `
+  //     {${dependencyCondition} && (
+  //       <FormControl fullWidth margin="normal">
+  //         <label htmlFor="${field.name}" className="block text-sm font-medium text-gray-700">
+  //           ${field.label} ${requiredAsterisk}
+  //         </label>
+  //         <DynamicSelect
+  //           id="${field.name}"
+  //           name="${field.name}"
+  //           value={formik.values.${field.name}}
+  //           onChange={formik.handleChange}
+  //           onFocus={() => formik.setFieldTouched("${field.name}", true)}
+  //           error={formik.touched.${field.name} && Boolean(formik.errors.${field.name})}
+  //           helperText={formik.touched.${field.name} && formik.errors.${field.name} ? formik.errors.${field.name} : ''}
+  //         >
+  //           <MenuItem value=""></MenuItem>
+  //           ${field.options?.map(option => `<MenuItem value="${option}">${option}</MenuItem>`).join('\n')}
+  //         </DynamicSelect>
+  //       </FormControl>
+  //     )}
+  //   `
+  // }
+
   if (field.type === 'checkbox') {
     fieldType = 'boolean'
     return `

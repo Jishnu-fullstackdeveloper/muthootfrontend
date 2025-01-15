@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React from 'react'
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
@@ -8,41 +8,39 @@ interface DynamicSelectProps {
   id?: string
   name?: string
   label?: string
-  value: string | number
+  value: any
   onChange: (e: SelectChangeEvent) => void
   error?: boolean
   helperText?: string
   children?: React.ReactNode
   required?: boolean
   onFocus?: React.FocusEventHandler<HTMLInputElement>
-  displayEmpty?: boolean // Add displayEmpty prop
+  displayEmpty?: boolean
 }
 
 export default function DynamicSelect({
   id,
   name,
-  label,
-  value,
+  value, // Default value to avoid undefined during SSR
   onChange,
   onFocus,
   error,
   helperText,
   children,
-  displayEmpty = false // Default to false
+  displayEmpty = false,
 }: DynamicSelectProps) {
   return (
-    <Box component='form' sx={{ '& .MuiTextField-root': { m: 1, width: '100%' } }} noValidate autoComplete='off'>
+    <Box sx={{ '& .MuiTextField-root': { m: 1, width: '100%' } }}>
       <FormControl fullWidth error={error}>
         <Select
           labelId={`${id}-label`}
           id={id}
-          error={error}
           name={name}
-          value={String(value)}
+          value={value} // Ensure value is never undefined
           onChange={onChange}
           onFocus={onFocus}
           fullWidth
-          displayEmpty={displayEmpty} // Pass displayEmpty to Select
+          displayEmpty={displayEmpty}
         >
           {children}
         </Select>

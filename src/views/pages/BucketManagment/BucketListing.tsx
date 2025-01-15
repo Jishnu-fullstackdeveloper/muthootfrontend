@@ -15,14 +15,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
-  Modal,
-  Divider,
-  TableHead,
-  TableRow,
-  Table,
-  TableCell,
-  TableBody
+  DialogTitle
 } from '@mui/material'
 import { TextFieldProps } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -39,8 +32,7 @@ const BucketListing = () => {
   const [search, setSearch] = useState('')
   const [openModal, setOpenModal] = useState(false) // State to handle modal visibility
   const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null) // Store the bucket ID to delete
-  const [openViewModal, setOpenViewModal] = useState(false) // State for viewing bucket details
-  const [selectedBucket, setSelectedBucket] = useState<any>(null)
+
   const router = useRouter()
 
   const buckets = [
@@ -60,7 +52,7 @@ const BucketListing = () => {
       name: 'Bucket 2',
       designation: [
         { designationName: 'Marketing Lead', count: 5 },
-        { designationName: 'Sales Manager', count: 4 }
+        { designationName: 'Sales Manager', count: 4 },
       ],
       turnover_code: 'Abc12',
       turnover_id: 1133,
@@ -71,7 +63,7 @@ const BucketListing = () => {
       name: 'Bucket 3',
       designation: [
         { designationName: 'Tech Lead', count: 7 },
-        { designationName: 'Software Engineer', count: 8 }
+        { designationName: 'Software Engineer', count: 8 },
       ],
       turnover_code: 'Abc82',
       turnover_id: 1144,
@@ -238,7 +230,7 @@ const BucketListing = () => {
   }
 
   const handleDeleteCancel = () => {
-    setOpenModal(false)
+    setOpenModal(false) // Close the modal without deleting
     setSelectedBucketId(null) // Reset the selected bucket ID
   }
 
@@ -248,7 +240,7 @@ const BucketListing = () => {
       <Box
         sx={{
           padding: 3,
-
+          marginBottom: 3,
           backgroundColor: '#ffffff',
           borderRadius: 2,
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -316,7 +308,7 @@ const BucketListing = () => {
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push(`bucket-management/add/new-bucket`)}
+              onClick={handleAddClick}
               children='New Bucket'
             />
 
@@ -352,142 +344,74 @@ const BucketListing = () => {
       </Box>
 
       {/* Card 2 - List View */}
-      <CardActions className='p-0 pt-5'>
-        {viewMode === 'table' ? (
-          <Box sx={{ width: '100%' }}>
-            <DynamicTable columns={columns} data={buckets} />
-          </Box>
+      <CardActions>
+        {viewMode === 'list' ? (
+          <Box sx={{ marginTop: 2, width: '100%' }}>
+          {buckets
+            .filter(bucket => bucket.name.toLowerCase().includes(search.toLowerCase()))
+            .map(bucket => (
+              <Box 
+                key={bucket.id} 
+                sx={{
+                  marginBottom: 2, 
+                  padding: 2, 
+                  backgroundColor: '#f9f9f9', 
+                  borderRadius: 2,
+                  border: '1px solid #ddd', // Border added here
+                  width: '100%' // Ensure full width
+                }}
+              >
+                <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                  {bucket.name}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Turnover Limit: {bucket.turnover_limit}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Designations:
+                  <ul>
+                    {bucket.designation.map((designation, index) => (
+                      <li key={index}>
+                        {designation.designationName}: {designation.count}
+                      </li>
+                    ))}
+                  </ul>
+                </Typography>
+                <Box sx={{ marginTop: 2 }}>
+                  <Button variant='outlined' onClick={() => handleEdit(bucket.id)} sx={{ marginRight: 1 }}>
+                    <i className='tabler-edit' />
+                  </Button>
+                  <Button variant='outlined' color='error' onClick={() => handleDeleteClick(bucket.id)}>
+                    Delete
+                  </Button>
+                </Box>
+              </Box>
+            ))}
+        </Box>
+        
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ marginTop: 2 }}>
             {buckets
-              .filter((bucket: any) => bucket.name.toLowerCase().includes(search.toLowerCase()))
+              .filter((buc: any) => buc.name.toLowerCase().includes(search.toLowerCase()))
               .map((bucket: any) => (
                 <Grid item xs={12} sm={6} md={4} key={bucket.id}>
                   <Card
-                    onClick={() => router.push(`/bucket-management/view/${bucket.id}`)} // Corrected this line
-                    sx={{
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                      cursor: 'pointer',
-                      border: '1px solid #ddd',
-                      position: 'relative' // For positioning buttons at the top-right corner
-                    }}
+                    sx={{ padding: 2, boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', cursor: 'pointer' ,border: '1px solid #ddd'}}
                     className='transition transform hover:-translate-y-1'
+                    onClick={() => router.push(`/bucket-management/view/${bucket.id}`)}
                   >
                     <CardContent>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px',
-                          paddingBottom: '20px',
-                          borderBottom: '1px solid #ddd' // Bottom border line
-                        }}
-                      >
-                        {/* Bucket Name on the Left */}
-                        <Typography
-                          variant='h6'
-                          sx={{
-                            fontWeight: 'bold',
-                            backgroundColor: '#e0f7fa', // Light blue background
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '1.2rem',
-                            whiteSpace: 'nowrap', // Prevent text from wrapping
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                            maxWidth: 'calc(100% - 100px)' // Adjust width to prevent overflow with buttons on the right
-                          }}
-                        >
-                          {bucket.name}
-                        </Typography>
-
-                        {/* Edit and Delete Buttons on the Right */}
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          {/* Edit Button */}
-                          <Button
-                            variant='outlined'
-                            onClick={(e: any) => {
-                              e.stopPropagation()
-                              handleEdit(bucket.id)
-                            }}
-                            sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': {
-                                backgroundColor: 'transparent'
-                              }
-                            }}
-                          >
-                            <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
-                          </Button>
-
-                          {/* Delete Button */}
-                          <Button
-                            variant='outlined'
-                            color='error'
-                            onClick={(e: any) => {
-                              e.stopPropagation()
-                              handleDeleteClick(bucket.id)
-                            }}
-                            sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': {
-                                backgroundColor: 'transparent'
-                              }
-                            }}
-                          >
-                            <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
-                          </Button>
-                        </Box>
-                      </Box>
-
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          paddingTop: 3,
-                          color: 'text.secondary',
-                          fontSize: '1rem' // You can adjust the font size here as well if needed
-                        }}
-                      >
-                        <Typography
-                          variant='body2'
-                          sx={{ fontWeight: 'bold', display: 'inline', fontSize: '1.1rem' }}
-                          component='span'
-                        >
-                          Turnover code :
-                        </Typography>
-                        {bucket.turnover_code}
+                      <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                        {bucket.name}
                       </Typography>
-
+                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                        Turnover Limit: {bucket.turnover_limit}
+                      </Typography>
                       <div>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: 'text.secondary',
-                            fontSize: '1.1rem',
-                            fontWeight: 'bold' // Increased font size for better readability
-                          }}
-                        >
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                           Designations:
                         </Typography>
-
-                        {/* Light gray background for the <ul> section */}
-                        <ul
-                          style={{
-                            backgroundColor: '#f9f9f9', // Light gray background
-                            padding: '20px 40px',
-                            borderRadius: '4px',
-                            marginTop: '8px',
-                            listStyleType: 'disc',
-                            paddingLeft: '30px'
-                          }}
-                        >
+                        <ul>
                           {bucket.designation.map((designation: any, index: number) => (
                             <li key={index}>
                               {designation.designationName}: {designation.count}
@@ -496,6 +420,28 @@ const BucketListing = () => {
                         </ul>
                       </div>
                     </CardContent>
+                    <CardActions sx={{ justifyContent: 'flex-end' }}>
+                      <Button
+                        variant='outlined'
+                        onClick={(e: any) => {
+                          e.stopPropagation()
+                          handleEdit(bucket.id)
+                        }}
+                        sx={{ marginRight: 1 }}
+                      >
+                        <i className='tabler-edit' />
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        color='error'
+                        onClick={(e: any) => {
+                          e.stopPropagation()
+                          handleDeleteClick(bucket.id)
+                        }}
+                      >
+                        <i className='tabler-trash' />
+                      </Button>
+                    </CardActions>
                   </Card>
                 </Grid>
               ))}
@@ -504,81 +450,18 @@ const BucketListing = () => {
       </CardActions>
 
       {/* Delete Confirmation Modal */}
-      <Modal open={openModal} onClose={handleDeleteCancel}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            padding: 10,
-            borderRadius: 2,
-            boxShadow: 24,
-            maxWidth: '400px'
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex', // Use flexbox layout
-              justifyContent: 'center', // Horizontally center the icon
-              alignItems: 'center', // Vertically center the icon
-              height: '100%' // Make sure the Box takes up full height
-            }}
-          >
-            <i
-              className='tabler-exclamation-circle'
-              style={{
-                fontSize: '100px', // Increase the icon size
-                color: 'red' // Set the icon color to red
-              }}
-            ></i>
-          </Box>
-
-          <Box sx={{ padding: 2, textAlign: 'center', color: 'gray', fontFamily: 'Arial, sans-serif' }}>
-            <h2>Are you sure?</h2>
-            <h5>Do you really want to delete this data? This process can't be undone.</h5>
-          </Box>
-          <DialogActions>
-            <Button
-              onClick={handleDeleteCancel}
-              sx={{
-                padding: 2,
-                paddingLeft: 7,
-                paddingRight: 7,
-                marginRight: 4,
-                backgroundColor: '#757575',
-                color: '#f5f5f5',
-                '&:hover': {
-                  borderColor: 'darkred', // Darker red border color on hover
-                  backgroundColor: '#ffcccc', // Light red background on hover
-                  color: 'darkred' // Darker red text color on hover
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteConfirm}
-              sx={{
-                padding: 2,
-                paddingLeft: 7,
-                paddingRight: 7,
-                marginRight: 4,
-                backgroundColor: '#e53935',
-                color: '#f5f5f5',
-                '&:hover': {
-                  borderColor: 'darkred', // Darker red border color on hover
-                  backgroundColor: '#ffcccc', // Light red background on hover
-                  color: 'darkred' // Darker red text color on hover
-                }
-              }}
-            >
-              Confirm
-            </Button>
-          </DialogActions>
-        </Box>
-      </Modal>
+      <Dialog open={openModal} onClose={handleDeleteCancel}>
+        <DialogTitle>Are you sure you want to delete this bucket?</DialogTitle>
+        <DialogContent>Deleting a bucket is permanent and cannot be undone. Please confirm your action.</DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color='primary'>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color='secondary'>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

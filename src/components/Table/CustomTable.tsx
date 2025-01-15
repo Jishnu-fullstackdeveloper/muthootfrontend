@@ -23,23 +23,27 @@ import {
   FormControlLabel,
   Switch,
   Checkbox,
-  Box
+  Box,
+  Button
 } from '@mui/material'
 
-interface DynamicTableProps<TData> {
+interface CustomTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
+  showCheckbox?: boolean
+  showActionButton?: boolean
+  buttonLabel?: string
+  buttonAction?: (rowData: TData) => void
 }
-// export interface Person {
-//   id: number
-//   name: string
-//   age: number
-//   email: string
-//   designation: string
-// }
 
-// const DynamicTable = <TData extends { id: number }>({ columns, data }: DynamicTableProps<TData>) => {
-const DynamicTable = ({ columns, data }: any) => {
+const CustomTable = <TData extends { id: number }>({
+  columns,
+  data,
+  showCheckbox = false,
+  showActionButton = false,
+  buttonLabel = 'Action',
+  buttonAction
+}: CustomTableProps<TData>) => {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5
@@ -76,13 +80,15 @@ const DynamicTable = ({ columns, data }: any) => {
         <TableHead>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              <TableCell padding='checkbox'>
-                <Checkbox
-                  indeterminate={table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
-                  checked={table.getIsAllRowsSelected()}
-                  onChange={table.getToggleAllRowsSelectedHandler()}
-                />
-              </TableCell>
+              {showCheckbox && (
+                <TableCell padding='checkbox'>
+                  <Checkbox
+                    indeterminate={table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                    checked={table.getIsAllRowsSelected()}
+                    onChange={table.getToggleAllRowsSelectedHandler()}
+                  />
+                </TableCell>
+              )}
               {headerGroup.headers.map(header => (
                 <TableCell
                   key={header.id}
@@ -102,30 +108,45 @@ const DynamicTable = ({ columns, data }: any) => {
                   )}
                 </TableCell>
               ))}
+              {showActionButton && <TableCell>Actions</TableCell>}
             </TableRow>
           ))}
         </TableHead>
         <TableBody>
           {table.getRowModel().rows.map(row => (
             <TableRow key={row.id} hover>
-              <TableCell padding='checkbox'>
-                <Checkbox
-                  checked={row.getIsSelected()}
-                  indeterminate={row.getIsSomeSelected()}
-                  onChange={row.getToggleSelectedHandler()}
-                />
-              </TableCell>
+              {showCheckbox && (
+                <TableCell padding='checkbox'>
+                  <Checkbox
+                    checked={row.getIsSelected()}
+                    indeterminate={row.getIsSomeSelected()}
+                    onChange={row.getToggleSelectedHandler()}
+                  />
+                </TableCell>
+              )}
               {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id} sx={{ whiteSpace: 'nowrap' }}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
+              {showActionButton && (
+                <TableCell>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    size='small'
+                    onClick={() => buttonAction && buttonAction(row.original)}
+                  >
+                    {buttonLabel}
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={columns.length + 1}>
+            <TableCell colSpan={columns.length + (showCheckbox ? 1 : 0) + (showActionButton ? 1 : 0)}>
               <Box
                 sx={{
                   display: 'flex',
@@ -154,4 +175,4 @@ const DynamicTable = ({ columns, data }: any) => {
   )
 }
 
-export default DynamicTable
+export default CustomTable

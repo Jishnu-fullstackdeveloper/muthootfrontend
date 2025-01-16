@@ -71,7 +71,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>Select X-Factor Value</DialogTitle>
+      <DialogTitle>Select Data Transform Days</DialogTitle>
       <DialogContent>
         <Typography gutterBottom>
           Select the number of past working days to include in the resignation report. The value should be between 1 and
@@ -88,7 +88,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
           sx={{ marginBottom: 2 }}
         />
         <TextField
-          label='X-Factor Value'
+          label='Number of Days'
           type='number'
           value={xFactor}
           onChange={handleTextFieldChange}

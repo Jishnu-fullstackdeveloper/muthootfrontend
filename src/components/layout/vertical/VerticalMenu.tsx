@@ -124,6 +124,13 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           Recruitment Management
         </MenuItem>
 
+        <MenuItem
+          href={pathname.startsWith('/approval-matrix/') ? pathname : '/approval-matrix'}
+          icon={<i className='tabler-settings-check' />}
+        >
+          Approval Matrix
+        </MenuItem>
+
         {/* <MenuItem href='/recruitment-management' icon={<i className='tabler-report-search' />}>
           Recruitment Management
         </MenuItem> */}

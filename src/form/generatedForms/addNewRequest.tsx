@@ -4,6 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Autocomplete, TextField, FormControl } from "@mui/material";
 import DynamicButton from "@/components/Button/dynamicButton";
+import { styled } from "@mui/material/styles";
 
 const optionsData = {
   employeeCategoryDetails: [
@@ -32,6 +33,13 @@ const validationSchema = Yup.object(
   }, {} as { [key: string]: Yup.StringSchema })
 );
 
+const StyledAutocomplete = styled(Autocomplete)({
+  "& .MuiAutocomplete-paper": {
+    maxHeight: 150, // Set maximum height for dropdown
+    overflowY: "auto", // Enable scrollbar
+  },
+});
+
 const GeneratedForm: React.FC = () => {
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData).flat().reduce((values, field) => {
@@ -56,7 +64,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
                 {field.label} *
               </label>
-              <Autocomplete
+              <StyledAutocomplete
                 id={field.id}
                 options={field.options}
                 //value={requestFormik.values[field.id]}
@@ -83,7 +91,7 @@ const GeneratedForm: React.FC = () => {
               <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
                 {field.label} *
               </label>
-              <Autocomplete
+              <StyledAutocomplete
                 id={field.id}
                 options={field.options}
                 //value={requestFormik.values[field.id]}

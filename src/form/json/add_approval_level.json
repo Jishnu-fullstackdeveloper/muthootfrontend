@@ -1,0 +1,68 @@
+{
+  "title": "Approval Process Form",
+  "fields": [
+    {
+      "section": "Approval Type",
+      "fields": [
+        {
+          "name": "approvalType",
+          "label": "Approval Type",
+          "type": "select",
+          "options": [
+            "Sequential Approval",
+            "Parallel Approval",
+            "Single Approval"
+          ],
+          "required": true
+        },
+        {
+          "name": "numberOfLevels",
+          "label": "Number of Levels",
+          "type": "number",
+          "required": true,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "section": "Approval Levels",
+      "type": "dynamic-array",
+      "fields": [
+        {
+          "name": "levelNumber",
+          "label": "Level Number",
+          "type": "number",
+          "required": true,
+          "readonly": true
+        },
+        {
+          "name": "approver",
+          "label": "Approver",
+          "type": "select",
+          "options": [
+            "Branch Manager",
+            "HR Manager",
+            "Director",
+            "CEO"
+          ],
+          "required": true
+        }
+      ],
+      "addMoreLabel": "Add Next Level"
+    }
+  ],
+  "actions": [
+    {
+      "type": "cancel",
+      "label": "Cancel"
+    },
+    {
+      "type": "saveDraft",
+      "label": "Save Draft"
+    },
+    {
+      "type": "submit",
+      "label": "Submit"
+    }
+  ]
+}

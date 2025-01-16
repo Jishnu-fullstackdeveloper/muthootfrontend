@@ -543,7 +543,10 @@ const DesignationOverview = () => {
                       <Button
                         variant='contained'
                         color='success'
-                        onClick={e => e.stopPropagation()}
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleApproveAll()
+                        }}
                         sx={{ padding: '6px 16px' }}
                         startIcon={<i className='tabler-check' />}
                       >

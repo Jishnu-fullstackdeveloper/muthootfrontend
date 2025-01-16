@@ -1,22 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Card,
-  IconButton,
-  InputAdornment,
-  Typography,
-  Tooltip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Pagination,
-  Chip,
-  Divider,
-  Button
-} from '@mui/material'
+import { Box, Card, IconButton, InputAdornment, Typography, Tooltip, Divider, Button } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -24,8 +9,6 @@ import ViewListIcon from '@mui/icons-material/ViewList'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useRouter, useSearchParams } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
-import SettingsIcon from '@mui/icons-material/Settings'
-import AssessmentIcon from '@mui/icons-material/Assessment'
 
 const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
@@ -228,6 +211,156 @@ const ResignedDesignationsListing = () => {
       dateOfResignation: '2024-11-20',
       lastWorkingDay: '2024-12-05',
       additionalDetails: 'Specializes in corporate budgeting and analysis.'
+    },
+    {
+      employeeCode: 'EMP001',
+      employmentStatus: 'Approval Pending',
+      employmentType: 'Full-time',
+      title: 'Mr.',
+      employeeName: 'John Doe',
+      company: 'ABC Corp',
+      department: 'IT',
+      territory: 'North Zone',
+      zone: 'Zone A',
+      region: 'Region 1',
+      area: 'Area 5',
+      cluster: 'Cluster X',
+      branch: 'Main Branch',
+      branchCode: 'BR001',
+      cityClassification: 'Metro',
+      state: 'California',
+      personalEmail: 'johndoe@example.com',
+      officeEmail: 'johnd@abccorp.com',
+      dateOfJoining: '2015-06-15',
+      groupDOJ: '2015-06-15',
+      designation: 'Software Engineer',
+      employeeCategory: 'Technical',
+      employeeType: 'Permanent',
+      noticePeriod: '30 days',
+      mobileNumber: '+1-234-567-8901',
+      dateOfResignation: '2024-12-01',
+      lastWorkingDay: '2025-01-01',
+      additionalDetails: 'Relocating to another city for personal reasons.'
+    },
+    {
+      employeeCode: 'EMP006',
+      employmentStatus: 'Approved',
+      employmentType: 'Full-time',
+      title: 'Mrs.',
+      employeeName: 'Catherine Green',
+      company: 'XYZ Ltd',
+      department: 'IT',
+      territory: 'South Zone',
+      zone: 'Zone B',
+      region: 'Region 2',
+      area: 'Area 4',
+      cluster: 'Cluster Y',
+      branch: 'South Branch',
+      branchCode: 'BR006',
+      cityClassification: 'Urban',
+      state: 'Florida',
+      personalEmail: 'catherine.green@example.com',
+      officeEmail: 'c.green@xyzltd.com',
+      dateOfJoining: '2019-02-10',
+      groupDOJ: '2019-02-10',
+      designation: 'Software Engineer',
+      employeeCategory: 'Technical',
+      employeeType: 'Permanent',
+      noticePeriod: '60 days',
+      mobileNumber: '+1-456-789-1234',
+      dateOfResignation: '2025-01-10',
+      lastWorkingDay: '2025-03-11',
+      additionalDetails: 'Switching to a new company for better career prospects.'
+    },
+    {
+      employeeCode: 'EMP007',
+      employmentStatus: 'Approval Pending',
+      employmentType: 'Part-time',
+      title: 'Mr.',
+      employeeName: 'Samuel Morris',
+      company: 'LMN Tech',
+      department: 'R&D',
+      territory: 'East Zone',
+      zone: 'Zone C',
+      region: 'Region 3',
+      area: 'Area 6',
+      cluster: 'Cluster Z',
+      branch: 'Tech Park',
+      branchCode: 'BR007',
+      cityClassification: 'Semi-Urban',
+      state: 'New York',
+      personalEmail: 'samuel.morris@example.com',
+      officeEmail: 'sam.morris@lmntech.com',
+      dateOfJoining: '2020-05-20',
+      groupDOJ: '2020-05-20',
+      designation: 'Software Engineer',
+      employeeCategory: 'Technical',
+      employeeType: 'Contract',
+      noticePeriod: '15 days',
+      mobileNumber: '+1-789-123-4567',
+      dateOfResignation: '2024-12-25',
+      lastWorkingDay: '2025-01-15',
+      additionalDetails: 'Pursuing a startup venture.'
+    },
+    {
+      employeeCode: 'EMP008',
+      employmentStatus: 'Approved',
+      employmentType: 'Full-time',
+      title: 'Dr.',
+      employeeName: 'Brian Davis',
+      company: 'EFG Solutions',
+      department: 'Operations',
+      territory: 'Central Zone',
+      zone: 'Zone E',
+      region: 'Region 5',
+      area: 'Area 10',
+      cluster: 'Cluster T',
+      branch: 'Headquarters',
+      branchCode: 'BR008',
+      cityClassification: 'Metro',
+      state: 'Texas',
+      personalEmail: 'brian.davis@example.com',
+      officeEmail: 'b.davis@efgsolutions.com',
+      dateOfJoining: '2016-09-15',
+      groupDOJ: '2016-09-15',
+      designation: 'Software Engineer',
+      employeeCategory: 'Technical',
+      employeeType: 'Permanent',
+      noticePeriod: '45 days',
+      mobileNumber: '+1-234-890-5678',
+      dateOfResignation: '2024-11-10',
+      lastWorkingDay: '2025-01-10',
+      additionalDetails: 'Leaving to focus on personal projects.'
+    },
+    {
+      employeeCode: 'EMP010',
+      employmentStatus: 'Rejected',
+      employmentType: 'Part-time',
+      title: 'Ms.',
+      employeeName: 'Hannah White',
+      company: 'RetailHub',
+      department: 'Sales',
+      territory: 'Central Zone',
+      zone: 'Zone F',
+      region: 'Region 6',
+      area: 'Area 10',
+      cluster: 'Cluster P',
+      branch: 'Retail Office',
+      branchCode: 'BR010',
+      cityClassification: 'Semi-Urban',
+      state: 'Georgia',
+      personalEmail: 'hannahw@example.com',
+      officeEmail: 'hannah.white@retailhub.com',
+      dateOfJoining: '2021-01-05',
+      groupDOJ: '2021-01-05',
+      designation: 'Software Engineer',
+      employeeCategory: 'Sales',
+      employeeType: 'Contract',
+      noticePeriod: '10 days',
+      mobileNumber: '+1-901-234-5678',
+      dateOfResignation: '2024-12-15',
+      lastWorkingDay: '2024-12-25',
+      additionalDetails: 'Relocating due to personal commitments.'
     }
   ]
 
@@ -326,10 +459,10 @@ const ResignedDesignationsListing = () => {
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
-              label='Search Designation'
+              label='Search Department'
               value={search}
               onChange={(value: any) => setSearch(value)}
-              placeholder='Search by Designation...'
+              placeholder='Search by Department...'
               className='is-full sm:is-[400px]'
               InputProps={{
                 endAdornment: (
@@ -342,26 +475,6 @@ const ResignedDesignationsListing = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
-            <Box mt={1}>
-              <Button
-                variant='contained'
-                color='primary'
-                startIcon={<AssessmentIcon />}
-                onClick={() => router.push('/recruitment-management/resignation-report')}
-              >
-                Reports Dashboard
-              </Button>
-            </Box>
-            <Box mt={1}>
-              <Button
-                variant='contained'
-                color='primary'
-                startIcon={<SettingsIcon />}
-                onClick={handleXFactorDialogOpen}
-              >
-                Set X-Factor
-              </Button>
-            </Box>
             <Box
               sx={{
                 display: 'flex',
@@ -435,28 +548,8 @@ const ResignedDesignationsListing = () => {
                     fontSize: '1.2rem'
                   }}
                 >
-                  {/* {employee.title} {employee.employeeName} */}
                   {employee.designation}
                 </Typography>
-
-                {/* <Chip
-                label={employee.employmentStatus}
-                color={
-                  employee.employmentStatus === 'Approval Pending'
-                    ? 'warning'
-                    : employee.employmentStatus === 'Approved'
-                      ? 'success'
-                      : employee.employmentStatus === 'Rejected'
-                        ? 'error'
-                        : 'default'
-                }
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '0.85rem',
-                  padding: '0 8px',
-                  borderRadius: 2
-                }}
-              /> */}
 
                 {/* Approve and Reject Buttons */}
                 {employee.employmentStatus === 'Approval Pending' && (
@@ -502,9 +595,6 @@ const ResignedDesignationsListing = () => {
                 }}
               >
                 <Box>
-                  {/* <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                  <strong>Designation:</strong> {employee.designation}
-                </Typography> */}
                   <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
                     <strong>Department:</strong> {employee.department}
                   </Typography>

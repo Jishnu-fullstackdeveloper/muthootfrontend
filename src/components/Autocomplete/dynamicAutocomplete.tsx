@@ -4,7 +4,8 @@ import Autocomplete from '@mui/material/Autocomplete'
 
 interface dynamicAutocompleteProps {
   label: string
-  options: { name: string }[]
+  options: { name: any }[]
+  value: any
   onOptionSelect?: (option: { name: string } | null) => void
   sx: any
   PopperComponent?: any

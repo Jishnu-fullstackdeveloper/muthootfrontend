@@ -14,6 +14,7 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import type { TimelineProps } from '@mui/lab/Timeline'
 import MuiTimeline from '@mui/lab/Timeline'
+import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Styled Timeline component
 const Timeline = styled(MuiTimeline)<TimelineProps>({
@@ -62,11 +63,11 @@ const BotRunStatusReport = () => {
             backgroundColor: '#f0f0f0'
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#d4d4d4',
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
             borderRadius: '4px'
           },
           '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#bfbfbf'
+            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
           }
         }}
       >

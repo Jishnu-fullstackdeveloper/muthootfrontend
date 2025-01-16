@@ -1,14 +1,13 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Typography, Grid, Button, LinearProgress, Card, Tooltip, Badge, Chip } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import VisibilityIcon from '@mui/icons-material/Visibility'
 import WarningIcon from '@mui/icons-material/Warning'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'
-import CancelIcon from '@mui/icons-material/Cancel'
+import AssessmentIcon from '@mui/icons-material/Assessment'
+import SettingsIcon from '@mui/icons-material/Settings'
+import XFactorDialog from '@/components/Dialog/x-factorDialog'
 
 const approvers = [
   {
@@ -16,8 +15,8 @@ const approvers = [
     requests: 10,
     requestType: 'Resignation',
     daysSinceCreated: 2,
-    warning: '2 days remaining',
-    warningColor: '#f44336',
+    warning: '2 requests remaining of 10',
+    warningColor: '#4caf50',
     approvalLevels: [
       { level: 'Branch Manager', status: 'Approved' },
       { level: 'HR Manager', status: 'Pending' },
@@ -31,7 +30,7 @@ const approvers = [
     requests: 5,
     requestType: 'Manual Creation',
     daysSinceCreated: 5,
-    warning: '5 days remaining',
+    warning: '5 requests remaining of 10',
     warningColor: '#ff9800',
     approvalLevels: [
       { level: 'HR Manager', status: 'Approved' },
@@ -45,8 +44,8 @@ const approvers = [
     requests: 3,
     requestType: 'Business Expansion',
     daysSinceCreated: 8,
-    warning: '8 days remaining',
-    warningColor: '#4caf50',
+    warning: '8 requests remaining of 10',
+    warningColor: '#f44336',
     approvalLevels: [{ level: 'Director', status: 'Approved' }],
     branchDetails: 'Branch C',
     bubblePositionsCount: 2
@@ -56,8 +55,8 @@ const approvers = [
     requests: 3,
     requestType: 'Business Expansion',
     daysSinceCreated: 8,
-    warning: '8 days remaining',
-    warningColor: '#4caf50',
+    warning: '8 requests remaining of 10',
+    warningColor: '#f44336',
     approvalLevels: [{ level: 'Director', status: 'Approved' }],
     branchDetails: 'Branch C',
     bubblePositionsCount: 2
@@ -68,10 +67,31 @@ const DesignationOverview = () => {
   const router = useRouter()
   const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
+  const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
+  const [xFactorValue, setXFactorValue] = useState(5)
+
+  const handleXFactorDialogOpen = () => {
+    setXFactorDialogOpen(true)
+  }
+
+  const handleXFactorDialogClose = () => {
+    setXFactorDialogOpen(false)
+  }
+
+  const handleSaveXFactor = (newXFactor: number) => {
+    setXFactorValue(newXFactor)
+  }
 
   const handleApproveAll = () => setAcceptAllDialogOpen(true)
   const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
-  const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
+  // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
+
+  useEffect(() => {
+    if (acceptAllConfirmed === true) {
+      setAcceptAllConfirmed(false)
+      setAcceptAllDialogOpen(false)
+    }
+  }, [acceptAllConfirmed])
 
   const progressBar = approvers.map(approver => {
     const daysRemaining = approver.daysSinceCreated
@@ -93,11 +113,31 @@ const DesignationOverview = () => {
         setOpen={setAcceptAllDialogOpen}
         setAcceptAllConfirmed={setAcceptAllConfirmed}
       />
+      <XFactorDialog
+        open={XFactorDialogOpen}
+        onClose={handleXFactorDialogClose}
+        onSave={handleSaveXFactor}
+        currentXFactor={xFactorValue}
+      />
       <Box sx={{ padding: 4, minHeight: '100vh' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#333' }}>
             Recruitment Request Overview
           </Typography>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            <Button
+              variant='contained'
+              color='primary'
+              startIcon={<AssessmentIcon />}
+              onClick={() => router.push('/recruitment-management/resignation-report')}
+            >
+              Reports Dashboard
+            </Button>
+
+            <Button variant='contained' color='primary' startIcon={<SettingsIcon />} onClick={handleXFactorDialogOpen}>
+              Set Data Transform Days
+            </Button>
+          </Box>
           {/* <Button
             variant='contained'
             color='success'
@@ -356,7 +396,10 @@ const DesignationOverview = () => {
                       <Button
                         variant='contained'
                         color='success'
-                        onClick={e => e.stopPropagation()}
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleApproveAll()
+                        }}
                         sx={{ padding: '6px 16px' }}
                         startIcon={<i className='tabler-check' />}
                       >

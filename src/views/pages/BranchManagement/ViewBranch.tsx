@@ -6,7 +6,7 @@ import DynamicTable from '@/components/Table/dynamicTable'
 import { useRouter } from 'next/navigation'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import WorkIcon from '@mui/icons-material/Work'
-import CustomTable from '@/components/Table/customTable'
+import CustomTable from '@/components/Table/CustomTable'
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
 
 interface ViewBranchProps {
@@ -68,7 +68,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
   // ]
 
   const employeeColumns = [
-    { header: 'ID', accessorKey: 'Employee Code' },
+    { header: 'ID', accessorKey: 'employeeCode' },
     { header: 'Name', accessorKey: 'First Name' },
     { header: 'Employment Status', accessorKey: 'Employment Status' },
     { header: 'Email', accessorKey: 'Personal Email Address' },
@@ -77,7 +77,8 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
 
   // Button action function
   const handleButtonClick = (rowData: any) => {
-    router.push(`/vacancy-management?branchId=${id}`)
+    // alert(`Action performed on ${rowData.id}`)
+    router.push(`/employee-details?employeeId=${rowData.employeeCode}`)
   }
 
   return (

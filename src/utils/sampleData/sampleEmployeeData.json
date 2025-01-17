@@ -1,6 +1,6 @@
 [
   {
-    "Employee Code": "E001",
+    "employeeCode": "E001",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "Manager",
@@ -118,7 +118,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E002",
+    "employeeCode": "E002",
     "Employment Status": "Active",
     "Employment Type": "Part-Time",
     "Title": "Analyst",
@@ -236,7 +236,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E003",
+    "employeeCode": "E003",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "Manager",
@@ -354,7 +354,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E004",
+    "employeeCode": "E004",
     "Employment Status": "Active",
     "Employment Type": "Part-Time",
     "Title": "Analyst",
@@ -472,7 +472,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E005",
+    "employeeCode": "E005",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "Developer",
@@ -590,7 +590,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E006",
+    "employeeCode": "E006",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "HR Specialist",
@@ -708,7 +708,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E007",
+    "employeeCode": "E007",
     "Employment Status": "Active",
     "Employment Type": "Part-Time",
     "Title": "Consultant",
@@ -826,7 +826,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E008",
+    "employeeCode": "E008",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "Marketing Head",
@@ -944,7 +944,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E009",
+    "employeeCode": "E009",
     "Employment Status": "Active",
     "Employment Type": "Part-Time",
     "Title": "Analyst",
@@ -1062,7 +1062,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E010",
+    "employeeCode": "E010",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "Operations Manager",
@@ -1180,7 +1180,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E011",
+    "employeeCode": "E011",
     "Employment Status": "Active",
     "Employment Type": "Part-Time",
     "Title": "Support Specialist",
@@ -1298,7 +1298,7 @@
     "Matrix Manager Name": ""
   },
   {
-    "Employee Code": "E012",
+    "employeeCode": "E012",
     "Employment Status": "Active",
     "Employment Type": "Full-Time",
     "Title": "QA Engineer",

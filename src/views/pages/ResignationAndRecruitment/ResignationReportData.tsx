@@ -48,7 +48,7 @@ const ResignationReportData = () => {
                   { name: 'QA Analyst' },
                   { name: 'Product Owner' }
                 ]}
-                // renderInput={(params: any) => <TextField {...params} label='Branch Filter' />}
+                value={undefined} // renderInput={(params: any) => <TextField {...params} label='Branch Filter' />}
               />
             </Box>
           </Box>

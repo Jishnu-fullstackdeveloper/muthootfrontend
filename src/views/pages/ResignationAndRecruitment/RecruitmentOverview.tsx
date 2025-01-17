@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, Grid, Button, LinearProgress, Card, Tooltip, Badge, Chip } from '@mui/material'
+import { Box, Typography, Grid, Button, LinearProgress, Card, Tooltip, Badge, Chip, styled } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
 import WarningIcon from '@mui/icons-material/Warning'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
@@ -8,6 +8,9 @@ import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-req
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import SettingsIcon from '@mui/icons-material/Settings'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import DynamicButton from '@/components/Button/dynamicButton'
+import { Popper } from '@mui/material'
+import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 
 const approvers = [
   {
@@ -69,6 +72,17 @@ const DesignationOverview = () => {
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
+  const CustomPopper = (props: any) => (
+    <Popper
+      {...props}
+      placement='bottom-start'
+      style={{
+        zIndex: 11, // Ensure dropdown appears above other elements
+        marginTop: '4px',
+        minWidth: 300
+      }}
+    />
+  )
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -104,6 +118,20 @@ const DesignationOverview = () => {
     return '#f44336' // Red for Rejected
   }
 
+  const BubbleTooltip = styled(Tooltip)(({ theme }) => ({
+    tooltip: {
+      backgroundColor: theme.palette.info.main,
+      color: theme.palette.common.white,
+      boxShadow: theme.shadows[2],
+      fontSize: theme.typography.pxToRem(14),
+      borderRadius: theme.shape.borderRadius,
+      padding: theme.spacing(1)
+    },
+    arrow: {
+      color: theme.palette.info.main
+    }
+  }))
+
   return (
     <>
       <WarningDialog
@@ -119,6 +147,7 @@ const DesignationOverview = () => {
         onSave={handleSaveXFactor}
         currentXFactor={xFactorValue}
       />
+
       <Box sx={{ padding: 4, minHeight: '100vh' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -148,6 +177,43 @@ const DesignationOverview = () => {
             Approve All Requests
           </Button> */}
         </Box>
+
+        <Card
+          sx={{
+            mb: 4,
+            position: 'sticky',
+            top: 70,
+            zIndex: 10,
+            backgroundColor: 'white',
+            paddingBottom: 2,
+            overflow: 'visible' // Ensure overflow is visible
+          }}
+        >
+          <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
+            <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+              <Box mt={1}>
+                <DynamicAutocomplete
+                  sx={{ width: '300px' }}
+                  PopperComponent={CustomPopper}
+                  label='Branch Filter'
+                  options={[
+                    { name: 'Muthoot Branch 1' },
+                    { name: 'Muthoot Branch 2' },
+                    { name: 'Muthoot Branch 3' },
+                    { name: 'Muthoot Branch 4' },
+                    { name: 'Muthoot Branch 5' },
+                    { name: 'Muthoot Branch 6' },
+                    { name: 'Muthoot Branch 7' },
+                    { name: 'Muthoot Branch 8' },
+                    { name: 'Muthoot Branch 9' },
+                    { name: 'Muthoot Branch 10' }
+                  ]}
+                  value={undefined} // Replace with selected branch logic
+                />
+              </Box>
+            </Box>
+          </div>
+        </Card>
 
         <Grid container spacing={4}>
           <Grid item xs={12} md={12}>
@@ -195,86 +261,6 @@ const DesignationOverview = () => {
           <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333' }}>
             Request Summary
           </Typography>
-          {/* <Grid container spacing={4} sx={{ marginTop: 2 }}>
-            {approvers.map((approver, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <Card sx={{ padding: 3, boxShadow: 3, borderRadius: 2 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: 2
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Typography variant='h6' sx={{ fontWeight: 'bold', color: '#333' }}>
-                        {approver.name}
-                      </Typography>
-                      <Button
-                        variant='contained'
-                        color='success'
-                        onClick={e => {
-                          e.stopPropagation()
-                        }}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-check' />}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant='contained'
-                        color='error'
-                        onClick={e => {
-                          e.stopPropagation()
-                        }}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-playstation-x' />}
-                      >
-                        Reject
-                      </Button>
-                    </Box>
-                  </Box>
-                  <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Request Type:</strong> {approver.requestType}
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Requests:</strong> {approver.requests}
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Bubble Positions: </strong> {approver.bubblePositionsCount}
-                  </Typography>
-
-                  <Typography variant='body1' sx={{ color: '#777' }}>
-                    <strong>Branch:</strong> {approver.branchDetails}
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#777' }}>
-                    <strong>Approval Levels:</strong> {approver.approvalLevels.join(', ')}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
-                    <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
-                    <Typography variant='body1' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
-                      {approver.warning}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant='outlined'
-                    color='primary'
-                    fullWidth
-                    sx={{ marginTop: 2 }}
-                    startIcon={<VisibilityIcon />}
-                    onClick={() => handleViewRequest(approver.name)}
-                  >
-                    View Request
-                  </Button>
-                </Card>
-              </Grid>
-            ))}
-          </Grid> */}
 
           <Grid container spacing={4} mt={2}>
             {approvers.map((approver, index) => (

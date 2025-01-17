@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename)
 const schemaPath = path.join(__dirname, '../src/form/json/addBucket.json')
 const outputPath = path.join(__dirname, '../src/form/generatedForms/addBucket.tsx')
 
+
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'))
 
 interface FieldValidation {

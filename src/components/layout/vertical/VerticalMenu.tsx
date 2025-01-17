@@ -131,6 +131,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           Bucket Management
         </MenuItem>
         <MenuItem
+
           href={pathname.startsWith('/approval-matrix/') ? pathname : '/approval-matrix'}
           icon={<i className='tabler-settings-check' />}
         >

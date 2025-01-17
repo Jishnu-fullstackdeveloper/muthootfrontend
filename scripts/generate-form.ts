@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const schemaPath = path.join(__dirname, '../src/form/json/add_approval_level.json')
-const outputPath = path.join(__dirname, '../src/form/generatedForms/AddNewApprovalMatrix.tsx')
+const schemaPath = path.join(__dirname, '../src/form/json/addBucket.json')
+const outputPath = path.join(__dirname, '../src/form/generatedForms/addBucket.tsx')
 
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'))
 

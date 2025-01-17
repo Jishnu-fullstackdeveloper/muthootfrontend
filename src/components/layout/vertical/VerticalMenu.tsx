@@ -125,6 +125,14 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </MenuItem>
 
         <MenuItem
+          href={pathname.startsWith('/branch-management/') ? pathname : '/branch-management'}
+          icon={<i className='tabler-git-merge' />}
+        >
+          Branch Management
+        </MenuItem>
+
+        <MenuItem
+
           href={pathname.startsWith('/bucket-management/') ? pathname : '/bucket-management'}
           icon={<i className='tabler-apps' />}
         >

@@ -73,9 +73,7 @@ type Props = {
           <Typography variant="h6" sx={{ color: 'text.secondary', marginTop: 2 }}>
             Turnover Limit: {bucket.turnover_limit}
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', marginTop: 2 }}>
-            Turnover ID: {bucket.turnover_id}
-          </Typography>
+          
           <Typography variant="h6" sx={{ color: 'text.secondary', marginTop: 2 }}>
             Designations:
             <ul>

@@ -33,39 +33,19 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
 
   const employeeData: any[] = sampleEmployeeData
 
-  // Employee table columns
-  // const employeeColumns = [
-  //   {
-  //     header: 'ID',
-  //     accessorKey: 'id',
-  //     cell: (info: any) => info.getValue()
-  //   },
-  //   {
-  //     header: 'Name',
-  //     accessorKey: 'name',
-  //     cell: (info: any) => info.getValue()
-  //   },
-  //   {
-  //     header: 'Age',
-  //     accessorKey: 'age',
-  //     cell: (info: any) => info.getValue()
-  //   },
-  //   {
-  //     header: 'Email',
-  //     accessorKey: 'email',
-  //     cell: (info: any) => info.getValue()
-  //   },
-  //   {
-  //     header: 'Designation',
-  //     accessorKey: 'designation',
-  //     cell: (info: any) => info.getValue()
-  //   },
-  //   {
-  //     header: 'Blood Group',
-  //     accessorKey: 'blood',
-  //     cell: (info: any) => info.getValue()
-  //   }
-  // ]
+  // Action buttons
+  const actionButtons = [
+    {
+      icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
+      onClick: (rowData: any) => router.push(`/employee-details?employeeId=${rowData.employeeCode}`),
+      tooltip: 'View Details'
+    }
+    // {
+    //   icon: <i className='tabler-edit' style={{ fontSize: 18 }} />,
+    //   onClick: (rowData: any) => alert(`Editing details for ${rowData.name}`),
+    //   tooltip: 'Edit Details'
+    // }
+  ]
 
   const employeeColumns = [
     { header: 'ID', accessorKey: 'employeeCode' },
@@ -74,12 +54,6 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
     { header: 'Email', accessorKey: 'Personal Email Address' },
     { header: 'Designation', accessorKey: 'Title' }
   ]
-
-  // Button action function
-  const handleButtonClick = (rowData: any) => {
-    // alert(`Action performed on ${rowData.id}`)
-    router.push(`/employee-details?employeeId=${rowData.employeeCode}`)
-  }
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -160,14 +134,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
           Employee Details
         </Typography>
         <Divider sx={{ marginBottom: 3 }} />
-        <CustomTable
-          columns={employeeColumns}
-          data={employeeData}
-          showCheckbox={false}
-          showActionButton={true}
-          buttonLabel='View'
-          buttonAction={handleButtonClick}
-        />
+        <CustomTable columns={employeeColumns} data={employeeData} showCheckbox={false} actionButtons={actionButtons} />
       </Card>
     </Box>
   )

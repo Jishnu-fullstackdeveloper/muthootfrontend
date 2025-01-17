@@ -1,0 +1,113 @@
+{
+    "title": "Bucket Management Form",
+    "fields": [
+      {
+        "section": "Bucket Details",
+        "fields": [
+          {
+            "name": "bucketName",
+            "label": "Bucket Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "bucketDescription",
+            "label": "Bucket Description",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "turnoverLimit",
+            "label": "Turnover Limit",
+            "type": "number",
+            "required": true,
+            "validation": {
+              "min": 0
+            }
+          },
+          {
+            "name": "turnoverId",
+            "label": "Turnover ID",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "bucketType",
+            "label": "Bucket Type",
+            "type": "select",
+            "options": [
+              "Type A",
+              "Type B",
+              "Type C"
+            ],
+            "required": true
+          },
+          {
+            "name": "assignedTo",
+            "label": "Assigned To",
+            "type": "select",
+            "options": [
+              "Team 1",
+              "Team 2",
+              "Team 3",
+              "Team 4"
+            ],
+            "required": true
+          },
+          {
+            "name": "note",
+            "label": "Note",
+            "type": "textarea",
+            "placeholder": "Add any additional notes...",
+            "required": false
+          }
+        ]
+      },
+      {
+        "section": "Team and Role Details",
+        "fields": [
+          {
+            "name": "designations",
+            "label": "Designations",
+            "type": "dynamic-array",
+            "fields": [
+              {
+                "name": "designationName",
+                "label": "Designation",
+                "type": "autocomplete",
+                "options": [
+                  "Manager",
+                  "Lead",
+                  "Member",
+                  "Assistant",
+                  "Director"
+                ],
+                "required": true
+              },
+              {
+                "name": "roleCount",
+                "label": "Number of People in Role",
+                "type": "number",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "type": "cancel",
+        "label": "Cancel"
+      },
+      {
+        "type": "save",
+        "label": "Save Draft"
+      },
+      {
+        "type": "submit",
+        "label": "Post Bucket"
+      }
+    ]
+  }
+  

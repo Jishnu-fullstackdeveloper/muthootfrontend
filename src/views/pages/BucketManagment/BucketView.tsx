@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Typography from '@mui/material/Typography'
-import { Box, Card, CardContent, Button } from '@mui/material'
+import { Box, Card, CardContent, Button, Divider } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
 
 type Props = {
   mode: any
@@ -13,7 +14,6 @@ type Props = {
 const BucketView: React.FC<Props> = ({ mode, id }) => {
   const [bucket, setBucket] = useState<any>(null)
   const router = useRouter()
-  //   const { id } = router.query
 
   // The mock bucket data you have in the listing
   const buckets = [
@@ -22,10 +22,15 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
       name: 'Bucket 1',
       designation: [
         { designationName: 'Branch Manager', count: 3 },
+        { designationName: 'HR Manager', count: 2 },
+        { designationName: 'Branch Manager', count: 3 },
+        { designationName: 'HR Manager', count: 2 },
+        { designationName: 'Branch Manager', count: 3 },
         { designationName: 'HR Manager', count: 2 }
       ],
-      turnover_limit: 2,
-      turnover_id: 1122
+
+      turnover_code: 'TURNCODE1122',
+      note: 'This is a large note with details for Bucket 1. It provides extensive details and specific information about this bucket.This is a large note with details for Bucket 1. It provides extensive details and specific information about this bucket.This is a large note with details for Bucket 1. It provides extensive details and specific information about this bucket.'
     },
     {
       id: 2,
@@ -34,8 +39,9 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
         { designationName: 'Marketing Lead', count: 5 },
         { designationName: 'Sales Manager', count: 4 }
       ],
-      turnover_limit: 3,
-      turnover_id: 1133
+
+      turnover_code: 'TURNCODE1133',
+      note: 'Bucket 2 has various designations, and the note here is large, detailing more information about the overall functioning of this bucket.'
     },
     {
       id: 3,
@@ -44,8 +50,9 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
         { designationName: 'Tech Lead', count: 7 },
         { designationName: 'Software Engineer', count: 8 }
       ],
-      turnover_limit: 5,
-      turnover_id: 1144
+
+      turnover_code: 'TURNCODE1144',
+      note: 'This is a large note for Bucket 3 that gives additional context about the workings of this bucket and all its operations.'
     }
   ]
 
@@ -62,33 +69,50 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
   }
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box>
       <Card sx={{ boxShadow: 3 }}>
         <CardContent>
-          <Typography variant='h4' sx={{ fontWeight: 'bold' }}>
+          {/* Bucket Name */}
+          <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
             {bucket.name}
           </Typography>
+          <Divider sx={{ mb: 4 }} />
+          {/* Turnover Code */}
           <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
-            Turnover Limit: {bucket.turnover_limit}
+            Turnover Code: <strong>{bucket.turnover_code}</strong>
           </Typography>
 
+          {/* Designations */}
           <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
             Designations:
             <ul>
               {bucket.designation.map((designation: any, index: number) => (
-                <li key={index}>
-                  {designation.designationName}: {designation.count}
+                <li key={index} style={{ marginBottom: 5 }}>
+                  <strong>{designation.designationName}:</strong> {designation.count}
                 </li>
               ))}
             </ul>
           </Typography>
+
+          {/* Large Note Section */}
+          <Box sx={{ marginTop: 3, padding: 5, backgroundColor: '#f4f6f8', borderRadius: 2 }}>
+            <Typography variant='body1' sx={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: 1 }}>
+              Note:
+            </Typography>
+            <Typography variant='body2' sx={{ fontSize: '1rem', color: 'text.secondary' }}>
+              {bucket.note}
+            </Typography>
+          </Box>
         </CardContent>
+
+        <Box sx={{ marginTop: 3, marginLeft: 5, marginBottom: 10 }}>
+          <Button startIcon={<ArrowBack />} variant='outlined' onClick={() => router.back()}>
+            Go Back
+          </Button>
+        </Box>
       </Card>
-      <Box sx={{ marginTop: 3 }}>
-        <Button variant='outlined' onClick={() => router.back()}>
-          Go Back
-        </Button>
-      </Box>
+
+      {/* Go Back Button */}
     </Box>
   )
 }

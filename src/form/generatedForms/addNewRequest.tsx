@@ -8,19 +8,18 @@ import { styled } from '@mui/material/styles'
 
 const optionsData = {
   employeeCategoryDetails: [
-    {
-      id: 'designation',
-      label: 'Designation',
-      options: ['Software Engineer', 'Project Manager', 'UI/UX Designer', 'Data Scientist']
-    },
     { id: 'department', label: 'Department', options: ['IT', 'HR', 'Finance', 'Operations'] },
     {
       id: 'empCategoryType',
       label: 'Employee Category Type',
       options: ['Full-Time', 'Part-Time', 'Contractor', 'Intern']
     },
-    { id: 'grade', label: 'Grade', options: ['G1', 'G2', 'G3', 'G4'] },
-    { id: 'band', label: 'Band', options: ['B1', 'B2', 'B3', 'B4'] }
+    {
+      id: 'designation',
+      label: 'Designation',
+      options: ['Software Engineer', 'Project Manager', 'UI/UX Designer', 'Data Scientist']
+    },
+    { id: 'grade', label: 'Grade', options: ['G1', 'G2', 'G3', 'G4'] }
   ],
   locationCategoryDetails: [
     { id: 'company', label: 'Company', options: ['C1', 'C2', 'C3', 'C4'] },
@@ -29,7 +28,6 @@ const optionsData = {
     { id: 'zone', label: 'Zone', options: ['Z1', 'Z2', 'Z3', 'Z4'] },
     { id: 'region', label: 'Region', options: ['R1', 'R2', 'R3', 'R4'] },
     { id: 'area', label: 'Area', options: ['A1', 'A2', 'A3', 'A4'] },
-    { id: 'cluster', label: 'Cluster', options: ['CL1', 'CL2', 'CL3', 'CL4'] },
     { id: 'branch', label: 'Branch', options: ['BR1', 'BR2', 'BR3', 'BR4'] }
   ]
 }
@@ -72,7 +70,7 @@ const AddNewRequestGeneratedForm: React.FC = () => {
 
   return (
     <form onSubmit={requestFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-      <h1 className='text-2xl font-bold text-gray-800 mb-4'>Resignation Request Form</h1>
+      <h1 className='text-2xl font-bold text-gray-800 mb-4'>Recruitment Request Form</h1>
 
       <fieldset className='border border-gray-300 rounded p-4 mb-6'>
         <legend className='text-lg font-semibold text-gray-700'>Employee Category Details</legend>

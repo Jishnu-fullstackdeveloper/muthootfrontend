@@ -13,7 +13,7 @@ const BucketManagementIndex = () => {
   return (
     <>
       {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditBucket mode={mode} id={id} />}
-      {/* {mode === 'view' && <BucketView mode={mode} id={id} />} */}
+      {mode === 'view' && <BucketView mode={mode} id={id} />}
     </>
   )
 }

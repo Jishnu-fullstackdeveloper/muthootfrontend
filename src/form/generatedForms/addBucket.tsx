@@ -9,7 +9,6 @@ import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useRouter } from 'next/navigation'
 import { Modal, Box, Button } from '@mui/material';
 
-
 type Props = {
   mode: any
   id: any
@@ -19,20 +18,27 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   console.log('mode', mode)
   console.log('id', id)
 
-  // Hooks inside the functional component
   const [roleCount, setRoleCount] = useState<string>('')
   const [error, setError] = useState<string>('') // Error message
   const [warning, setWarning] = useState<string>('') // Warning message
   const [designations, setDesignations] = useState<any[]>([{ designationName: '', roleCount: 1 }])
   const [showModal, setShowModal] = useState(false);
   const [showTurnoverModal, setShowTurnoverModal] = useState(false); // New state for Turnover modal
-  const [showNewTurnoverModal, setShowNewTurnoverModal] = useState(false); // Modal to create new turnover
+  // const [showNewTurnoverModal, setShowNewTurnoverModal] = useState(false); // Modal to create new turnover
   const [modalData, setModalData] = useState(null);
-  const [turnoverAmount, setTurnoverAmount] = useState<number | string>(''); // State for turnover amount
-  const [turnoverCode, setTurnoverCode] = useState<string>('');
-  const [isEditMode, setIsEditMode] = useState(false) // Track whether we're in edit mode
+  // const [turnoverAmount, setTurnoverAmount] = useState<number | string>(''); // State for turnover amount
+  // const [turnoverCode, setTurnoverCode] = useState<string>('');
+  // const [isEditMode, setIsEditMode] = useState(false) // Track whether we're in edit mode
   const [selectedTurnover, setSelectedTurnover] = useState<any>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('');
+
+  const [showNewTurnoverModal, setShowNewTurnoverModal] = useState(false);
+const [isEditMode, setIsEditMode] = useState(false);
+const [turnoverAmount, setTurnoverAmount] = useState('');
+const [turnoverCode, setTurnoverCode] = useState('');
+// const [selectedTurnover, setSelectedTurnover] = useState(null);
 
   interface DataItem {
     id: number;
@@ -40,19 +46,20 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     code: string;
   }
   const [data, setData] = useState([
-    { id: 1, turnover: 1000000, code: 'ABC123' },
-    { id: 2, turnover: 2000000, code: 'DEF456' },
-    { id: 3, turnover: 1500000, code: 'GHI789' },
-    { id: 4, turnover: 2500000, code: 'JKL012' },
-    { id: 5, turnover: 1200000, code: 'MNO345' },
-    { id: 6, turnover: 1800000, code: 'PQR678' },
-    { id: 7, turnover: 2200000, code: 'STU901' },
-    { id: 8, turnover: 5000000, code: 'VWX234' },
-    { id: 9, turnover: 3500000, code: 'YZA567' },
-    { id: 10, turnover: 2800000, code: 'BCD890' },
-    { id: 11, turnover: 4000000, code: 'EFG123' },
-    { id: 12, turnover: 3200000, code: 'HIJ456' },
+    { id: 1, turnoverCode: 'ABC123' },
+    { id: 2, turnoverCode: 'DEF456' },
+    { id: 3, turnoverCode: 'GHI789' },
+    { id: 4, turnoverCode: 'JKL012' },
+    { id: 5, turnoverCode: 'MNO345' },
+    { id: 6, turnoverCode: 'PQR678' },
+    { id: 7, turnoverCode: 'STU901' },
+    { id: 8, turnoverCode: 'VWX234' },
+    { id: 9, turnoverCode: 'YZA567' },
+    { id: 10, turnoverCode: 'BCD890' },
+    { id: 11, turnoverCode: 'EFG123' },
+    { id: 12, turnoverCode: 'HIJ456' },
   ])
+  
   
 
 
@@ -76,19 +83,25 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setShowNewTurnoverModal(true)
   }
   const handleEditTurnover = (item: any) => {
-    setIsEditMode(true) // Set to true when editing
-    setSelectedTurnover(item) // Store selected turnover for editing
-    setTurnoverAmount(item.turnover.toString())
-    setTurnoverCode(item.code)
-    setShowNewTurnoverModal(true)
+    console.log(item); // Log item to verify the data
+    setIsEditMode(true); 
+    setSelectedTurnover(item); 
+    // setTurnoverAmount(item.turnoverCode.toString());
+    setTurnoverCode(item.turnoverCode);
+    setShowNewTurnoverModal(true);
   }
-
+  
+ const handleSubmit = () => {
+    // Handle the submit action and pass the selected turnover code to the input field
+    setTurnoverCode(selectedTurnoverCode);
+    handleCloseModal();
+  };
   const handleSaveNewTurnover = () => {
     if (isEditMode && selectedTurnover) {
       // Handle editing existing turnover
       const updatedData = data.map((item) =>
         item.id === selectedTurnover.id
-          ? { ...item, turnover: parseInt(turnoverAmount), code: turnoverCode }
+          ? { ...item,  turnoverCode: turnoverCode }
           : item
       )
       setData(updatedData)
@@ -96,8 +109,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       // Handle adding new turnover
       const newTurnover = {
         id: data.length + 1,
-        turnover: parseInt(turnoverAmount ),
-        code: turnoverCode,
+        turnoverCode: turnoverCode,
       }
       setData([...data, newTurnover])
     }
@@ -129,15 +141,13 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const bucketFormik = useFormik({
     initialValues: {
       bucketName: '',
-      turnoverLimit: '',
+      turnoverCode: '',
       turnoverId: '',
       note: '',
       designations: [{ designationName: '', roleCount: 1 }]
     },
     validationSchema: Yup.object().shape({
       bucketName: Yup.string().required('Bucket Name is required'),
-      turnoverLimit: Yup.number().required('Turnover Limit is required'),
-      turnoverId: Yup.string().required('Turnover ID is required'),
       note: Yup.string(),
       designations: Yup.array()
         .of(
@@ -153,6 +163,25 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     }
   })
 
+  const handleSaveNewBucket = () => {
+    const bucketData = {
+      bucketName: bucketFormik.values.bucketName,
+      turnoverCode: bucketFormik.values.turnoverCode,
+      note: bucketFormik.values.note,
+      designations: bucketFormik.values.designations,
+      id: data.length + 1, // Generate a new ID based on the existing data length
+    };
+  
+    // Add the new bucket to the data state (or update if necessary)
+    setData([...data, bucketData]); // Assuming you're adding the bucket data to the state
+    bucketFormik.resetForm(); // Optionally reset the form after saving
+    setShowNewTurnoverModal(false); // Close modal after saving
+  };
+  
+  const handleBucketSubmit = (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent default form submission
+    handleSaveNewBucket(); // Call the function to save the new bucket
+  };
   const router = useRouter()
 
   // Cancel button handler
@@ -164,7 +193,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     const value = event.target.value
     const newDesignations = [...designations]
 
-    // Allow empty input or valid role count
+    
     if (value === '') {
       newDesignations[index].roleCount = '' // Empty input for backspace
       setWarning('') // Remove warning
@@ -205,31 +234,28 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
           </FormControl>
 
           <FormControl fullWidth margin='normal' >
-            <label htmlFor='turnoverLimit' className='block text-sm font-medium text-gray-700'>
+            <label htmlFor='turnoverCode' className='block text-sm font-medium text-gray-700'>
               Turnover Code
             </label>
             <div style={{ flexDirection:'row' }}>
             <TextField
+            onClick={() => handleIconClick(data[0])} 
+            value={turnoverCode}
+            InputProps={{
+              readOnly: true,
+            }}
             sx={{paddingRight:'10px'}}
-              id='turnoverLimit'
-              name='turnoverLimit'
-              type='text'
-              value={bucketFormik.values.turnoverLimit}
+              id='turnoverCode'
+              name='turnoverCode'
+             
+             
               onChange={bucketFormik.handleChange}
-              onFocus={() => bucketFormik.setFieldTouched('turnoverLimit', true)}
-              error={bucketFormik.touched.turnoverLimit && Boolean(bucketFormik.errors.turnoverLimit)}
-              helperText={bucketFormik.touched.turnoverLimit && bucketFormik.errors.turnoverLimit ? String(bucketFormik.errors.turnoverLimit) : undefined}
-              InputProps={{
-                startAdornment: <InputAdornment position='start'></InputAdornment>
-              }}
+              onFocus={() => bucketFormik.setFieldTouched('turnoverCode', true)}
+              error={bucketFormik.touched.turnoverCode && Boolean(bucketFormik.errors.turnoverCode)}
+              helperText={bucketFormik.touched.turnoverCode && bucketFormik.errors.turnoverCode ? String(bucketFormik.errors.turnoverCode) : undefined}
+             
             />
-             <Tooltip title="Turnover Details" placement="top">
-                <i
-                  className="tabler-exclamation-circle"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleIconClick(data[0])} // Pass the first item (or select dynamically from `data`)
-                ></i>
-              </Tooltip>  
+            
 
              </div>
 
@@ -295,63 +321,100 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
 
           {/* Turnover Data Table */}
-          <div style={{ marginTop: '16px', maxHeight: '60vh', overflowY: 'auto' , marginBottom:'50px'}}>
-            <table style={{ width: '80%', borderCollapse: 'collapse', marginLeft: '60px', marginBottom:"50px" }}>
-              <thead>
-                <tr>
-                  <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>No</th>
-                  <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Turnover Amount</th>
-                  <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Turnover Code</th>
-                  <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item) => (
-                  <tr key={item.id}>
-                    <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                      {item.id.toLocaleString()}
-                    </td>
-                    <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                      {item.turnover.toLocaleString()}
-                    </td>
-                    <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                      {item.code}
-                    </td>
-                    <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                      <Button
-                       
-                        onClick={() => handleEditTurnover(item)}
-                        sx={{
-                          borderColor: '#888',
-                          color: '#888',
-                          '&:hover': {
-                            borderColor: '#555',
-                            backgroundColor: '#f5f5f5',
-                          },
-                        }}
-                      >
-                         <i className="tabler-edit"></i>
-                      </Button>
-                      <Button
-                        
-                        onClick={() => handleOpenDeleteModal(item)}
-                        sx={{
-                          borderColor: '#888',
-                          color: '#888',
-                          '&:hover': {
-                            
-                            backgroundColor: 'red',
-                          },
-                          marginLeft: 2,
-                        }}
-                      >
-                        <i className="tabler-trash"></i>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ marginTop: '16px', maxHeight: '60vh', overflowY: 'auto', marginBottom: '50px' }}>
+      <table style={{ width: '80%', borderCollapse: 'collapse', marginLeft: '60px', marginBottom: "50px" }}>
+        <thead>
+          <tr>
+            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>No</th>
+            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Turnover Code</th>
+            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Actions</th>
+            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr
+              key={item.id}
+              style={{
+                cursor: 'pointer',
+                transition: 'background-color 0.3s',
+                backgroundColor: selectedTurnoverCode === item.turnoverCode ? '#e0f7fa' : hoveredRow === item.id ? '#f0f0f0' : '', // Highlight selected row with a color
+              }}
+              onMouseEnter={() => setHoveredRow(item.id)} // Set hovered row when mouse enters
+              onMouseLeave={() => setHoveredRow(null)} // Reset hovered row when mouse leaves
+            >
+              
+              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                {item.id.toLocaleString()}
+              </td>
+
+              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                {item.turnoverCode}
+              </td>
+              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+              <Button
+        onClick={() => handleEditTurnover(item)}
+        sx={{
+          borderColor: '#888',
+          color: '#888',
+          '&:hover': {
+            borderColor: '#555',
+            backgroundColor: '#f5f5f5',
+          },
+        }}
+      >
+        <i className="tabler-edit"></i>
+      </Button>
+
+                <Button
+                  onClick={() => handleOpenDeleteModal(item)}
+                  sx={{
+                    borderColor: '#888',
+                    color: '#888',
+                    '&:hover': {
+                      backgroundColor: 'red',
+                    },
+                    marginLeft: 2,
+                  }}
+                >
+                  <i className="tabler-trash"></i>
+                  
+                </Button>
+                </td>
+<td>
+                {hoveredRow === item.id && ( // Only show radio button if this row is hovered
+                  <label>
+                    <input
+                      type="radio"
+                      name="turnoverCode"
+                      value={item.turnoverCode}
+                      checked={selectedTurnoverCode === item.turnoverCode}
+                      onChange={() => setSelectedTurnoverCode(item.turnoverCode)} // Set the selected turnover code
+                    />
+                  </label>
+                )}
+             </td>
+            
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={!selectedTurnoverCode}
+              sx={{
+                backgroundColor: '#1976d2',
+                '&:hover': {
+                  backgroundColor: '#1565c0',
+                },
+              }}
+            >
+              Submit
+            </Button>
           </div>
         </Box>
       </Modal>
@@ -375,38 +438,29 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
           <div className="flex flex-col space-y-4" style={{ marginTop: 10 }}>
             <FormControl fullWidth>
-              <TextField
-                label="Turnover Amount"
-                variant="outlined"
-                value={turnoverAmount}
-                onChange={(e) => setTurnoverAmount(e.target.value)}
-              />
+            <TextField
+  label="Turnover Code"
+  variant="outlined"
+  value={turnoverCode} // Value is bound to state
+  onChange={(e) => setTurnoverCode(e.target.value)} // OnChange handler to update state
+/>
             </FormControl>
 
-            <FormControl fullWidth>
-              <TextField
-                label="Turnover Code"
-                variant="outlined"
-                value={turnoverCode}
-                onChange={(e) => setTurnoverCode(e.target.value)}
-              />
-            </FormControl>
 
             <div className="flex" style={{ paddingLeft: 50 }}>
               <Button
-               
                 onClick={handleSaveNewTurnover}
                 sx={{
-                  padding:2,
-      paddingLeft:7,
-      paddingRight:7,
+                  padding: 2,
+                  paddingLeft: 7,
+                  paddingRight: 7,
                   marginRight: 4,
                   borderColor: '#888',
-                  background:'#039be5',
+                  background: '#039be5',
                   color: '#f5f5f5',
                   '&:hover': {
-                    border:1,
-                    color:'black',
+                    border: 1,
+                    color: 'black',
                     borderColor: '#555',
                     backgroundColor: '#f5f5f5',
                   },
@@ -418,16 +472,16 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                 variant="outlined"
                 onClick={handleCancelNewTurnover}
                 sx={{
-                  padding:2,
-      paddingLeft:7,
-      paddingRight:7,
+                  padding: 2,
+                  paddingLeft: 7,
+                  paddingRight: 7,
                   marginRight: 4,
                   borderColor: '#888',
-                  background:'#616161',
+                  background: '#616161',
                   color: '#f5f5f5',
                   '&:hover': {
-                    border:1,
-                    color:'black',
+                    border: 1,
+                    color: 'black',
                     borderColor: '#555',
                     backgroundColor: '#f5f5f5',
                   },
@@ -543,79 +597,93 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
               Designation
             </label>
           {designations.map((designation, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                marginBottom: '16px',
-                marginTop:10,
-                alignItems: 'center',
-                width: '100%'
-              }}
-            >
-              <div style={{ width: '300px' }}>
-                <Autocomplete
-                  options={['Manager', 'Lead', 'Member', 'Assistant', 'Director']}
-                  value={designation.designationName}
-                  onChange={(e, value) => {
-                    const newDesignations = [...designations]
-                    newDesignations[index].designationName = value || ''
-                    setDesignations(newDesignations)
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label={`Designation ${index + 1}`}
-                      error={bucketFormik.touched.designations && Boolean(bucketFormik.errors.designations)}
-                      helperText={bucketFormik.touched.designations && bucketFormik.errors.designations ? bucketFormik.errors.designations : ''}
-                      style={{ width: '100%' }}
-                    />
-                  )}
-                />
-              </div>
+  <div
+    key={index}
+    style={{
+      display: 'flex',
+      flexDirection: 'row',
+      marginBottom: '16px',
+      marginTop: 10,
+      alignItems: 'center',
+      width: '100%',
+    }}
+  >
+    <div style={{ width: '300px' }}>
+      <Autocomplete
+        options={['Manager', 'Lead', 'Member', 'Assistant', 'Director']}
+        value={designation.designationName}
+        onChange={(e, value) => {
+          const newDesignations = [...designations];
+          
+          // Check if the designation is already selected in any other row
+          const isDuplicate = newDesignations.some((item, idx) => item.designationName === value && idx !== index);
 
-              <div style={{ width: '150px', marginLeft: '10px' }}>
-                <TextField
-                  label='Role Count'
-                  type='number'
-                  value={designation.roleCount === '' ? '' : designation.roleCount} 
-                  onChange={(e) => handleTextFieldChange(e, index)} 
-                  onBlur={e => {
-                    if (e.target.value === '') {
-                      const newDesignations = [...designations]
-                      newDesignations[index].roleCount = 1
-                      setDesignations(newDesignations)
-                      setRoleCount('')
-                      setWarning('')
-                      setError('')
-                    }
-                  }}
-                  error={bucketFormik.touched.designations && !!bucketFormik.errors.designations}
-                  helperText={error || warning}
-                  fullWidth
-                />
-              </div>
+          if (isDuplicate) {
+            // If duplicate, show error message
+            newDesignations[index].designationName = value || '';
+            setDesignations([...newDesignations]);
+            setError('This designation is already selected. Please choose a different one.');
+          } else {
+            // If no duplicate, update the designation
+            newDesignations[index].designationName = value || '';
+            setError('');
+            setDesignations(newDesignations);
+          }
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={`Designation ${index + 1}`}
+            error={bucketFormik.touched.designations && Boolean(bucketFormik.errors.designations) || Boolean(error)}
+            helperText={bucketFormik.touched.designations && bucketFormik.errors.designations ? bucketFormik.errors.designations : error || ''}
+            style={{ width: '100%' }}
+          />
+        )}
+      />
+    </div>
 
-              {designations.length > 1 && index > 0 && (
-                <IconButton
-                  color='secondary'
-                  onClick={() => setDesignations(designations.filter((_, i) => i !== index))}
-                >
-                  <RemoveIcon />
-                </IconButton>
-              )}
+    <div style={{ width: '150px', marginLeft: '10px' }}>
+      <TextField
+        label="Role Count"
+        type="number"
+        value={designation.roleCount === '' ? '' : designation.roleCount}
+        onChange={(e) => handleTextFieldChange(e, index)}
+        onBlur={(e) => {
+          if (e.target.value === '') {
+            const newDesignations = [...designations];
+            newDesignations[index].roleCount = 1;
+            setDesignations(newDesignations);
+            setRoleCount('');
+            setWarning('');
+            setError('');
+          }
+        }}
+        error={bucketFormik.touched.designations && !!bucketFormik.errors.designations}
+        helperText={error || warning}
+        fullWidth
+      />
+    </div>
 
-              {index === designations.length - 1 && (
-                <IconButton
-                  color='primary'
-                  onClick={() => setDesignations([...designations, { designationName: '', roleCount: 1 }])}
-                >
-                  <AddIcon />
-                </IconButton>
-              )}
-            </div>
-          ))}
+    {designations.length > 1 && index > 0 && (
+      <IconButton
+        color="secondary"
+        onClick={() => setDesignations(designations.filter((_, i) => i !== index))}
+      >
+        <RemoveIcon />
+      </IconButton>
+    )}
+
+    {index === designations.length - 1 && (
+      <IconButton
+        color="primary"
+        onClick={() => setDesignations([...designations, { designationName: '', roleCount: 1 }])}
+      >
+        <AddIcon />
+      </IconButton>
+    )}
+  </div>
+))}
+
         </div>
 
         <FormControl fullWidth margin='normal'>

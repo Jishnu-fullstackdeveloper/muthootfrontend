@@ -24,7 +24,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 import { usePathname } from 'next/navigation'
-
+import ApprovalIcon from '@mui/icons-material/Approval'
 type RenderExpandIconProps = {
   open?: boolean
   transitionDuration?: VerticalMenuContextProps['transitionDuration']
@@ -91,21 +91,56 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </MenuItem>
         ))}
 
-        {isJDManagementPage ? (
-          <MenuItem href={pathname} icon={<i className='tabler-file-description' />}>
-            JD Management
-          </MenuItem>
-        ) : (
-          <MenuItem href='/jd-management' icon={<i className='tabler-file-description' />}>
-            JD Management
-          </MenuItem>
-        )}
-        <MenuItem href='/user-management' icon={<i className='tabler-file-description' />}>
+        <MenuItem href='/user-management' icon={<i className='tabler-users' />}>
           User Management
         </MenuItem>
-        <MenuItem href='/user-roles' icon={<i className='tabler-file-description' />}>
+
+        <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
           User Roles
         </MenuItem>
+
+        <MenuItem href='/approval-management' icon={<i className='tabler-rosette-discount-check' />}>
+          Approval Management
+        </MenuItem>
+
+        <MenuItem
+          href={isJDManagementPage ? pathname : '/jd-management'}
+          icon={<i className='tabler-file-description' />}
+        >
+          JD Management
+        </MenuItem>
+
+        <MenuItem
+          href={pathname.startsWith('/vacancy-management/') ? pathname : '/vacancy-management'}
+          icon={<i className='tabler-briefcase' />}
+        >
+          Vacancy Management
+        </MenuItem>
+
+        <MenuItem
+          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management/overview'}
+          icon={<i className='tabler-user-plus' />}
+        >
+          Recruitment Management
+        </MenuItem>
+
+        <MenuItem
+          href={pathname.startsWith('/bucket-management/') ? pathname : '/bucket-management'}
+          icon={<i className='tabler-apps' />}
+        >
+          Bucket Management
+        </MenuItem>
+        <MenuItem
+
+          href={pathname.startsWith('/approval-matrix/') ? pathname : '/approval-matrix'}
+          icon={<i className='tabler-settings-check' />}
+        >
+          Approval Matrix
+        </MenuItem>
+
+        {/* <MenuItem href='/recruitment-management' icon={<i className='tabler-report-search' />}>
+          Recruitment Management
+        </MenuItem> */}
 
         {/* <SubMenu label='Components'>
           <MenuItem href='/components/accordion'>Accordion</MenuItem>

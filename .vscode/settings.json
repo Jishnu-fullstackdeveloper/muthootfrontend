@@ -46,8 +46,10 @@
   "editor.linkedEditing": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "cSpell.words": [
+    "apexcharts",
+    "customizer",
     "iconify",
-    "tanstack",
-    "customizer"
+    "refreshtoken",
+    "tanstack"
   ]
 }

@@ -24,7 +24,8 @@ type JobListingFiltersProps = {
   setOpen: (open: boolean) => void
   setSelectedFilters: any
   selectedFilters: any
-  setAppliedFliters: any
+  setAppliedFilters: any
+  handleResetFilters: any
 }
 
 // Filter Data Example
@@ -40,7 +41,8 @@ const JobListingCustomFilters = ({
   setOpen,
   setSelectedFilters,
   selectedFilters,
-  setAppliedFliters
+  setAppliedFilters,
+  handleResetFilters
 }: JobListingFiltersProps) => {
   // State for selected filters
 
@@ -78,19 +80,8 @@ const JobListingCustomFilters = ({
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    setAppliedFliters(selectedFilters)
+    setAppliedFilters(selectedFilters)
     setOpen(false)
-  }
-
-  const handleResetFilters = () => {
-    setSelectedFilters({
-      jobType: [], // Array for checkboxes
-      experience: [],
-      education: [],
-      skills: [],
-      salaryRange: [0, 0], // Default range for the slider
-      jobRole: '' // Default value for the select dropdown
-    })
   }
 
   return (

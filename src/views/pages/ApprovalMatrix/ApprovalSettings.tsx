@@ -3,10 +3,12 @@ import DynamicButton from '@/components/Button/dynamicButton';
 import { Box, Card, IconButton, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import DynamicTable from '@/components/Table/dynamicTable';
+
+//import DynamicTable from '@/components/Table/dynamicTable';
+import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable';
 import { ColumnDef } from '@tanstack/react-table';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DriveFileRenameOutlineOutlinedIcon from '@mui/icons-material/DriveFileRenameOutlineOutlined';
+import EditIcon from '@mui/icons-material/Edit'
 
 const ApprovalSettings = () => {
   const router = useRouter();
@@ -32,7 +34,7 @@ const ApprovalSettings = () => {
       {
         id: 3,
         approvalType: 'Employee Resignation',
-        numberOfLevels: 1,
+        numberOfLevels: 3,
         approvalFor: 'Sales Executive',
       },
     ]);
@@ -61,15 +63,15 @@ const ApprovalSettings = () => {
         <div>
           <IconButton
             aria-label="edit"
+            sx={{ fontSize: 18 }}
             onClick={() => handleEdit(info.row.original)}
-            sx={{ fontSize: 18, color: 'Highlight' }}
           >
-            <DriveFileRenameOutlineOutlinedIcon />
+            <EditIcon />
           </IconButton>
           <IconButton
             aria-label="delete"
+            sx={{ fontSize: 18 }}
             onClick={() => handleDelete(info.row.original.id)}
-            sx={{ fontSize: 18, color: 'crimson' }}
           >
             <DeleteIcon />
           </IconButton>
@@ -97,7 +99,7 @@ const ApprovalSettings = () => {
         </Box>
       </div>
       <div className="mt-2">
-        {tableData.length > 0 && <DynamicTable columns={columns} data={tableData} />}
+        {tableData.length > 0 && <ModifiedDynamicTable columns={columns} data={tableData} showCheckbox={false}/>}
       </div>
     </div>
   );

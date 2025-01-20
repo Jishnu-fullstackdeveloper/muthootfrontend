@@ -190,19 +190,31 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 disabled={formik.values.sections.length === 1}
                 className="col-span-1"
               >
-                <DeleteIcon color="error" />
+                <DeleteIcon  />
               </IconButton>
             </div>
           ))}
         </div>
       </fieldset>
 
-      <div className="flex justify-center items-center gap-6">
+      <div className="flex justify-end space-x-4">
         <DynamicButton
-          label="Save Matrix"
+          type="button"
           variant="contained"
-          color="primary"
-          onClick={() => formik.handleSubmit()} children={undefined}        />
+          className="bg-gray-500 text-white hover:bg-gray-700"
+          onClick={() => formik.resetForm()}
+        >
+          Cancel
+        </DynamicButton>
+
+        <DynamicButton
+          type="submit"
+          variant="contained"
+          className="bg-primary-500 text-white hover:bg-primary-700"
+          onClick={() => formik.handleSubmit()}
+        >
+          Save
+        </DynamicButton>
       </div>
     </form>
   );

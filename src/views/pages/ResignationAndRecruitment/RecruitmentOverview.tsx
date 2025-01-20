@@ -8,6 +8,7 @@ import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-req
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import SettingsIcon from '@mui/icons-material/Settings'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import AddIcon from '@mui/icons-material/Add';
 
 const approvers = [
   {
@@ -125,6 +126,14 @@ const DesignationOverview = () => {
             Recruitment Request Overview
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
+            <Button
+                variant='contained'
+                color='primary'
+                startIcon={<AddIcon />}
+                onClick={() => router.push('/recruitment-management/add/new-request')}
+              >
+                New Request
+            </Button>
             <Button
               variant='contained'
               color='primary'

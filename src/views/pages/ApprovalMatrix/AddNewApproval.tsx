@@ -8,7 +8,9 @@ const AddNewApproval = () => {
   const segments = pathname.split('/') // Split by "/"
   const mode = segments[2] // Extract "add, view or edit"
   const id = segments[3] // Extract "id"
-  return <div>{mode === 'add' && <AddNewApprovalMatrixGenerated />}</div>
+  return <div>
+    {mode === 'add' && <AddNewApprovalMatrixGenerated />} 
+    {mode === 'edit' && <AddNewApprovalMatrixGenerated />}</div>
 }
 
 export default AddNewApproval

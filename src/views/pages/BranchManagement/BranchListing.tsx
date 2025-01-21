@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
 import CustomTextField from '@/@core/components/mui/TextField'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 
@@ -31,35 +32,41 @@ const BranchListing = () => {
     {
       id: 1,
       name: 'Downtown Branch',
-      location: 'New York',
-      totalEmployees: 50,
-      turnover: '$5M',
-      bucketLevel: 'Gold',
-      status: 'Active',
-      contact: '123-456-7890',
-      hours: '9 AM - 6 PM'
+      branchCode: 'B001',
+      territory: 'North',
+      zonal: 'Zone1',
+      region: 'Region1',
+      area: 'Area1',
+      cluster: 'Cluster1',
+      cityClassification: 'Metro',
+      state: 'California',
+      status: 'Active'
     },
     {
       id: 2,
       name: 'Market Square',
-      location: 'San Francisco',
-      totalEmployees: 30,
-      turnover: '$3M',
-      bucketLevel: 'Silver',
-      status: 'Inactive',
-      contact: '987-654-3210',
-      hours: '10 AM - 7 PM'
+      branchCode: 'B002',
+      territory: 'West',
+      zonal: 'Zone2',
+      region: 'Region2',
+      area: 'Area2',
+      cluster: 'Cluster2',
+      cityClassification: 'Urban',
+      state: 'Texas',
+      status: 'Inactive'
     },
     {
       id: 3,
       name: 'Tech Hub',
-      location: 'Austin',
-      totalEmployees: 80,
-      turnover: '$10M',
-      bucketLevel: 'Platinum',
-      status: 'Active',
-      contact: '456-789-1234',
-      hours: '8 AM - 5 PM'
+      branchCode: 'B003',
+      territory: 'East',
+      zonal: 'Zone3',
+      region: 'Region3',
+      area: 'Area3',
+      cluster: 'Cluster3',
+      cityClassification: 'Rural',
+      state: 'New York',
+      status: 'Active'
     }
   ]
 
@@ -105,7 +112,7 @@ const BranchListing = () => {
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <CustomTextField
               label='Search Branch'
-              placeholder='Search by Branch Name or Location...'
+              placeholder='Search by Branch Name or Code...'
               className='is-full sm:is-[400px]'
               InputProps={{
                 endAdornment: (
@@ -125,7 +132,6 @@ const BranchListing = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '1px',
-                backgroundColor: '#f5f5f5',
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                 '&:hover': {
@@ -133,6 +139,15 @@ const BranchListing = () => {
                 }
               }}
             >
+              <Button
+                className='mr-2'
+                variant='contained'
+                color='primary'
+                startIcon={<AssessmentIcon />}
+                onClick={() => router.push('/branch-management/budget-report')}
+              >
+                Budget Report Dashboard
+              </Button>
               <Tooltip title='Grid View'>
                 <IconButton color={viewMode === 'grid' ? 'primary' : 'secondary'} onClick={() => setViewMode('grid')}>
                   <GridViewIcon />
@@ -186,25 +201,33 @@ const BranchListing = () => {
                     </Stack>
                   </div>
                 </Box>
-                <Box className='p-4 border-t'>
+                <Box className='p-4 border-t flex justify-between'>
                   <Box className='space-y-2 text-sm text-gray-700'>
                     <p>
-                      <strong>Location:</strong> {branch.location}
+                      <strong>Branch Code:</strong> {branch.branchCode}
                     </p>
                     <p>
-                      <strong>Total Employees:</strong> {branch.totalEmployees}
+                      <strong>Territory:</strong> {branch.territory}
                     </p>
                     <p>
-                      <strong>Branch Turnover:</strong> {branch.turnover}
+                      <strong>Zonal:</strong> {branch.zonal}
                     </p>
                     <p>
-                      <strong>Bucket Level:</strong> {branch.bucketLevel}
+                      <strong>Region:</strong> {branch.region}
+                    </p>
+                  </Box>
+                  <Box className='space-y-2 text-sm text-gray-700'>
+                    <p>
+                      <strong>Area:</strong> {branch.area}
                     </p>
                     <p>
-                      <strong>Contact:</strong> {branch.contact}
+                      <strong>Cluster:</strong> {branch.cluster}
                     </p>
                     <p>
-                      <strong>Operating Hours:</strong> {branch.hours}
+                      <strong>City Classification:</strong> {branch.cityClassification}
+                    </p>
+                    <p>
+                      <strong>State:</strong> {branch.state}
                     </p>
                   </Box>
                 </Box>
@@ -216,24 +239,30 @@ const BranchListing = () => {
                     {branch.name}
                   </Typography>
                   <Typography>
-                    <strong>Location:</strong> {branch.location}
+                    <strong>Branch Code:</strong> {branch.branchCode}
                   </Typography>
                   <Typography>
-                    <strong>Total Employees:</strong> {branch.totalEmployees}
+                    <strong>Territory:</strong> {branch.territory}
                   </Typography>
                   <Typography>
-                    <strong>Branch Turnover:</strong> {branch.turnover}
+                    <strong>Zonal:</strong> {branch.zonal}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Typography>
-                    <strong>Bucket Level:</strong> {branch.bucketLevel}
+                    <strong>Region:</strong> {branch.region}
                   </Typography>
                   <Typography>
-                    <strong>Contact:</strong> {branch.contact}
+                    <strong>Area:</strong> {branch.area}
                   </Typography>
                   <Typography>
-                    <strong>Operating Hours:</strong> {branch.hours}
+                    <strong>Cluster:</strong> {branch.cluster}
+                  </Typography>
+                  <Typography>
+                    <strong>City Classification:</strong> {branch.cityClassification}
+                  </Typography>
+                  <Typography>
+                    <strong>State:</strong> {branch.state}
                   </Typography>
                 </Grid>
               </Grid>

@@ -1,6 +1,6 @@
 'use client';
 import DynamicButton from '@/components/Button/dynamicButton';
-import { Box, Card, IconButton, Typography } from '@mui/material';
+import { Box, Card, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
@@ -8,13 +8,17 @@ import React, { useState, useEffect } from 'react';
 import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable';
 import { ColumnDef } from '@tanstack/react-table';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit'
+import EditIcon from '@mui/icons-material/Edit';
 
 const ApprovalSettings = () => {
   const router = useRouter();
 
   // State to manage table data
   const [tableData, setTableData] = useState<any[]>([]);
+
+  // State for dialog
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // Load initial data on client-side only
   useEffect(() => {
@@ -46,9 +50,24 @@ const ApprovalSettings = () => {
     router.push(`/approval-matrix/edit/edit-approval?id=${id}&approvalType=${approvalType}&numberOfLevels=${numberOfLevels}&approvalFor=${approvalFor}`);
   };
 
+  // Handler for opening the delete confirmation dialog
+  const handleOpenDialog = (id: number) => {
+    setSelectedId(id);
+    setOpenDialog(true);
+  };
+
+  // Handler for closing the delete confirmation dialog
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedId(null);
+  };
+
   // Handler for deleting a row
-  const handleDelete = (id: number) => {
-    setTableData((prev) => prev.filter((row) => row.id !== id));
+  const handleDelete = () => {
+    if (selectedId !== null) {
+      setTableData((prev) => prev.filter((row) => row.id !== selectedId));
+      handleCloseDialog();
+    }
   };
 
   const columns: ColumnDef<any>[] = [
@@ -71,7 +90,7 @@ const ApprovalSettings = () => {
           <IconButton
             aria-label="delete"
             sx={{ fontSize: 18 }}
-            onClick={() => handleDelete(info.row.original.id)}
+            onClick={() => handleOpenDialog(info.row.original.id)}
           >
             <DeleteIcon />
           </IconButton>
@@ -99,8 +118,26 @@ const ApprovalSettings = () => {
         </Box>
       </div>
       <div className="mt-2">
-        {tableData.length > 0 && <ModifiedDynamicTable columns={columns} data={tableData} showCheckbox={false}/>}
+        {tableData.length > 0 && <ModifiedDynamicTable columns={columns} data={tableData} showCheckbox={false} />}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Confirmation for deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="primary">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

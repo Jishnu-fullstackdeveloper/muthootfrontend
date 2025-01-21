@@ -1,135 +1,172 @@
-"use client";
-import React from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { Autocomplete, TextField, FormControl } from "@mui/material";
-import DynamicButton from "@/components/Button/dynamicButton";
-import { styled } from "@mui/material/styles";
- 
-const optionsData = {
-  employeeCategoryDetails: [
-    { id: "designation", label: "Designation", options: ["Software Engineer", "Project Manager", "UI/UX Designer", "Data Scientist"] },
-    { id: "department", label: "Department", options: ["IT", "HR", "Finance", "Operations"] },
-    { id: "empCategoryType", label: "Employee Category Type", options: ["Full-Time", "Part-Time", "Contractor", "Intern"] },
-    { id: "grade", label: "Grade", options: ["G1", "G2", "G3", "G4"] },
-    { id: "band", label: "Band", options: ["B1", "B2", "B3", "B4"] },
-  ],
-  locationCategoryDetails: [
-    { id: "company", label: "Company", options: ["C1", "C2", "C3", "C4"] },
-    { id: "businessUnit", label: "Business Unit", options: ["BU1", "BU2", "BU3", "BU4"] },
-    { id: "territory", label: "Territory", options: ["T1", "T2", "T3", "T4"] },
-    { id: "zone", label: "Zone", options: ["Z1", "Z2", "Z3", "Z4"] },
-    { id: "region", label: "Region", options: ["R1", "R2", "R3", "R4"] },
-    { id: "area", label: "Area", options: ["A1", "A2", "A3", "A4"] },
-    { id: "cluster", label: "Cluster", options: ["CL1", "CL2", "CL3", "CL4"] },
-    { id: "branch", label: "Branch", options: ["BR1", "BR2", "BR3", "BR4"] },
-  ],
-};
- 
-const validationSchema = Yup.object(
-  Object.values(optionsData).flat().reduce((schema, field) => {
-    schema[field.id] = Yup.string().required(`${field.label} is required`);
-    return schema;
-  }, {} as { [key: string]: Yup.StringSchema })
-);
- 
-const StyledAutocomplete = styled(Autocomplete)({
-  "& .MuiAutocomplete-paper": {
-    maxHeight: 150, // Set maximum height for dropdown
-    overflowY: "auto", // Enable scrollbar
-  },
-});
- 
-const GeneratedForm: React.FC = () => {
-  const requestFormik = useFormik({
-    initialValues: Object.values(optionsData).flat().reduce((values, field) => {
-      values[field.id] = "";
-      return values;
-    }, {} as { [key: string]: string }),
-    validationSchema,
-    onSubmit: (values) => {
-      console.log("Form Submitted:", values);
-    },
-  });
- 
+'use client'
+
+import React, { useState } from 'react'
+import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
+import ListAltIcon from '@mui/icons-material/ListAlt'
+import WorkIcon from '@mui/icons-material/Work'
+import CustomTable from '@/components/Table/CustomTable'
+import { useRouter } from 'next/navigation'
+import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
+
+interface ViewBranchProps {
+  mode: string
+  id: string
+}
+
+const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState(0)
+
+  // Simulated branch data
+  const branchData = {
+    id: id,
+    name: 'Market Square',
+    branchCode: 'B002',
+    territory: 'West',
+    zonal: 'Zone2',
+    region: 'Region2',
+    area: 'Area2',
+    cluster: 'Cluster2',
+    cityClassification: 'Urban',
+    state: 'Texas',
+    status: 'Inactive',
+    turnoverCode: 'B123'
+  }
+
+  // Sample employee data
+  const employeeData: any[] = sampleEmployeeData
+
+  // Employee Table Columns
+  const employeeColumns = [
+    { header: 'ID', accessorKey: 'employeeCode' },
+    { header: 'Name', accessorKey: 'First Name' },
+    { header: 'Employment Status', accessorKey: 'Employment Status' },
+    { header: 'Email', accessorKey: 'Personal Email Address' },
+    { header: 'Designation', accessorKey: 'Title' }
+  ]
+
+  // Action buttons for the employee table
+  const actionButtons = [
+    {
+      icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
+      onClick: (rowData: any) => router.push(`/employee-details?employeeId=${rowData.employeeCode}`),
+      tooltip: 'View Details'
+    }
+  ]
+
+  // Tab change handler
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue)
+    if (newValue === 2) {
+      router.push('/bucket-management')
+    } else if (newValue === 3) {
+      router.push(`/vacancy-management/view/${id}`)
+    }
+  }
+
   return (
-    <form onSubmit={requestFormik.handleSubmit} className="p-6 bg-white shadow-md rounded">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Resignation Request Form</h1>
- 
-      <fieldset className="border border-gray-300 rounded p-4 mb-6">
-        <legend className="text-lg font-semibold text-gray-700">Employee Category Details</legend>
-        <div className="grid grid-cols-2 gap-4">
-          {optionsData.employeeCategoryDetails.map((field) => (
-            <FormControl fullWidth margin="normal" key={field.id}>
-              <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
-                {field.label} *
-              </label>
-              <StyledAutocomplete
-                id={field.id}
-                options={field.options}
-                //value={requestFormik.values[field.id]}
-                disableClearable
-                onChange={(_, value) => requestFormik.setFieldValue(field.id, value)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    error={requestFormik.touched[field.id] && Boolean(requestFormik.errors[field.id])}
-                    helperText={requestFormik.touched[field.id] && requestFormik.errors[field.id]}
-                  />
-                )}
-              />
-            </FormControl>
-          ))}
-        </div>
-      </fieldset>
- 
-      <fieldset className="border border-gray-300 rounded p-4 mb-6">
-        <legend className="text-lg font-semibold text-gray-700">Location Category Details</legend>
-        <div className="grid grid-cols-2 gap-4">
-          {optionsData.locationCategoryDetails.map((field) => (
-            <FormControl fullWidth margin="normal" key={field.id}>
-              <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
-                {field.label} *
-              </label>
-              <StyledAutocomplete
-                id={field.id}
-                options={field.options}
-                //value={requestFormik.values[field.id]}
-                disableClearable
-                onChange={(_, value) => requestFormik.setFieldValue(field.id, value)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    error={requestFormik.touched[field.id] && Boolean(requestFormik.errors[field.id])}
-                    helperText={requestFormik.touched[field.id] && requestFormik.errors[field.id]}
-                  />
-                )}
-              />
-            </FormControl>
-          ))}
-        </div>
-      </fieldset>
- 
-      <div className="flex justify-end space-x-4">
-       
-        <DynamicButton
-          type="button"
-          variant="contained"
-          className="bg-gray-500 text-white hover:bg-gray-700"
-        >
-          Cancel
-        </DynamicButton>
- 
-        <DynamicButton
-          type="submit"
-          variant="contained"
-          className="bg-blue-500 text-white hover:bg-blue-700"
-        >
-          Submit
-        </DynamicButton>
-      </div>
-    </form>
-  );
-};
- 
-export default GeneratedForm;
+    <Box sx={{ padding: 4 }}>
+      {/* Branch Details */}
+      <Card sx={{ padding: 4, marginBottom: 4 }}>
+        <Grid container spacing={2} alignItems='center'>
+          <Grid item xs={6}>
+            <Typography variant='h5'>Branch Details</Typography>
+          </Grid>
+          {/* <Grid item xs={6}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<ListAltIcon />}
+                onClick={() => router.push('/bucket-management')}
+                size='small'
+              >
+                Bucket Management
+              </Button>
+              <Button
+                variant='contained'
+                color='secondary'
+                startIcon={<WorkIcon />}
+                onClick={() => router.push(`/vacancy-management?branchId=${id}`)}
+                size='small'
+              >
+                Vacancy Management
+              </Button>
+            </Box>
+          </Grid> */}
+        </Grid>
+        <Divider sx={{ marginY: 3 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Typography variant='body1'>
+              <strong>ID:</strong> {branchData.id}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Name:</strong> {branchData.name}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Branch Code:</strong> {branchData.branchCode}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Territory:</strong> {branchData.territory}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant='body1'>
+              <strong>Zonal:</strong> {branchData.zonal}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Region:</strong> {branchData.region}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Area:</strong> {branchData.area}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Cluster:</strong> {branchData.cluster}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant='body1'>
+              <strong>City Classification:</strong> {branchData.cityClassification}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>State:</strong> {branchData.state}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Turnover Code:</strong> {branchData.turnoverCode}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Card>
+
+      {/* Tabs Section */}
+      <Card sx={{ padding: 4 }}>
+        <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
+          <Tab label='Employee Details' />
+          <Tab label='Bubble Position' />
+          <Tab label='Bucket Management' />
+          <Tab label='Vacancy Management' />
+        </Tabs>
+        <Divider sx={{ marginY: 3 }} />
+
+        {/* Tab Content */}
+        {activeTab === 0 && (
+          <CustomTable
+            columns={employeeColumns}
+            data={employeeData}
+            showCheckbox={false}
+            actionButtons={actionButtons}
+          />
+        )}
+
+        {activeTab === 1 && (
+          <Typography variant='body1'>
+            Bubble Position content goes here. Add the necessary implementation as needed.
+          </Typography>
+        )}
+      </Card>
+    </Box>
+  )
+}
+
+export default ViewBranch

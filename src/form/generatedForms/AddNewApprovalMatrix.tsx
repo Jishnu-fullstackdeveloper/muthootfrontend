@@ -1,7 +1,5 @@
-'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Keep this for navigation purposes
-import { useSearchParams } from 'next/navigation'; // Use this for query parameters in Next 13+
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -15,6 +13,11 @@ import DynamicButton from '@/components/Button/dynamicButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 type Section = {
   approvalFor: any;
@@ -37,17 +40,16 @@ const validationSchema = Yup.object({
 
 const AddNewApprovalMatrixGenerated: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams(); // Using this hook to get query parameters
+  const searchParams = useSearchParams();
 
   const [sections, setSections] = useState<Section[]>([{ approvalFor: '' }]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
 
   useEffect(() => {
-    // Check for query parameters using searchParams.get
     const approvalType = searchParams.get('approvalType') || '';
     const numberOfLevels = searchParams.get('numberOfLevels') || '1';
     const approvalFor = searchParams.get('approvalFor') || '';
-
-    console.log("Fetched Query Params:", approvalType, numberOfLevels, approvalFor);
 
     if (approvalType) {
       formik.setFieldValue('approvalType', approvalType);
@@ -59,7 +61,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       setSections([{ approvalFor }]);
       formik.setFieldValue('sections', [{ approvalFor }]);
     }
-  }, [searchParams]); // Re-run when searchParams change
+  }, [searchParams]);
 
   const formik = useFormik({
     initialValues: {
@@ -79,17 +81,19 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     formik.setFieldValue('sections', [...formik.values.sections, ...newSections]);
   };
 
-  const handleRemoveSection = (index: number) => {
-    const updatedSections = formik.values.sections.filter((_, i) => i !== index);
-    setSections(updatedSections);
-    formik.setFieldValue('sections', updatedSections);
+  const confirmDeleteSection = () => {
+    if (sectionToDelete !== null) {
+      const updatedSections = formik.values.sections.filter((_, i) => i !== sectionToDelete);
+      setSections(updatedSections);
+      formik.setFieldValue('sections', updatedSections);
+      setSectionToDelete(null);
+    }
+    setDialogOpen(false);
   };
 
-  const handleSectionChange = (index: number, value: string | null) => {
-    if (value === null) return;
-    const updatedSections = [...formik.values.sections];
-    updatedSections[index].approvalFor = value;
-    formik.setFieldValue('sections', updatedSections);
+  const handleOpenDeleteDialog = (index: number) => {
+    setSectionToDelete(index);
+    setDialogOpen(true);
   };
 
   const handleResetLevels = () => {
@@ -162,7 +166,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 <Autocomplete
                   id={`sections.${index}.approvalFor`}
                   onChange={(_, newValue: string | null) =>
-                    handleSectionChange(index, newValue)
+                    formik.setFieldValue(`sections.${index}.approvalFor`, newValue)
                   }
                   options={['Salesman', 'Engineer', 'Branch Manager', 'HR', 'Finance']}
                   renderInput={(params) => (
@@ -185,12 +189,12 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
               </FormControl>
 
               <IconButton
-                onClick={() => handleRemoveSection(index)}
+                onClick={() => handleOpenDeleteDialog(index)}
                 aria-label="delete"
                 disabled={formik.values.sections.length === 1}
                 className="col-span-1"
               >
-                <DeleteIcon  />
+                <DeleteIcon />
               </IconButton>
             </div>
           ))}
@@ -216,6 +220,37 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           Save
         </DynamicButton>
       </div>
+
+      {/* Dialog Box */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this section?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <DynamicButton
+            onClick={() => setDialogOpen(false)}
+            variant="text"
+            className="text-gray-700"
+          >
+            Cancel
+          </DynamicButton>
+          <DynamicButton
+            onClick={confirmDeleteSection}
+            variant="text"
+            className="bg-primary-500 text-primary hover:bg-primary-700"
+          >
+            Delete
+          </DynamicButton>
+        </DialogActions>
+      </Dialog>
     </form>
   );
 };

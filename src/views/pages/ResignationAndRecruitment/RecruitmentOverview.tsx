@@ -138,15 +138,6 @@ const DesignationOverview = () => {
               Set Data Transform Days
             </Button>
           </Box>
-          {/* <Button
-            variant='contained'
-            color='success'
-            size='medium'
-            startIcon={<CheckCircleOutlineIcon />}
-            onClick={handleApproveAll}
-          >
-            Approve All Requests
-          </Button> */}
         </Box>
 
         <Grid container spacing={4}>
@@ -366,7 +357,8 @@ const DesignationOverview = () => {
                     }}
                   >
                     <Typography variant='body1' sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                      Approval Levels: {approver.approvalLevels?.length}
+                      {/* Approval Levels: {approver.approvalLevels?.length} */}
+                      Approval Status
                     </Typography>
                     <ul style={{ paddingLeft: '20px', margin: 0 }}>
                       {approver.approvalLevels.map((level, i) => (

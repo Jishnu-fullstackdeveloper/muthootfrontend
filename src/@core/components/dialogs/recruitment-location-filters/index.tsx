@@ -13,7 +13,7 @@ type AreaFilterDialogProps = {
   selectedLocationFilters: Record<string, any>
   onApplyFilters: (selectedFilters: Record<string, any>) => void
   options: Record<string, any>
-  handleLocationFliterChange: (filterKey: string) => (value: any) => void
+  handleLocationFilterChange: (filterKey: string) => (value: any) => void
 }
 
 const AreaFilterDialog = ({
@@ -22,7 +22,7 @@ const AreaFilterDialog = ({
   selectedLocationFilters,
   onApplyFilters,
   options,
-  handleLocationFliterChange
+  handleLocationFilterChange
 }: AreaFilterDialogProps) => {
   const handleClose = () => {
     setOpen(false)
@@ -62,7 +62,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Territory'
               options={options.territory}
-              onOptionSelect={handleLocationFliterChange('territory')}
+              onOptionSelect={handleLocationFilterChange('territory')}
               value={selectedLocationFilters.territory}
               sx={{ width: '100%' }}
             />
@@ -71,7 +71,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Zone'
               options={options.zone}
-              onOptionSelect={handleLocationFliterChange('zone')}
+              onOptionSelect={handleLocationFilterChange('zone')}
               value={selectedLocationFilters.zone}
               sx={{ width: '100%' }}
             />
@@ -87,7 +87,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Region'
               options={options.region}
-              onOptionSelect={handleLocationFliterChange('region')}
+              onOptionSelect={handleLocationFilterChange('region')}
               value={selectedLocationFilters.region}
               sx={{ width: '100%' }}
             />
@@ -96,7 +96,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Area'
               options={options.area}
-              onOptionSelect={handleLocationFliterChange('area')}
+              onOptionSelect={handleLocationFilterChange('area')}
               value={selectedLocationFilters.area}
               sx={{ width: '100%' }}
             />
@@ -112,7 +112,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Cluster'
               options={options.cluster}
-              onOptionSelect={handleLocationFliterChange('cluster')}
+              onOptionSelect={handleLocationFilterChange('cluster')}
               value={selectedLocationFilters.cluster}
               sx={{ width: '100%' }}
             />
@@ -121,7 +121,7 @@ const AreaFilterDialog = ({
             <DynamicAutocomplete
               label='Branch'
               options={options.branch}
-              onOptionSelect={handleLocationFliterChange('branch')}
+              onOptionSelect={handleLocationFilterChange('branch')}
               value={selectedLocationFilters.branch}
               sx={{ width: '100%' }}
             />

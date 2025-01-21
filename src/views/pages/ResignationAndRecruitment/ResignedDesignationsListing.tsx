@@ -1,14 +1,17 @@
 'use client'
-
 import React, { useEffect, useState } from 'react'
 import { Box, Card, IconButton, InputAdornment, Typography, Tooltip, Divider, Button } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
+import TableChartIcon from '@mui/icons-material/TableChart'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useRouter, useSearchParams } from 'next/navigation'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import DynamicButton from '@/components/Button/dynamicButton'
+import RecruitmentLocationFilter from '@/@core/components/dialogs/recruitment-location-filters'
+import RecruitmentListTableView from './RecruitmentListTableView'
 
 const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
@@ -32,7 +35,33 @@ const ResignedDesignationsListing = () => {
     setXFactorValue(newXFactor)
   }
 
-  const employees = [
+  const [selectedLocationFilters, setSelectedLocationFilters] = useState({
+    territory: null,
+    zone: null,
+    region: null,
+    area: null,
+    cluster: null,
+    branch: null
+  })
+
+  const handleLocationFilterChange = (field: string) => (option: { name: string } | null) => {
+    setSelectedLocationFilters(prev => ({
+      ...prev,
+      [field]: option
+    }))
+    console.log(`${field} selected:`, option)
+  }
+
+  const options = {
+    territory: [{ name: 'Territory 1' }, { name: 'Territory 2' }, { name: 'Territory 3' }],
+    zone: [{ name: 'Zone A' }, { name: 'Zone B' }, { name: 'Zone C' }],
+    region: [{ name: 'Region X' }, { name: 'Region Y' }, { name: 'Region Z' }],
+    area: [{ name: 'Area 1' }, { name: 'Area 2' }, { name: 'Area 3' }],
+    cluster: [{ name: 'Cluster Alpha' }, { name: 'Cluster Beta' }, { name: 'Cluster Gamma' }],
+    branch: [{ name: 'Branch 101' }, { name: 'Branch 102' }, { name: 'Branch 103' }]
+  }
+
+  const designationData = [
     {
       employeeCode: 'EMP001',
       employmentStatus: 'Approval Pending',
@@ -61,7 +90,9 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-234-567-8901',
       dateOfResignation: '2024-12-01',
       lastWorkingDay: '2025-01-01',
-      additionalDetails: 'Relocating to another city for personal reasons.'
+      requestType: 'Resignation Request',
+      additionalDetails: 'Working on cutting-edge AI projects.',
+      bubblePositionsCount: 4
     },
     {
       employeeCode: 'EMP002',
@@ -91,7 +122,9 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-345-678-9012',
       dateOfResignation: '2024-11-20',
       lastWorkingDay: '2024-12-05',
-      additionalDetails: 'Pursuing further education.'
+      additionalDetails: 'Pursuing further education.',
+      requestType: 'Manual Request',
+      bubblePositionsCount: 2
     },
     {
       employeeCode: 'EMP003',
@@ -121,7 +154,11 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-345-678-9012',
       dateOfResignation: '2024-11-20',
       lastWorkingDay: '2024-12-05',
-      additionalDetails: 'Working on cutting-edge AI projects.'
+      additionalDetails:
+        'Additional information may include civic activities, awards and recognitions, volunteering, or cultural skills like language or travel. It may also include other interests or activities that may show leadership, character, or qualities you feel are beneficial to your career..',
+
+      requestType: 'Bucket Expansion',
+      bubblePositionsCount: 2
     },
     {
       employeeCode: 'EMP004',
@@ -151,7 +188,9 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-345-678-9012',
       dateOfResignation: '2024-11-20',
       lastWorkingDay: '2024-12-05',
-      additionalDetails: 'Specializes in corporate budgeting and analysis.'
+      additionalDetails: 'Specializes in corporate budgeting and analysis.',
+      requestType: 'Resignation Request',
+      bubblePositionsCount: 6
     },
     {
       employeeCode: 'EMP005',
@@ -180,67 +219,9 @@ const ResignedDesignationsListing = () => {
       noticePeriod: '30 days',
       dateOfResignation: '2024-10-15',
       lastWorkingDay: '2024-11-15',
-      additionalDetails: 'Left to focus on family commitments.'
-    },
-    {
-      employeeCode: 'EMP004',
-      employmentStatus: 'Approved',
-      employmentType: 'Part-time',
-      title: 'Mr.',
-      employeeName: 'Michael Lee',
-      company: 'PQR Inc',
-      department: 'Finance',
-      territory: 'West Zone',
-      zone: 'Zone D',
-      region: 'Region 4',
-      area: 'Area 2',
-      cluster: 'Cluster Q',
-      branch: 'Corporate Office',
-      branchCode: 'BR004',
-      cityClassification: 'Metro',
-      state: 'Texas',
-      personalEmail: 'janesmith@example.com',
-      officeEmail: 'jane.smith@xyzltd.com',
-      dateOfJoining: '2018-03-12',
-      groupDOJ: '2018-03-12',
-      designation: 'HR Manager',
-      employeeCategory: 'Administrative',
-      employeeType: 'Contract',
-      noticePeriod: '15 days',
-      mobileNumber: '+1-345-678-9012',
-      dateOfResignation: '2024-11-20',
-      lastWorkingDay: '2024-12-05',
-      additionalDetails: 'Specializes in corporate budgeting and analysis.'
-    },
-    {
-      employeeCode: 'EMP001',
-      employmentStatus: 'Approval Pending',
-      employmentType: 'Full-time',
-      title: 'Mr.',
-      employeeName: 'John Doe',
-      company: 'ABC Corp',
-      department: 'IT',
-      territory: 'North Zone',
-      zone: 'Zone A',
-      region: 'Region 1',
-      area: 'Area 5',
-      cluster: 'Cluster X',
-      branch: 'Main Branch',
-      branchCode: 'BR001',
-      cityClassification: 'Metro',
-      state: 'California',
-      personalEmail: 'johndoe@example.com',
-      officeEmail: 'johnd@abccorp.com',
-      dateOfJoining: '2015-06-15',
-      groupDOJ: '2015-06-15',
-      designation: 'Software Engineer',
-      employeeCategory: 'Technical',
-      employeeType: 'Permanent',
-      noticePeriod: '30 days',
-      mobileNumber: '+1-234-567-8901',
-      dateOfResignation: '2024-12-01',
-      lastWorkingDay: '2025-01-01',
-      additionalDetails: 'Relocating to another city for personal reasons.'
+      additionalDetails: 'Left to focus on family commitments.',
+      requestType: 'Resignation Request',
+      bubblePositionsCount: 1
     },
     {
       employeeCode: 'EMP006',
@@ -270,7 +251,10 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-456-789-1234',
       dateOfResignation: '2025-01-10',
       lastWorkingDay: '2025-03-11',
-      additionalDetails: 'Switching to a new company for better career prospects.'
+      additionalDetails:
+        'Additional information may include civic activities, awards and recognitions, volunteering, or cultural skills like language or travel. It may also include other interests or activities that may show leadership, character, or qualities you feel are beneficial to your career..',
+      requestType: 'Manual Request',
+      bubblePositionsCount: 1
     },
     {
       employeeCode: 'EMP007',
@@ -300,7 +284,9 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-789-123-4567',
       dateOfResignation: '2024-12-25',
       lastWorkingDay: '2025-01-15',
-      additionalDetails: 'Pursuing a startup venture.'
+      additionalDetails: 'Pursuing a startup venture.',
+      requestType: 'Bucket Expansion',
+      bubblePositionsCount: 4
     },
     {
       employeeCode: 'EMP008',
@@ -330,7 +316,9 @@ const ResignedDesignationsListing = () => {
       mobileNumber: '+1-234-890-5678',
       dateOfResignation: '2024-11-10',
       lastWorkingDay: '2025-01-10',
-      additionalDetails: 'Leaving to focus on personal projects.'
+      additionalDetails: 'Leaving to focus on personal projects.',
+      requestType: 'Resignation Request',
+      bubblePositionsCount: 1
     },
     {
       employeeCode: 'EMP010',
@@ -355,12 +343,14 @@ const ResignedDesignationsListing = () => {
       groupDOJ: '2021-01-05',
       designation: 'Software Engineer',
       employeeCategory: 'Sales',
-      employeeType: 'Contract',
-      noticePeriod: '10 days',
-      mobileNumber: '+1-901-234-5678',
-      dateOfResignation: '2024-12-15',
-      lastWorkingDay: '2024-12-25',
-      additionalDetails: 'Relocating due to personal commitments.'
+      employeeType: 'Permanent',
+      noticePeriod: '60 days',
+      mobileNumber: '+1-321-654-9870',
+      dateOfResignation: '2024-08-18',
+      lastWorkingDay: '2024-09-18',
+      additionalDetails: 'Relocating to another city.',
+      requestType: 'Resignation Request',
+      bubblePositionsCount: 5
     }
   ]
 
@@ -407,6 +397,18 @@ const ResignedDesignationsListing = () => {
         onSave={handleSaveXFactor}
         currentXFactor={xFactorValue}
       />
+
+      <RecruitmentLocationFilter
+        open={locationFilterDialogOpen}
+        setOpen={setLocationFilterDialogOpen}
+        onApplyFilters={function (selectedFilters: Record<string, any>): void {
+          throw new Error('Function not implemented.')
+        }}
+        options={options}
+        handleLocationFilterChange={handleLocationFilterChange}
+        selectedLocationFilters={selectedLocationFilters}
+      />
+
       <Card
         sx={{
           mb: 4,
@@ -456,6 +458,7 @@ const ResignedDesignationsListing = () => {
             </Tooltip>
           </Box>
         </Box>
+
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
@@ -475,6 +478,14 @@ const ResignedDesignationsListing = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+            <DynamicButton
+              label='New Request'
+              variant='contained'
+              icon={<i className='tabler-plus' />}
+              position='start'
+              onClick={() => router.push(`/recruitment-management/add/new-recruitment`)}
+              children='New Request'
+            />
             <Box
               sx={{
                 display: 'flex',
@@ -505,60 +516,131 @@ const ResignedDesignationsListing = () => {
         </div>
       </Card>
 
-      <Box
-        className={`${
-          viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6' : 'space-y-4'
-        }`}
-      >
-        {employees
-          ?.filter((d: any) => d.designation === filterParams?.replace(/-/g, ' '))
-          ?.map((employee: any, index: number) => (
-            <Box
-              sx={{
-                cursor: 'pointer',
-                backgroundColor: '#ffffff',
-                padding: 3,
-                borderRadius: 2,
-                boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.1)',
-                border: '1px solid',
-                borderColor: '#e0e0e0',
-                transition: 'transform 0.3s, box-shadow 0.3s',
-                '&:hover': {
-                  transform: 'translateY(-8px)',
-                  boxShadow: '0px 12px 25px rgba(0, 0, 0, 0.15)'
-                },
-                marginBottom: 4
-              }}
-              key={index}
-              onClick={() => router.push(`/recruitment-management/view/${employee.employeeCode}`)}
-            >
+      {(viewMode === 'grid' || viewMode === 'list') && (
+        <Box
+          className={`${
+            viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6' : 'space-y-4'
+          }`}
+        >
+          {designationData
+            ?.filter((d: any) => d.designation === filterParams?.replace(/-/g, ' '))
+            ?.map((designation: any, index: number) => (
               <Box
                 sx={{
+                  cursor: 'pointer',
+                  backgroundColor: '#ffffff',
+                  padding: 3,
+                  borderRadius: 2,
+                  boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid',
+                  borderColor: '#e0e0e0',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-6px)',
+                    boxShadow: '0px 15px 25px rgba(0, 0, 0, 0.15)'
+                  },
+                  marginBottom: 4,
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 3
+                  flexDirection: 'column',
+                  height: '100%',
+                  overflow: 'hidden'
                 }}
+                key={index}
+                onClick={() => router.push(`/recruitment-management/view/${designation.employeeCode}`)}
               >
-                <Typography
-                  variant='h6'
+                {/* Main content */}
+                <Box
                   sx={{
-                    fontWeight: 'bold',
-                    color: '#333',
-                    fontSize: '1.2rem'
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 2,
+                    padding: '8px 0',
+                    flexGrow: 1
                   }}
                 >
-                  {employee.designation}
-                </Typography>
+                  <Box>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Type:</strong> {designation.requestType}
+                    </Typography>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Department:</strong> {designation.department}
+                    </Typography>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Branch:</strong> {designation.branch}
+                    </Typography>
+                    <Box
+                      sx={{
+                        backgroundColor: designation?.bubblePositionsCount > 0 ? '#eceaea' : '#e0e0e0',
+                        // color: designation?.bubblePositionsCount > 0 ? '#fff' : '#555',
+                        borderRadius: '12px',
+                        padding: '6px 12px',
+                        fontWeight: 'bold',
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      Bubble Positions:
+                      {designation?.bubblePositionsCount > 0 ? ` ${designation?.bubblePositionsCount}` : 'No Positions'}
+                    </Box>
+                  </Box>
 
+                  <Box>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Band</strong> B1
+                    </Typography>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Grade:</strong> G1
+                    </Typography>
+                    <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
+                      <strong>Company:</strong> Muthoot Fincorp
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 1
+                  }}
+                ></Box>
+                {/* Employment Status */}
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    marginBottom: 3
+                  }}
+                ></Box>
                 {/* Approve and Reject Buttons */}
-                {employee.employmentStatus === 'Approval Pending' && (
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 2 }}>
+                  <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
+                    <strong>Status:</strong>&nbsp;
+                    <span
+                      style={{
+                        color:
+                          designation.employmentStatus === 'Approval Pending'
+                            ? '#ff9800'
+                            : designation.employmentStatus === 'Approved'
+                              ? '#4caf50'
+                              : designation.employmentStatus === 'Rejected'
+                                ? '#f44336'
+                                : '#757575'
+                      }}
+                    >
+                      {designation.employmentStatus}
+                    </span>
+                  </Typography>
+                </Box>
+
+                {designation.employmentStatus === 'Approval Pending' && (
                   <Box
                     sx={{
                       display: 'flex',
-                      justifyContent: 'flex-end',
+                      justifyContent: 'flex-start',
                       gap: 2,
-                      marginTop: 2
+                      margin: 1
                     }}
                   >
                     <Button
@@ -585,65 +667,61 @@ const ResignedDesignationsListing = () => {
                     </Button>
                   </Box>
                 )}
-              </Box>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)', // Two columns
-                  gap: 2,
-                  padding: '8px 0'
-                }}
-              >
-                <Box>
-                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                    <strong>Department:</strong> {employee.department}
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                    <strong>Branch:</strong> {employee.branch}
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                    <strong>Band </strong> B1
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                    <strong>Grade:</strong> G1
-                  </Typography>
-                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 1 }}>
-                    <strong>Company:</strong> Muthoot Fincorp
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
-                  <strong>Status:</strong>&nbsp;
-                  <span
-                    style={{
-                      color:
-                        employee.employmentStatus === 'Approval Pending'
-                          ? '#ff9800' // Orange for Pending
-                          : employee.employmentStatus === 'Approved'
-                            ? '#4caf50' // Green for Approved
-                            : employee.employmentStatus === 'Rejected'
-                              ? '#f44336' // Red for Rejected
-                              : '#757575' // Default grey
+                {/* Resignation Request Details */}
+                {designation.requestType === 'Resignation Request' && (
+                  <Box
+                    sx={{
+                      backgroundColor: '#fafafa',
+                      borderLeft: '4px solid #1976d2',
+                      padding: '8px 8px',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.5
                     }}
                   >
-                    {employee.employmentStatus}
-                  </span>
-                </Typography>
+                    <Typography variant='body1' sx={{ color: '#333' }}>
+                      <strong>Resigned Employee Code:</strong> {designation?.employeeCode}
+                    </Typography>
+                  </Box>
+                )}
+                <Divider sx={{ marginY: 2 }} />
+                {/* Additional Details */}
+                <Tooltip title={designation.additionalDetails} arrow>
+                  <Box
+                    sx={{
+                      marginTop: 'auto',
+                      backgroundColor: '#f4f4f4',
+                      borderRadius: 2,
+                      padding: 2,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: '#777',
+                        fontStyle: 'italic',
+                        fontSize: '0.9rem',
+                        maxWidth: '250px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Additional Details: {designation.additionalDetails || 'N/A'}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               </Box>
-              <Divider sx={{ marginY: 2 }} /> {/* Divider to separate the sections */}
-              <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
-                <Typography variant='body2' sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                  Additional Details: {employee.additionalDetails || 'N/A'}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
-      </Box>
+            ))}
+        </Box>
+      )}
 
+      {viewMode === 'table' && <RecruitmentListTableView designationData={designationData} />}
       {/* <div className='flex items-center justify-end mt-6'>
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>

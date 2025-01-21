@@ -42,7 +42,8 @@ const Login2Redirect = () => {
       if (secondLoginData) {
         const accessToken = secondLoginData?.token?.access_token || ''
         const refreshToken = secondLoginData?.token?.refresh_token || ''
-        const decodedToken: any = jwtDecode(accessToken)
+        let decodedToken: any
+        if (accessToken) decodedToken = jwtDecode(accessToken)
         if (decodedToken && decodedToken?.realm) {
           setAccessToken(accessToken)
           setRefreshToken(refreshToken)

@@ -140,6 +140,7 @@ const DesignationResignedReport = () => {
                   }
                 }}
                 label='Designation'
+                value=''
                 options={[
                   { name: 'Software Engineer' },
                   { name: 'Project Manager' },

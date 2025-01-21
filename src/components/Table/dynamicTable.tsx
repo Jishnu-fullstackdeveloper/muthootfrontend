@@ -56,7 +56,7 @@ const DynamicTable = ({ columns, data }: any) => {
 
   const table = useReactTable({
     columns,
-    data: paginatedData,
+    data,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
@@ -76,13 +76,13 @@ const DynamicTable = ({ columns, data }: any) => {
         <TableHead>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              <TableCell padding='checkbox'>
+              {/* <TableCell padding='checkbox'>
                 <Checkbox
                   indeterminate={table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
                   checked={table.getIsAllRowsSelected()}
                   onChange={table.getToggleAllRowsSelectedHandler()}
                 />
-              </TableCell>
+              </TableCell> */}
               {headerGroup.headers.map(header => (
                 <TableCell
                   key={header.id}
@@ -108,13 +108,13 @@ const DynamicTable = ({ columns, data }: any) => {
         <TableBody>
           {table.getRowModel().rows.map(row => (
             <TableRow key={row.id} hover>
-              <TableCell padding='checkbox'>
+              {/* <TableCell padding='checkbox'>
                 <Checkbox
                   checked={row.getIsSelected()}
                   indeterminate={row.getIsSomeSelected()}
                   onChange={row.getToggleSelectedHandler()}
                 />
-              </TableCell>
+              </TableCell> */}
               {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id} sx={{ whiteSpace: 'nowrap' }}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -1,8 +1,12 @@
 import { Button } from '@mui/material'
 import ResignedEmployeesListing from '@/views/pages/ResignationAndRecruitment/ResignedDesignationsListing'
 
-const Page = () => {
-  return <ResignedEmployeesListing />
+const page = () => {
+  const router = useRouter()
+  useEffect(() => {
+    router.push('/recruitment-management/overview')
+  }, [])
+  return <div></div>
 }
 
-export default Page
+export default page

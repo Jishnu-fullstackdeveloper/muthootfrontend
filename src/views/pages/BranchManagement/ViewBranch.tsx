@@ -1,12 +1,11 @@
 'use client'
 
-import React from 'react'
-import { Box, Card, Typography, Divider, Button, Grid } from '@mui/material'
-import DynamicTable from '@/components/Table/dynamicTable'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import WorkIcon from '@mui/icons-material/Work'
 import CustomTable from '@/components/Table/CustomTable'
+import { useRouter } from 'next/navigation'
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
 
 interface ViewBranchProps {
@@ -16,37 +15,28 @@ interface ViewBranchProps {
 
 const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState(0)
 
-  // Simulated data for demonstration purposes
+  // Simulated branch data
   const branchData = {
     id: id,
-    name: 'Downtown Branch',
-    location: '123 Main Street, New York, NY',
-    totalEmployees: 150,
-    turnover: '$1.2M',
-    bucketLevel: 'Level 3',
-    totalVacancy: 12,
-    bubblePositionCount: 5
+    name: 'Market Square',
+    branchCode: 'B002',
+    territory: 'West',
+    zonal: 'Zone2',
+    region: 'Region2',
+    area: 'Area2',
+    cluster: 'Cluster2',
+    cityClassification: 'Urban',
+    state: 'Texas',
+    status: 'Inactive',
+    turnoverCode: 'B123'
   }
 
   // Sample employee data
-
   const employeeData: any[] = sampleEmployeeData
 
-  // Action buttons
-  const actionButtons = [
-    {
-      icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
-      onClick: (rowData: any) => router.push(`/employee-details?employeeId=${rowData.employeeCode}`),
-      tooltip: 'View Details'
-    }
-    // {
-    //   icon: <i className='tabler-edit' style={{ fontSize: 18 }} />,
-    //   onClick: (rowData: any) => alert(`Editing details for ${rowData.name}`),
-    //   tooltip: 'Edit Details'
-    // }
-  ]
-
+  // Employee Table Columns
   const employeeColumns = [
     { header: 'ID', accessorKey: 'employeeCode' },
     { header: 'Name', accessorKey: 'First Name' },
@@ -54,6 +44,25 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
     { header: 'Email', accessorKey: 'Personal Email Address' },
     { header: 'Designation', accessorKey: 'Title' }
   ]
+
+  // Action buttons for the employee table
+  const actionButtons = [
+    {
+      icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
+      onClick: (rowData: any) => router.push(`/employee-details?employeeId=${rowData.employeeCode}`),
+      tooltip: 'View Details'
+    }
+  ]
+
+  // Tab change handler
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue)
+    if (newValue === 2) {
+      router.push('/bucket-management')
+    } else if (newValue === 3) {
+      router.push(`/vacancy-management/view/${id}`)
+    }
+  }
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -63,7 +72,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
           <Grid item xs={6}>
             <Typography variant='h5'>Branch Details</Typography>
           </Grid>
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
                 variant='contained'
@@ -84,7 +93,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
                 Vacancy Management
               </Button>
             </Box>
-          </Grid>
+          </Grid> */}
         </Grid>
         <Divider sx={{ marginY: 3 }} />
         <Grid container spacing={3}>
@@ -96,45 +105,65 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
               <strong>Name:</strong> {branchData.name}
             </Typography>
             <Typography variant='body1'>
-              <strong>Location:</strong> {branchData.location}
+              <strong>Branch Code:</strong> {branchData.branchCode}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Territory:</strong> {branchData.territory}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>Total Employees:</strong> {branchData.totalEmployees}
+              <strong>Zonal:</strong> {branchData.zonal}
             </Typography>
             <Typography variant='body1'>
-              <strong>Turnover:</strong> {branchData.turnover}
+              <strong>Region:</strong> {branchData.region}
             </Typography>
             <Typography variant='body1'>
-              <strong>Bucket Level:</strong> {branchData.bucketLevel}
+              <strong>Area:</strong> {branchData.area}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Cluster:</strong> {branchData.cluster}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>Total Vacancy:</strong> {branchData.totalVacancy}
+              <strong>City Classification:</strong> {branchData.cityClassification}
             </Typography>
             <Typography variant='body1'>
-              <strong>Bubble Position Count:</strong> {branchData.bubblePositionCount}
+              <strong>State:</strong> {branchData.state}
+            </Typography>
+            <Typography variant='body1'>
+              <strong>Turnover Code:</strong> {branchData.turnoverCode}
             </Typography>
           </Grid>
         </Grid>
       </Card>
 
-      {/* Employee Details Table */}
-      {/* <Card sx={{ padding: 4 }}>
-        <Typography variant='h5' sx={{ marginBottom: 2 }}>
-          Employee Details
-        </Typography>
-        <Divider sx={{ marginBottom: 3 }} />
-        <DynamicTable columns={employeeColumns} data={employeeData} />
-      </Card> */}
+      {/* Tabs Section */}
       <Card sx={{ padding: 4 }}>
-        <Typography variant='h5' sx={{ marginBottom: 2 }}>
-          Employee Details
-        </Typography>
-        <Divider sx={{ marginBottom: 3 }} />
-        <CustomTable columns={employeeColumns} data={employeeData} showCheckbox={false} actionButtons={actionButtons} />
+        <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
+          <Tab label='Employee Details' />
+          <Tab label='Bubble Position' />
+          <Tab label='Bucket Management' />
+          <Tab label='Vacancy Management' />
+        </Tabs>
+        <Divider sx={{ marginY: 3 }} />
+
+        {/* Tab Content */}
+        {activeTab === 0 && (
+          <CustomTable
+            columns={employeeColumns}
+            data={employeeData}
+            showCheckbox={false}
+            actionButtons={actionButtons}
+          />
+        )}
+
+        {activeTab === 1 && (
+          <Typography variant='body1'>
+            Bubble Position content goes here. Add the necessary implementation as needed.
+          </Typography>
+        )}
       </Card>
     </Box>
   )

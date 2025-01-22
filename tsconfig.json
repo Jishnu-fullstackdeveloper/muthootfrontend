@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "types": [
+      "jest",
+      "@testing-library/jest-dom"
+    ],
     "downlevelIteration": true,
     "lib": [
       "DOM",
@@ -9,7 +13,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,

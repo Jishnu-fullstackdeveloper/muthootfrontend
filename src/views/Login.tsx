@@ -167,7 +167,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   //   redirectUrl
   // )}&scope=openid&response_type=code`
 
-  const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
+  const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&state=123&redirect_uri=${encodeURIComponent(
     redirectUrl
   )}&scope=openid&response_type=code`
 

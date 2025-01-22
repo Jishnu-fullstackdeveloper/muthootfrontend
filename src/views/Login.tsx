@@ -163,9 +163,15 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   const redirectUrl: any = process.env.NEXT_PUBLIC_LOGIN_REDIRECT_URL
   const keycloakUrl: any = process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL
 
+  // const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
+  //   redirectUrl
+  // )}&scope=openid&response_type=code`
+
   const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
     redirectUrl
   )}&scope=openid&response_type=code`
+
+  //hrms-dev.eastus.cloudapp.azure.com/keycloak/realms/gnxsolutions/protocol/openid-connect/auth?client_id=client&redirect_uri=http://localhost:3000/pages/auth/login-redirect&scope=openid&response_type=code
 
   useEffect(() => {
     if (!displayLoginPage) {

@@ -51,7 +51,29 @@ const approvers = [
     bubblePositionsCount: 2
   },
   {
-    name: 'HR Manager',
+    name: 'Marketing Manager',
+    requests: 3,
+    requestType: 'Business Expansion',
+    daysSinceCreated: 8,
+    warning: '8 requests remaining of 10',
+    warningColor: '#f44336',
+    approvalLevels: [{ level: 'Director', status: 'Approved' }],
+    branchDetails: 'Branch C',
+    bubblePositionsCount: 2
+  },
+  {
+    name: 'Quality Analyst',
+    requests: 3,
+    requestType: 'Business Expansion',
+    daysSinceCreated: 8,
+    warning: '8 requests remaining of 10',
+    warningColor: '#f44336',
+    approvalLevels: [{ level: 'Director', status: 'Approved' }],
+    branchDetails: 'Branch C',
+    bubblePositionsCount: 2
+  },
+  {
+    name: 'Finance Manager',
     requests: 3,
     requestType: 'Business Expansion',
     daysSinceCreated: 8,
@@ -155,38 +177,58 @@ const DesignationOverview = () => {
               <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 3 }}>
                 Request Progress Overview
               </Typography>
-              {approvers.map((approver, index) => (
-                <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
-                  <Typography variant='body1' sx={{ color: '#555' }}>
-                    {approver.name} - {approver.requests} Requests
-                  </Typography>
-                  <LinearProgress
-                    variant='determinate'
-                    value={progressBar[index]}
-                    sx={{
-                      height: 5,
-                      borderRadius: 10,
-                      backgroundColor: '#f0f0f0',
-                      '& .MuiLinearProgress-bar': {
+              <Box
+                sx={{
+                  maxHeight: 400, // Set a fixed height for the scrollable area
+                  overflowY: 'auto', // Enable vertical scrolling
+                  paddingRight: 1, // Add padding for scrollbar spacing
+                  flexGrow: 1,
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                    backgroundColor: '#f0f0f0'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
+                    borderRadius: '4px'
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
+                  }
+                }}
+              >
+                {approvers.map((approver, index) => (
+                  <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
+                    <Typography variant='body1' sx={{ color: '#555' }}>
+                      {approver.name} - {approver.requests} Requests
+                    </Typography>
+                    <LinearProgress
+                      variant='determinate'
+                      value={progressBar[index]}
+                      sx={{
+                        height: 5,
                         borderRadius: 10,
-                        backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
-                      }
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
-                      <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
-                        {approver.warning}
-                      </Typography>
-                    </Box>
-                    {/* <VisibilityIcon
+                        backgroundColor: '#f0f0f0',
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: 10,
+                          backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
+                        }
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
+                        <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
+                          {approver.warning}
+                        </Typography>
+                      </Box>
+                      {/* <VisibilityIcon
                     sx={{ cursor: 'pointer', color: '#0095da' }}
                     onClick={() => handleViewRequest(approver.name)}
                   /> */}
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
+              </Box>
             </Card>
           </Grid>
         </Grid>

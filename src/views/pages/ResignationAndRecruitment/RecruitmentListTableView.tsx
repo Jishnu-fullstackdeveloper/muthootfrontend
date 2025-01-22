@@ -122,6 +122,17 @@ const RecruitmentListTableView = ({ designationData }: any) => {
               </IconButton>
             </Tooltip>
 
+            <Tooltip title='Approve' placement='top'>
+              <IconButton>
+                <i className='tabler-check text-green-500'></i>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Reject' placement='top'>
+              <IconButton>
+                <i className='tabler-x text-red-500'></i>
+              </IconButton>
+            </Tooltip>
+
             {/* <IconButton onClick={() => deleteUser(row.original)}>
               <i className='tabler-trash' />
             </IconButton> */}

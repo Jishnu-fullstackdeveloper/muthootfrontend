@@ -1,20 +1,22 @@
-// MUI Imports
 'use client'
-import { Box, Card, Grid, TextField } from '@mui/material'
+import React from 'react'
+import { Box, Card, Grid } from '@mui/material'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
-import DistributedBarChartOrder from '@/views/dashboards/resignationReport/DistributedBarChartOrder'
-import LineAreaYearlySalesChart from '@/views/dashboards/resignationReport/LineAreaYearlySalesChart'
-import BarChartRevenueGrowth from '@/views/dashboards/resignationReport/BarChartRevenueGrowth'
-import DesignationReport from '@/views/dashboards/resignationReport/DesignationReport'
-import BotRunStatus from '@/views/dashboards/resignationReport/BotRunStatus'
-import ApprovalStatus from '@/views/dashboards/resignationReport/ApprovalStatus'
+import RevenueByBranchChart from '@/views/dashboards/budgetReport/RevenueByBranchChart'
+import ExpenseTrendsChart from '@/views/dashboards/budgetReport/ExpenseTrendsChart'
+import ProfitMarginChart from '@/views/dashboards/budgetReport/ProfitMarginChart'
+import BudgetAllocationReport from '@/views/dashboards/budgetReport/BudgetAllocationReport'
+import CostEfficiencyStatus from '@/views/dashboards/budgetReport/CostEfficiencyStatus'
+import ApprovalStatus from '@/views/dashboards/budgetReport/ApprovalStatus'
 
 // Custom Popper component to fix dropdown positioning
 import { Popper } from '@mui/material'
 const CustomPopper = (props: any) => <Popper {...props} placement='bottom-start' style={{ zIndex: 1300 }} />
-const ResignationReportData = () => {
+
+const BudgetReport = () => {
   return (
     <>
+      {/* Header with filters */}
       <Card
         sx={{
           mb: 4,
@@ -40,37 +42,47 @@ const ResignationReportData = () => {
                 }}
                 label='Branch Filter'
                 options={[
-                  { name: 'Software Engineer' },
-                  { name: 'Project Manager' },
-                  { name: 'HR Executive' },
-                  { name: 'Senior Developer' },
-                  { name: 'UI/UX Designer' },
-                  { name: 'QA Analyst' },
-                  { name: 'Product Owner' }
+                  { name: 'North Region' },
+                  { name: 'South Region' },
+                  { name: 'East Region' },
+                  { name: 'West Region' },
+                  { name: 'Central Branch' },
+                  { name: 'Coastal Branch' }
                 ]}
-                value={undefined} // renderInput={(params: any) => <TextField {...params} label='Branch Filter' />}
               />
             </Box>
           </Box>
         </div>
       </Card>
 
+      {/* Main Grid Layout */}
       <Grid container spacing={6}>
+        {/* Revenue by Branch */}
         <Grid item xs={12} sm={6} md={4} lg={4}>
-          <DistributedBarChartOrder />
+          <RevenueByBranchChart />
         </Grid>
+
+        {/* Expense Trends */}
         <Grid item xs={12} sm={6} md={4} lg={4}>
-          <LineAreaYearlySalesChart />
+          <ExpenseTrendsChart />
         </Grid>
+
+        {/* Profit Margin Analysis */}
         <Grid item xs={12} md={8} lg={4}>
-          <BarChartRevenueGrowth />
+          <ProfitMarginChart />
         </Grid>
+
+        {/* Budget Allocation */}
         <Grid item xs={12} md={12}>
-          <DesignationReport />
+          <BudgetAllocationReport />
         </Grid>
+
+        {/* Cost Efficiency Status */}
         <Grid item xs={12} md={6}>
-          <BotRunStatus />
+          <CostEfficiencyStatus />
         </Grid>
+
+        {/* Approval Status */}
         <Grid item xs={12} md={6}>
           <ApprovalStatus />
         </Grid>
@@ -79,4 +91,4 @@ const ResignationReportData = () => {
   )
 }
 
-export default ResignationReportData
+export default BudgetReport

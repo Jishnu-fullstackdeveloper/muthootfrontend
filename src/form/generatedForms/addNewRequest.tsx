@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { Autocomplete, TextField, FormControl } from "@mui/material";
 import DynamicButton from "@/components/Button/dynamicButton";
 import { styled } from "@mui/material/styles";
-
+ 
 const optionsData = {
   employeeCategoryDetails: [
     { id: "department", label: "Department", options: ["IT", "HR", "Finance", "Operations"] },
@@ -23,14 +23,14 @@ const optionsData = {
     { id: "branch", label: "Branch", options: ["BR1", "BR2", "BR3", "BR4"] },
   ],
 };
-
+ 
 const validationSchema = Yup.object(
   Object.values(optionsData).flat().reduce((schema, field) => {
     schema[field.id] = Yup.string().required(`${field.label} is required`);
     return schema;
   }, {} as { [key: string]: Yup.StringSchema })
 );
-
+ 
 const StyledAutocomplete = styled(Autocomplete)({
   "& .MuiAutocomplete-paper": {
     maxHeight: 150, // Set maximum height for dropdown
@@ -49,7 +49,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
       console.log("Form Submitted:", values);
     },
   });
-
+ 
   return (
     <form onSubmit={requestFormik.handleSubmit} className="p-6 bg-white shadow-md rounded">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Recruitment Request Form</h1>
@@ -80,7 +80,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ))}
         </div>
       </fieldset>
-
+ 
       <fieldset className="border border-gray-300 rounded p-4 mb-6">
         <legend className="text-lg font-semibold text-gray-700">Location Category Details</legend>
         <div className="grid grid-cols-2 gap-4">
@@ -107,9 +107,9 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ))}
         </div>
       </fieldset>
-
+ 
       <div className="flex justify-end space-x-4">
-        
+       
         <DynamicButton
           type="button"
           variant="contained"
@@ -117,7 +117,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         >
           Cancel
         </DynamicButton>
-
+ 
         <DynamicButton
           type="submit"
           variant="contained"

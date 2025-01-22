@@ -3,86 +3,62 @@
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
-import Chip from '@mui/material/Chip'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
+import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
-import { useRouter } from 'next/navigation'
-import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
+import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import { Clear } from '@mui/icons-material'
 import CalendarToday from '@mui/icons-material/CalendarToday'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
-import { useState } from 'react'
 
-// Data Type for the Resigned Report
-type ResignedDataType = {
-  name: string
-  designation: string
-  resignationDate: string
-  status: 'approved' | 'rejected' | 'pending'
+// Data Type for the Budget Allocation Report
+type BudgetDataType = {
+  department: string
+  allocatedBudget: number
+  spentBudget: number
+  remainingBudget: number
+  status: 'on-track' | 'exceeded' | 'under-utilized'
 }
 
 type StatusObj = Record<
-  ResignedDataType['status'],
+  BudgetDataType['status'],
   {
     text: string
-    color: 'success' | 'error' | 'warning' | 'default' | 'primary' | 'secondary' | 'info'
+    color: 'success' | 'error' | 'warning'
   }
 >
 
 // Status Mapping for Chips
 const statusObj: StatusObj = {
-  approved: { text: 'Approved', color: 'success' },
-  rejected: { text: 'Rejected', color: 'error' },
-  pending: { text: 'Pending', color: 'warning' }
+  'on-track': { text: 'On Track', color: 'success' },
+  exceeded: { text: 'Exceeded', color: 'error' },
+  'under-utilized': { text: 'Under Utilized', color: 'warning' }
 }
 
-// Sample Data for Resigned Report
-const data: ResignedDataType[] = [
+// Sample Data for Budget Allocation Report
+const data: BudgetDataType[] = [
+  { department: 'IT', allocatedBudget: 50000, spentBudget: 45000, remainingBudget: 5000, status: 'on-track' },
+  { department: 'HR', allocatedBudget: 20000, spentBudget: 25000, remainingBudget: -5000, status: 'exceeded' },
+  { department: 'Marketing', allocatedBudget: 40000, spentBudget: 30000, remainingBudget: 10000, status: 'on-track' },
   {
-    name: 'John Doe',
-    designation: 'Software Engineer',
-    resignationDate: `17 Mar ${new Date().getFullYear()}`,
-    status: 'approved'
+    department: 'Finance',
+    allocatedBudget: 60000,
+    spentBudget: 40000,
+    remainingBudget: 20000,
+    status: 'under-utilized'
   },
-  {
-    name: 'Jane Smith',
-    designation: 'Project Manager',
-    resignationDate: `12 Feb ${new Date().getFullYear()}`,
-    status: 'rejected'
-  },
-  {
-    name: 'Michael Brown',
-    designation: 'HR Executive',
-    resignationDate: `28 Feb ${new Date().getFullYear()}`,
-    status: 'approved'
-  },
-  {
-    name: 'Emily Davis',
-    designation: 'Senior Developer',
-    resignationDate: `08 Jan ${new Date().getFullYear()}`,
-    status: 'pending'
-  },
-  {
-    name: 'Sophia Lee',
-    designation: 'UI/UX Designer',
-    resignationDate: `19 Oct ${new Date().getFullYear()}`,
-    status: 'rejected'
-  },
-  {
-    name: 'Sophia Lee',
-    designation: 'UI/UX Designer',
-    resignationDate: `19 Oct ${new Date().getFullYear()}`,
-    status: 'rejected'
-  }
+  { department: 'Operations', allocatedBudget: 30000, spentBudget: 35000, remainingBudget: -5000, status: 'exceeded' }
 ]
 
-const DesignationResignedReport = () => {
+const BudgetAllocationReport = () => {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null])
   const [startDate, endDate] = dateRange
@@ -102,34 +78,18 @@ const DesignationResignedReport = () => {
   }
 
   // Function to handle View Details action
-  const onViewDetails = (employeeId: string) => {
-    router.push(`/recruitment-management/view/${employeeId}`)
+  const onViewDetails = (departmentId: string) => {
+    router.push(`/budget-management/view/${departmentId}`)
   }
 
   return (
-    <Card
-    //  sx={{ minHeight: '67.5vh' }}
-    >
+    <Card>
       <CardHeader
-        title='Designation Resigned Report'
-        subheader='A detailed report of all resigned employees'
+        title='Budget Allocation Report'
+        subheader='A detailed report of budget allocation across departments'
         action={
-          <Grid
-            container
-            spacing={2}
-            alignItems='center'
-            justifyContent='flex-end'
-            sx={
-              {
-                // Add responsive behavior for small screens
-                // '@media (max-width: 900px)': {
-                //   flexDirection: 'column', // Stack the items on small screens
-                //   gap: 1 // Adjust the gap between items
-                // }
-              }
-            }
-          >
-            {/* Autocomplete for Designation */}
+          <Grid container spacing={2} alignItems='center' justifyContent='flex-end'>
+            {/* Autocomplete for Department */}
             <Grid item xs={12} sm={4} md={5}>
               <DynamicAutocomplete
                 sx={{
@@ -139,14 +99,13 @@ const DesignationResignedReport = () => {
                     padding: '12px'
                   }
                 }}
-                label='Designation'
-                value=''
+                label='Department'
                 options={[
-                  { name: 'Software Engineer' },
-                  { name: 'Project Manager' },
-                  { name: 'HR Executive' },
-                  { name: 'Senior Developer' },
-                  { name: 'UI/UX Designer' }
+                  { name: 'IT' },
+                  { name: 'HR' },
+                  { name: 'Marketing' },
+                  { name: 'Finance' },
+                  { name: 'Operations' }
                 ]}
               />
             </Grid>
@@ -218,9 +177,10 @@ const DesignationResignedReport = () => {
         <table className={tableStyles.table}>
           <thead className='uppercase'>
             <tr className='border-be'>
-              <th className='leading-6 plb-4 pis-6 pli-2'>Employee Name</th>
-              <th className='leading-6 plb-4 pli-2'>Designation</th>
-              <th className='leading-6 plb-4 pli-2'>Resignation Date</th>
+              <th className='leading-6 plb-4 pis-6 pli-2'>Department</th>
+              <th className='leading-6 plb-4 pli-2'>Allocated Budget</th>
+              <th className='leading-6 plb-4 pli-2'>Spent Budget</th>
+              <th className='leading-6 plb-4 pli-2'>Remaining Budget</th>
               <th className='leading-6 plb-4 pli-2'>Status</th>
               <th className='leading-6 plb-4 pli-2'>Action</th>
             </tr>
@@ -229,13 +189,16 @@ const DesignationResignedReport = () => {
             {data.map((row, index) => (
               <tr key={index} className='border-0'>
                 <td className='pis-6 pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.name}</Typography>
+                  <Typography color='text.primary'>{row.department}</Typography>
                 </td>
                 <td className='pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.designation}</Typography>
+                  <Typography color='text.primary'>${row.allocatedBudget.toLocaleString()}</Typography>
                 </td>
                 <td className='pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.resignationDate}</Typography>
+                  <Typography color='text.primary'>${row.spentBudget.toLocaleString()}</Typography>
+                </td>
+                <td className='pli-2 plb-3'>
+                  <Typography color='text.primary'>${row.remainingBudget.toLocaleString()}</Typography>
                 </td>
                 <td className='pli-2 plb-3'>
                   <Chip
@@ -246,8 +209,8 @@ const DesignationResignedReport = () => {
                   />
                 </td>
                 <td className='pli-2 plb-3'>
-                  <Tooltip title='Click here to view the details of this employee.' placement='top'>
-                    <IconButton onClick={() => onViewDetails('id')}>
+                  <Tooltip title='Click here to view the details of this department.' placement='top'>
+                    <IconButton onClick={() => onViewDetails(row.department)}>
                       <i className='tabler-eye text-textSecondary'></i>
                     </IconButton>
                   </Tooltip>
@@ -289,4 +252,4 @@ const DesignationResignedReport = () => {
   )
 }
 
-export default DesignationResignedReport
+export default BudgetAllocationReport

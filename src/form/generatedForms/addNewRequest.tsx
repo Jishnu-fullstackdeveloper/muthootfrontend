@@ -51,7 +51,7 @@ const StyledAutocomplete = styled(Autocomplete)({
   }
 })
 
-const AddNewRequestGeneratedForm: React.FC = () => {
+const ManualRequestGeneratedForm: React.FC = () => {
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData)
       .flat()
@@ -139,4 +139,4 @@ const AddNewRequestGeneratedForm: React.FC = () => {
   )
 }
 
-export default AddNewRequestGeneratedForm
+export default ManualRequestGeneratedForm

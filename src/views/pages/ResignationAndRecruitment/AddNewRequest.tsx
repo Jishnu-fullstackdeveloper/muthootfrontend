@@ -1,4 +1,4 @@
-import AddNewRequestGeneratedForm from '@/form/generatedForms/addNewRequest'
+import ManualRequestGeneratedForm from '@/form/generatedForms/addNewRequest'
 import React from 'react'
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
   return (
     <>
-      <AddNewRequestGeneratedForm />
+      <ManualRequestGeneratedForm />
     </>
   )
 }

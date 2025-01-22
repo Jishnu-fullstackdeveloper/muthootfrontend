@@ -2,13 +2,17 @@ import { configureStore } from '@reduxjs/toolkit'
 import loginReducer from './loginSlice'
 import userManagementReducer from './userManagementSlice'
 import userRoleReducer from './userRoleSlice'
+import approvalMatrixReducer from './approvalMatrixSlice'
+
 
 export const makeStore = () =>
   configureStore({
     reducer: {
       loginReducer,
       userManagementReducer,
-      userRoleReducer
+      userRoleReducer,
+      approvalMatrixReducer
+
     }
   })
 

@@ -39,8 +39,8 @@ const StyledAutocomplete = styled(Autocomplete)({
     overflowY: "auto", // Enable scrollbar
   },
 });
- 
-const GeneratedForm: React.FC = () => {
+
+const AddNewRequestGeneratedForm: React.FC = () => {
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData).flat().reduce((values, field) => {
       values[field.id] = "";
@@ -131,5 +131,5 @@ const GeneratedForm: React.FC = () => {
     </form>
   );
 };
- 
-export default GeneratedForm;
+
+export default AddNewRequestGeneratedForm;

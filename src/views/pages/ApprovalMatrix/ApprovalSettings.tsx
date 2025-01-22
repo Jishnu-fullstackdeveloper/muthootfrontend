@@ -9,9 +9,18 @@ import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTabl
 import { ColumnDef } from '@tanstack/react-table';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { approvalData } from '@/shared/approvalData';
 
 const ApprovalSettings = () => {
   const router = useRouter();
+  // const dispatch = useAppDispatch()
+
+  // const { ApprovalMatrixData } = useAppSelector((state: any) => state.approvalMatrixReducer)
+
+  // useEffect(() => {
+  //   console.log('Approval matrix data', approvalData?.data)
+  // }, [])
 
   // State to manage table data
   const [tableData, setTableData] = useState<any[]>([]);

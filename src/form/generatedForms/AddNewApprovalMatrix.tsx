@@ -1,26 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
   FormControl,
-  IconButton,
-  Typography,
   TextField,
   Autocomplete,
+  Tooltip,
+  IconButton,
+  Typography,
+  Button,
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
-import DynamicButton from '@/components/Button/dynamicButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 type Section = {
-  approvalFor: any;
+  approvalFor: string;
 };
 
 const validationSchema = Yup.object({
@@ -39,35 +41,16 @@ const validationSchema = Yup.object({
 });
 
 const AddNewApprovalMatrixGenerated: React.FC = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [sections, setSections] = useState<Section[]>([{ approvalFor: '' }]);
+  const [sectionsVisible, setSectionsVisible] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    const approvalType = searchParams.get('approvalType') || '';
-    const numberOfLevels = searchParams.get('numberOfLevels') || '1';
-    const approvalFor = searchParams.get('approvalFor') || '';
-
-    if (approvalType) {
-      formik.setFieldValue('approvalType', approvalType);
-    }
-    if (numberOfLevels) {
-      formik.setFieldValue('numberOfLevels', parseInt(numberOfLevels));
-    }
-    if (approvalFor) {
-      setSections([{ approvalFor }]);
-      formik.setFieldValue('sections', [{ approvalFor }]);
-    }
-  }, [searchParams]);
-
-  const formik = useFormik({
+  const ApprovalMatrixFormik = useFormik({
     initialValues: {
       approvalType: '',
       numberOfLevels: 1,
-      sections: [{ approvalFor: '' }],
+      sections: [] as Section[],
+      draggingIndex: null as number | null,
     },
     validationSchema,
     onSubmit: (values) => {
@@ -76,155 +59,179 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   });
 
   const handleAddSection = () => {
-    const newSections = Array.from({ length: formik.values.numberOfLevels }, () => ({ approvalFor: '' }));
-    setSections([...sections, ...newSections]);
-    formik.setFieldValue('sections', [...formik.values.sections, ...newSections]);
-  };
-
-  const confirmDeleteSection = () => {
-    if (sectionToDelete !== null) {
-      const updatedSections = formik.values.sections.filter((_, i) => i !== sectionToDelete);
-      setSections(updatedSections);
-      formik.setFieldValue('sections', updatedSections);
-      setSectionToDelete(null);
-    }
-    setDialogOpen(false);
-  };
-
-  const handleOpenDeleteDialog = (index: number) => {
-    setSectionToDelete(index);
-    setDialogOpen(true);
+    const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels;
+    const newSections = Array.from({ length: numberOfSections }, () => ({ approvalFor: '' }));
+    ApprovalMatrixFormik.setFieldValue('sections', newSections);
+    setSectionsVisible(true);
   };
 
   const handleResetLevels = () => {
-    formik.setFieldValue('numberOfLevels', 1);
-    setSections([{ approvalFor: '' }]);
-    formik.setFieldValue('sections', [{ approvalFor: '' }]);
+    ApprovalMatrixFormik.setFieldValue('numberOfLevels', 1);
+    ApprovalMatrixFormik.setFieldValue('sections', []);
+    setSectionsVisible(false);
+  };
+
+  const handleDragStart = (index: number) => {
+    ApprovalMatrixFormik.setFieldValue('draggingIndex', index);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (index: number) => {
+    const draggingIndex = ApprovalMatrixFormik.values.draggingIndex;
+    if (draggingIndex === null || draggingIndex === index) return;
+
+    const updatedSections = [...ApprovalMatrixFormik.values.sections];
+    const [removed] = updatedSections.splice(draggingIndex, 1);
+    updatedSections.splice(index, 0, removed);
+
+    ApprovalMatrixFormik.setFieldValue('sections', updatedSections);
+    ApprovalMatrixFormik.setFieldValue('draggingIndex', null);
+  };
+
+  const handleOpenDialog = (index: number) => {
+    setDeleteIndex(index);
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setDeleteIndex(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteIndex !== null) {
+      const updatedSections = ApprovalMatrixFormik.values.sections.filter((_, i) => i !== deleteIndex);
+      ApprovalMatrixFormik.setFieldValue('sections', updatedSections);
+    }
+    handleCloseDialog();
+  };
+
+  const hasApprovalForError = () => {
+    const errors = ApprovalMatrixFormik.errors.sections;
+    const touched = ApprovalMatrixFormik.touched.sections;
+    return touched && errors && Array.isArray(errors) && errors.some((e) => e?.approvalFor);
   };
 
   return (
-    <form onSubmit={formik.handleSubmit} className="p-6 bg-white shadow-md rounded">
+    <form onSubmit={ApprovalMatrixFormik.handleSubmit} className="p-6 bg-white shadow-md rounded">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Approval Process Form</h1>
 
-      <fieldset className="border border-gray-300 rounded p-8 mb-6">
-        <div className="grid grid-cols-2 gap-4">
-          <FormControl fullWidth margin="normal">
-            <label htmlFor="approvalType" className="block text-sm font-medium text-gray-700">
-              Approval Type *
-            </label>
+      <Box sx={{ border: '1px solid #ddd', borderRadius: 2, p: 6, mb: 4 }}>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl fullWidth>
             <TextField
+              label="Approval Type"
               id="approvalType"
               name="approvalType"
-              value={formik.values.approvalType}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.approvalType && Boolean(formik.errors.approvalType)}
-              helperText={formik.touched.approvalType && formik.errors.approvalType}
-              variant="outlined"
+              value={ApprovalMatrixFormik.values.approvalType}
+              onChange={ApprovalMatrixFormik.handleChange}
+              onBlur={ApprovalMatrixFormik.handleBlur}
+              error={ApprovalMatrixFormik.touched.approvalType && Boolean(ApprovalMatrixFormik.errors.approvalType)}
+              helperText={ApprovalMatrixFormik.touched.approvalType && ApprovalMatrixFormik.errors.approvalType}
             />
           </FormControl>
 
-          <FormControl fullWidth margin="normal">
-            <label htmlFor="numberOfLevels" className="block text-sm font-medium text-gray-700">
-              Number of Levels *
-            </label>
-            <div className="flex items-center space-x-2">
-              <TextField
-                id="numberOfLevels"
-                name="numberOfLevels"
-                type="number"
-                value={formik.values.numberOfLevels}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.numberOfLevels && Boolean(formik.errors.numberOfLevels)}
-                helperText={formik.touched.numberOfLevels && formik.errors.numberOfLevels}
-                variant="outlined"
-                inputProps={{ min: 1, max: 10 }}
-                sx={{ width: 700 }}
-              />
-              <IconButton onClick={handleAddSection} aria-label="add">
-                <AddIcon />
-              </IconButton>
-              <IconButton onClick={handleResetLevels} aria-label="reset">
-                <RefreshIcon />
-              </IconButton>
-            </div>
+          <FormControl fullWidth>
+            <TextField
+              label="Number of Levels"
+              id="numberOfLevels"
+              name="numberOfLevels"
+              type="number"
+              value={ApprovalMatrixFormik.values.numberOfLevels}
+              onChange={ApprovalMatrixFormik.handleChange}
+              onBlur={ApprovalMatrixFormik.handleBlur}
+              error={ApprovalMatrixFormik.touched.numberOfLevels && Boolean(ApprovalMatrixFormik.errors.numberOfLevels)}
+              helperText={ApprovalMatrixFormik.touched.numberOfLevels && ApprovalMatrixFormik.errors.numberOfLevels}
+              inputProps={{ min: 1, max: 10 }}
+            />
           </FormControl>
-        </div>
 
-        <div className="mt-6">
-          {formik.values.sections.map((_, index) => (
-            <div key={index} className="flex space-x-3 space-y-3 justify-center">
-              <Typography
-                variant="body1"
-                className="font-medium text-gray-700 col-span-2 mt-7"
+          <Tooltip title={`Add ${ApprovalMatrixFormik.values.numberOfLevels || 0} level(s)`} arrow>
+            <IconButton onClick={handleAddSection}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Reset levels" arrow>
+            <IconButton onClick={handleResetLevels}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {sectionsVisible && (
+          <Box>
+            {ApprovalMatrixFormik.values.sections.map((section, index) => (
+              <Box
+                key={index}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(index)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 2,
+                  mb: 4,
+                  mt: 3,
+                  cursor: 'grabbing',
+                  backgroundColor: '#ffffff',
+                }}
               >
-                Approval {index + 1}:
-              </Typography>
-
-              <FormControl fullWidth className="w-2/5">
+                <DragIndicatorIcon sx={{ mr: 2, color: '#666' }} />
+                <Typography variant="body1" sx={{ mr: 2 }}>
+                  Approval {index + 1}:
+                </Typography>
                 <Autocomplete
-                  id={`sections.${index}.approvalFor`}
+                  value={section.approvalFor}
                   onChange={(_, newValue: string | null) =>
-                    formik.setFieldValue(`sections.${index}.approvalFor`, newValue)
+                    ApprovalMatrixFormik.setFieldValue(`sections[${index}].approvalFor`, newValue)
                   }
                   options={['Salesman', 'Engineer', 'Branch Manager', 'HR', 'Finance']}
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      placeholder="Approval by"
                       error={
-                        formik.touched.sections?.[index]?.approvalFor &&
-                        Boolean((formik.errors.sections?.[index] as { approvalFor: string }).approvalFor)
+                        ApprovalMatrixFormik.touched.sections?.[index]?.approvalFor 
                       }
                       helperText={
-                        formik.touched.sections?.[index]?.approvalFor &&
-                        (formik.errors.sections?.[index] as { approvalFor: string }).approvalFor
+                        ApprovalMatrixFormik.touched.sections?.[index]?.approvalFor 
                       }
-                      variant="outlined"
-                      fullWidth
-                      placeholder="Approval by"
                     />
                   )}
+                  sx={{ flex: 1, mr: 2 }}
                 />
-              </FormControl>
+                <IconButton onClick={() => handleOpenDialog(index)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+            {hasApprovalForError() && (
+              <Typography color="error" className='flex ml-36 mt-4'>
+                Approval For is required for all sections.
+              </Typography>
+            )}
+          </Box>
+        )}
 
-              <IconButton
-                onClick={() => handleOpenDeleteDialog(index)}
-                aria-label="delete"
-                disabled={formik.values.sections.length === 1}
-                className="col-span-1"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          ))}
-        </div>
-      </fieldset>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+          <Button variant="contained" color="secondary" onClick={() => ApprovalMatrixFormik.resetForm()}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="primary" type="submit">
+            Save
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="flex justify-end space-x-4">
-        <DynamicButton
-          type="button"
-          variant="contained"
-          className="bg-gray-500 text-white hover:bg-gray-700"
-          onClick={() => formik.resetForm()}
-        >
-          Cancel
-        </DynamicButton>
-
-        <DynamicButton
-          type="submit"
-          variant="contained"
-          className="bg-primary-500 text-white hover:bg-primary-700"
-          onClick={() => formik.handleSubmit()}
-        >
-          Save
-        </DynamicButton>
-      </div>
-
-      {/* Dialog Box */}
+      {/* Confirmation Dialog */}
       <Dialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={handleCloseDialog}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
@@ -235,20 +242,12 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <DynamicButton
-            onClick={() => setDialogOpen(false)}
-            variant="text"
-            className="text-gray-700"
-          >
+          <Button onClick={handleCloseDialog} color="secondary">
             Cancel
-          </DynamicButton>
-          <DynamicButton
-            onClick={confirmDeleteSection}
-            variant="text"
-            className="bg-primary-500 text-primary hover:bg-primary-700"
-          >
-            Delete
-          </DynamicButton>
+          </Button>
+          <Button onClick={handleConfirmDelete} color="primary" autoFocus>
+            Confirm
+          </Button>
         </DialogActions>
       </Dialog>
     </form>

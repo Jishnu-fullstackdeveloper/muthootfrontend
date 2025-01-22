@@ -1,7 +1,5 @@
 'use client'
-
 import React, { useEffect, useState } from 'react'
-
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
@@ -17,19 +15,21 @@ import {
   Tab,
   Grid,
   Chip,
-  Badge
+  Badge,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination
 } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
-
 import { CheckCircle, Clear, HourglassEmpty } from '@mui/icons-material'
-
 import CustomTextField from '@/@core/components/mui/TextField'
 import RecruitmentListTableView from './RecruitmentListTableView'
-
 import designationData from './sampleDesignationData'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
@@ -74,7 +74,7 @@ const ResignedDesignationsListing = () => {
 
   const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>(() =>
     designationData?.reduce(
-      (acc, vacancy, index) => {
+      (acc, reqst, index) => {
         acc[index] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
 
         return acc
@@ -135,7 +135,7 @@ const ResignedDesignationsListing = () => {
       return () => clearTimeout(timeout)
     }, [value])
 
-    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
   return (
@@ -662,7 +662,7 @@ const ResignedDesignationsListing = () => {
 
       {viewMode === 'table' && <RecruitmentListTableView designationData={designationData} />}
 
-      {/* <div className='flex items-center justify-end mt-6'>
+      <div className='flex items-center justify-end mt-6'>
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
@@ -686,7 +686,7 @@ const ResignedDesignationsListing = () => {
           page={paginationState?.page}
           onChange={handlePageChange}
         />
-      </div> */}
+      </div>
     </div>
   )
 }

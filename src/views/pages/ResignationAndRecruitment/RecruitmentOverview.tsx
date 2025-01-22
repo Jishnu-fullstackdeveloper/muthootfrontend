@@ -1,6 +1,21 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, Grid, Button, LinearProgress, Card, Tooltip, Badge, Chip } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Grid,
+  Button,
+  LinearProgress,
+  Card,
+  Tooltip,
+  Badge,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination
+} from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
 import WarningIcon from '@mui/icons-material/Warning'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
@@ -8,6 +23,9 @@ import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-req
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import SettingsIcon from '@mui/icons-material/Settings'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
+import AddIcon from '@mui/icons-material/Add'
 import AddIcon from '@mui/icons-material/Add';
 
 const approvers = [
@@ -86,12 +104,23 @@ const approvers = [
   }
 ]
 
-const DesignationOverview = () => {
+const RecruitmentRequestOverview = () => {
   const router = useRouter()
   const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
+  const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
+  const dispatch = useAppDispatch()
+  const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
+
+  useEffect(() => {
+    let params = {
+      page: paginationState?.page,
+      limit: paginationState?.limit
+    }
+    dispatch(fetchResignationOverviewList(params))
+  }, [paginationState])
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -103,6 +132,14 @@ const DesignationOverview = () => {
 
   const handleSaveXFactor = (newXFactor: number) => {
     setXFactorValue(newXFactor)
+  }
+
+  const handlePageChange = (event: any, value: any) => {
+    setPaginationState(prev => ({ ...prev, page: value }))
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
   const handleApproveAll = () => setAcceptAllDialogOpen(true)
@@ -155,6 +192,14 @@ const DesignationOverview = () => {
                 onClick={() => router.push('/recruitment-management/add/new-request')}
               >
                 New Request
+            </Button>
+            <Button
+              variant='contained'
+              color='primary'
+              startIcon={<AddIcon />}
+              onClick={() => router.push('/recruitment-management/add/new-request')}
+            >
+              New Request
             </Button>
             <Button
               variant='contained'
@@ -473,10 +518,36 @@ const DesignationOverview = () => {
               </Grid>
             ))}
           </Grid>
+
+          <div className='flex items-center justify-end mt-6'>
+            <FormControl size='small' sx={{ minWidth: 70 }}>
+              <InputLabel>Count</InputLabel>
+              <Select
+                value={paginationState?.limit}
+                onChange={e => handleChangeLimit(e.target.value)}
+                label='Limit per page'
+              >
+                {[10, 25, 50, 100].map(option => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Pagination
+              color='primary'
+              shape='rounded'
+              showFirstButton
+              showLastButton
+              count={paginationState?.display_numbers_count}
+              page={paginationState?.page}
+              onChange={handlePageChange}
+            />
+          </div>
         </Box>
       </Box>
     </>
   )
 }
 
-export default DesignationOverview
+export default RecruitmentRequestOverview

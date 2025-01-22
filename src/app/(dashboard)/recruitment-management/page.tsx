@@ -1,5 +1,6 @@
-import { Button } from '@mui/material'
-import ResignedEmployeesListing from '@/views/pages/ResignationAndRecruitment/ResignedDesignationsListing'
+'use client'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 const page = () => {
   const router = useRouter()

@@ -1,105 +1,153 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import AxiosLib from '@/lib/AxiosLib';
 
+// Define types for approval matrix
+interface ApprovalMatrix {
+  id: number;
+  name: string;
+  status: string;
+}
 
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
- 
-// ** Axios Imports
-import AxiosLib from '@/lib/AxiosLib'
- 
-export const fetchApprovalMatrix = createAsyncThunk<any, any>(
-  'appMuthoot/fetchApprovalMatrix',
+interface ApprovalMatrixState {
+  approvalMatrixData: ApprovalMatrix[];
+  approvalMatrixLoading: boolean;
+  approvalMatrixSuccess: string | boolean;
+  approvalMatrixFailure: boolean;
+  approvalMatrixFailureMessage: string;
+}
+
+const initialState: ApprovalMatrixState = {
+  approvalMatrixData: [],
+  approvalMatrixLoading: false,
+  approvalMatrixSuccess: false,
+  approvalMatrixFailure: false,
+  approvalMatrixFailureMessage: '',
+};
+
+// Utility for error handling
+const getErrorMessage = (error: any): string =>
+  error?.response?.data?.message || 'An error occurred';
+
+// Thunks
+export const fetchApprovalMatrix = createAsyncThunk(
+  'approvalMatrix/fetchApprovalMatrix',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/approval-matrix', {
-        params
-      })
-      return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
+      const response = await AxiosLib.get('/approval-matrix', { params });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
-)
- 
-export const ApprovalMatrixSlice: any = createSlice({
-  name: 'login',
-  initialState: {
-    approvalMatrixData: [],
-    approvalMatrixLoading: false,
-    approvalMatrixSuccess: false,
-    approvalMatrixFailure: false,
-    approvalMatrixFailureMessage: ''
-  },
-  reducers: {
-    // LoginDataDismiss: (state, action: PayloadAction<boolean>) => {
-    //   ;(state.newAccessTokenApiSuccess = false),
-    //     (state.newAccessTokenApiFailure = false),
-    //     (state.newAccessTokenApiFailureMessage = ''),
-    //     (state.fetchKeycloakLoginUrlError = false),
-    //     (state.fetchKeycloakLoginUrlErrorMessage = ''),
-    //     (state.changePasswordFailure = false),
-    //     (state.changePasswordFailureMessage = '')
-    // }
-  },
-  extraReducers: builder => {
-    builder.addCase(fetchApprovalMatrix.pending, state => {
-      state.approvalMatrixLoading = true
-    })
-    builder.addCase(fetchApprovalMatrix.fulfilled, (state, action) => {
-      state.approvalMatrixData = action.payload
-      state.approvalMatrixLoading = false
-    })
-    builder.addCase(fetchApprovalMatrix.rejected, (state, action: any) => {
-      state.approvalMatrixLoading = false
-      state.approvalMatrixData = []
-      state.approvalMatrixFailure = true
-      state.approvalMatrixFailureMessage = action?.payload?.message || 'Listing Failed'
-    })
- 
-    //   builder.addCase(fetchLoginToken.pending, state => {
-    //     state.isSecondLoading = true
-    //   })
-    //   builder.addCase(fetchLoginToken.fulfilled, (state, action) => {
-    //     state.isSecondLoading = false
-    //     state.secondLoginData = action.payload
-    //   })
-    //   builder.addCase(fetchLoginToken.rejected, state => {
-    //     state.isSecondLoading = false
-    //     state.secondLoginData = null
-    //   })
- 
-    //   builder.addCase(fetchNewAccessToken.pending, state => {
-    //     state.newAccessTokenApiBegin = true
-    //   })
-    //   builder.addCase(fetchNewAccessToken.fulfilled, (state, action) => {
-    //     if (action?.payload?.success === false && action?.payload?.statusCode === 400) {
-    //       ;(state.newAccessTokenApiFailure = true),
-    //         (state.newAccessTokenApiBegin = false),
-    //         (state.newAccessTokenApiFailureMessage = action?.payload?.message)
-    //     } else {
-    //       ;(state.newAccessTokenApiSuccess = true),
-    //         (state.newAccessTokenApiData = action.payload),
-    //         (state.newAccessTokenApiBegin = false)
-    //     }
-    //   })
-    //   builder.addCase(fetchNewAccessToken.rejected, (state, action: any) => {
-    //     ;(state.newAccessTokenApiFailure = true),
-    //       (state.newAccessTokenApiBegin = false),
-    //       (state.newAccessTokenApiFailureMessage = action?.payload?.message || '')
-    //   })
- 
-    //   builder.addCase(changePasswordApi.pending, state => {
-    //     state.isLoading = true
-    //   })
-    //   builder.addCase(changePasswordApi.fulfilled, (state, action) => {
-    //     state.changePasswordData = action?.payload?.url
-    //     state.isLoading = false
-    //   })
-    //   builder.addCase(changePasswordApi.rejected, (state, action: any) => {
-    //     state.changePasswordData = null
-    //     state.isLoading = false
-    //     ;(state.changePasswordFailure = false), (state.changePasswordFailureMessage = action?.payload?.message || '')
-    //   })
+);
+
+export const createNewApprovalMatrix = createAsyncThunk(
+  'approvalMatrix/createNewApprovalMatrix',
+  async (approvalData: Partial<ApprovalMatrix>, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.post('/approval-matrix', approvalData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
+    }
   }
-})
- 
-// export const { setIsLoggedIn, LoginDataDismiss } = BucketManagementSlice.actions
-export default ApprovalMatrixSlice.reducer
+);
+
+export const updateApprovalMatrix = createAsyncThunk(
+  'approvalMatrix/updateApprovalMatrix',
+  async (
+    { id, approvalData }: { id: number; approvalData: Partial<ApprovalMatrix> },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await AxiosLib.patch(`/approval-matrix/${id}`, approvalData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
+);
+
+export const deleteApprovalMatrix = createAsyncThunk(
+  'approvalMatrix/deleteApprovalMatrix',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await AxiosLib.delete(`/approval-matrix/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
+);
+
+// Slice
+const approvalMatrixSlice = createSlice({
+  name: 'approvalMatrix',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    // Fetch approval matrix
+    builder.addCase(fetchApprovalMatrix.pending, (state) => {
+      state.approvalMatrixLoading = true;
+    });
+    builder.addCase(fetchApprovalMatrix.fulfilled, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixData = action.payload;
+    });
+    builder.addCase(fetchApprovalMatrix.rejected, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixFailure = true;
+      state.approvalMatrixFailureMessage = action.payload as string;
+    });
+
+    // Create approval matrix
+    builder.addCase(createNewApprovalMatrix.pending, (state) => {
+      state.approvalMatrixLoading = true;
+    });
+    builder.addCase(createNewApprovalMatrix.fulfilled, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixData.push(action.payload);
+      state.approvalMatrixSuccess = 'Approval added successfully';
+    });
+    builder.addCase(createNewApprovalMatrix.rejected, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixFailure = true;
+      state.approvalMatrixFailureMessage = action.payload as string;
+    });
+
+    // Update approval matrix
+    builder.addCase(updateApprovalMatrix.pending, (state) => {
+      state.approvalMatrixLoading = true;
+    });
+    builder.addCase(updateApprovalMatrix.fulfilled, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixData = state.approvalMatrixData.map((item) =>
+        item.id === action.payload.id ? action.payload : item
+      );
+      state.approvalMatrixSuccess = 'Approval updated successfully';
+    });
+    builder.addCase(updateApprovalMatrix.rejected, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixFailure = true;
+      state.approvalMatrixFailureMessage = action.payload as string;
+    });
+
+    // Delete approval matrix
+    builder.addCase(deleteApprovalMatrix.pending, (state) => {
+      state.approvalMatrixLoading = true;
+    });
+    builder.addCase(deleteApprovalMatrix.fulfilled, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixData = state.approvalMatrixData.filter(
+        (item) => item.id !== action.payload
+      );
+    });
+    builder.addCase(deleteApprovalMatrix.rejected, (state, action) => {
+      state.approvalMatrixLoading = false;
+      state.approvalMatrixFailure = true;
+      state.approvalMatrixFailureMessage = action.payload as string;
+    });
+  },
+});
+
+export default approvalMatrixSlice.reducer;

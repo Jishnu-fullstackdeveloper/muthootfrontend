@@ -26,6 +26,7 @@ import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
 import AddIcon from '@mui/icons-material/Add'
+import AddIcon from '@mui/icons-material/Add';
 
 const approvers = [
   {
@@ -184,6 +185,14 @@ const RecruitmentRequestOverview = () => {
             Recruitment Request Overview
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
+            <Button
+                variant='contained'
+                color='primary'
+                startIcon={<AddIcon />}
+                onClick={() => router.push('/recruitment-management/add/new-request')}
+              >
+                New Request
+            </Button>
             <Button
               variant='contained'
               color='primary'

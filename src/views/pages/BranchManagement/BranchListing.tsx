@@ -70,45 +70,6 @@ const BranchListing = () => {
       cityClassification: 'Rural',
       state: 'New York',
       status: 'Active'
-    },
-    {
-      id: 1,
-      name: 'Downtown Branch',
-      branchCode: 'B001',
-      territory: 'North',
-      zonal: 'Zone1',
-      region: 'Region1',
-      area: 'Area1',
-      cluster: 'Cluster1',
-      cityClassification: 'Metro',
-      state: 'California',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      name: 'Market Square',
-      branchCode: 'B002',
-      territory: 'West',
-      zonal: 'Zone2',
-      region: 'Region2',
-      area: 'Area2',
-      cluster: 'Cluster2',
-      cityClassification: 'Urban',
-      state: 'Texas',
-      status: 'Inactive'
-    },
-    {
-      id: 3,
-      name: 'Tech Hub',
-      branchCode: 'B003',
-      territory: 'East',
-      zonal: 'Zone3',
-      region: 'Region3',
-      area: 'Area3',
-      cluster: 'Cluster3',
-      cityClassification: 'Rural',
-      state: 'New York',
-      status: 'Active'
     }
   ]
 

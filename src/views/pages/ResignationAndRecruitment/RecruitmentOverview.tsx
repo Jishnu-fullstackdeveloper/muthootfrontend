@@ -26,7 +26,6 @@ import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
 import AddIcon from '@mui/icons-material/Add'
-import AddIcon from '@mui/icons-material/Add';
 
 const approvers = [
   {

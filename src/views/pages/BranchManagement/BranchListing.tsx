@@ -22,13 +22,16 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
+import TableChartIcon from '@mui/icons-material/TableChart'
+import BranchListingTableView from './BranchListingTableView'
 
 const BranchListing = () => {
   const router = useRouter()
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState('grid')
   const [selectedTabs, setSelectedTabs] = useState<Record<number, number>>({})
 
-  const branches = [
+  const branchData = [
     {
       id: 1,
       name: 'Downtown Branch',
@@ -77,7 +80,7 @@ const BranchListing = () => {
   })
 
   useEffect(() => {
-    const initialTabsState = branches.reduce(
+    const initialTabsState = branchData.reduce(
       (acc, branch) => {
         acc[branch.id] = 0 // Default to the 'Details' tab
         return acc
@@ -158,144 +161,158 @@ const BranchListing = () => {
                   <ViewListIcon />
                 </IconButton>
               </Tooltip>
+              <Tooltip title='Table View'>
+                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
+                  <TableChartIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           </Box>
         </div>
       </Card>
 
-      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
-        {branches?.map(branch => (
-          <Box
-            onClick={() => router.push(`/branch-management/view/${branch.id}`)}
-            key={branch.id}
-            className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
-              viewMode !== 'grid' && 'p-6'
-            }`}
-            sx={{
-              cursor: 'pointer',
-              minHeight: viewMode !== 'grid' ? '150px' : 'auto'
-            }}
-          >
-            {viewMode === 'grid' ? (
-              <>
-                <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
-                  <div className='flex items-center'>
-                    <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
+      {(viewMode === 'grid' || viewMode === 'list') && (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
+          {branchData?.map(branch => (
+            <Box
+              onClick={() => router.push(`/branch-management/view/${branch.id}`)}
+              key={branch.id}
+              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
+                viewMode !== 'grid' && 'p-6'
+              }`}
+              sx={{
+                cursor: 'pointer',
+                minHeight: viewMode !== 'grid' ? '150px' : 'auto'
+              }}
+            >
+              {viewMode === 'grid' ? (
+                <>
+                  <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
+                    <div className='flex items-center'>
+                      <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
+                        {branch.name}
+                      </Typography>
+                    </div>
+                    <div className='flex space-x-2 mr-10'>
+                      <Stack sx={{ marginTop: 2 }}>
+                        <Chip
+                          label={branch.status}
+                          color={
+                            branch.status === 'Active'
+                              ? 'success'
+                              : branch.status === 'Inactive'
+                                ? 'default'
+                                : 'warning'
+                          }
+                          size='small'
+                          sx={{
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            textTransform: 'uppercase'
+                          }}
+                        />
+                      </Stack>
+                    </div>
+                  </Box>
+                  <Box className='p-4 border-t flex justify-between'>
+                    <Box className='space-y-2 text-sm text-gray-700'>
+                      <p>
+                        <strong>Branch Code:</strong> {branch.branchCode}
+                      </p>
+                      <p>
+                        <strong>Territory:</strong> {branch.territory}
+                      </p>
+                      <p>
+                        <strong>Zonal:</strong> {branch.zonal}
+                      </p>
+                      <p>
+                        <strong>Region:</strong> {branch.region}
+                      </p>
+                    </Box>
+                    <Box className='space-y-2 text-sm text-gray-700'>
+                      <p>
+                        <strong>Area:</strong> {branch.area}
+                      </p>
+                      <p>
+                        <strong>Cluster:</strong> {branch.cluster}
+                      </p>
+                      <p>
+                        <strong>City Classification:</strong> {branch.cityClassification}
+                      </p>
+                      <p>
+                        <strong>State:</strong> {branch.state}
+                      </p>
+                    </Box>
+                  </Box>
+                </>
+              ) : (
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant='h5' fontWeight='bold'>
                       {branch.name}
                     </Typography>
-                  </div>
-                  <div className='flex space-x-2 mr-10'>
-                    <Stack sx={{ marginTop: 2 }}>
-                      <Chip
-                        label={branch.status}
-                        color={
-                          branch.status === 'Active' ? 'success' : branch.status === 'Inactive' ? 'default' : 'warning'
-                        }
-                        size='small'
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem',
-                          textTransform: 'uppercase'
-                        }}
-                      />
-                    </Stack>
-                  </div>
-                </Box>
-                <Box className='p-4 border-t flex justify-between'>
-                  <Box className='space-y-2 text-sm text-gray-700'>
-                    <p>
+                    <Typography>
                       <strong>Branch Code:</strong> {branch.branchCode}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Territory:</strong> {branch.territory}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Zonal:</strong> {branch.zonal}
-                    </p>
-                    <p>
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography>
                       <strong>Region:</strong> {branch.region}
-                    </p>
-                  </Box>
-                  <Box className='space-y-2 text-sm text-gray-700'>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Area:</strong> {branch.area}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Cluster:</strong> {branch.cluster}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>City Classification:</strong> {branch.cityClassification}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>State:</strong> {branch.state}
-                    </p>
-                  </Box>
-                </Box>
-              </>
-            ) : (
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant='h5' fontWeight='bold'>
-                    {branch.name}
-                  </Typography>
-                  <Typography>
-                    <strong>Branch Code:</strong> {branch.branchCode}
-                  </Typography>
-                  <Typography>
-                    <strong>Territory:</strong> {branch.territory}
-                  </Typography>
-                  <Typography>
-                    <strong>Zonal:</strong> {branch.zonal}
-                  </Typography>
+                    </Typography>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography>
-                    <strong>Region:</strong> {branch.region}
-                  </Typography>
-                  <Typography>
-                    <strong>Area:</strong> {branch.area}
-                  </Typography>
-                  <Typography>
-                    <strong>Cluster:</strong> {branch.cluster}
-                  </Typography>
-                  <Typography>
-                    <strong>City Classification:</strong> {branch.cityClassification}
-                  </Typography>
-                  <Typography>
-                    <strong>State:</strong> {branch.state}
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-          </Box>
-        ))}
-      </div>
+              )}
+            </Box>
+          ))}
+        </div>
+      )}
 
-      <div className='flex items-center justify-end mt-6'>
-        <FormControl size='small' sx={{ minWidth: 70 }}>
-          <InputLabel>Count</InputLabel>
-          <Select
-            value={paginationState?.limit}
-            onChange={e => handleChangeLimit(e.target.value)}
-            label='Limit per page'
-          >
-            {[10, 25, 50, 100].map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Pagination
-          color='primary'
-          shape='rounded'
-          showFirstButton
-          showLastButton
-          count={paginationState?.display_numbers_count}
-          page={paginationState?.page}
-          onChange={handlePageChange}
-        />
-      </div>
+      {viewMode === 'table' && <BranchListingTableView branchData={branchData} />}
+      {viewMode !== 'table' && (
+        <div className='flex items-center justify-end mt-6'>
+          <FormControl size='small' sx={{ minWidth: 70 }}>
+            <InputLabel>Count</InputLabel>
+            <Select
+              value={paginationState?.limit}
+              onChange={e => handleChangeLimit(e.target.value)}
+              label='Limit per page'
+            >
+              {[10, 25, 50, 100].map(option => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count}
+            page={paginationState?.page}
+            onChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   )
 }

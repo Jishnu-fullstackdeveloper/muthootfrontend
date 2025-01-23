@@ -1,4 +1,3 @@
-
 import ManualRequestGeneratedForm from '@/form/generatedForms/addNewRequest'
 import React from 'react'
 
@@ -16,4 +15,3 @@ const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
 }
 
 export default AddNewRequest
-

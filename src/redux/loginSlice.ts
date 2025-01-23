@@ -53,14 +53,12 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
     const refreshToken = getRefreshToken()
     const accessToken = getAccessToken()
     let api = '/keycloak/user/signout'
-
     const response = await AxiosLib.get(api, {
       headers: {
         authorization: `Bearer ${accessToken}`,
         refreshtoken: refreshToken
       }
     })
-
     return { ...response.data }
   } catch (error) {
     throw error

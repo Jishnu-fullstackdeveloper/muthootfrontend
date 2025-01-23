@@ -231,7 +231,7 @@ const JobListing = () => {
       return () => clearTimeout(timeout)
     }, [value])
 
-    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
   const [paginationState, setPaginationState] = useState({
@@ -541,26 +541,37 @@ const JobListing = () => {
       </Card>
       {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
       {/* <div className='space-y-4'> */}
-      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' : 'space-y-4'}`}>
+      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-6'}`}>
         {jobs.map(job => (
           <Box
-            sx={{ cursor: 'pointer' }}
             key={job.id}
-            className='bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition transform hover:-translate-y-1'
+            sx={{
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              ':hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+              },
+              backgroundColor: 'white',
+              borderRadius: 2,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden',
+              border: '1px solid #e0e0e0'
+            }}
             onClick={() => router.push(`/jd-management/view/${job.id}`)}
           >
-            {/* Title and Icons Container */}
-            <Box className='flex justify-between items-center'>
+            {/* Title and Icons */}
+            <Box className='flex justify-between items-center' sx={{ padding: '16px' }}>
               {/* Job Title */}
-              <h2 className='text-lg font-semibold text-gray-800'>{job.title}</h2>
+              <h2 className='text-lg font-bold text-gray-800'>{job.title}</h2>
 
               {/* Icons */}
-              <div className='flex items-center space-x-0'>
+              <Box className='flex items-center space-x-2'>
                 <Tooltip title='Download JD' placement='top'>
                   <IconButton
-                    onClick={e => {
-                      e.stopPropagation() // Prevent card click
-                      // router.push(`/jd-management/edit/${job.id}`)
+                    onClick={e => e.stopPropagation()}
+                    sx={{
+                      ':hover': { color: 'primary.main' }
                     }}
                   >
                     <i className='tabler-download' />
@@ -569,8 +580,11 @@ const JobListing = () => {
                 <Tooltip title='Edit JD' placement='top'>
                   <IconButton
                     onClick={e => {
-                      e.stopPropagation() // Prevent card click
+                      e.stopPropagation()
                       router.push(`/jd-management/edit/${job.id}`)
+                    }}
+                    sx={{
+                      ':hover': { color: 'primary.main' }
                     }}
                   >
                     <i className='tabler-edit' />
@@ -578,53 +592,55 @@ const JobListing = () => {
                 </Tooltip>
                 <Tooltip title='Delete JD' placement='top'>
                   <IconButton
-                    onClick={e => {
-                      e.stopPropagation() // Prevent card click
+                    onClick={e => e.stopPropagation()}
+                    sx={{
+                      ':hover': { color: 'error.main' }
                     }}
                   >
                     <i className='tabler-trash' />
                   </IconButton>
                 </Tooltip>
-
-                {/* <Tooltip title='Edit JD' placement='top'>
-                  <IconButton
-                    aria-label='edit'
-                    component='span'
-                    onClick={e => {
-                      e.stopPropagation()
-                      router.push(`/jd-management/edit/${job.id}`)
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-
-                <Tooltip title='Delete JD' placement='top'>
-                  <IconButton color='secondary' aria-label='delete' component='span' onClick={e => e.stopPropagation()}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip> */}
-              </div>
+              </Box>
             </Box>
 
             {/* Job Details */}
-            <p className='text-sm text-gray-500 mb-2'>
-              <strong>Experience:</strong> {job.experience}
-            </p>
-            <p className='text-gray-600 text-sm mb-4'>
-              <strong>Role Description: </strong>
-              {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
-            </p>
+            <Box sx={{ padding: '16px', borderTop: '1px solid #f0f0f0' }}>
+              <p className='text-sm text-gray-600 mb-2'>
+                <strong>Experience:</strong> {job.experience}
+              </p>
+              <p className='text-sm text-gray-700 mb-4'>
+                <strong>Role Description:</strong>{' '}
+                {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
+              </p>
 
-            {/* Job Tags */}
-            <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-              {job.tags.map((tag, index) => (
-                <Chip key={index} label={tag} variant='outlined' />
-              ))}
-            </Stack>
+              {/* Tags */}
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}
+              >
+                {job.tags.map((tag, index) => (
+                  <Chip
+                    key={index}
+                    label={tag}
+                    variant='outlined'
+                    sx={{
+                      fontSize: '12px',
+                      backgroundColor: '#f5f5f5',
+                      color: '#555',
+                      ':hover': { backgroundColor: 'primary.light', color: 'white' }
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
           </Box>
         ))}
       </Box>
+
       <div className='flex items-center justify-end mt-6'>
         {/* Center-aligned "Load More" Button */}
         {/* <Box className='flex items-center justify-start flex-grow gap-4'>

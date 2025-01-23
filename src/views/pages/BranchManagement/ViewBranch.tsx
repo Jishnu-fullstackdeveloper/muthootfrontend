@@ -33,6 +33,28 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
     turnoverCode: 'B123'
   }
 
+  const bubblePositionData = [
+    {
+      position: 'Branch Manager',
+      actualCount: 2,
+      requiredCount: 1,
+      employees: [
+        { name: 'John Doe', employeeCode: 'EMP001', joiningDate: '2023-01-15' },
+        { name: 'Jane Smith', employeeCode: 'EMP002', joiningDate: '2023-02-01' }
+      ]
+    },
+    {
+      position: 'Sales Executive',
+      actualCount: 3,
+      requiredCount: 2,
+      employees: [
+        { name: 'Mike Johnson', employeeCode: 'EMP003', joiningDate: '2023-03-10' },
+        { name: 'Sarah Williams', employeeCode: 'EMP004', joiningDate: '2023-03-15' },
+        { name: 'Robert Brown', employeeCode: 'EMP005', joiningDate: '2023-04-01' }
+      ]
+    }
+  ]
+
   // Sample employee data
   const employeeData: any[] = sampleEmployeeData
 
@@ -58,7 +80,8 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
     if (newValue === 2) {
-      router.push('/bucket-management')
+      // router.push('/bucket-management')
+      router.push(`/bucket-management/view/${branchData.turnoverCode}`)
     } else if (newValue === 3) {
       router.push(`/vacancy-management/view/${id}`)
     }
@@ -160,9 +183,63 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
         )}
 
         {activeTab === 1 && (
-          <Typography variant='body1'>
-            Bubble Position content goes here. Add the necessary implementation as needed.
-          </Typography>
+          <Box>
+            <Typography variant='h6' sx={{ mb: 3 }}>
+              Bubble Positions Overview
+            </Typography>
+            {bubblePositionData.map((position: any, index: number) => (
+              <Card key={index} sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant='h6' color='primary'>
+                        {position.position}
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 2,
+                          backgroundColor: '#e3f2fd',
+                          padding: '8px 16px',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <Typography>
+                          <strong>Required:</strong> {position.requiredCount}
+                        </Typography>
+                        <Typography>
+                          <strong>Actual:</strong> {position.actualCount}
+                        </Typography>
+                        <Typography color='error'>
+                          <strong>Excess:</strong> {position.actualCount - position.requiredCount}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant='subtitle2' sx={{ mb: 2 }}>
+                      Assigned Employees:
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {position.employees.map((employee: any, empIndex: number) => (
+                        <Grid item xs={12} md={4} key={empIndex}>
+                          <Card sx={{ p: 2, backgroundColor: '#ffffff' }}>
+                            <Typography variant='subtitle1'>{employee.name}</Typography>
+                            <Typography variant='body2' color='textSecondary'>
+                              Employee ID: {employee.employeeCode}
+                            </Typography>
+                            <Typography variant='body2' color='textSecondary'>
+                              Joining Date: {employee.joiningDate}
+                            </Typography>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Card>
+            ))}
+          </Box>
         )}
       </Card>
     </Box>

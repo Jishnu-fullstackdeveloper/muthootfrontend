@@ -95,13 +95,13 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
           <Grid item xs={6}>
             <Typography variant='h5'>Branch Details</Typography>
           </Grid>
-          {/* <Grid item xs={6}>
+          <Grid item xs={6}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
                 variant='contained'
                 color='primary'
                 startIcon={<ListAltIcon />}
-                onClick={() => router.push('/bucket-management')}
+                onClick={() => router.push(`/bucket-management/view/1`)}
                 size='small'
               >
                 Bucket Management
@@ -110,13 +110,13 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
                 variant='contained'
                 color='secondary'
                 startIcon={<WorkIcon />}
-                onClick={() => router.push(`/vacancy-management?branchId=${id}`)}
+                onClick={() => router.push(`/vacancy-management/view/${id}`)}
                 size='small'
               >
                 Vacancy Management
               </Button>
             </Box>
-          </Grid> */}
+          </Grid>
         </Grid>
         <Divider sx={{ marginY: 3 }} />
         <Grid container spacing={3}>
@@ -167,8 +167,8 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
         <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
           <Tab label='Employee Details' />
           <Tab label='Bubble Position' />
-          <Tab label='Bucket Management' />
-          <Tab label='Vacancy Management' />
+          {/* <Tab label='Bucket Management' />
+          <Tab label='Vacancy Management' /> */}
         </Tabs>
         <Divider sx={{ marginY: 3 }} />
 

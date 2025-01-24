@@ -53,7 +53,7 @@ const Login2Redirect = () => {
             closeOnClick: true
           })
           setTimeout(() => {
-            router.push('/home')
+            router.push('/recruitment-management/overview')
           }, 2000)
         }
       }

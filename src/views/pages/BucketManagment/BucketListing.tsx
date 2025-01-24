@@ -405,45 +405,30 @@ const BucketListing = () => {
                         {/* Edit and Delete Buttons on the Right */}
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           {/* Edit Button */}
-                          <Button
-                            variant='outlined'
+                          <IconButton
                             onClick={(e: any) => {
                               e.stopPropagation()
                               handleEdit(bucket.id)
                             }}
                             sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': {
-                                backgroundColor: 'transparent'
-                              }
+                              ':hover': { color: 'primary.main' }
                             }}
                           >
-                            <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
-                          </Button>
+                            <i className='tabler-edit' />
+                          </IconButton>
 
                           {/* Delete Button */}
-                          <Button
-                            variant='outlined'
-                            color='error'
+                          <IconButton
                             onClick={(e: any) => {
                               e.stopPropagation()
                               handleDeleteClick(bucket.id)
                             }}
                             sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': {
-                                backgroundColor: 'transparent'
-                              }
+                              ':hover': { color: 'error.main' }
                             }}
                           >
-                            <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
-                          </Button>
+                            <i className='tabler-trash' />
+                          </IconButton>
                         </Box>
                       </Box>
 

@@ -113,13 +113,13 @@ const RecruitmentRequestOverview = () => {
   const dispatch = useAppDispatch()
   const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
 
-  useEffect(() => {
-    let params = {
-      page: paginationState?.page,
-      limit: paginationState?.limit
-    }
-    dispatch(fetchResignationOverviewList(params))
-  }, [paginationState])
+  // useEffect(() => {
+  //   let params = {
+  //     page: paginationState?.page,
+  //     limit: paginationState?.limit
+  //   }
+  //   dispatch(fetchResignationOverviewList(params))
+  // }, [paginationState])
 
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -185,14 +185,6 @@ const RecruitmentRequestOverview = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
             <Button
-                variant='contained'
-                color='primary'
-                startIcon={<AddIcon />}
-                onClick={() => router.push('/recruitment-management/add/new-request')}
-              >
-                New Request
-            </Button>
-            <Button
               variant='contained'
               color='primary'
               startIcon={<AddIcon />}
@@ -200,6 +192,7 @@ const RecruitmentRequestOverview = () => {
             >
               New Request
             </Button>
+
             <Button
               variant='contained'
               color='primary'

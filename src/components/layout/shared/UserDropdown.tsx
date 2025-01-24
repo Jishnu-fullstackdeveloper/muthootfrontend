@@ -158,11 +158,11 @@ const UserDropdown = () => {
   //   return () => clearInterval(intervalId)
   // }, [])
 
-  // useEffect(() => {
-  //   if (changePasswordData) {
-  //     window.location.replace(changePasswordData)
-  //   }
-  // }, [changePasswordData])
+  useEffect(() => {
+    if (changePasswordData) {
+      window.location.replace(changePasswordData)
+    }
+  }, [changePasswordData])
 
   // useEffect(() => {
   //   if (access_token) {

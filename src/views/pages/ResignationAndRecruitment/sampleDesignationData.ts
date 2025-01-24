@@ -241,7 +241,8 @@ export default [
     band: 'B2',
     grade: 'G2',
     bubblePositionsCount: 5,
-    bubblePositionBranchIds: ['BRNCH-P006', 'BRNCH-P007']
+    bubblePositionBranchIds: ['BRNCH-P006', 'BRNCH-P007'],
+    requestType: 'Bucket Expansion'
   },
   {
     employeeCode: 'EMP004',
@@ -275,7 +276,8 @@ export default [
     band: 'B1',
     grade: 'G1',
     bubblePositionsCount: 6,
-    bubblePositionBranchIds: ['BRNCH-P008', 'BRNCH-P009']
+    bubblePositionBranchIds: ['BRNCH-P008', 'BRNCH-P009'],
+    requestType: 'Bucket Expansion'
   },
   {
     employeeCode: 'EMP005',
@@ -308,7 +310,8 @@ export default [
     band: 'B2',
     grade: 'G2',
     bubblePositionsCount: 12,
-    bubblePositionBranchIds: ['BRNCH-P010', 'BRNCH-P011']
+    bubblePositionBranchIds: ['BRNCH-P010', 'BRNCH-P011'],
+    requestType: 'Bucket Expansion'
   },
   {
     employeeCode: 'EMP006',
@@ -342,6 +345,7 @@ export default [
     band: 'B1',
     grade: 'G1',
     bubblePositionsCount: 7,
-    bubblePositionBranchIds: ['BRNCH-P012', 'BRNCH-P013']
+    bubblePositionBranchIds: ['BRNCH-P012', 'BRNCH-P013'],
+    requestType: 'Bucket Expansion'
   }
 ]

@@ -17,7 +17,7 @@ const BudgetReport = () => {
   return (
     <>
       {/* Header with filters */}
-      <Card
+      {/* <Card
         sx={{
           mb: 4,
           position: 'sticky',
@@ -49,11 +49,12 @@ const BudgetReport = () => {
                   { name: 'Central Branch' },
                   { name: 'Coastal Branch' }
                 ]}
+                value={undefined}
               />
             </Box>
           </Box>
         </div>
-      </Card>
+      </Card> */}
 
       {/* Main Grid Layout */}
       <Grid container spacing={6}>
@@ -78,14 +79,14 @@ const BudgetReport = () => {
         </Grid>
 
         {/* Cost Efficiency Status */}
-        <Grid item xs={12} md={6}>
+        {/* <Grid item xs={12} md={6}>
           <CostEfficiencyStatus />
-        </Grid>
+        </Grid> */}
 
         {/* Approval Status */}
-        <Grid item xs={12} md={6}>
+        {/* <Grid item xs={12} md={6}>
           <ApprovalStatus />
-        </Grid>
+        </Grid> */}
       </Grid>
     </>
   )

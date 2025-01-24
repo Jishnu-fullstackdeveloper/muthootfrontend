@@ -128,6 +128,15 @@ const BranchListing = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+            <Button
+              className='mr-2'
+              variant='contained'
+              color='primary'
+              startIcon={<AssessmentIcon />}
+              onClick={() => router.push('/branch-management/budget-report')}
+            >
+              Budget Report Dashboard
+            </Button>
             <Box
               sx={{
                 display: 'flex',
@@ -142,15 +151,6 @@ const BranchListing = () => {
                 }
               }}
             >
-              <Button
-                className='mr-2'
-                variant='contained'
-                color='primary'
-                startIcon={<AssessmentIcon />}
-                onClick={() => router.push('/branch-management/budget-report')}
-              >
-                Budget Report Dashboard
-              </Button>
               <Tooltip title='Grid View'>
                 <IconButton color={viewMode === 'grid' ? 'primary' : 'secondary'} onClick={() => setViewMode('grid')}>
                   <GridViewIcon />

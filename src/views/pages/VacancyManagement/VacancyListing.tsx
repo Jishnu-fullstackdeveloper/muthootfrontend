@@ -213,7 +213,7 @@ const JobListing = () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value])
 
-    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
   const CheckAllFiltersEmpty = (filters: any): boolean => {
@@ -523,7 +523,7 @@ const JobListing = () => {
               // Grid View
               <>
                 {/* Header Section with Action Buttons */}
-                <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
+                <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
                   <div className='flex items-center'>
                     <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
                       {vacancy.title}
@@ -546,6 +546,9 @@ const JobListing = () => {
                     </Stack>
                     <Tooltip title='Edit Vacancy' placement='top'>
                       <IconButton
+                        sx={{
+                          ':hover': { color: 'primary.main' }
+                        }}
                         onClick={e => {
                           e.stopPropagation() // Prevent card click
                           router.push(`/vacancy-management/edit/${vacancy.id}`)
@@ -556,6 +559,9 @@ const JobListing = () => {
                     </Tooltip>
                     <Tooltip title='Delete Vacancy' placement='top'>
                       <IconButton
+                        sx={{
+                          ':hover': { color: 'error.main' }
+                        }}
                         onClick={e => {
                           e.stopPropagation() // Prevent card click
                           // Add delete logic here

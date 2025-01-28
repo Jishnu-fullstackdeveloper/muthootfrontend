@@ -4,8 +4,7 @@ import userManagementReducer from './userManagementSlice'
 import userRoleReducer from './userRoleSlice'
 import recruitmentResignationReducer from './RecruitmentResignationSlice'
 import approvalMatrixReducer from './approvalMatrixSlice'
-import BucketManagementReducer from './BucketManagementSlice'
-
+import manualRequestReducer from './manualRecruitmentRequestSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -15,7 +14,7 @@ export const makeStore = () =>
       userRoleReducer,
       recruitmentResignationReducer,
       approvalMatrixReducer,
-      BucketManagementReducer
+      manualRequestReducer
     }
   })
 

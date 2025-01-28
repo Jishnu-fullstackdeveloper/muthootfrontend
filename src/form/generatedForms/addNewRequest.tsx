@@ -6,6 +6,9 @@ import { Autocomplete, TextField, FormControl } from '@mui/material'
 import DynamicButton from '@/components/Button/dynamicButton'
 import { styled } from '@mui/material/styles'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { manualRecruitmentRequest } from '@/redux/manualRecruitmentRequestSlice'
+
 const optionsData = {
   employeeCategoryDetails: [
     { id: 'department', label: 'Department', options: ['IT', 'HR', 'Finance', 'Operations'] },
@@ -52,6 +55,10 @@ const StyledAutocomplete = styled(Autocomplete)({
 })
 
 const ManualRequestGeneratedForm: React.FC = () => {
+  const dispatch = useAppDispatch()
+  // const { manualRequestLoading, manualRequestSuccess, manualRequestError, manualRequestErrorMessage } = useAppSelector(
+  //   (state: any) => state.manualRecruitmentRequest
+  // )
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData)
       .flat()
@@ -64,6 +71,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
       ),
     validationSchema,
     onSubmit: values => {
+      let params: any = {
+        "gradeId": 0,
+        "branchId": 0
+      }
+      dispatch(manualRecruitmentRequest(params))
       console.log('Form Submitted:', values)
     }
   })

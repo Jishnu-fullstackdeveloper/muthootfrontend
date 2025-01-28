@@ -23,10 +23,13 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import { useAppDispatch } from '@/lib/hooks';
-import { createNewApprovalMatrix } from '@/redux/approvalMatrixSlice';
+import { createNewApprovalMatrix, updateApprovalMatrix } from '@/redux/approvalMatrixSlice';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+//import { deleteApprovalMatrix } from '@/redux/approvalMatrixSlice';
 
 type Section = {
-  approvalFor: any;
+  approvalFor: { id: number; designation: string } | null;
 };
 
 const validationSchema = Yup.object({
@@ -38,7 +41,12 @@ const validationSchema = Yup.object({
   sections: Yup.array()
     .of(
       Yup.object().shape({
-        approvalFor: Yup.string().required('Approval For is required'),
+        approvalFor: Yup.object()
+          .shape({
+            id: Yup.number().required('Invalid option selected'),
+            designation: Yup.string().required('Invalid option selected'),
+          })
+          .required('Approval For is required'),
       })
     )
     .min(1, 'At least one section is required'),
@@ -48,13 +56,30 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const [sectionsVisible, setSectionsVisible] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const searchParams = useSearchParams();
 
-  const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const dispatch = useAppDispatch()
+  const isUpdateMode = Boolean(searchParams.get('uuid'));
+
+  useEffect(() => {
+    const uuid = searchParams.get('uuid') || '';
+    const approvalType = searchParams.get('approvalType') || '';
+    const numberOfLevels = searchParams.get('numberOfLevels') || '1';
+    const approvalFor = searchParams.get('approvalFor') || '[]';
+
+    if (isUpdateMode) {
+      ApprovalMatrixFormik.setFieldValue('uuid', uuid);
+      ApprovalMatrixFormik.setFieldValue('approvalType', approvalType);
+      ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10));
+      ApprovalMatrixFormik.setFieldValue('sections', JSON.parse(approvalFor).map((approval: any) => ({
+        approvalFor: approval,
+      })));
+    }
+  }, [searchParams, isUpdateMode]);
 
   const ApprovalMatrixFormik = useFormik({
     initialValues: {
+      uuid: '',
       approvalType: '',
       numberOfLevels: 1,
       sections: [] as Section[],
@@ -62,26 +87,69 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
-      setLoading(true);
-      setMessage(null);
-      try {
-        await dispatch(createNewApprovalMatrix(values as any)).unwrap();
-        setMessage({ type: 'success', message: 'Approval Matrix is created' });
-        ApprovalMatrixFormik.resetForm();
-      } catch (err) {
-        setMessage({
-          type: 'error',
-          message: (err as string) || 'Failed to create the approval matrix!',
-        });
-      } finally {
-        setLoading(false);
+      const configurations = values.sections.map((section, index) => ({
+        approverDesignationId: section.approvalFor?.id || '', // Map to approverDesignationId
+        approvalSequenceLevel: index + 1, // Level is based on index (starting from 1)
+      }));
+
+      // const params = {
+      //   "name": "string",
+      //   "description": "string",
+      //   "parentActionId": 1,
+      //   "configurations": [
+      //     {
+      //       "approverDesignationId": 2,
+      //       "approvalSequenceLevel": 1
+      //     },
+      //     {
+      //       "approverDesignationId": 2,
+      //       "approvalSequenceLevel": 2
+      //     },
+      //     {
+      //       "approverDesignationId": 2,
+      //       "approvalSequenceLevel": 2
+      //     }
+      //   ]
+      // }
+
+      const params = {
+        name: values.approvalType,
+        // name: 'Sample',
+        description: 'description',
+        parentActionId: 1,
+        configurations: configurations
+        // configurations: [
+        //   {
+        //     "approverDesignationId": 2,
+        //     "approvalSequenceLevel": 1
+        //   },
+        //   {
+        //     "approverDesignationId": 2,
+        //     "approvalSequenceLevel": 2
+        //   },
+        //   {
+        //     "approverDesignationId": 4,
+        //     "approvalSequenceLevel": 2
+        //   }
+        // ], // This is the array of mapped configurations
+      };
+
+      if (isUpdateMode) {
+        // Update the approval matrix
+        dispatch(updateApprovalMatrix({ uuid: values.uuid, approvalMatrix: params })).unwrap();
+      } else {
+        // Create a new approval matrix
+        dispatch(createNewApprovalMatrix(params as any)).unwrap();
       }
+
+      console.log('Approval Data to API:', params);
+      ApprovalMatrixFormik.resetForm();
     },
   });
 
   const handleAddSection = () => {
     const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels;
-    const newSections = Array.from({ length: numberOfSections }, () => ({ approvalFor: '' }));
+    const newSections = Array.from({ length: numberOfSections }, () => ({ approvalFor: null }));
     ApprovalMatrixFormik.setFieldValue('sections', newSections);
     setSectionsVisible(true);
   };
@@ -130,15 +198,15 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     handleCloseDialog();
   };
 
-  const hasApprovalForError = () => {
-    const errors = ApprovalMatrixFormik.errors.sections;
-    const touched = ApprovalMatrixFormik.touched.sections;
-    return (
-      touched &&
-      errors &&
-      Array.isArray(errors) &&
-      errors.some((e) => typeof e === 'object' && e?.approvalFor)
-    );
+  const handleUpdate = (uuid: string, updatedData: any) => {
+    dispatch(updateApprovalMatrix({ uuid, approvalMatrix: updatedData }))
+      .unwrap()
+      .then((res) => {
+        console.log('Approval matrix updated successfully', res);
+      })
+      .catch((err) => {
+        console.error('Error updating approval matrix:', err);
+      });
   };
 
   return (
@@ -146,15 +214,12 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Approval Process Form</h1>
 
       <Box sx={{ border: '1px solid #ddd', borderRadius: 2, p: 6, mb: 4, mt: 4 }}>
-        <Box sx={{ display: 'flex', gap: 2, p:4, boxShadow: 1,
-                  borderRadius: 1,
-                  bgcolor: 'background.paper',}}>
+        <Box sx={{ display: 'flex', gap: 2, p: 4, boxShadow: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
           <FormControl fullWidth>
             <TextField
               label="Approval Type"
               id="approvalType"
               name="approvalType"
-              type="text"
               variant="outlined"
               value={ApprovalMatrixFormik.values.approvalType}
               onChange={ApprovalMatrixFormik.handleChange}
@@ -193,15 +258,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         </Box>
 
         {sectionsVisible && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              mt: 4,
-            }}
-          >
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, mt: 6 }}>
             {ApprovalMatrixFormik.values.sections.map((section, index) => (
               <Box
                 key={index}
@@ -210,12 +267,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(index)}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  p: 2,
-                  width: '100%',
-                  maxWidth: 600,
-                  boxShadow: 1,
+                  display: 'flex', alignItems: 'center', p: 2, width: '100%', maxWidth: 600, boxShadow: 1,
                   borderRadius: 1,
                   bgcolor: 'background.paper',
                 }}
@@ -225,18 +277,31 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   Approval {index + 1}:
                 </Typography>
                 <Autocomplete
-                  value={section.approvalFor}
-                  onChange={(_, newValue: string | null) =>
-                    ApprovalMatrixFormik.setFieldValue(`sections[${index}].approvalFor`, newValue)
-                  }
-                  options={['Salesman', 'Engineer', 'Branch Manager', 'HR', 'Finance']}
+                  value={section.approvalFor || null}
+                  onChange={(_, newValue) => {
+                    ApprovalMatrixFormik.setFieldValue(
+                      `sections[${index}].approvalFor`,
+                      newValue || null
+                    );
+                  }}
+                  options={[
+                    { id: 1, designation: 'Salesman' },
+                    { id: 2, designation: 'Engineer' },
+                    { id: 3, designation: 'Branch Manager' },
+                    { id: 4, designation: 'HR' },
+                    { id: 5, designation: 'Finance' },
+                  ]}
+                  getOptionLabel={(option) => option.designation || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       placeholder="Approval by"
                       error={Boolean(ApprovalMatrixFormik.touched.sections?.[index]?.approvalFor)}
                       helperText={
-                        Boolean(ApprovalMatrixFormik.touched.sections?.[index]?.approvalFor)
+                        ApprovalMatrixFormik.touched.sections?.[index]?.approvalFor
+                          ? 'Approval For is required'
+                          : ''
                       }
                     />
                   )}
@@ -247,11 +312,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 </IconButton>
               </Box>
             ))}
-            {hasApprovalForError() && (
-              <Typography color="error" className="flex mt-4">
-                Approval For is required for all sections.
-              </Typography>
-            )}
           </Box>
         )}
 
@@ -259,36 +319,32 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           <Button variant="contained" color="secondary" onClick={() => ApprovalMatrixFormik.resetForm()}>
             Cancel
           </Button>
-          <Button variant="contained" color="primary" type="submit">
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            disabled={!ApprovalMatrixFormik.isValid || !ApprovalMatrixFormik.dirty}
+          >
             Save
           </Button>
         </Box>
       </Box>
 
-      {/* Confirmation Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        aria-labelledby="alert-dialog-title"
-
-      >
-        <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this section?
+          <DialogContentText>
+            Are you sure you want to delete this section? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} color="primary" autoFocus>
-            Confirm
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
     </form>
   );
 };
-
 export default AddNewApprovalMatrixGenerated;

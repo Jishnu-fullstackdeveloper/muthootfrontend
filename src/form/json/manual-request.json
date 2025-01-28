@@ -1,0 +1,585 @@
+{
+  "success": true,
+  "data": {
+    "Employee_Category_Details": {
+      "Department": [
+        {
+          "id": 1,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e78",
+          "deletedBy": null,
+          "name": "Accounts",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 2,
+          "uuid": "f2e9d6a5-cf7e-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Development",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 3,
+          "uuid": "a1b2c3d4-e5f6-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Recruitment",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 4,
+          "uuid": "a1b2c3d4-e5f6-4c91-9e32-4bc43d8b90c2",
+          "deletedBy": null,
+          "name": "Strategy",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 5,
+          "uuid": "c3d4e5f6-a7b8-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Campaigns",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 6,
+          "uuid": "d4e5f6a7-b8c9-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "BI",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 7,
+          "uuid": "e5f6a7b8-c9d0-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Logistics",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 8,
+          "uuid": "f6a7b8c9-d0e1-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Customer Service",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 9,
+          "uuid": "a7b8c9d0-e1f2-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Testing",
+          "parentId": null,
+          "employeeCorporateHierarchiesId": 1,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        }
+      ],
+      "Employeecategorytype": [
+        {
+          "id": 10,
+          "uuid": "b8c9d0e1-f2a3-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Permanent",
+          "parentId": 2,
+          "employeeCorporateHierarchiesId": 2,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 11,
+          "uuid": "c9d0e1f2-a3b4-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Contract",
+          "parentId": 3,
+          "employeeCorporateHierarchiesId": 2,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 12,
+          "uuid": "d0e1f2a3-b4c5-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Full Time",
+          "parentId": 4,
+          "employeeCorporateHierarchiesId": 2,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        }
+      ],
+      "Designation": [
+        {
+          "id": 13,
+          "uuid": "e1f2a3b4-c5d6-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Sales executive",
+          "parentId": 12,
+          "employeeCorporateHierarchiesId": 3,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 14,
+          "uuid": "f2a3b4c5-d6e7-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "HR",
+          "parentId": 11,
+          "employeeCorporateHierarchiesId": 3,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 15,
+          "uuid": "a3b4c5d6-e7f8-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Branch Manager",
+          "parentId": 11,
+          "employeeCorporateHierarchiesId": 3,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 16,
+          "uuid": "b4c5d6e7-f8a9-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Counsilor",
+          "parentId": 11,
+          "employeeCorporateHierarchiesId": 3,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        }
+      ],
+      "Grade": [
+        {
+          "id": 17,
+          "uuid": "c5d6e7f8-a9b0-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Manager",
+          "parentId": 16,
+          "employeeCorporateHierarchiesId": 4,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 18,
+          "uuid": "d6e7f8a9-b0c1-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Manager",
+          "parentId": 15,
+          "employeeCorporateHierarchiesId": 4,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 19,
+          "uuid": "e7f8a9b0-c1d2-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Junior manager",
+          "parentId": 14,
+          "employeeCorporateHierarchiesId": 4,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        },
+        {
+          "id": 20,
+          "uuid": "f8a9b0c1-d2e3-4c91-9e32-4bc43d8b90c4",
+          "deletedBy": null,
+          "name": "Senior manager",
+          "parentId": 13,
+          "employeeCorporateHierarchiesId": 4,
+          "createdAt": "2025-01-20T12:49:35.252Z",
+          "updatedAt": "2025-01-20T12:49:35.252Z",
+          "deletedAt": null
+        }
+      ]
+    },
+    "Location_Category_Details": {
+      "Company": [
+        {
+          "id": 1,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e78",
+          "deletedBy": null,
+          "name": "muthoot",
+          "corporateHierarchiesId": 1,
+          "parentId": null,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 2,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e79",
+          "deletedBy": null,
+          "name": "Muthoot papachan",
+          "corporateHierarchiesId": 1,
+          "parentId": null,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "BusinessUnit": [
+        {
+          "id": 3,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e80",
+          "deletedBy": null,
+          "name": "Finance",
+          "corporateHierarchiesId": 2,
+          "parentId": 1,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 4,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e81",
+          "deletedBy": null,
+          "name": "IT",
+          "corporateHierarchiesId": 2,
+          "parentId": 2,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 5,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e82",
+          "deletedBy": null,
+          "name": "Engineering",
+          "corporateHierarchiesId": 2,
+          "parentId": 1,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 6,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e83",
+          "deletedBy": null,
+          "name": "Human Resource",
+          "corporateHierarchiesId": 2,
+          "parentId": 2,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 7,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e84",
+          "deletedBy": null,
+          "name": "Advisory",
+          "corporateHierarchiesId": 2,
+          "parentId": 1,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 8,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e85",
+          "deletedBy": null,
+          "name": "Marketing",
+          "corporateHierarchiesId": 2,
+          "parentId": 1,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 9,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e86",
+          "deletedBy": null,
+          "name": "Sales",
+          "corporateHierarchiesId": 2,
+          "parentId": 1,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 10,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "Operations",
+          "corporateHierarchiesId": 2,
+          "parentId": 2,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 11,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "Quality Assurance",
+          "corporateHierarchiesId": 2,
+          "parentId": 2,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "territory": [
+        {
+          "id": 12,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "north",
+          "corporateHierarchiesId": 3,
+          "parentId": 11,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 13,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "south",
+          "corporateHierarchiesId": 3,
+          "parentId": 10,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 14,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "west",
+          "corporateHierarchiesId": 3,
+          "parentId": 9,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 15,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "east",
+          "corporateHierarchiesId": 3,
+          "parentId": 9,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "zone": [
+        {
+          "id": 16,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "zone1",
+          "corporateHierarchiesId": 4,
+          "parentId": 12,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 17,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "zone2",
+          "corporateHierarchiesId": 4,
+          "parentId": 13,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 18,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "zone3",
+          "corporateHierarchiesId": 4,
+          "parentId": 12,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 19,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "zone4",
+          "corporateHierarchiesId": 4,
+          "parentId": 13,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "region": [
+        {
+          "id": 20,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "region1",
+          "corporateHierarchiesId": 5,
+          "parentId": 19,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 21,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "region2",
+          "corporateHierarchiesId": 5,
+          "parentId": 18,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 22,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "region3",
+          "corporateHierarchiesId": 5,
+          "parentId": 18,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 23,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "region4",
+          "corporateHierarchiesId": 5,
+          "parentId": 17,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 24,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "region5",
+          "corporateHierarchiesId": 5,
+          "parentId": 16,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "Area": [
+        {
+          "id": 25,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "area1",
+          "corporateHierarchiesId": 6,
+          "parentId": 24,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 26,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "area2",
+          "corporateHierarchiesId": 6,
+          "parentId": 23,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        },
+        {
+          "id": 27,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e87",
+          "deletedBy": null,
+          "name": "area3",
+          "corporateHierarchiesId": 6,
+          "parentId": 22,
+          "createdAt": "2025-01-21T05:56:50.750Z",
+          "updatedAt": "2025-01-21T05:56:50.750Z",
+          "deletedAt": null
+        }
+      ],
+      "Branches": [
+        {
+          "id": 1,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e78",
+          "deletedBy": null,
+          "name": "Branch1",
+          "branchCode": null,
+          "corporateHierarchyId": 7,
+          "corporateHierarchyDataId": 25,
+          "createdAt": "2025-01-21T06:19:34.030Z",
+          "updatedAt": "2025-01-21T06:19:34.030Z",
+          "deletedAt": null
+        },
+        {
+          "id": 2,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e79",
+          "deletedBy": null,
+          "name": "Branch2",
+          "branchCode": null,
+          "corporateHierarchyId": 7,
+          "corporateHierarchyDataId": 25,
+          "createdAt": "2025-01-21T06:19:34.030Z",
+          "updatedAt": "2025-01-21T06:19:34.030Z",
+          "deletedAt": null
+        },
+        {
+          "id": 3,
+          "uuid": "b2d9e5b4-9d0e-4cd1-9b2f-f1d3d75a8e80",
+          "deletedBy": null,
+          "name": "Branch3",
+          "branchCode": null,
+          "corporateHierarchyId": 7,
+          "corporateHierarchyDataId": 26,
+          "createdAt": "2025-01-21T06:19:34.030Z",
+          "updatedAt": "2025-01-21T06:19:34.030Z",
+          "deletedAt": null
+        }
+      ]
+    }
+  },
+  "message": "Data fetched successfully"
+}

@@ -56,7 +56,7 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
 
   const paginatedData = useMemo(
     () =>
-      data.slice(
+      data?.slice(
         pagination.pageIndex * pagination.pageSize,
         (pagination.pageIndex + 1) * pagination.pageSize
       ),
@@ -69,7 +69,7 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(data.length / pagination.pageSize),
+    pageCount: Math.ceil(data?.length / pagination.pageSize),
     state: {
       pagination,
       sorting,
@@ -87,13 +87,13 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
             <TableRow key={headerGroup.id}>
               {showCheckbox && (
                 <TableCell padding="checkbox">
-                  <Checkbox
+                  {/* <Checkbox
                     indeterminate={
                       table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
                     }
-                    checked={table.getIsAllRowsSelected()}
-                    onChange={table.getToggleAllRowsSelectedHandler()}
-                  />
+                    checked={table?.getIsAllRowsSelected()}
+                    onChange={table?.getToggleAllRowsSelectedHandler()}
+                  /> */}
                 </TableCell>
               )}
               {headerGroup.headers.map((header) => (
@@ -123,7 +123,7 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
           ))}
         </TableHead>
         <TableBody>
-          {table.getRowModel().rows.map((row) => (
+          {table?.getRowModel().rows.map((row) => (
             <TableRow key={row.id} hover>
               {showCheckbox && (
                 <TableCell padding="checkbox">
@@ -144,7 +144,7 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={columns.length + (showCheckbox ? 1 : 0)}>
+            <TableCell colSpan={columns?.length + (showCheckbox ? 1 : 0)}>
               <Box
                 sx={{
                   display: 'flex',
@@ -158,7 +158,7 @@ const ModifiedDynamicTable = <TData extends { id: number }>({
                 />
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]}
-                  count={data.length}
+                  count={data?.length}
                   rowsPerPage={pagination.pageSize}
                   page={pagination.pageIndex}
                   onPageChange={(_, page) =>

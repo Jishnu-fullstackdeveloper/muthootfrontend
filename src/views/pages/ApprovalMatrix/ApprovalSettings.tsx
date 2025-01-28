@@ -1,93 +1,122 @@
 'use client';
-import DynamicButton from '@/components/Button/dynamicButton';
-import { Box, Card, IconButton, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import {
+  Box,
+  Typography,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button
+} from '@mui/material';
 import React, { useState, useEffect } from 'react';
-
-//import DynamicTable from '@/components/Table/dynamicTable';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice';
 import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable';
 import { ColumnDef } from '@tanstack/react-table';
-import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { approvalData } from '@/shared/approvalData';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const ApprovalSettings = () => {
   const router = useRouter();
-  // const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
-  // const { ApprovalMatrixData } = useAppSelector((state: any) => state.approvalMatrixReducer)
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  // useEffect(() => {
-  //   console.log('Approval matrix data', approvalData?.data)
-  // }, [])
+  // Redux state
+  const { approvalMatrixData, status, error, totalItems } = useAppSelector(
+    (state) => state.approvalMatrixReducer
+  );
 
-  // State to manage table data
-  const [tableData, setTableData] = useState<any[]>([]);
-
-  // State for dialog
+  // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Load initial data on client-side only
+  // Fetch data on page/limit change
   useEffect(() => {
-    setTableData([
-      {
-        id: 1,
-        approvalType: 'Recruitment',
-        numberOfLevels: 1,
-        approvalFor: 'HR',
-      },
-      {
-        id: 2,
-        approvalType: 'Branch Expansion',
-        numberOfLevels: 2,
-        approvalFor: 'Manager',
-      },
-      {
-        id: 3,
-        approvalType: 'Employee Resignation',
-        numberOfLevels: 3,
-        approvalFor: 'Sales Executive',
-      },
-    ]);
-  }, []);
+    dispatch(fetchApprovalMatrices({ page, limit }));
+  }, [dispatch, page, limit]);
 
-  // Handler for editing a row
+  // Log data for debugging
+  useEffect(() => {
+    console.log('Approval Matrix Data:', approvalMatrixData);
+  }, [approvalMatrixData]);
+
+  // Handle edit
+  // const handleEdit = (rowData: any) => {
+  //   router.push(`/approval-matrix/edit/edit-approval?id=${rowData.uuid}`);
+  // };
+
   const handleEdit = (rowData: any) => {
-    const { id, approvalType, numberOfLevels, approvalFor } = rowData;
-    router.push(`/approval-matrix/edit/edit-approval?id=${id}&approvalType=${approvalType}&numberOfLevels=${numberOfLevels}&approvalFor=${approvalFor}`);
+    const queryParams = new URLSearchParams({
+      uuid: rowData.uuid,
+      approvalType: rowData.name,
+      numberOfLevels: rowData.configurations.length.toString(),
+      approvalFor: JSON.stringify(rowData.configurations.map((config: any) => ({
+        id: config.approverDesignationId,
+        designation: config.approverDesignation,
+      }))),
+    }).toString();
+
+    router.push(`/approval-matrix/edit/edit-approval?${queryParams}`);
   };
 
-  // Handler for opening the delete confirmation dialog
-  const handleOpenDialog = (id: number) => {
+
+  // Handle dialog open
+  const handleOpenDialog = (id: string) => {
     setSelectedId(id);
     setOpenDialog(true);
   };
 
-  // Handler for closing the delete confirmation dialog
+  // Handle dialog close
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedId(null);
   };
 
-  // Handler for deleting a row
-  const handleDelete = () => {
-    if (selectedId !== null) {
-      setTableData((prev) => prev.filter((row) => row.id !== selectedId));
-      handleCloseDialog();
+  // // Handle delete
+  // const handleDelete = async () => {
+  //   if (selectedId) {
+  //     dispatch(deleteApprovalMatrix(selectedId));
+  //     dispatch(fetchApprovalMatrices({ page, limit })); // Refresh the data
+  //     setOpenDialog(false);
+  //     setSelectedId(null);
+  //   }
+  // };
+
+  // Handle delete
+  const handleDelete = async () => {
+    if (selectedId) {
+      // Dispatch delete action
+      const resultAction = await dispatch(deleteApprovalMatrix(selectedId));
+      // Check for error during deletion
+      if (deleteApprovalMatrix.fulfilled.match(resultAction)) {
+        // On success, fetch updated data
+        dispatch(fetchApprovalMatrices({ page, limit }));
+      }
+      // Close the dialog and reset selection
+      setOpenDialog(false);
+      setSelectedId(null);
     }
   };
 
+  // Columns for the table
   const columns: ColumnDef<any>[] = [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'approvalType', header: 'Approval Type' },
-    { accessorKey: 'numberOfLevels', header: 'Number of Levels' },
-    { accessorKey: 'approvalFor', header: 'Approval By' },
+    { accessorKey: 'uuid', header: 'UUID' },
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'description', header: 'Description' },
+    {
+      accessorKey: 'configurations',
+      header: 'Configurations',
+      cell: ({ row }) => row.original.configurations.map((config: any) => config.approvalSequenceLevel).join(', '),
+    },
     {
       header: 'Actions',
-      meta: { className: 'sticky right-0' },
-      cell: (info: any) => (
+      cell: (info) => (
         <div>
           <IconButton
             aria-label="edit"
@@ -99,7 +128,7 @@ const ApprovalSettings = () => {
           <IconButton
             aria-label="delete"
             sx={{ fontSize: 18 }}
-            onClick={() => handleOpenDialog(info.row.original.id)}
+            onClick={() => handleOpenDialog(info.row.original.uuid)}
           >
             <DeleteIcon />
           </IconButton>
@@ -108,34 +137,35 @@ const ApprovalSettings = () => {
     },
   ];
 
-  return (
-    <div>
-      <div className="flex justify-between p-1 w-full">
-        <Box
-          className="w-full flex justify-between gap-4"
-          sx={{ alignItems: 'flex-end', mt: 4 }}
-        >
-          <Typography variant="h4">Approval Matrix</Typography>
-          <DynamicButton
-            label="New Approval"
-            variant="contained"
-            icon={<i className="tabler-plus" />}
-            position="start"
-            onClick={() => router.push(`/approval-matrix/add/new-approval`)}
-            children="New Approval"
-          />
-        </Box>
-      </div>
-      <div className="mt-2">
-        {tableData.length > 0 && <ModifiedDynamicTable columns={columns} data={tableData} showCheckbox={false} />}
-      </div>
+  // Pagination handlers
+  const handlePageChange = (newPage: number) => setPage(newPage);
 
-      {/* Delete Confirmation Dialog */}
+  return (
+    <Box>
+      <Box className="flex justify-between p-1 w-full">
+        <Typography variant="h4">Approval Matrix</Typography>
+        <Button
+          variant="contained"
+          onClick={() => router.push(`/approval-matrix/add/new-approval`)}
+        >
+          New Approval
+        </Button>
+      </Box>
+
+      <Box className="mt-2">
+        {status === 'loading' && <Typography>Loading...</Typography>}
+        {status === 'failed' && <Typography>Error: {error}</Typography>}
+        {status === 'succeeded' && (
+          <ModifiedDynamicTable columns={columns} data={approvalMatrixData} />
+        )}
+      </Box>
+
+      {/* Delete Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Confirmation for deletion</DialogTitle>
+        <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this?
+            Are you sure you want to delete this approval matrix?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -147,7 +177,7 @@ const ApprovalSettings = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 

@@ -1,10 +1,15 @@
-import React from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Box, Typography, Grid, Divider, Button, Paper, Chip, Stepper, Step, StepLabel, Card } from '@mui/material'
 import { Email, Phone, Business, CalendarToday, LocationCity, ArrowBack, Edit } from '@mui/icons-material'
 import { useRouter } from 'next/navigation'
 import ChartSample from './ChartSample'
 import BubblePositionTable from './BubblePositionTable'
 import DesignationResignedReport from './BubblePositionTable'
+import { fetchRecruitmentRequestById, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { RootState } from '@/redux/store'
+import { isAdmin } from '@/utils/functions'
+import { getAccessToken, decodeToken } from '@/utils/functions'
 
 type Props = {
   mode: string
@@ -13,63 +18,132 @@ type Props = {
 
 const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  const {
+    fetchRecruitmentRequestByIdLoading,
+    fetchRecruitmentRequestByIdData,
+    fetchRecruitmentRequestByIdFailure,
+    fetchRecruitmentRequestByIdFailureMessage
+  } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
+
   // Sample employee data
-  const employee = {
-    employeeCode: 'EMP001',
-    employmentStatus: 'Resigned',
-    employmentType: 'Full-time',
-    title: 'Mr.',
-    employeeName: 'John Doe',
-    company: 'ABC Corp',
-    department: 'IT',
-    territory: 'North Zone',
-    zone: 'Zone A',
-    region: 'Region 1',
-    area: 'Area 5',
-    cluster: 'Cluster X',
-    branch: 'Main Branch',
-    branchCode: 'BR001',
-    cityClassification: 'Metro',
-    state: 'California',
-    personalEmail: 'johndoe@example.com',
-    officeEmail: 'johnd@abccorp.com',
-    dateOfJoining: '2015-06-15',
-    groupDOJ: '2015-06-15',
-    designation: 'Software Engineer',
-    employeeCategory: 'Technical',
-    employeeType: 'Permanent',
-    noticePeriod: '30 days',
-    mobileNumber: '+1-234-567-8901',
-    dateOfResignation: '2024-12-01',
-    lastWorkingDay: '2025-01-01',
-    additionalDetails:
-      'Relocating to another city for personal reasons. Leaving your job might seem like a daunting task. However, under certain circumstances, quitting might be beneficial for you. As of 2024, 88% of professionals in India are considering a new job.* Some of the common reasons are work-life balance and higher compensation. Several professionals also consider leaving their jobs to upskill themselves. Education not only adds more skills but can also help one find their purpose. As per one LinkedIn study, 8 out of 10 people say that learning adds purpose to their work.',
-    approvalStatus: [
-      {
-        designation: 'Branch Manager',
-        label: 'HR Approval',
-        approverName: 'John Doe',
-        employeeCode: 'E1234',
-        status: 'Completed'
-      },
-      {
-        designation: 'HR Manager',
-        label: 'HR Manager Approval',
-        approverName: 'Jane Smith',
-        employeeCode: 'E5678',
-        status: 'Pending'
-      },
-      {
-        designation: 'Director',
-        label: 'Director Approval',
-        approverName: 'Alice Johnson',
-        employeeCode: 'E9012',
-        status: 'Rejected'
-      }
-    ]
+  // const employee = {
+  //   employeeCode: 'EMP001',
+  //   employmentStatus: 'Resigned',
+  //   employmentType: 'Full-time',
+  //   title: 'Mr.',
+  //   employeeName: 'John Doe',
+  //   company: 'ABC Corp',
+  //   department: 'IT',
+  //   territory: 'North Zone',
+  //   zone: 'Zone A',
+  //   region: 'Region 1',
+  //   area: 'Area 5',
+  //   cluster: 'Cluster X',
+  //   branch: 'Main Branch',
+  //   branchCode: 'BR001',
+  //   cityClassification: 'Metro',
+  //   state: 'California',
+  //   personalEmail: 'johndoe@example.com',
+  //   officeEmail: 'johnd@abccorp.com',
+  //   dateOfJoining: '2015-06-15',
+  //   groupDOJ: '2015-06-15',
+  //   designation: 'Software Engineer',
+  //   employeeCategory: 'Technical',
+  //   employeeType: 'Permanent',
+  //   noticePeriod: '30 days',
+  //   mobileNumber: '+1-234-567-8901',
+  //   dateOfResignation: '2024-12-01',
+  //   lastWorkingDay: '2025-01-01',
+  //   additionalDetails:
+  //     'Relocating to another city for personal reasons. Leaving your job might seem like a daunting task. However, under certain circumstances, quitting might be beneficial for you. As of 2024, 88% of professionals in India are considering a new job.* Some of the common reasons are work-life balance and higher compensation. Several professionals also consider leaving their jobs to upskill themselves. Education not only adds more skills but can also help one find their purpose. As per one LinkedIn study, 8 out of 10 people say that learning adds purpose to their work.',
+  //   approvalStatus: [
+  //     {
+  //       designation: 'Branch Manager',
+  //       label: 'HR Approval',
+  //       approverName: 'John Doe',
+  //       employeeCode: 'E1234',
+  //       status: 'Completed'
+  //     },
+  //     {
+  //       designation: 'HR Manager',
+  //       label: 'HR Manager Approval',
+  //       approverName: 'Jane Smith',
+  //       employeeCode: 'E5678',
+  //       status: 'Pending'
+  //     },
+  //     {
+  //       designation: 'Director',
+  //       label: 'Director Approval',
+  //       approverName: 'Alice Johnson',
+  //       employeeCode: 'E9012',
+  //       status: 'Rejected'
+  //     }
+  //   ]
+  // }
+
+  const getApproverId = () => {
+    const token = getAccessToken()
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+    return decodedToken?.sub
   }
 
-  const activeStep = employee?.approvalStatus?.findIndex(step => step.status === 'Pending')
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
+  const employee = useMemo(() => {
+    const data = safeGetData(fetchRecruitmentRequestByIdData)
+    return data[0]
+  }, [fetchRecruitmentRequestByIdData])
+
+  useEffect(() => {
+    dispatch(fetchRecruitmentRequestById({ id }))
+  }, [])
+
+  const handleApprove = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+      if (!employee?.approval_id) throw new Error('No approval ID found')
+
+      await dispatch(
+        submitRequestDecision({
+          id: employee.approval_id, // Using approval_id from fetched data
+          approvalStatus: 'APPROVED',
+          approverId
+        })
+      ).unwrap()
+      router.push('/recruitment-management/overview')
+    } catch (error) {
+      console.error('Error approving request:', error)
+    }
+  }
+
+  const handleReject = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+      if (!employee?.approval_id) throw new Error('No approval ID found')
+
+      await dispatch(
+        submitRequestDecision({
+          id: employee.approval_id, // Using approval_id from fetched data
+          approvalStatus: 'REJECTED',
+          approverId
+        })
+      ).unwrap()
+      router.push('/recruitment-management/overview')
+    } catch (error) {
+      console.error('Error rejecting request:', error)
+    }
+  }
+
+  // const activeStep = employee?.approvalStatus?.findIndex(step => step.status === 'Pending')
+  const activeStep = 1
 
   return (
     <Paper
@@ -117,12 +191,12 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
               textTransform: 'capitalize'
             }}
           >
-            {/* {employee.title} {employee.employeeName} */}
-            Software Engineer
+            {employee?.Designation}
+            {/* Software Engineer */}
           </Typography>
           <Typography variant='body1' sx={{ color: '#555', marginBottom: 0.5, fontWeight: '500', paddingY: 1 }}>
-            {/* {employee.designation} - {employee.department} */}
-            Information Technology
+            {employee?.Department}
+            {/* Information Technology */}
           </Typography>
           {/* <Typography
             variant="body2"
@@ -136,11 +210,11 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
               paddingY: 1,
               fontSize: 15,
               textTransform: 'capitalize',
-              color: employee.employmentStatus === 'Resigned' ? '#d32f2f' : '#388e3c',
+              color: employee?.employmentStatus === 'Resigned' ? '#d32f2f' : '#388e3c',
               maxWidth: '120px'
             }}
           >
-            {employee.employmentStatus}
+            {employee?.employmentStatus}
           </Box>
         </Box>
 
@@ -160,37 +234,57 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           }}
         /> */}
 
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 2,
-            marginTop: 2
-          }}
-        >
-          <Button
-            variant='contained'
-            color='success'
-            onClick={e => {
-              e.stopPropagation()
+        {isAdmin() ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2,
+              marginTop: 2
             }}
-            sx={{ padding: '6px 16px' }}
-            startIcon={<i className='tabler-check' />}
           >
-            Approve
-          </Button>
-          <Button
-            variant='contained'
-            color='error'
-            onClick={e => {
-              e.stopPropagation()
+            <Button
+              variant='contained'
+              color='success'
+              onClick={handleApprove}
+              sx={{ padding: '6px 16px' }}
+              startIcon={<i className='tabler-check' />}
+            >
+              Approve
+            </Button>
+            <Button
+              variant='contained'
+              color='error'
+              onClick={handleReject}
+              sx={{ padding: '6px 16px' }}
+              startIcon={<i className='tabler-playstation-x' />}
+            >
+              Reject
+            </Button>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: 2
             }}
-            sx={{ padding: '6px 16px' }}
-            startIcon={<i className='tabler-playstation-x' />}
           >
-            Reject
-          </Button>
-        </Box>
+            <Chip
+              label='Pending'
+              color='warning'
+              sx={{
+                borderRadius: '16px',
+                fontSize: '0.875rem',
+                '& .MuiChip-label': {
+                  px: 2,
+                  py: 0.5
+                }
+              }}
+              icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
+            />
+          </Box>
+        )}
       </Box>
 
       {/* Action Buttons */}
@@ -293,7 +387,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       <Divider sx={{ marginBottom: 3 }} />
       <Box sx={{ p: 10 }}>
         <Stepper activeStep={activeStep} alternativeLabel>
-          {employee.approvalStatus.map((step, index) => (
+          {employee?.approvalStatus?.map((step, index) => (
             <Step key={index}>
               <StepLabel
                 error={step.status === 'Rejected'}
@@ -318,7 +412,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           gap: '16px'
         }}
       >
-        {employee.approvalStatus.map((approver, index) => (
+        {employee?.approvalStatus?.map((approver, index) => (
           <Card
             key={index}
             sx={{
@@ -361,7 +455,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
         Additional Details
       </Typography>
       <Divider sx={{ marginBottom: 3 }} />
-      <Typography variant='body1'>{employee.additionalDetails}</Typography>
+      <Typography variant='body1'>{employee?.additionalDetails}</Typography>
     </Paper>
   )
 }

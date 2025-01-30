@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -24,84 +24,86 @@ import AssessmentIcon from '@mui/icons-material/Assessment'
 import SettingsIcon from '@mui/icons-material/Settings'
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
+import { fetchResignationOverviewList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import AddIcon from '@mui/icons-material/Add'
+import { isAdmin } from '@/utils/functions'
+import { getAccessToken, decodeToken } from '@/utils/functions'
 
-const approvers = [
-  {
-    name: 'Software Engineer',
-    requests: 10,
-    requestType: 'Resignation',
-    daysSinceCreated: 2,
-    warning: '2 requests remaining of 10',
-    warningColor: '#4caf50',
-    approvalLevels: [
-      { level: 'Branch Manager', status: 'Approved' },
-      { level: 'HR Manager', status: 'Pending' },
-      { level: 'Director', status: 'Rejected' }
-    ],
-    branchDetails: 'Branch A',
-    bubblePositionsCount: 4
-  },
-  {
-    name: 'Operations Manager',
-    requests: 5,
-    requestType: 'Manual Creation',
-    daysSinceCreated: 5,
-    warning: '5 requests remaining of 10',
-    warningColor: '#ff9800',
-    approvalLevels: [
-      { level: 'HR Manager', status: 'Approved' },
-      { level: 'Director', status: 'Pending' }
-    ],
-    branchDetails: 'Branch B',
-    bubblePositionsCount: 3
-  },
-  {
-    name: 'Sales Executive',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  },
-  {
-    name: 'Marketing Manager',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  },
-  {
-    name: 'Quality Analyst',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  },
-  {
-    name: 'Finance Manager',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  }
-]
+// const approvers = [
+//   {
+//     name: 'Software Engineer',
+//     requests: 10,
+//     requestType: 'Resignation',
+//     daysSinceCreated: 2,
+//     warning: '2 requests remaining of 10',
+//     warningColor: '#4caf50',
+//     approvalLevels: [
+//       { level: 'Branch Manager', status: 'Approved' },
+//       { level: 'HR Manager', status: 'Pending' },
+//       { level: 'Director', status: 'Rejected' }
+//     ],
+//     branchDetails: 'Branch A',
+//     bubblePositionsCount: 4
+//   },
+//   {
+//     name: 'Operations Manager',
+//     requests: 5,
+//     requestType: 'Manual Creation',
+//     daysSinceCreated: 5,
+//     warning: '5 requests remaining of 10',
+//     warningColor: '#ff9800',
+//     approvalLevels: [
+//       { level: 'HR Manager', status: 'Approved' },
+//       { level: 'Director', status: 'Pending' }
+//     ],
+//     branchDetails: 'Branch B',
+//     bubblePositionsCount: 3
+//   },
+//   {
+//     name: 'Sales Executive',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Marketing Manager',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Quality Analyst',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Finance Manager',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   }
+// ]
 
 const RecruitmentRequestOverview = () => {
   const router = useRouter()
@@ -112,15 +114,7 @@ const RecruitmentRequestOverview = () => {
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
   const dispatch = useAppDispatch()
   const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
-
-  // useEffect(() => {
-  //   let params = {
-  //     page: paginationState?.page,
-  //     limit: paginationState?.limit
-  //   }
-  //   dispatch(fetchResignationOverviewList(params))
-  // }, [paginationState])
-
+  // const [approvers, setApprovers] = useState([])
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
   }
@@ -141,10 +135,72 @@ const RecruitmentRequestOverview = () => {
     setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
-  const handleApproveAll = () => setAcceptAllDialogOpen(true)
+  // const handleApproveAll = () => setAcceptAllDialogOpen(true)
   const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
-  // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
+  const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
 
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
+  const approvers = useMemo(() => {
+    const data = safeGetData(fetchResignationOverviewListData)
+    return data
+  }, [fetchResignationOverviewListData])
+
+  const getApproverId = () => {
+    const token = getAccessToken()
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+    return decodedToken?.sub
+  }
+
+  const handleApproveAll = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      const requestData = approvers.find((item: any) => item.id === id)
+      if (!approval_id) throw new Error('No approval ID found')
+      console.log(requestData)
+      await dispatch(
+        submitRequestDecision({
+          id: approval_id, // Using approval_id from overview data
+          approvalStatus: 'APPROVED',
+          approverId
+        })
+      ).unwrap()
+
+      // Refresh the list after approval
+      dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
+    } catch (error) {
+      console.error('Error approving request:', error)
+    }
+  }
+
+  const handleRejectAll = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      const requestData = approvers.find((item: any) => item.id === id)
+      if (!approval_id) throw new Error('No approval ID found')
+
+      await dispatch(
+        submitRequestDecision({
+          id: approval_id, // Using approval_id from overview data
+          approvalStatus: 'REJECTED',
+          approverId
+        })
+      ).unwrap()
+
+      // Refresh the list after rejection
+      dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
+    } catch (error) {
+      console.error('Error rejecting request:', error)
+    }
+  }
   useEffect(() => {
     if (acceptAllConfirmed === true) {
       setAcceptAllConfirmed(false)
@@ -152,8 +208,8 @@ const RecruitmentRequestOverview = () => {
     }
   }, [acceptAllConfirmed])
 
-  const progressBar = approvers.map(approver => {
-    const daysRemaining = approver.daysSinceCreated
+  const progressBar = approvers?.map(approver => {
+    const daysRemaining = approver?.daysSinceCreated
     return Math.max(0, 100 - daysRemaining * 10)
   })
 
@@ -162,6 +218,14 @@ const RecruitmentRequestOverview = () => {
     if (status === 'Pending') return '#ff9800' // Orange for Pending
     return '#f44336' // Red for Rejected
   }
+
+  useEffect(() => {
+    const params = {
+      page: paginationState?.page,
+      limit: paginationState?.limit
+    }
+    dispatch(fetchResignationOverviewList(params))
+  }, [paginationState, dispatch])
 
   return (
     <>
@@ -242,10 +306,10 @@ const RecruitmentRequestOverview = () => {
                   }
                 }}
               >
-                {approvers.map((approver, index) => (
-                  <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
+                {approvers?.map((approver, index) => (
+                  <Box key={approver.id} sx={{ marginBottom: 2, pb: 4 }}>
                     <Typography variant='body1' sx={{ color: '#555' }}>
-                      {approver.name} - {approver.requests} Requests
+                      {approver.Designation} - {approver.requestCount} Requests
                     </Typography>
                     <LinearProgress
                       variant='determinate'
@@ -365,7 +429,7 @@ const RecruitmentRequestOverview = () => {
           </Grid> */}
 
           <Grid container spacing={4} mt={2}>
-            {approvers.map((approver, index) => (
+            {approvers?.map((approver, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card
                   sx={{
@@ -381,7 +445,7 @@ const RecruitmentRequestOverview = () => {
                   }}
                   className='transition transform hover:-translate-y-1'
                   onClick={() => {
-                    const displayName = approver.name.replace(/\s+/g, '-') // Replace spaces with dashes
+                    const displayName = approver.Designation.replace(/\s+/g, '-') // Replace spaces with dashes
                     router.push(`/recruitment-management/request-listing?filter=${displayName}`)
                   }}
                 >
@@ -400,12 +464,12 @@ const RecruitmentRequestOverview = () => {
                       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
                     }}
                   >
-                    {approver.requests} Requests
+                    {approver.requestCount} Requests
                   </Box>
 
                   {/* Designation Name */}
                   <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
-                    {approver.name}
+                    {approver.Designation}
                   </Typography>
 
                   {/* Bubble Position Availability */}
@@ -435,12 +499,12 @@ const RecruitmentRequestOverview = () => {
 
                   {/* Request Type */}
                   <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Request Type:</strong> {approver.requestType}
+                    <strong>Request Type:</strong> {approver.origin}
                   </Typography>
 
                   {/* Branch Details */}
                   <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
-                    <strong>Branch:</strong> {approver.branchDetails}
+                    <strong>Branch:</strong> {approver.Branches}
                   </Typography>
 
                   {/* Approval Levels */}
@@ -457,7 +521,7 @@ const RecruitmentRequestOverview = () => {
                       Approval Levels: {approver.approvalLevels?.length}
                     </Typography>
                     <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                      {approver.approvalLevels.map((level, i) => (
+                      {approver?.approvalLevels?.map((level, i) => (
                         <li
                           key={i}
                           style={{
@@ -473,39 +537,66 @@ const RecruitmentRequestOverview = () => {
                   </Box>
 
                   {/* Approve & Reject Buttons */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: 1
-                    }}
-                  >
-                    <Tooltip title='Approve Request'>
-                      <Button
-                        variant='contained'
-                        color='success'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleApproveAll()
+                  {isAdmin() ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 1
+                      }}
+                    >
+                      <Tooltip title='Approve Request'>
+                        <Button
+                          variant='contained'
+                          color='success'
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleApproveAll(approver.id, approver.approval_id)
+                          }}
+                          sx={{ padding: '6px 16px' }}
+                          startIcon={<i className='tabler-check' />}
+                        >
+                          Approve All
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title='Reject Request'>
+                        <Button
+                          variant='contained'
+                          color='error'
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleRejectAll(approver.id, approver.approval_id)
+                          }}
+                          sx={{ padding: '6px 16px' }}
+                          startIcon={<i className='tabler-playstation-x' />}
+                        >
+                          Reject All
+                        </Button>
+                      </Tooltip>
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Chip
+                        label='Pending'
+                        color='warning'
+                        sx={{
+                          borderRadius: '16px',
+                          fontSize: '0.875rem',
+                          '& .MuiChip-label': {
+                            px: 2,
+                            py: 0.5
+                          }
                         }}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-check' />}
-                      >
-                        Approve All
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title='Reject Request'>
-                      <Button
-                        variant='contained'
-                        color='error'
-                        onClick={e => e.stopPropagation()}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-playstation-x' />}
-                      >
-                        Reject All
-                      </Button>
-                    </Tooltip>
-                  </Box>
+                        icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
+                      />
+                    </Box>
+                  )}
                 </Card>
               </Grid>
             ))}

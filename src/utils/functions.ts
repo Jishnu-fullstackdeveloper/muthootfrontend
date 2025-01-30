@@ -1,7 +1,35 @@
+interface DecodedToken {
+  [x: string]: any
+  realm_access?: {
+    roles?: string[]
+  }
+}
+
 export const getAccessToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('access_token')
   }
+}
+
+export const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]))
+  } catch (error) {
+    console.error('Error decoding token:', error)
+    return null
+  }
+}
+
+export const isAdmin = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('access_token')
+    if (!token) return false
+
+    const decodedToken = decodeToken(token)
+    if (!decodedToken?.realm_access?.roles) return false
+    return decodedToken.realm_access.roles.includes('admin')
+  }
+  return false
 }
 
 export const setBusinessRoles = (val: any) => {

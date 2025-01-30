@@ -6,10 +6,11 @@
 import { useState } from 'react'
 
 // MUI Imports
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
+import Drawer from '@mui/material/Drawer'
+import CloseIcon from '@mui/icons-material/Close'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import CheckIcon from '@mui/icons-material/Check'
+import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Checkbox from '@mui/material/Checkbox'
@@ -86,86 +87,142 @@ const VacancyManagementFilters = ({
   }
 
   return (
-    <Dialog
-      maxWidth='sm'
-      scroll='body'
+    <Drawer
+      anchor='left'
       open={open}
       onClose={handleClose}
-      sx={{ '& .MuiDialog-paper': { overflow: 'visible', width: '600px', padding: '16px' } }}
+      variant='temporary' // Changed to temporary to handle outside clicks
+      BackdropProps={{
+        invisible: true, // Show backdrop for click handling
+        sx: { backgroundColor: 'transparent' } // Make backdrop transparent
+      }}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: '260px',
+          backgroundColor: 'background.paper',
+          marginTop: '64px',
+          height: 'calc(100% - 64px)',
+          overflow: 'auto',
+          borderRight: 'none',
+          boxShadow: 'none',
+          zIndex: 1200 // Increased zIndex to appear above vertical menu
+        },
+        zIndex: 1200 // Increased drawer zIndex
+      }}
     >
-      <DialogTitle variant='h5'>Customize Vacancy Filters</DialogTitle>
-      <DialogContent>
-        {Object.entries(filterData).map(([category, options]) => (
-          <Box key={category} className='mb-4'>
-            <Typography variant='subtitle1' className='font-medium mb-2'>
-              {category.charAt(0).toUpperCase() + category.slice(1)}
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box
+          sx={{
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Typography variant='h6'>Filters</Typography>
+        </Box>
+
+        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+          {/* Category Filters */}
+          {Object.entries(filterData).map(([category, options]) => (
+            <Box key={category} sx={{ mb: 4 }}>
+              <Typography variant='subtitle2' sx={{ mb: 2, textTransform: 'uppercase', fontWeight: 600 }}>
+                {category}
+              </Typography>
+              <FormGroup>
+                {options.map(option => (
+                  <FormControlLabel
+                    key={option}
+                    control={
+                      <Checkbox
+                        size='small'
+                        checked={(selectedFilters[category] as string[])?.includes(option) || false}
+                        onChange={() => handleCheckboxChange(category, option)}
+                      />
+                    }
+                    label={<Typography variant='body2'>{option}</Typography>}
+                  />
+                ))}
+              </FormGroup>
+            </Box>
+          ))}
+
+          {/* Salary Range */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant='subtitle2' sx={{ mb: 2, textTransform: 'uppercase', fontWeight: 600 }}>
+              Salary Range
             </Typography>
-            <FormGroup>
-              {options.map(option => (
-                <FormControlLabel
-                  key={option}
-                  control={
-                    <Checkbox
-                      checked={(selectedFilters[category] as string[])?.includes(option) || false}
-                      onChange={() => handleCheckboxChange(category, option)}
-                    />
-                  }
-                  label={option}
-                />
-              ))}
-            </FormGroup>
+            <Slider
+              value={selectedFilters.salaryRange as number[]}
+              onChange={handleSliderChange}
+              valueLabelDisplay='auto'
+              min={0}
+              max={100000}
+              step={5000}
+              sx={{ width: '90%', ml: 1 }}
+            />
           </Box>
-        ))}
 
-        <Box className='mb-4'>
-          <Typography variant='subtitle1' className='font-medium mb-2'>
-            Salary Range Per Month (in thousands)
-          </Typography>
-          <Slider
-            value={selectedFilters.salaryRange as number[]}
-            onChange={handleSliderChange}
-            valueLabelDisplay='auto'
-            min={0}
-            max={100000}
-            step={5000}
-          />
-        </Box>
+          {/* Job Role */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant='subtitle2' sx={{ mb: 2, textTransform: 'uppercase', fontWeight: 600 }}>
+              Job Role
+            </Typography>
+            <FormControl fullWidth size='small'>
+              <Select
+                labelId='job-role-label'
+                id='job-role'
+                value={selectedFilters.jobRole}
+                onChange={handleSelectChange}
+                sx={{ fontSize: '0.875rem' }}
+              >
+                <MenuItem value=''>Select Role</MenuItem>
+                <MenuItem value='Software Engineer'>Software Engineer</MenuItem>
+                <MenuItem value='Data Analyst'>Data Analyst</MenuItem>
+                <MenuItem value='Project Manager'>Project Manager</MenuItem>
+                <MenuItem value='Marketing Specialist'>Marketing Specialist</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
-        <Box className='mb-4'>
-          <Typography variant='subtitle1' className='font-medium mb-2'>
-            Job Role
-          </Typography>
-          <FormControl fullWidth>
-            <Select
-              labelId='job-role-label'
-              id='job-role'
-              value={selectedFilters.jobRole}
-              onChange={handleSelectChange}
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              p: 2,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <IconButton onClick={handleClose} size='small' color='secondary' title='Cancel'>
+              <CloseIcon />
+            </IconButton>
+            <IconButton onClick={handleResetFilters} size='small' color='secondary' title='Reset Filters'>
+              <RestartAltIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleApplyFilters}
+              size='small'
+              color='primary'
+              sx={{
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'primary.dark'
+                }
+              }}
+              title='Apply Filters'
             >
-              <MenuItem value=''>Select Job Role</MenuItem>
-              <MenuItem value='Software Engineer'>Software Engineer</MenuItem>
-              <MenuItem value='Data Analyst'>Data Analyst</MenuItem>
-              <MenuItem value='Project Manager'>Project Manager</MenuItem>
-              <MenuItem value='Marketing Specialist'>Marketing Specialist</MenuItem>
-            </Select>
-          </FormControl>
+              <CheckIcon />
+            </IconButton>
+          </Box>
         </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button variant='outlined' color='secondary' onClick={handleClose}>
-          Cancel
-        </Button>
-        <Box>
-          <Button variant='outlined' color='secondary' onClick={handleResetFilters}>
-            Reset Filters
-          </Button>
-          <Button variant='contained' color='primary' onClick={handleApplyFilters}>
-            Apply Filters
-          </Button>
-        </Box>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </Drawer>
   )
 }
 

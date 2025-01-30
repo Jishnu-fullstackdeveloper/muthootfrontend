@@ -1,6 +1,8 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { fetchRecruitmentRequestList } from '@/redux/RecruitmentResignationSlice'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
 import {
   Box,
@@ -20,7 +22,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Pagination
+  Pagination,
+  CircularProgress
 } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import type { TextFieldProps } from '@mui/material/TextField'
@@ -30,9 +33,10 @@ import TableChartIcon from '@mui/icons-material/TableChart'
 import { CheckCircle, Clear, HourglassEmpty } from '@mui/icons-material'
 import CustomTextField from '@/@core/components/mui/TextField'
 import RecruitmentListTableView from './RecruitmentListTableView'
-import designationData from './sampleDesignationData'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
+// import designationData from './sampleDesignationData'
+import { RootState } from '@/redux/store'
 
 const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
@@ -71,17 +75,34 @@ const ResignedDesignationsListing = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const filterParams = searchParams.get('filter')
+  const dispatch = useAppDispatch()
 
-  const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>(() =>
-    designationData?.reduce(
-      (acc, reqst, index) => {
-        acc[index] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+  const {
+    fetchRecruitmentRequestListLoading,
+    fetchRecruitmentRequestListData,
+    fetchRecruitmentRequestListFailure,
+    fetchRecruitmentRequestListFailureMessage
+  } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
 
-        return acc
-      },
-      {} as { [key: number]: number }
-    )
-  )
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
+  const designationData = useMemo(() => {
+    const data = safeGetData(fetchRecruitmentRequestListData)
+    return data
+  }, [fetchRecruitmentRequestListData])
+
+  const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>({})
+
+  // const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>(() =>
+  //   designationData?.reduce(
+  //     (acc, reqst, index) => {
+  //       acc[index] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+
+  //       return acc
+  //     },
+  //     {} as { [key: number]: number }
+  //   )
+  // )
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -104,12 +125,12 @@ const ResignedDesignationsListing = () => {
     setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
-  const handleTabChange = (index: number, newTab: number) => {
-    setSelectedTabs(prev => ({
-      ...prev,
-      [index]: newTab // Update the tab for the specific index
-    }))
-  }
+  // const handleTabChange = (index: number, newTab: number) => {
+  //   setSelectedTabs(prev => ({
+  //     ...prev,
+  //     [index]: newTab // Update the tab for the specific index
+  //   }))
+  // }
 
   const DebouncedInput = ({
     value: initialValue,
@@ -136,6 +157,57 @@ const ResignedDesignationsListing = () => {
     }, [value])
 
     return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
+  }
+
+  useEffect(() => {
+    const params = {
+      page: paginationState.page,
+      limit: paginationState.limit,
+      designationName: filterParams?.replace(/-/g, ' ') || '', // Make designationName optional
+      search: search || ''
+    }
+
+    dispatch(fetchRecruitmentRequestList(params))
+  }, [dispatch, paginationState.page, paginationState.limit, filterParams, search]) // Add dependencies
+
+  useEffect(() => {
+    if (designationData?.length > 0) {
+      const initialTabs = designationData.reduce(
+        (acc, _, index) => {
+          acc[index] = 0 // Set the default tab to 'Basic Details' (index 0) for each item
+          return acc
+        },
+        {} as { [key: number]: number }
+      )
+      setSelectedTabs(initialTabs)
+    }
+  }, [designationData])
+
+  const handleTabChange = (index: number, newTab: number) => {
+    setSelectedTabs(prev => ({
+      ...prev,
+      [index]: newTab
+    }))
+  }
+
+  useEffect(() => {
+    console.log('designationData', designationData)
+  }, [designationData])
+
+  if (fetchRecruitmentRequestListLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (fetchRecruitmentRequestListFailure) {
+    return (
+      <Box sx={{ padding: 4 }}>
+        <Typography color='error'>Error loading data: {fetchRecruitmentRequestListFailureMessage}</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -291,7 +363,7 @@ const ResignedDesignationsListing = () => {
             ?.map((designation: any, index: number) => (
               <Box
                 key={index}
-                onClick={() => router.push(`/recruitment-management/view/${designation.employeeCode}`)}
+                onClick={() => router.push(`/recruitment-management/view/${designation.id}`)}
                 className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
                   viewMode !== 'grid' ? 'p-0' : ''
                 }`}
@@ -308,7 +380,7 @@ const ResignedDesignationsListing = () => {
                     <>
                       <Box className='p-4 border-t'>
                         <Tabs
-                          value={selectedTabs[index] || 0}
+                          value={selectedTabs[index] ?? 0}
                           onClick={e => e.stopPropagation()}
                           onChange={(e, newValue) => handleTabChange(index, newValue)}
                           aria-label='employee details'
@@ -342,7 +414,7 @@ const ResignedDesignationsListing = () => {
                                     textAlign: 'center'
                                   }}
                                 >
-                                  {designation?.bubblePositionBranchIds.length || 0}
+                                  {designation?.bubblePositionBranchIds?.length || 0}
                                 </Box>
                               </Box>
                             }
@@ -368,17 +440,17 @@ const ResignedDesignationsListing = () => {
                           {selectedTabs[index] === 0 && (
                             <Box className='space-y-2 text-sm text-gray-700'>
                               <p>
-                                <strong>Request Type:</strong> {designation?.requestType}
+                                <strong>Request Type:</strong> {designation?.origin}
                               </p>
                               <p>
-                                <strong>Department:</strong> {designation?.department}
+                                <strong>Department:</strong> {designation?.Department}
                               </p>
                               <p>
-                                <strong>Branch:</strong> {designation?.branch}
+                                <strong>Branch:</strong> {designation?.Branches}
                               </p>
-                              {designation.requestType === 'Resignation' && (
+                              {designation.origin === 'Resignation' && (
                                 <p>
-                                  <strong>Resigned Employee Code:</strong> {designation?.employeeCode}
+                                  <strong>Resigned Employee Code:</strong> {designation?.id}
                                 </p>
                               )}
 
@@ -398,9 +470,9 @@ const ResignedDesignationsListing = () => {
                                               : '#757575' // Default grey
                                     }}
                                   >
-                                    {designation?.employmentStatus}
+                                    {designation?.id}
                                   </span>
-                                  {getStatusIcon(designation?.employmentStatus)}
+                                  {getStatusIcon(designation?.id)}
                                 </Typography>
                               </Box>
 
@@ -484,10 +556,10 @@ const ResignedDesignationsListing = () => {
                                 <strong>Band:</strong> {designation?.band}
                               </p>
                               <p>
-                                <strong>Grade:</strong> {designation?.grade}
+                                <strong>Grade:</strong> {designation?.Grade}
                               </p>
                               <p>
-                                <strong>Company:</strong> {designation?.company}
+                                <strong>Company:</strong> {designation?.Company}
                               </p>
                             </Box>
                           )}
@@ -505,17 +577,17 @@ const ResignedDesignationsListing = () => {
                           </Typography>
                           <Box className='space-y-2 text-sm text-gray-700'>
                             <p>
-                              <strong>Request Type:</strong> {designation?.requestType}
+                              <strong>Request Type:</strong> {designation?.origin}
                             </p>
                             <p>
-                              <strong>Department:</strong> {designation?.department}
+                              <strong>Department:</strong> {designation?.Department}
                             </p>
                             <p>
-                              <strong>Branch:</strong> {designation?.branch}
+                              <strong>Branch:</strong> {designation?.Branches}
                             </p>
-                            {designation.requestType === 'Resignation' && (
+                            {designation.origin === 'Resignation' && (
                               <p>
-                                <strong>Resigned Employee Code:</strong> {designation?.employeeCode}
+                                <strong>Resigned Employee Code:</strong> {designation?.id}
                               </p>
                             )}
 
@@ -534,9 +606,9 @@ const ResignedDesignationsListing = () => {
                                           : '#757575' // Default grey
                                 }}
                               >
-                                {designation?.employmentStatus}
+                                {designation?.id}
                               </span>
-                              {getStatusIcon(designation?.employmentStatus)}
+                              {getStatusIcon(designation?.id)}
                             </Typography>
                           </Box>
                         </Box>
@@ -598,10 +670,10 @@ const ResignedDesignationsListing = () => {
                               <strong>Band:</strong> {designation?.band}
                             </p>
                             <p>
-                              <strong>Grade:</strong> {designation?.grade}
+                              <strong>Grade:</strong> {designation?.Grade}
                             </p>
                             <p>
-                              <strong>Company:</strong> {designation?.company}
+                              <strong>Company:</strong> {designation?.Company}
                             </p>
                           </Box>
 

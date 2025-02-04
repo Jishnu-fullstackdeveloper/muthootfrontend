@@ -12,7 +12,7 @@ import {
   Card
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter ,useSearchParams } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
 import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable'
@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add'
 
 const ApprovalSettings = () => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
 
   // Pagination states
@@ -44,6 +45,8 @@ const ApprovalSettings = () => {
   // Log data for debugging
   useEffect(() => {
     console.log('Approval Matrix Data:', approvalMatrixData)
+    console.log(searchParams.get('id'))
+
   }, [approvalMatrixData])
 
   const handleEdit = (rowData: any) => {
@@ -54,7 +57,7 @@ const ApprovalSettings = () => {
       approvalBy: JSON.stringify(
         rowData.configurations.map((config: any) => ({
           id: config.designationId,
-          name: config.designationName // Ensure `name` is included
+          name: config.designationName // Ensure name is included
         }))
       )
     }).toString()
@@ -133,7 +136,7 @@ const ApprovalSettings = () => {
         }}
       >
         <Typography variant='h4'>Approval Matrix</Typography>
-        <Button variant='contained' onClick={() => router.push(`/approval-matrix/add/new-approval`)}>
+        <Button variant='contained' onClick={() => router.push(`/approval-matrix/add/new-approval?categoryId=${searchParams.get('id')}`)}>
           <AddIcon sx={{ mr: 1, width: 17 }} /> New Approval
         </Button>
       </Card>

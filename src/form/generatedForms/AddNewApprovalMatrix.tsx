@@ -20,7 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { createNewApprovalMatrix, updateApprovalMatrix, setApprovalMatrixOptions } from '@/redux/approvalMatrixSlice'
+import { createNewApprovalMatrix, updateApprovalMatrix, getApprovalMatrixOptions } from '@/redux/approvalMatrixSlice'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 
@@ -61,40 +61,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
   const { options } = useAppSelector(state => state.approvalMatrixReducer)
 
-  const fetchOptions = async (id: number, name: string) => {
-    try {
-      const requestBody = {
-        id: id,
-        name: name
-      }
-      await dispatch(setApprovalMatrixOptions(requestBody)).unwrap()
-
-      const tableId = searchParams.get('id') || ''
-      const approvalType = searchParams.get('approvalType') || ''
-      const numberOfLevels = searchParams.get('numberOfLevels') || '1'
-      const approvalBy = searchParams.get('approvalBy') || '[]'
-
-      if (isUpdateMode) {
-        ApprovalMatrixFormik.setFieldValue('id', tableId)
-        ApprovalMatrixFormik.setFieldValue('approvalType', approvalType)
-        ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10))
-        ApprovalMatrixFormik.setFieldValue(
-          'sections',
-          JSON.parse(approvalBy).map((approval: any) => ({
-            approvalBy: approval // Prefill `approvalBy` field
-          }))
-        )
-      }
-    } catch (error) {
-      console.error('Error fetching options:', error)
-    }
-  }
-
-  useEffect(() => {
-    fetchOptions(0, 'designation')
-    console.log(options, 'Dataaaaaaaa')
-  }, [])
-
   const ApprovalMatrixFormik = useFormik({
     initialValues: {
       id: '',
@@ -114,7 +80,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         name: values.approvalType,
         description: 'description',
         branchId: 'string',
-        approvalActionCategoryId: 'string',
+        approvalActionCategoryId: searchParams.get('categoryId'),
         configurations: configurations
       }
 
@@ -137,6 +103,40 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       router.back()
     }
   })
+
+  const fetchOptions = async (id: number, name: string) => {
+    try {
+      const requestBody = {
+        id: id,
+        name: name
+      }
+      //await dispatch(getApprovalMatrixOptions()).unwrap()
+
+      const tableId = searchParams.get('id') || ''
+      const approvalType = searchParams.get('approvalType') || ''
+      const numberOfLevels = searchParams.get('numberOfLevels') || '1'
+      const approvalBy = searchParams.get('approvalBy') || '[]'
+
+      if (isUpdateMode) {
+        ApprovalMatrixFormik.setFieldValue('id', tableId)
+        ApprovalMatrixFormik.setFieldValue('approvalType', approvalType)
+        ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10))
+        ApprovalMatrixFormik.setFieldValue(
+          'sections',
+          JSON.parse(approvalBy).map((approval: any) => ({
+            approvalBy: approval // Prefill `approvalBy` field
+          }))
+        )
+        
+      }
+    } catch (error) {
+      console.error('Error fetching options:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchOptions(0, 'designation')
+  }, [])
 
   const handleAddSection = () => {
     const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels
@@ -243,7 +243,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   bgcolor: 'background.paper'
                 }}
               >
-                <DragIndicatorIcon sx={{ mr: 2, color: '#666' }} />
+                <DragIndicatorIcon sx={{ mr: 2, color: '#666', cursor: 'grab' }} />
                 <Typography variant='body1' sx={{ mr: 2 }}>
                   Approval {index + 1}:
                 </Typography>
@@ -263,11 +263,11 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                       placeholder='Approval by'
                       error={
                         ApprovalMatrixFormik.touched.sections?.[index]?.approvalBy &&
-                        Boolean(ApprovalMatrixFormik.errors.sections?.[index]?.approvalBy)
+                        Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.approvalBy)
                       }
                       helperText={
                         ApprovalMatrixFormik.touched.sections?.[index]?.approvalBy &&
-                        ApprovalMatrixFormik.errors.sections?.[index]?.approvalBy
+                        ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.approvalBy as string)
                       }
                     />
                   )}
@@ -288,12 +288,13 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           <Button
             variant='contained'
             color='primary'
-            onClick={sectionsVisible && areAllSectionsFilled ? ApprovalMatrixFormik.handleSubmit : handleAddSection}
-            // disabled={
-            //   sectionsVisible
-            //     ? !areAllSectionsFilled || !ApprovalMatrixFormik.isValid
-            //     : ApprovalMatrixFormik.values.numberOfLevels < 1
-            // }
+            onClick={() => {
+              if (sectionsVisible && areAllSectionsFilled) {
+                void ApprovalMatrixFormik.submitForm();
+              } else {
+                handleAddSection();
+              }
+            }}
           >
             {sectionsVisible && areAllSectionsFilled ? (isUpdateMode ? 'Update' : 'Create') : 'Add Levels'}
           </Button>

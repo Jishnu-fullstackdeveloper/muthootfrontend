@@ -9,6 +9,7 @@ interface SectionConfig {
 
 // Define ApprovalMatrixState interface
 interface ApprovalMatrixState {
+  approvalCategories: any[] // Store the list of approval categories
   approvalMatrixData: any[] // Store the list of approval matrices
   status: 'idle' | 'loading' | 'succeeded' | 'failed' // For tracking API calls
   error: string | null // For error handling
@@ -21,6 +22,7 @@ interface ApprovalMatrixState {
 
 // Initial state
 const initialState: ApprovalMatrixState = {
+  approvalCategories: [],
   approvalMatrixData: [],
   status: 'idle',
   error: null,
@@ -31,6 +33,31 @@ const initialState: ApprovalMatrixState = {
   totalPages: 10
 }
 
+//APPROVAL CATEGORIES
+// Async thunk for fetching all approval categories with pagination
+export const fetchApprovalCategories = createAsyncThunk(
+  'apphrms/fetchApprovalCategories',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/approval-action-categories', {
+        params: { page, limit }
+      })
+
+      const { items = [], meta = {} } = response.data || {} // Extracting `items`
+
+      return {
+        data: items, // Store the extracted `items`
+        totalItems: meta.total || 0,
+        page: meta.page?.page || 1, // Fixing incorrect `meta.page`
+        limit: meta.limit || 10
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch approval categories')
+    }
+  }
+)
+
+//APPROVAL MATRIX
 // Async thunk for fetching all approval matrices with pagination
 export const fetchApprovalMatrices = createAsyncThunk(
   'apphrms/fetchApprovalMatrices',
@@ -99,15 +126,27 @@ interface RequestOptionsPayload {
 }
 
 // set options for autocomplete/dropdown
-export const setApprovalMatrixOptions = createAsyncThunk(
+// export const setApprovalMatrixOptions = createAsyncThunk(
+//   'apphrms/setApprovalMatrixOptions',
+//   async (requestData: RequestOptionsPayload, { rejectWithValue }) => {
+//     try {
+//       // Send requestData directly in the body, not as params
+//       const response = await AxiosLib.post('/api/recruitment-request/options', requestData)
+//       return response.data.data
+//     } catch (error: any) {
+//       return rejectWithValue(error.response.data)
+//     }
+//   }
+// )
+
+export const getApprovalMatrixOptions = createAsyncThunk(
   'apphrms/setApprovalMatrixOptions',
-  async (requestData: RequestOptionsPayload, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Send requestData directly in the body, not as params
-      const response = await AxiosLib.post('/api/recruitment-request/options', requestData)
+      const response = await AxiosLib.get('/appproval-actions/designations')
       return response.data.data
     } catch (error: any) {
-      return rejectWithValue(error.response.data)
+      return rejectWithValue(error.response?.data || 'Error fetching approval matrix options')
     }
   }
 )
@@ -119,6 +158,24 @@ const approvalMatrixSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+
+      // Fetch approval categories
+      .addCase(fetchApprovalCategories.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(fetchApprovalCategories.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.approvalCategories = action.payload.data // Corrected assignment
+        state.totalItems = action.payload.totalItems
+        state.page = action.payload.page
+        state.limit = action.payload.limit
+        //state.totalPages = action.payload.totalPages
+      })
+      .addCase(fetchApprovalCategories.rejected, (state, action) => {
+        state.status = 'failed'
+        //state.error = action.payload
+      })
+
       // Fetch approval matrices
       .addCase(fetchApprovalMatrices.pending, state => {
         state.status = 'loading'
@@ -180,16 +237,16 @@ const approvalMatrixSlice = createSlice({
       })
 
       // Fetch approval matrix options
-      .addCase(setApprovalMatrixOptions.pending, state => {
+      .addCase(getApprovalMatrixOptions.pending, state => {
         state.status = 'loading'
       })
-      .addCase(setApprovalMatrixOptions.fulfilled, (state, action) => {
-        state.status = 'idle'
+      .addCase(getApprovalMatrixOptions.fulfilled, (state, action) => {
+        state.status = 'succeeded' // Changed from 'idle' to 'succeeded' for better status tracking
         state.options = action.payload
       })
-      .addCase(setApprovalMatrixOptions.rejected, (state, action) => {
+      .addCase(getApprovalMatrixOptions.rejected, (state, action) => {
         state.status = 'failed'
-        state.error = action.error.message || 'Error fetching data'
+        state.error = (action.payload as string) || 'Error fetching approval matrix options'
       })
   }
 })

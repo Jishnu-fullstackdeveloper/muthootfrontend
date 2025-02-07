@@ -148,6 +148,7 @@ const BucketListing = () => {
             >
               <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
             </Button>
+
             {/* <Button
               variant='outlined'
               color='success'
@@ -279,7 +280,6 @@ const BucketListing = () => {
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
-              label='Search Designation'
               value={search}
               onChange={(value: any) => setSearch(value)}
               placeholder='Search by List...'
@@ -347,8 +347,11 @@ const BucketListing = () => {
                 <Grid item xs={12} sm={6} md={4} key={bucket.id}>
                   <Card
                     onClick={() =>
+                      // router.push(
+                      //   `/bucket-management/view/${bucket.turnoverCode}?name=${encodeURIComponent(bucket.name)}&turnoverCode=${bucket.turnoverCode}&notes=${encodeURIComponent(bucket.notes)}&positionCategories=${encodeURIComponent(JSON.stringify(bucket.positionCategories))}`
+                      // )
                       router.push(
-                        `/bucket-management/view/${bucket.turnoverCode}?name=${encodeURIComponent(bucket.name)}&turnoverCode=${bucket.turnoverCode}&notes=${encodeURIComponent(bucket.notes)}&positionCategories=${encodeURIComponent(JSON.stringify(bucket.positionCategories))}`
+                        `/bucket-management/view/${bucket.turnoverCode}?name=${bucket.name}&turnoverCode=${bucket.turnoverCode}&notes=${bucket.notes || ''}&positionCategories=${JSON.stringify(bucket.positionCategories)}`
                       )
                     }
                     sx={{
@@ -406,6 +409,7 @@ const BucketListing = () => {
 
                           {/* Delete Button */}
                           <IconButton
+                          aria-label="Delete Bucket"
                             onClick={(e: any) => {
                               e.stopPropagation()
                               handleDeleteBucket(bucket.id)
@@ -420,6 +424,8 @@ const BucketListing = () => {
                           >
                             <i className='tabler-trash' />
                           </IconButton>
+
+                         
                         </Box>
                       </Box>
 

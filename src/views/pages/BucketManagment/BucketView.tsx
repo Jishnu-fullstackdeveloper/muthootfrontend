@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Typography from '@mui/material/Typography'
-import { Box, Card, CardContent, Button, Divider } from '@mui/material'
+import { Box, Card, CardContent, Button, Divider, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 import { useSearchParam } from 'react-use'
 import { useDispatch } from 'react-redux'
@@ -24,9 +24,12 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
   const positionCategories = searchParams.get('positionCategories')
 
   const router = useRouter()
-   const [bucketId, setBucketId] = useState<any>(null)
-   const [openModal, setOpenModal] = useState(false)
-   const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null)
+  const [bucketId, setBucketId] = useState<any>(null)
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
   // Decode and parse `positionCategories`
   let decodedPositionCategories: any[] = []
   if (positionCategories) {
@@ -36,24 +39,24 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
       console.error('Failed to parse positionCategories:', error)
     }
   }
+
   const handleEditBucket = (id: number) => {
     router.push(`/bucket-management/edit/${id}`)
   }
 
- const handleDeleteBucket = (id: string) => {
+  const handleDeleteBucket = (id: string) => {
     setBucketId(id)
-    setOpenModal(true)
+    setShowDeleteModal(true)
   }
 
   const handleDeleteConfirm = (id: any) => {
     // useDispatch(deleteBucket(id))
-    setOpenModal(false)
+    setShowDeleteModal(false)
     setSelectedBucketId(null)
-   
   }
 
   const handleDeleteCancel = () => {
-    setOpenModal(false)
+    setShowDeleteModal(false)
     setSelectedBucketId(null)
   }
 
@@ -66,8 +69,17 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
         positionCategories,
         notes
       })
+      setLoading(false)
     }
   }, [turnoverCode])
+
+  if (loading) {
+    return (
+      <div data-testid="loading-indicator">
+        <CircularProgress />
+      </div>
+    )
+  }
 
   if (!bucketDetails) {
     return <div>Loading...</div>
@@ -80,44 +92,46 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
           <Box className='flex justify-between'>
             {/* Bucket Name */}
             <Box>
-            <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
-              {name.toLocaleUpperCase()}
-            </Typography>
+              <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
+                {name?.toLocaleUpperCase() || ''}
+              </Typography>
             </Box>
             <Box>
-            <Button 
-              variant='outlined'
-              onClick={(e: any) => {
-                e.stopPropagation()
-                handleEditBucket(bucket.id)
-              }}
-              sx={{
-                minWidth: 'auto',
-                padding: 1,
-                backgroundColor: 'transparent',
-                border: 'none',
-                '&:hover': { backgroundColor: 'transparent' }
-              }}
-            >
-              <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
-            </Button>
-            <Button
-              variant='outlined'
-              color='error'
-              onClick={(e: any) => {
-                e.stopPropagation()
-                // handleDeleteBucket(bucket.id)
-              }}
-              sx={{
-                minWidth: 'auto',
-                padding: 1,
-                backgroundColor: 'transparent',
-                border: 'none',
-                '&:hover': { backgroundColor: 'transparent' }
-              }}
-            >
-              <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
-            </Button>
+              <Button
+                data-testid='edit-button'
+                variant='outlined'
+                onClick={(e: any) => {
+                  e.stopPropagation()
+                  handleEditBucket(id)
+                }}
+                sx={{
+                  minWidth: 'auto',
+                  padding: 1,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  '&:hover': { backgroundColor: 'transparent' }
+                }}
+              >
+                <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
+              </Button>
+              <Button
+                data-testid='delete-button'
+                variant='outlined'
+                color='error'
+                onClick={(e: any) => {
+                  e.stopPropagation()
+                  handleDeleteBucket(id)
+                }}
+                sx={{
+                  minWidth: 'auto',
+                  padding: 1,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  '&:hover': { backgroundColor: 'transparent' }
+                }}
+              >
+                <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
+              </Button>
             </Box>
           </Box>
           <Divider sx={{ mb: 4 }} />
@@ -155,15 +169,29 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
         </Box>
       </Card>
 
-      <ConfirmModal
-        open={openModal}
-        onClose={handleDeleteCancel}
-        onConfirm={id => handleDeleteConfirm(id)}
-        id={bucketId}
-        title='Delete Item'
-        description='Are you sure you want to delete this item? This action cannot be undone.'
-      />
-      {/* Go Back Button */}
+      <Dialog open={showDeleteModal} onClose={handleDeleteCancel}>
+        <DialogTitle>Delete Item</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this item? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            data-testid="cancel-delete-button"
+            onClick={handleDeleteCancel}
+          >
+            Cancel
+          </Button>
+          <Button 
+            data-testid="confirm-delete-button"
+            onClick={() => handleDeleteConfirm(bucketId)} 
+            color="error"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

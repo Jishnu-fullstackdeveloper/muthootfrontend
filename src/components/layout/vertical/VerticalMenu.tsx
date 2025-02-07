@@ -95,8 +95,11 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           User Management
         </MenuItem>
 
-        <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
-          User Roles
+        <MenuItem
+          href={pathname.startsWith('/user-roles/') ? pathname : '/user-roles'}
+          icon={<i className='tabler-key' />}
+        >
+         User Roles
         </MenuItem>
 
         <MenuItem href='/approval-management' icon={<i className='tabler-rosette-discount-check' />}>

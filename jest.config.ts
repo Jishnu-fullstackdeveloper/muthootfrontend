@@ -28,18 +28,18 @@ const config: Config = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'html'],
-  // collectCoverageFrom: [
-  //   'src/**/*.{js,jsx,ts,tsx}',
-  //   '!src/**/*.d.ts',
-  //   '!src/**/node_modules/**',
-  //   '!src/**/vendor/**',
-  // ],
   collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/node_modules/**',
     '!src/**/vendor/**',
-    'src/views/pages/ResignationAndRecruitment/UnitTesting/RecruitmentOverview.generated.test.tsx'
   ],
+  // collectCoverageFrom: [
+  //   '!src/**/*.d.ts',
+  //   '!src/**/node_modules/**',
+  //   '!src/**/vendor/**',
+  //   'src/views/pages/ResignationAndRecruitment/UnitTesting/RecruitmentOverview.generated.test.tsx'
+  // ],
   reporters: [
     'default',
     [

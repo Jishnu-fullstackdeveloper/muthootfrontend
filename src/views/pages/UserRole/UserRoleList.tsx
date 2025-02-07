@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import DynamicTable, { Person } from '@/components/Table/dynamicTable'
+import DynamicTable from '@/components/Table/dynamicTable'
 import {
   Typography,
   IconButton,
@@ -22,6 +22,8 @@ import DynamicButton from '@/components/Button/dynamicButton'
 import { fetchUserRolebyId } from '@/redux/userRoleSlice'
 import CustomRoles from '@/components/Dialog/addRolesDialog'
 import CustomFilters from './FilterDialog'
+import { Person } from '@/components/Modifiedtable/modifiedDynamicTable'
+import { useRouter } from 'next/navigation'
 
 function UserRoleListing() {
   const [openDialog, setOpenDialog] = useState(false)
@@ -31,22 +33,23 @@ function UserRoleListing() {
   const [tableData, setTableData] = useState<any[]>([
     {
       id: 1,
-      name: 'John Doe',
-      description: 'Admin role',
-      dropdownValue: 'Admin'
+      designation: 'HR',
+      department: 'IT',
+      category:'ABC',
+      band:'ABCD',
+     
+      // dropdownValue: 'Admin'
     },
     {
-      id: 2,
-      name: 'Jane Smith',
-      description: 'Editor role',
-      dropdownValue: 'Editor'
+      id: 1,
+      designation: 'Manager',
+      department: 'IT',
+      category:'ABC',
+      band:'ABCD',
+     
+      // dropdownValue: 'Admin'
     },
-    {
-      id: 3,
-      name: 'Michael Brown',
-      description: 'Viewer role',
-      dropdownValue: 'Viewer'
-    }
+   
   ])
   const [searchText, setSearchText] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -96,6 +99,15 @@ function UserRoleListing() {
     dispatch(fetchUser(params))
   }
 
+  const router = useRouter()
+  const handleAddUserRole = () => {
+    router.push('/user-roles/add/new-bucket')
+  }
+
+
+  const  handleEditUserRole = (id: number) => {
+    router.push(`/bucket-role/edit`)
+  }
   useEffect(() => {
     if (selectedRole.name && selectedRole.description && selectedRole.dropdownValue) {
       setTableData(prev => [
@@ -104,7 +116,7 @@ function UserRoleListing() {
           id: tableData.length + 1,
           name: selectedRole.name,
           description: selectedRole.description,
-
+          band:selectedRole.band,
           dropdownValue: selectedRole.dropdownValue
         }
       ])
@@ -147,10 +159,12 @@ function UserRoleListing() {
   }, [getUserRoleData])
 
   const columns: ColumnDef<any>[] = [
-    { accessorKey: 'id', header: 'User ID' },
-    { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'description', header: 'Description' },
-    { accessorKey: 'dropdownValue', header: 'Role' },
+    { accessorKey: 'id', header: 'No' },
+    { accessorKey: 'designation', header: 'Designation' },
+    { accessorKey: 'department', header: 'Department' },
+    { accessorKey: 'category', header: 'Category' },
+    { accessorKey: 'band', header: 'band' },
+   
     {
       header: 'Actions',
       meta: { className: 'sticky right-0' },
@@ -159,16 +173,45 @@ function UserRoleListing() {
           <IconButton aria-label='view' onClick={() => handleView(info.row.original)} sx={{ fontSize: 18 }}>
             <VisibilityIcon />
           </IconButton>
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEditUserRole()
+            }}
+            sx={{
+              minWidth: 'auto',
+              padding: 1,
+              backgroundColor: 'transparent',
+              border: 'none',
+              '&:hover': { backgroundColor: 'transparent' }
+            }}
+          >
+            <i className='tabler-edit' />
+          </IconButton>
+          <IconButton
+            aria-label="Delete Bucket"
+            // onClick={(e) => {
+            //   e.stopPropagation()
+            //   // handleDeleteBucket(row.original.id)
+            // }}
+            sx={{
+              minWidth: 'auto',
+              padding: 1,
+              backgroundColor: 'transparent',
+              border: 'none',
+              '&:hover': { backgroundColor: 'transparent' }
+            }}
+          >
+            <i className='tabler-trash' />
+          </IconButton>
         </div>
       )
     }
   ]
 
   const headerMapping: Record<string, string> = {
-    id: 'User Id',
-    name: 'Name',
-    description: 'Description',
-    dropdownValue: 'Role'
+    id: 'No',
+    designation: 'Designation',
   }
 
   return (

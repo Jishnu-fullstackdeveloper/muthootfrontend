@@ -53,7 +53,7 @@ export const fetchBucketDetails = createAsyncThunk<any, any>(
   async (id: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`/bucket/${id}`)
-      return response.data.data
+      return response.data.data || []
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
     }

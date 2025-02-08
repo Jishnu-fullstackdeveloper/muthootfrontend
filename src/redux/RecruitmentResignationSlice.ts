@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
+import { handleAsyncThunkStates } from '@/utils/functions'
 
 /**
  * @author Siyad M
@@ -15,6 +16,18 @@ export const fetchResignationOverviewList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/api/recruitment-request/group', {
         params
       })
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchHierarchyData = createAsyncThunk<any, string>(
+  'recruitmentResignation/fetchHierarchyData',
+  async (hierarchyName: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`/api/recruitment-request/hierarchyData/${hierarchyName}`)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -22,17 +35,37 @@ export const fetchResignationOverviewList = createAsyncThunk<any, any>(
   }
 )
 
-interface RequestOptionsPayload {
+interface EmployeeHierarchyOptionsPayload {
   id: number
-  name: string
+  hierarchyId: number
+  page: number
+  limit: number
 }
 
-export const fetchRecruitMentRequestOptions = createAsyncThunk<any, RequestOptionsPayload>(
-  'recruitmentResignation/fetchRequestOptions',
-  async (requestData: RequestOptionsPayload, { rejectWithValue }) => {
+export const fetchEmployeeHierarchyOptions = createAsyncThunk<any, EmployeeHierarchyOptionsPayload>(
+  'recruitmentResignation/fetchEmployeeHierarchyOptions',
+  async (requestData: EmployeeHierarchyOptionsPayload, { rejectWithValue }) => {
     try {
-      // Send requestData directly in the body, not as params
-      const response = await AxiosLib.post('/api/recruitment-request/options', requestData)
+      const response = await AxiosLib.post('/api/recruitment-request/employeeHierarchyOptions', requestData)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+interface CorporateHierarchyOptionsPayload {
+  id: number
+  hierarchyId: number
+  page: number
+  limit: number
+}
+
+export const fetchCorporateHierarchyOptions = createAsyncThunk<any, CorporateHierarchyOptionsPayload>(
+  'recruitmentResignation/fetchCorporateHierarchyOptions',
+  async (requestData: CorporateHierarchyOptionsPayload, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.post('/api/recruitment-request/corporateHierarchyOptions', requestData)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -79,11 +112,23 @@ export const submitRequestDecision = createAsyncThunk<any, RequestDecisionPayloa
   }
 )
 
-export const fetchRecruitmentRequestList = createAsyncThunk<any, { designationName: string }>(
+interface RequestListParams {
+  designationName: string
+  page: number
+  limit: number
+}
+
+export const fetchRecruitmentRequestList = createAsyncThunk<any, RequestListParams>(
   'appTms/fetchRequestList',
-  async ({ designationName }, { rejectWithValue }) => {
+  async ({ designationName, page, limit }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/api/recruitment-request/${designationName}`)
+      const response = await AxiosLib.get('/api/recruitment-request', {
+        params: {
+          designationName,
+          page,
+          limit
+        }
+      })
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -102,37 +147,6 @@ export const fetchRecruitmentRequestById = createAsyncThunk<any, { id: string | 
     }
   }
 )
-
-// Helper function to handle async thunk states
-const handleAsyncThunkStates = (builder: any, thunk: any, statePrefix: string) => {
-  builder
-    .addMatcher(
-      action => action.type === thunk.pending.type,
-      state => {
-        state[`${statePrefix}Loading`] = true
-        state[`${statePrefix}Success`] = false
-        state[`${statePrefix}Failure`] = false
-        state[`${statePrefix}FailureMessage`] = ''
-      }
-    )
-    .addMatcher(
-      action => action.type === thunk.fulfilled.type,
-      (state, action) => {
-        state[`${statePrefix}Loading`] = false
-        state[`${statePrefix}Success`] = true
-        state[`${statePrefix}Data`] = action.payload
-      }
-    )
-    .addMatcher(
-      action => action.type === thunk.rejected.type,
-      (state, action: any) => {
-        state[`${statePrefix}Loading`] = false
-        state[`${statePrefix}Success`] = false
-        state[`${statePrefix}Failure`] = true
-        state[`${statePrefix}FailureMessage`] = action?.payload?.message || 'Failed to submit request!'
-      }
-    )
-}
 
 export const recruitmentResignationSlice = createSlice({
   name: 'appMuthoot',
@@ -155,11 +169,17 @@ export const recruitmentResignationSlice = createSlice({
     fetchRecruitmentRequestByIdFailure: false,
     fetchRecruitmentRequestByIdFailureMessage: '',
 
-    fetchRecruitmentRequestOptionsLoading: false,
-    fetchRecruitmentRequestOptionsSuccess: false,
-    fetchRecruitmentRequestOptionsData: null,
-    fetchRecruitmentRequestOptionsFailure: false,
-    fetchRecruitmentRequestOptionsFailureMessage: '',
+    fetchEmployeeHierarchyOptionsLoading: false,
+    fetchEmployeeHierarchyOptionsSuccess: false,
+    fetchEmployeeHierarchyOptionsData: null,
+    fetchEmployeeHierarchyOptionsFailure: false,
+    fetchEmployeeHierarchyOptionsFailureMessage: '',
+
+    fetchCorporateHierarchyOptionsLoading: false,
+    fetchCorporateHierarchyOptionsSuccess: false,
+    fetchCorporateHierarchyOptionsData: null,
+    fetchCorporateHierarchyOptionsFailure: false,
+    fetchCorporateHierarchyOptionsFailureMessage: '',
 
     submitRecruitmentRequestLoading: false,
     submitRecruitmentRequestSuccess: false,
@@ -171,7 +191,13 @@ export const recruitmentResignationSlice = createSlice({
     submitRequestDecisionSuccess: false,
     submitRequestDecisionData: null,
     submitRequestDecisionFailure: false,
-    submitRequestDecisionFailureMessage: ''
+    submitRequestDecisionFailureMessage: '',
+
+    fetchHierarchyDataLoading: false,
+    fetchHierarchyDataSuccess: false,
+    fetchHierarchyDataData: null,
+    fetchHierarchyDataFailure: false,
+    fetchHierarchyDataFailureMessage: ''
   },
   reducers: {
     fetchResignationAPIDismiss: state => {
@@ -189,11 +215,18 @@ export const recruitmentResignationSlice = createSlice({
       state.fetchRecruitmentRequestByIdSuccess = false
       state.fetchRecruitmentRequestByIdFailure = false
     },
-    fetchRecruitmentRequestOptionsDismiss: state => {
-      state.fetchRecruitmentRequestOptionsLoading = false
-      state.fetchRecruitmentRequestOptionsSuccess = false
-      state.fetchRecruitmentRequestOptionsFailure = false
+    fetchEmployeeHierarchyOptionsDismiss: state => {
+      state.fetchEmployeeHierarchyOptionsLoading = false
+      state.fetchEmployeeHierarchyOptionsSuccess = false
+      state.fetchEmployeeHierarchyOptionsFailure = false
     },
+
+    fetchCorporateHierarchyOptionsDismiss: state => {
+      state.fetchCorporateHierarchyOptionsLoading = false
+      state.fetchCorporateHierarchyOptionsSuccess = false
+      state.fetchCorporateHierarchyOptionsFailure = false
+    },
+
     submitRecruitmentRequestDismiss: state => {
       state.submitRecruitmentRequestLoading = false
       state.submitRecruitmentRequestSuccess = false
@@ -203,82 +236,24 @@ export const recruitmentResignationSlice = createSlice({
       state.submitRequestDecisionLoading = false
       state.submitRequestDecisionSuccess = false
       state.submitRequestDecisionFailure = false
+    },
+    fetchHierarchyDataDismiss: state => {
+      state.fetchHierarchyDataLoading = false
+      state.fetchHierarchyDataSuccess = false
+      state.fetchHierarchyDataFailure = false
     }
   },
-  // extraReducers: builder => {
-  //   builder.addCase(fetchResignationOverviewList.pending, state => {
-  //     state.fetchResignationOverviewListLoading = true
-  //   })
-  //   builder.addCase(fetchResignationOverviewList.fulfilled, (state, action) => {
-  //     state.fetchResignationOverviewListLoading = false
-  //     state.fetchResignationOverviewListSuccess = true
-  //     state.fetchResignationOverviewListData = action.payload
-  //   })
-  //   builder.addCase(fetchResignationOverviewList.rejected, (state, action: any) => {
-  //     state.fetchResignationOverviewListLoading = false
-  //     state.fetchResignationOverviewListSuccess = false
-  //     state.fetchResignationOverviewListFailure = true
-  //     state.fetchResignationOverviewListFailureMessage = action?.payload?.message || 'Failed to fetch details!'
-  //   })
 
-  //   builder.addCase(fetchRecruitmentRequestList.pending, state => {
-  //     state.fetchRecruitmentRequestListLoading = true
-  //   })
-  //   builder.addCase(fetchRecruitmentRequestList.fulfilled, (state, action) => {
-  //     state.fetchRecruitmentRequestListLoading = false
-  //     state.fetchRecruitmentRequestListSuccess = true
-  //     state.fetchRecruitmentRequestListData = action.payload
-  //   })
-  //   builder.addCase(fetchRecruitmentRequestList.rejected, (state, action: any) => {
-  //     state.fetchRecruitmentRequestListLoading = false
-  //     state.fetchRecruitmentRequestListSuccess = false
-  //     state.fetchRecruitmentRequestListFailure = true
-  //     state.fetchRecruitmentRequestListFailureMessage =
-  //       action?.payload?.message || 'Failed to fetch recruitment requests!'
-  //   })
-
-  //   builder.addCase(fetchRecruitmentRequestById.pending, state => {
-  //     state.fetchRecruitmentRequestByIdLoading = true
-  //   })
-  //   builder.addCase(fetchRecruitmentRequestById.fulfilled, (state, action) => {
-  //     state.fetchRecruitmentRequestByIdLoading = false
-  //     state.fetchRecruitmentRequestByIdSuccess = true
-  //     state.fetchRecruitmentRequestByIdData = action.payload
-  //   })
-  //   builder.addCase(fetchRecruitmentRequestById.rejected, (state, action: any) => {
-  //     state.fetchRecruitmentRequestByIdLoading = false
-  //     state.fetchRecruitmentRequestByIdSuccess = false
-  //     state.fetchRecruitmentRequestByIdFailure = true
-  //     state.fetchRecruitmentRequestByIdFailureMessage =
-  //       action?.payload?.message || 'Failed to fetch recruitment request details!'
-  //   })
-
-  //   builder.addCase(fetchRecruitMentRequestOptions.pending, state => {
-  //     state.fetchRecruitmentRequestOptionsLoading = true
-  //     state.fetchRecruitmentRequestOptionsSuccess = false
-  //     state.fetchRecruitmentRequestOptionsFailure = false
-  //     state.fetchRecruitmentRequestOptionsFailureMessage = ''
-  //   })
-  //   builder.addCase(fetchRecruitMentRequestOptions.fulfilled, (state, action) => {
-  //     state.fetchRecruitmentRequestOptionsLoading = false
-  //     state.fetchRecruitmentRequestOptionsSuccess = true
-  //     state.fetchRecruitmentRequestOptionsData = action.payload
-  //   })
-  //   builder.addCase(fetchRecruitMentRequestOptions.rejected, (state, action: any) => {
-  //     state.fetchRecruitmentRequestOptionsLoading = false
-  //     state.fetchRecruitmentRequestOptionsSuccess = false
-  //     state.fetchRecruitmentRequestOptionsFailure = true
-  //     state.fetchRecruitmentRequestOptionsFailureMessage = action?.payload?.message || 'Failed to submit request!'
-  //   })
-  // }
   extraReducers: builder => {
     // Use the helper function for each thunk
-    handleAsyncThunkStates(builder, fetchRecruitMentRequestOptions, 'fetchRecruitmentRequestOptions')
+    handleAsyncThunkStates(builder, fetchEmployeeHierarchyOptions, 'fetchEmployeeHierarchyOptions')
+    handleAsyncThunkStates(builder, fetchCorporateHierarchyOptions, 'fetchCorporateHierarchyOptions')
     handleAsyncThunkStates(builder, fetchResignationOverviewList, 'fetchResignationOverviewList')
     handleAsyncThunkStates(builder, fetchRecruitmentRequestList, 'fetchRecruitmentRequestList')
     handleAsyncThunkStates(builder, fetchRecruitmentRequestById, 'fetchRecruitmentRequestById')
     handleAsyncThunkStates(builder, submitRecruitmentRequest, 'submitRecruitmentRequest')
     handleAsyncThunkStates(builder, submitRequestDecision, 'submitRequestDecision')
+    handleAsyncThunkStates(builder, fetchHierarchyData, 'fetchHierarchyData')
   }
 })
 
@@ -286,9 +261,11 @@ export const {
   fetchResignationAPIDismiss,
   fetchRecruitmentRequestListDismiss,
   fetchRecruitmentRequestByIdDismiss,
-  fetchRecruitmentRequestOptionsDismiss,
+  fetchEmployeeHierarchyOptionsDismiss,
+  fetchCorporateHierarchyOptionsDismiss,
   submitRecruitmentRequestDismiss,
-  submitRequestDecisionDismiss
+  submitRequestDecisionDismiss,
+  fetchHierarchyDataDismiss
 } = recruitmentResignationSlice.actions
 
 export default recruitmentResignationSlice.reducer

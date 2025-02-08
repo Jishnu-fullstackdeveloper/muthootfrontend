@@ -71,7 +71,6 @@ const RecruitmentListTableView = ({ designationData }: any) => {
       columnHelper.accessor('requestType', {
         header: 'REQUEST TYPE',
         cell: ({ row }) => {
-          // console.log('row', row)
           return (
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
@@ -87,7 +86,6 @@ const RecruitmentListTableView = ({ designationData }: any) => {
       columnHelper.accessor('department', {
         header: 'DEPARTMENT',
         cell: ({ row }) => {
-          // console.log('row', row)
           return (
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
@@ -103,7 +101,6 @@ const RecruitmentListTableView = ({ designationData }: any) => {
       columnHelper.accessor('branch', {
         header: 'BRANCH',
         cell: ({ row }) => {
-          // console.log('row', row)
           return (
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
@@ -119,7 +116,6 @@ const RecruitmentListTableView = ({ designationData }: any) => {
       columnHelper.accessor('bubble_positions', {
         header: 'BUBBLE POSITIONS',
         cell: ({ row }) => {
-          // console.log('row', row)
           return (
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>

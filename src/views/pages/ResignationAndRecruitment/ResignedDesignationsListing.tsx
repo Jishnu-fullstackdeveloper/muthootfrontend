@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { fetchRecruitmentRequestList } from '@/redux/RecruitmentResignationSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { getAccessToken, isAdmin, decodeToken } from '@/utils/functions'
 
 import {
   Box,
@@ -35,6 +36,8 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import RecruitmentListTableView from './RecruitmentListTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
+import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+
 // import designationData from './sampleDesignationData'
 import { RootState } from '@/redux/store'
 
@@ -69,7 +72,6 @@ const ResignedDesignationsListing = () => {
   }
 
   const handleApplyFilters = (selectedFilters: Record<string, any>) => {
-    console.log('Applied Filters:', selectedFilters)
     // Add logic to handle filters (e.g., make API calls, update state)
   }
   const router = useRouter()
@@ -84,7 +86,8 @@ const ResignedDesignationsListing = () => {
     fetchRecruitmentRequestListFailureMessage
   } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
 
-  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+  const safeGetData = (source: any): any[] =>
+    source?.data?.options && Array.isArray(source.data?.options) ? source.data?.options : []
 
   const designationData = useMemo(() => {
     const data = safeGetData(fetchRecruitmentRequestListData)
@@ -117,6 +120,14 @@ const ResignedDesignationsListing = () => {
     }
   }
 
+  const getApproverId = () => {
+    const token = getAccessToken()
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+    return decodedToken?.sub
+  }
+
   const handlePageChange = (event: any, value: any) => {
     setPaginationState(prev => ({ ...prev, page: value }))
   }
@@ -131,6 +142,47 @@ const ResignedDesignationsListing = () => {
   //     [index]: newTab // Update the tab for the specific index
   //   }))
   // }
+
+  const handleApprove = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      const requestData = designationData.find((item: any) => item.id === id)
+      // if (!approval_id) throw new Error('No approval ID found')
+      await dispatch(
+        submitRequestDecision({
+          id: approval_id, // Using approval_id from overview data
+          approvalStatus: 'APPROVED',
+          approverId
+        })
+      ).unwrap()
+    } catch (error) {
+      console.error('Error approving request:', error)
+    }
+  }
+
+  const handleReject = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      const requestData = designationData.find((item: any) => item.id === id)
+      // if (!approval_id) throw new Error('No approval ID found')
+
+      await dispatch(
+        submitRequestDecision({
+          id: approval_id, // Using approval_id from overview data
+          approvalStatus: 'REJECTED',
+          approverId
+        })
+      ).unwrap()
+    } catch (error) {
+      console.error('Error rejecting request:', error)
+    }
+  }
 
   const DebouncedInput = ({
     value: initialValue,
@@ -190,9 +242,7 @@ const ResignedDesignationsListing = () => {
     }))
   }
 
-  useEffect(() => {
-    console.log('designationData', designationData)
-  }, [designationData])
+  // useEffect(() => {}, [designationData])
 
   if (fetchRecruitmentRequestListLoading) {
     return (
@@ -477,6 +527,67 @@ const ResignedDesignationsListing = () => {
                               </Box>
 
                               <Divider sx={{ marginY: 2 }} />
+                              {/* Approve & Reject Buttons */}
+                              {isAdmin() ? (
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    gap: 1
+                                  }}
+                                >
+                                  <Tooltip title='Approve Request'>
+                                    <Button
+                                      variant='contained'
+                                      color='success'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        handleApprove(designation?.id, designation?.approval_id)
+                                      }}
+                                      sx={{ padding: '6px 16px' }}
+                                      startIcon={<i className='tabler-check' />}
+                                    >
+                                      Approve All
+                                    </Button>
+                                  </Tooltip>
+                                  <Tooltip title='Reject Request'>
+                                    <Button
+                                      variant='contained'
+                                      color='error'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        handleReject(designation?.id, designation?.approval_id)
+                                      }}
+                                      sx={{ padding: '6px 16px' }}
+                                      startIcon={<i className='tabler-playstation-x' />}
+                                    >
+                                      Reject All
+                                    </Button>
+                                  </Tooltip>
+                                </Box>
+                              ) : (
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Chip
+                                    label='Pending'
+                                    color='warning'
+                                    sx={{
+                                      borderRadius: '16px',
+                                      fontSize: '0.875rem',
+                                      '& .MuiChip-label': {
+                                        px: 2,
+                                        py: 0.5
+                                      }
+                                    }}
+                                    icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
+                                  />
+                                </Box>
+                              )}
                               <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
                                 <Typography
                                   variant='body2'

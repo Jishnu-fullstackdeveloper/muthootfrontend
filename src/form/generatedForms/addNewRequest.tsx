@@ -1,13 +1,17 @@
 'use client'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { Autocomplete, TextField, FormControl } from '@mui/material'
+import { Autocomplete, TextField, FormControl, CircularProgress } from '@mui/material'
 import DynamicButton from '@/components/Button/dynamicButton'
 import { styled } from '@mui/material/styles'
-
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchRecruitMentRequestOptions, submitRecruitmentRequest } from '@/redux/RecruitmentResignationSlice'
+import {
+  submitRecruitmentRequest,
+  fetchHierarchyData,
+  fetchEmployeeHierarchyOptions,
+  fetchCorporateHierarchyOptions
+} from '@/redux/RecruitmentResignationSlice'
 import { useRouter } from 'next/navigation'
 
 const initialOptionsData = {
@@ -90,8 +94,10 @@ const ManualRequestGeneratedForm: React.FC = () => {
       { id: 'branch', label: 'Branches', options: [] }
     ]
   })
-  const [currentField, setCurrentField] = React.useState<string>('')
   const router = useRouter()
+  const [currentField, setCurrentField] = React.useState<string>('')
+  const [isHierarchyDataLoaded, setIsHierarchyDataLoaded] = React.useState(false)
+  const [paginationState, setPaginationState] = useState<{ [key: string]: { page: number; hasMore: boolean } }>({})
 
   const [apiResponseData, setApiResponseData] = React.useState<any>({})
   // const { manualRequestLoading, manualRequestSuccess, manualRequestError, manualRequestErrorMessage } = useAppSelector(
@@ -99,13 +105,21 @@ const ManualRequestGeneratedForm: React.FC = () => {
   // )
 
   const {
-    fetchRecruitmentRequestOptionsLoading,
-    fetchRecruitmentRequestOptionsSuccess,
-    fetchRecruitmentRequestOptionsData,
-    fetchRecruitmentRequestOptionsFailure,
-    fetchRecruitmentRequestOptionsFailureMessage
+    fetchEmployeeHierarchyOptionsLoading,
+    fetchEmployeeHierarchyOptionsSuccess,
+    fetchEmployeeHierarchyOptionsData,
+    fetchEmployeeHierarchyOptionsFailure,
+    fetchEmployeeHierarchyOptionsFailureMessage,
+    fetchCorporateHierarchyOptionsLoading,
+    fetchCorporateHierarchyOptionsSuccess,
+    fetchCorporateHierarchyOptionsData,
+    fetchCorporateHierarchyOptionsFailure,
+    fetchCorporateHierarchyOptionsFailureMessage
   } = useAppSelector(state => state.recruitmentResignationReducer)
 
+  const { fetchHierarchyDataData, fetchHierarchyDataLoading } = useAppSelector(
+    state => state.recruitmentResignationReducer
+  )
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData)
       .flat()
@@ -118,7 +132,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       ),
     validationSchema,
     onSubmit: values => {
-      console.log('values', values)
       onSubmit(values)
     }
   })
@@ -131,41 +144,68 @@ const ManualRequestGeneratedForm: React.FC = () => {
     submitRecruitmentRequestFailureMessage
   } = useAppSelector((state: any) => state.recruitmentResignationReducer)
 
+  const findHierarchyId = (hierarchyData: any, name: string): number | null => {
+    const employeeHierarchy = hierarchyData?.data?.employeeHierarchyData || []
+    const corporateHierarchy = hierarchyData?.data?.corporateHierarchyData || []
+
+    const foundInEmployee = employeeHierarchy.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
+    const foundInCorporate = corporateHierarchy.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
+    return foundInEmployee?.id || foundInCorporate?.id || null
+  }
+
   // Function to fetch dropdown options
-  const fetchOptions = async (id: number, name: string) => {
+  const fetchOptions = async (id: number, name: string, page: number = 1) => {
     try {
-      console.log('Fetching options for:', name, 'with id:', id) // Debug log
       setCurrentField(name)
-      const requestBody = {
-        id: id,
-        name: name
+
+      if (!isHierarchyDataLoaded) {
+        await dispatch(fetchHierarchyData('All')).unwrap()
       }
-      await dispatch(fetchRecruitMentRequestOptions(requestBody)).unwrap()
+
+      const hierarchyId = findHierarchyId(fetchHierarchyDataData, name)
+      if (!hierarchyId) {
+        console.error(`${name} hierarchy not found`)
+        return
+      }
+
+      const requestBody = {
+        id,
+        hierarchyId,
+        page,
+        limit: 7 // Increased limit for better UX
+      }
+
+      const employeeFields = ['department', 'designation', 'grade']
+      const corporateFields = ['company', 'businessunit', 'territory', 'zone', 'region', 'area', 'branch']
+
+      let response
+      if (employeeFields.includes(name.toLowerCase())) {
+        response = await dispatch(fetchEmployeeHierarchyOptions(requestBody)).unwrap()
+      } else if (corporateFields.includes(name.toLowerCase())) {
+        response = await dispatch(fetchCorporateHierarchyOptions(requestBody)).unwrap()
+      }
+
+      // Update pagination state based on response
+      setPaginationState(prev => ({
+        ...prev,
+        [name]: {
+          page,
+          hasMore: response?.data?.options?.length === requestBody.limit
+        }
+      }))
     } catch (error) {
       console.error('Error fetching options:', error)
     }
   }
 
-  // const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+  const handleOptionScroll = async (name: string) => {
+    const currentPagination = paginationState[name] || { page: 1, hasMore: true }
 
-  // const apiOptionsData = useMemo(() => {
-  //   const data = safeGetData(fetchRecruitmentRequestOptionsData)
-  //   return data
-  // }, [fetchRecruitmentRequestOptionsData])
+    if (!currentPagination.hasMore) return
 
-  // // Function to safely get data from API response
-  // const getOptionsFromApiData = (data: any, fieldName: string): string[] => {
-  //   try {
-  //     if (!data || !data[fieldName] || !Array.isArray(data[fieldName])) {
-  //       console.warn(`No valid data for ${fieldName}`)
-  //       return []
-  //     }
-  //     return data[fieldName].map((item: any) => item.name)
-  //   } catch (error) {
-  //     console.error(`Error processing ${fieldName} data:`, error)
-  //     return []
-  //   }
-  // }
+    const nextPage = currentPagination.page + 1
+    await fetchOptions(0, name, nextPage) // Use appropriate ID instead of 0
+  }
 
   const handleSubmit = async (values: any) => {
     try {
@@ -198,7 +238,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       // Handle success
       if (submitRecruitmentRequestSuccess) {
         // Show success message or redirect
-        console.log('Form submitted successfully')
       }
     } catch (error) {
       console.error('Error submitting form:', error)
@@ -212,7 +251,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
   // Handle employee category changes
   const handleEmployeeCategoryChange = async (fieldId: string, value: string) => {
-    console.log('Employee category change:', fieldId, value)
     requestFormik.setFieldValue(fieldId, value)
 
     switch (fieldId) {
@@ -222,7 +260,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((dept: Option) => dept.name === value)
 
         if (selectedDept) {
-          console.log('Selected department:', selectedDept)
           await fetchOptions(selectedDept.id, 'Designation')
         }
         break
@@ -233,7 +270,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((desig: Option) => desig.name === value)
 
         if (selectedDesig) {
-          console.log('Selected designation:', selectedDesig)
           await fetchOptions(selectedDesig.id, 'Grade')
         }
         break
@@ -243,7 +279,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((grade: Option) => grade.name === value)
 
         if (selectedGrade) {
-          console.log('Selected grade:', selectedGrade)
           // Start location chain with Company (using id: 0)
           await fetchOptions(0, 'Company')
         }
@@ -253,34 +288,16 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
   // Handle location category changes
   const handleLocationCategoryChange = async (fieldId: string, value: string) => {
-    console.log('Location category change:', fieldId, value)
     requestFormik.setFieldValue(fieldId, value)
 
-    // Define the chain of API calls
-    const nextFieldMap: { [key: string]: string } = {
-      grade: 'Company',
-      company: 'BusinessUnit',
-      businessUnit: 'Territory',
-      territory: 'Zone',
-      zone: 'Region',
-      region: 'Area',
-      area: 'Branches'
-    }
-
     switch (fieldId) {
-      case 'grade':
-        // When grade is selected, start location chain with Company
-        await fetchOptions(0, 'Company')
-        break
-
       case 'company':
         const selectedCompany = optionsData.locationCategoryDetails
           .find(cat => cat.id === 'company')
           ?.options.find((comp: Option) => comp.name === value)
 
         if (selectedCompany) {
-          console.log('Selected company:', selectedCompany)
-          await fetchOptions(selectedCompany.id, 'BusinessUnit')
+          await fetchOptions(selectedCompany.id, 'businessUnit')
         }
         break
 
@@ -290,8 +307,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((bu: Option) => bu.name === value)
 
         if (selectedBU) {
-          console.log('Selected business unit:', selectedBU)
-          await fetchOptions(selectedBU.id, 'Territory')
+          await fetchOptions(selectedBU.id, 'territory')
         }
         break
 
@@ -301,7 +317,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((terr: Option) => terr.name === value)
 
         if (selectedTerritory) {
-          await fetchOptions(selectedTerritory.id, 'Zone')
+          await fetchOptions(selectedTerritory.id, 'zone')
         }
         break
 
@@ -311,7 +327,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((zone: Option) => zone.name === value)
 
         if (selectedZone) {
-          await fetchOptions(selectedZone.id, 'Region')
+          await fetchOptions(selectedZone.id, 'region')
         }
         break
 
@@ -321,7 +337,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((reg: Option) => reg.name === value)
 
         if (selectedRegion) {
-          await fetchOptions(selectedRegion.id, 'Area')
+          await fetchOptions(selectedRegion.id, 'area')
         }
         break
 
@@ -331,96 +347,155 @@ const ManualRequestGeneratedForm: React.FC = () => {
           ?.options.find((area: Option) => area.name === value)
 
         if (selectedArea) {
-          await fetchOptions(selectedArea.id, 'Branches')
+          await fetchOptions(selectedArea.id, 'branches')
         }
         break
     }
   }
 
   // Transform API data and merge with existing data
+  // const transformApiData = (apiData: any) => {
+  //   const newOptionsData = { ...optionsData }
+
+  //   if (apiData?.success) {
+  //     const options = apiData.data.options || []
+  //     const currentPagination = paginationState[currentField] || { page: 1 }
+
+  //     switch (currentField.toLowerCase()) {
+  //       case 'department':
+  //         const departmentIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'department')
+  //         if (departmentIndex !== -1) {
+  //           if (currentPagination.page > 1) {
+  //             // Append new options for pagination
+  //             newOptionsData.employeeCategoryDetails[departmentIndex].options = [
+  //               ...newOptionsData.employeeCategoryDetails[departmentIndex].options,
+  //               ...options
+  //             ]
+  //           } else {
+  //             // Replace options for first page
+  //             newOptionsData.employeeCategoryDetails[departmentIndex].options = options
+  //           }
+  //         }
+  //         break
+
+  //       case 'designation':
+  //         const designationIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'designation')
+  //         if (designationIndex !== -1) {
+  //           newOptionsData.employeeCategoryDetails[designationIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'grade':
+  //         const gradeIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'grade')
+  //         if (gradeIndex !== -1) {
+  //           newOptionsData.employeeCategoryDetails[gradeIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'company':
+  //         const companyIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'company')
+  //         if (companyIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[companyIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'businessunit':
+  //         const businessUnitIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'businessUnit')
+  //         if (businessUnitIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[businessUnitIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'territory':
+  //         const territoryIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'territory')
+  //         if (territoryIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[territoryIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'zone':
+  //         const zoneIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'zone')
+  //         if (zoneIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[zoneIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'region':
+  //         const regionIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'region')
+  //         if (regionIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[regionIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'area':
+  //         const areaIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'area')
+  //         if (areaIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[areaIndex].options = apiData.data.options
+  //         }
+  //         break
+
+  //       case 'branches':
+  //         const branchIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'branch')
+  //         if (branchIndex !== -1) {
+  //           newOptionsData.locationCategoryDetails[branchIndex].options = apiData.data.options
+  //         }
+  //         break
+  //     }
+  //   }
+
+  //   return newOptionsData
+  // }
+
   const transformApiData = (apiData: any) => {
-    console.log('Transforming API data:', apiData, 'for field:', currentField)
     const newOptionsData = { ...optionsData }
 
-    // Handle initial response (Department and EmployeeCategoryType)
-    if (apiData.Department) {
-      const departmentIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'department')
-      if (departmentIndex !== -1) {
-        newOptionsData.employeeCategoryDetails[departmentIndex].options = apiData.Department
-      }
-    }
+    if (apiData?.success) {
+      const options = apiData.data.options || []
+      const currentPagination = paginationState[currentField] || { page: 1 }
 
-    if (apiData.EmployeeCategoryType) {
-      const categoryTypeIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'empCategoryType')
-      if (categoryTypeIndex !== -1) {
-        newOptionsData.employeeCategoryDetails[categoryTypeIndex].options = apiData.EmployeeCategoryType
+      const updateOptions = (categoryType: 'employeeCategoryDetails' | 'locationCategoryDetails', fieldId: string) => {
+        const index = newOptionsData[categoryType].findIndex(item => item.id === fieldId)
+        if (index !== -1) {
+          if (currentPagination.page > 1) {
+            // Append new options to existing ones
+            newOptionsData[categoryType][index].options = [...newOptionsData[categoryType][index].options, ...options]
+          } else {
+            // First page - replace options
+            newOptionsData[categoryType][index].options = options
+          }
+        }
       }
-    }
 
-    // Handle Designation, Grade, and Location responses
-    if (apiData.success && Array.isArray(apiData.data)) {
       switch (currentField.toLowerCase()) {
+        case 'department':
+          updateOptions('employeeCategoryDetails', 'department')
+          break
         case 'designation':
-          const designationIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'designation')
-          if (designationIndex !== -1) {
-            newOptionsData.employeeCategoryDetails[designationIndex].options = apiData.data
-          }
+          updateOptions('employeeCategoryDetails', 'designation')
           break
-
         case 'grade':
-          const gradeIndex = newOptionsData.employeeCategoryDetails.findIndex(item => item.id === 'grade')
-          if (gradeIndex !== -1) {
-            newOptionsData.employeeCategoryDetails[gradeIndex].options = apiData.data
-          }
+          updateOptions('employeeCategoryDetails', 'grade')
           break
-
         case 'company':
-          const companyIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'company')
-          if (companyIndex !== -1) {
-            newOptionsData.locationCategoryDetails[companyIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'company')
           break
-
         case 'businessunit':
-          const businessUnitIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'businessUnit')
-          if (businessUnitIndex !== -1) {
-            newOptionsData.locationCategoryDetails[businessUnitIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'businessUnit')
           break
-
         case 'territory':
-          const territoryIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'territory')
-          if (territoryIndex !== -1) {
-            newOptionsData.locationCategoryDetails[territoryIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'territory')
           break
-
         case 'zone':
-          const zoneIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'zone')
-          if (zoneIndex !== -1) {
-            newOptionsData.locationCategoryDetails[zoneIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'zone')
           break
-
         case 'region':
-          const regionIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'region')
-          if (regionIndex !== -1) {
-            newOptionsData.locationCategoryDetails[regionIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'region')
           break
-
         case 'area':
-          const areaIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'area')
-          if (areaIndex !== -1) {
-            newOptionsData.locationCategoryDetails[areaIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'area')
           break
-
         case 'branches':
-          const branchIndex = newOptionsData.locationCategoryDetails.findIndex(item => item.id === 'branch')
-          if (branchIndex !== -1) {
-            newOptionsData.locationCategoryDetails[branchIndex].options = apiData.data
-          }
+          updateOptions('locationCategoryDetails', 'branch')
           break
       }
     }
@@ -428,76 +503,139 @@ const ManualRequestGeneratedForm: React.FC = () => {
     return newOptionsData
   }
 
+  useEffect(() => {
+    dispatch(fetchHierarchyData('All'))
+  }, [dispatch])
+
+  useEffect(() => {
+    if (fetchHierarchyDataData) {
+      setIsHierarchyDataLoaded(true)
+    }
+  }, [fetchHierarchyDataData])
+
   // Handle API response and update options
   useEffect(() => {
-    if (fetchRecruitmentRequestOptionsSuccess && fetchRecruitmentRequestOptionsData) {
+    if (
+      (fetchEmployeeHierarchyOptionsSuccess && fetchEmployeeHierarchyOptionsData) ||
+      (fetchCorporateHierarchyOptionsSuccess && fetchCorporateHierarchyOptionsData)
+    ) {
       try {
-        // For initial load (Department and EmployeeCategoryType)
-        if (fetchRecruitmentRequestOptionsData.data?.Department) {
-          const updatedOptionsData = transformApiData(fetchRecruitmentRequestOptionsData.data)
-          setOptionsData(updatedOptionsData)
+        let apiData
+        // Define which fields belong to which hierarchy
+        const employeeFields = ['department', 'designation', 'grade']
+        const corporateFields = ['company', 'businessunit', 'territory', 'zone', 'region', 'area', 'branches']
+
+        // Check if current field is from employee or corporate hierarchy
+        if (employeeFields.includes(currentField.toLowerCase())) {
+          apiData = fetchEmployeeHierarchyOptionsData
+        } else if (corporateFields.includes(currentField.toLowerCase())) {
+          apiData = fetchCorporateHierarchyOptionsData
         }
-        // For Designation and Grade responses
-        else if (fetchRecruitmentRequestOptionsData.success) {
-          const updatedOptionsData = transformApiData(fetchRecruitmentRequestOptionsData)
-          setOptionsData(updatedOptionsData)
-        }
+
+        const updatedOptionsData = transformApiData(apiData)
+        setOptionsData(updatedOptionsData)
       } catch (error) {
         console.error('Error processing API response:', error)
       }
     }
-  }, [fetchRecruitmentRequestOptionsSuccess, fetchRecruitmentRequestOptionsData])
+  }, [
+    fetchEmployeeHierarchyOptionsSuccess,
+    fetchEmployeeHierarchyOptionsData,
+    fetchCorporateHierarchyOptionsSuccess,
+    fetchCorporateHierarchyOptionsData,
+    currentField
+  ])
 
   useEffect(() => {
-    fetchOptions(0, 'department')
-  }, [])
+    if (isHierarchyDataLoaded) {
+      fetchOptions(0, 'department')
+    }
+  }, [isHierarchyDataLoaded])
 
-  // Render Autocomplete components with proper value handling
-  const renderAutocomplete = (field: FieldOption, handleChange: (fieldId: string, value: string) => void) => (
-    <FormControl fullWidth margin='normal' key={field.id}>
-      <label htmlFor={field.id} className='block text-sm font-medium text-gray-700'>
-        {field.label} *
-      </label>
-      <StyledAutocomplete
-        id={field.id}
-        options={field.options}
-        getOptionLabel={(option: string | Option) => {
-          if (typeof option === 'string') return option
-          return option.name
-        }}
-        value={requestFormik.values[field.id] || null}
-        disableClearable
-        onChange={(_, value) => {
-          const selectedValue = typeof value === 'string' ? value : (value as Option).name
-          handleChange(field.id, selectedValue)
-        }}
-        isOptionEqualToValue={(option, value) => {
-          if (typeof option === 'string' || typeof value === 'string') {
-            return option === value
+  const StyledAutocomplete = styled(Autocomplete)({
+    '& .MuiAutocomplete-paper': {
+      position: 'absolute',
+      maxHeight: '200px', // Set maximum height for dropdown
+      overflowY: 'auto', // Enable scrollbar
+      marginTop: '4px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    },
+    '& .MuiAutocomplete-listbox': {
+      padding: '8px 0'
+    },
+    '& .MuiAutocomplete-loading': {
+      padding: '8px 0',
+      textAlign: 'center',
+      position: 'sticky',
+      bottom: 0,
+      backgroundColor: 'white',
+      borderTop: '1px solid rgba(0,0,0,0.1)'
+    }
+  })
+
+  const renderAutocomplete = (field: FieldOption, handleChange: (fieldId: string, value: string) => void) => {
+    const [isOpen, setIsOpen] = useState(false)
+    const pagination = paginationState[field.id] || { page: 1, hasMore: true }
+    const isLoading = fetchEmployeeHierarchyOptionsLoading || fetchCorporateHierarchyOptionsLoading
+
+    return (
+      <FormControl fullWidth margin='normal' key={field.id}>
+        <label htmlFor={field.id} className='block text-sm font-medium text-gray-700'>
+          {field.label} *
+        </label>
+        <StyledAutocomplete
+          id={field.id}
+          open={isOpen}
+          onOpen={() => setIsOpen(true)}
+          onClose={(event, reason) => {
+            if (reason === 'toggleInput') {
+              setIsOpen(!isOpen)
+            } else if (reason === 'escape') {
+              setIsOpen(false)
+            }
+          }}
+          options={field.options}
+          getOptionLabel={(option: string | Option) => {
+            if (typeof option === 'string') return option
+            return option.name
+          }}
+          value={requestFormik.values[field.id] || null}
+          disableClearable
+          onChange={(_, value) => {
+            const selectedValue = typeof value === 'string' ? value : (value as Option).name
+            handleChange(field.id, selectedValue)
+            setIsOpen(false)
+          }}
+          ListboxProps={{
+            onScroll: (event: React.UIEvent<HTMLUListElement>) => {
+              const listbox = event.currentTarget
+              if (
+                listbox.scrollTop + listbox.clientHeight >= listbox.scrollHeight - 50 &&
+                pagination.hasMore &&
+                !isLoading
+              ) {
+                handleOptionScroll(field.id)
+              }
+            }
+          }}
+          renderOption={(props, option) => <li {...props}>{typeof option === 'string' ? option : option.name}</li>}
+          loading={isLoading}
+          loadingText={
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+              <CircularProgress size={20} />
+            </div>
           }
-          // Type guard to check if option and value have id property
-          if (
-            typeof option === 'object' &&
-            option !== null &&
-            'id' in option &&
-            typeof value === 'object' &&
-            value !== null &&
-            'id' in value
-          ) {
-            return option.id === value.id
-          }
-          return false
-        }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            error={requestFormik.touched[field.id] && Boolean(requestFormik.errors[field.id])}
-            helperText={requestFormik.touched[field.id] && requestFormik.errors[field.id]}
-          />
-        )}
-      />
-    </FormControl>
-  )
+          renderInput={params => (
+            <TextField
+              {...params}
+              error={requestFormik.touched[field.id] && Boolean(requestFormik.errors[field.id])}
+              helperText={requestFormik.touched[field.id] && requestFormik.errors[field.id]}
+            />
+          )}
+        />
+      </FormControl>
+    )
+  }
 
   return (
     <form onSubmit={requestFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>

@@ -53,7 +53,7 @@ const RootLayout = ({ children }: ChildrenType) => {
         <link rel='icon' type='image/png' sizes='32x32' href={custom_theme_settings?.theme?.images?.favicon?.url} />
         <link rel='icon' type='image/png' sizes='16x16' href={custom_theme_settings?.theme?.images?.favicon?.url} />
         <link rel='apple-touch-icon' href={custom_theme_settings?.theme?.images?.favicon?.url} />
-        <link rel='manifest' href={custom_theme_settings?.theme?.images?.favicon?.url} />
+        {/* <link rel='manifest' href={custom_theme_settings?.theme?.images?.favicon?.url} /> */}
       </head>
       <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
     </html>

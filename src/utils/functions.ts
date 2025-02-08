@@ -3,6 +3,7 @@ interface DecodedToken {
   realm_access?: {
     roles?: string[]
   }
+  roleId?: number
 }
 
 export const getAccessToken = () => {
@@ -30,6 +31,17 @@ export const isAdmin = (): boolean => {
     return decodedToken.realm_access.roles.includes('admin')
   }
   return false
+}
+export const getRoleId = (): number | null => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('access_token')
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+    if (!decodedToken?.roleid) return null
+    return decodedToken.roleid
+  }
+  return null
 }
 
 export const setBusinessRoles = (val: any) => {
@@ -218,4 +230,34 @@ export const Logout = () => {
   removeUserId()
   removeConnqtRoles()
   removeBusinessRoles()
+}
+
+export const handleAsyncThunkStates = (builder: any, thunk: any, statePrefix: string) => {
+  builder
+    .addMatcher(
+      action => action.type === thunk.pending.type,
+      state => {
+        state[`${statePrefix}Loading`] = true
+        state[`${statePrefix}Success`] = false
+        state[`${statePrefix}Failure`] = false
+        state[`${statePrefix}FailureMessage`] = ''
+      }
+    )
+    .addMatcher(
+      action => action.type === thunk.fulfilled.type,
+      (state, action) => {
+        state[`${statePrefix}Loading`] = false
+        state[`${statePrefix}Success`] = true
+        state[`${statePrefix}Data`] = action.payload
+      }
+    )
+    .addMatcher(
+      action => action.type === thunk.rejected.type,
+      (state, action: any) => {
+        state[`${statePrefix}Loading`] = false
+        state[`${statePrefix}Success`] = false
+        state[`${statePrefix}Failure`] = true
+        state[`${statePrefix}FailureMessage`] = action?.payload?.message || 'Failed to submit request!'
+      }
+    )
 }

@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -24,9 +25,11 @@ import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import BranchListingTableView from './BranchListingTableView'
+import { getBranchList } from '@/redux/BranchManagementSlice'
 
 const BranchListing = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
   // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
   const [selectedTabs, setSelectedTabs] = useState<Record<number, number>>({})
@@ -175,7 +178,7 @@ const BranchListing = () => {
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
           {branchData?.map(branch => (
             <Box
-              onClick={() => router.push(`/branch-management/view/${branch.id}`)}
+              onClick={() => router.push(`/branch-management/view/employees-details?id=${branch.id}`)}
               key={branch.id}
               className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
                 viewMode !== 'grid' && 'p-6'

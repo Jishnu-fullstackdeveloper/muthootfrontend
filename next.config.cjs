@@ -2,6 +2,7 @@
 const nextConfig = {
   basePath: process.env.BASEPATH,
   reactStrictMode: false,
+  pageExtensions: ['ts', 'tsx'],
   redirects: async () => {
     return [
       {

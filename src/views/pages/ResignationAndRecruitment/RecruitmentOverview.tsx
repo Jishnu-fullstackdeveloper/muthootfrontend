@@ -26,7 +26,7 @@ import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchResignationOverviewList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import AddIcon from '@mui/icons-material/Add'
-import { isAdmin } from '@/utils/functions'
+import { isAdmin, getRoleId } from '@/utils/functions'
 import { getAccessToken, decodeToken } from '@/utils/functions'
 
 // const approvers = [
@@ -139,7 +139,9 @@ const RecruitmentRequestOverview = () => {
   const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
   const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
 
-  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+  const userRoleId = getRoleId()
+
+  const safeGetData = (source: any): any[] => (source?.options && Array.isArray(source.options) ? source.options : [])
 
   const approvers = useMemo(() => {
     const data = safeGetData(fetchResignationOverviewListData)
@@ -161,13 +163,12 @@ const RecruitmentRequestOverview = () => {
 
       // Find the request data from overview list using id
       const requestData = approvers.find((item: any) => item.id === id)
-      if (!approval_id) throw new Error('No approval ID found')
-      console.log(requestData)
+      // if (!approval_id) throw new Error('No approval ID found')
       await dispatch(
         submitRequestDecision({
           id: approval_id, // Using approval_id from overview data
           approvalStatus: 'APPROVED',
-          approverId
+          approverId: userRoleId
         })
       ).unwrap()
 
@@ -185,13 +186,13 @@ const RecruitmentRequestOverview = () => {
 
       // Find the request data from overview list using id
       const requestData = approvers.find((item: any) => item.id === id)
-      if (!approval_id) throw new Error('No approval ID found')
+      // if (!approval_id) throw new Error('No approval ID found')
 
       await dispatch(
         submitRequestDecision({
           id: approval_id, // Using approval_id from overview data
           approvalStatus: 'REJECTED',
-          approverId
+          approverId: userRoleId
         })
       ).unwrap()
 
@@ -309,7 +310,7 @@ const RecruitmentRequestOverview = () => {
                 {approvers?.map((approver, index) => (
                   <Box key={approver.id} sx={{ marginBottom: 2, pb: 4 }}>
                     <Typography variant='body1' sx={{ color: '#555' }}>
-                      {approver.Designation} - {approver.requestCount} Requests
+                      {approver.designation} - {approver.requestCount} Requests
                     </Typography>
                     <LinearProgress
                       variant='determinate'
@@ -445,7 +446,7 @@ const RecruitmentRequestOverview = () => {
                   }}
                   className='transition transform hover:-translate-y-1'
                   onClick={() => {
-                    const displayName = approver.Designation.replace(/\s+/g, '-') // Replace spaces with dashes
+                    const displayName = approver.designation?.replace(/\s+/g, '-') // Replace spaces with dashes
                     router.push(`/recruitment-management/request-listing?filter=${displayName}`)
                   }}
                 >
@@ -469,7 +470,7 @@ const RecruitmentRequestOverview = () => {
 
                   {/* Designation Name */}
                   <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
-                    {approver.Designation}
+                    {approver.designation}
                   </Typography>
 
                   {/* Bubble Position Availability */}

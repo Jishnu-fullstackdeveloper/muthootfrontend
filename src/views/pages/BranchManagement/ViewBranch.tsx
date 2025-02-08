@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import WorkIcon from '@mui/icons-material/Work'
@@ -11,11 +11,19 @@ import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
 interface ViewBranchProps {
   mode: string
   id: string
+  branchTab: string
 }
 
-const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
+const tabMapping: { [key: string]: number } = {
+  'employees-details': 0,
+  'bubble-positions': 1,
+  'bucket-management': 2,
+  'vacancy-management': 3
+}
+
+const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState<number>(tabMapping[branchTab] || 0)
 
   // Simulated branch data
   const branchData = {
@@ -79,13 +87,20 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
   // Tab change handler
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
-    if (newValue === 2) {
-      // router.push('/bucket-management')
-      router.push(`/bucket-management/view/${branchData.turnoverCode}`)
+    if (newValue === 0) {
+      router.push(`employees-details?id=${id}`)
+    } else if (newValue === 1) {
+      router.push(`bubble-positions?id=${id}`)
+    } else if (newValue === 2) {
+      router.push(`bucket-management?id=${id}`)
     } else if (newValue === 3) {
-      router.push(`/vacancy-management/view/${id}`)
+      router.push(`vacancy-management?id=${id}`)
     }
   }
+
+  useEffect(() => {
+    console.log('SearchParams', branchTab)
+  }, [])
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -96,7 +111,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
             <Typography variant='h5'>Branch Details</Typography>
           </Grid>
           <Grid item xs={6}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
                 variant='contained'
                 color='primary'
@@ -115,7 +130,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
               >
                 Vacancy Management
               </Button>
-            </Box>
+            </Box> */}
           </Grid>
         </Grid>
         <Divider sx={{ marginY: 3 }} />
@@ -165,10 +180,10 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
       {/* Tabs Section */}
       <Card sx={{ padding: 4 }}>
         <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
-          <Tab label='Employee Details' />
+          <Tab label='Employees Details' />
           <Tab label='Bubble Position' />
-          {/* <Tab label='Bucket Management' />
-          <Tab label='Vacancy Management' /> */}
+          <Tab label='Bucket Management' />
+          <Tab label='Vacancy Management' />
         </Tabs>
         <Divider sx={{ marginY: 3 }} />
 
@@ -239,6 +254,51 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id }) => {
                 </Grid>
               </Card>
             ))}
+          </Box>
+        )}
+        {activeTab === 2 && (
+          <Box>
+            <Typography variant='h6' sx={{ mb: 3 }}>
+              Bucket Management Overview
+            </Typography>
+            {/* Sample Bucket Management Data */}
+            <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
+              <Typography variant='body1'>
+                <strong>Bucket Name:</strong> Example Bucket
+              </Typography>
+              <Typography variant='body1'>
+                <strong>Total Capacity:</strong> 100
+              </Typography>
+              <Typography variant='body1'>
+                <strong>Current Count:</strong> 75
+              </Typography>
+              <Typography variant='body1' color='error'>
+                <strong>Available Slots:</strong> {100 - 75}
+              </Typography>
+            </Card>
+          </Box>
+        )}
+
+        {activeTab === 3 && (
+          <Box>
+            <Typography variant='h6' sx={{ mb: 3 }}>
+              Vacancy Management Overview
+            </Typography>
+            {/* Sample Vacancy Management Data */}
+            <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
+              <Typography variant='body1'>
+                <strong>Position:</strong> Sales Executive
+              </Typography>
+              <Typography variant='body1'>
+                <strong>Vacancies:</strong> 2
+              </Typography>
+              <Typography variant='body1'>
+                <strong>Applications Received:</strong> 5
+              </Typography>
+              <Typography variant='body1' color='error'>
+                <strong>Open Vacancies:</strong> {2 - 5}
+              </Typography>
+            </Card>
           </Box>
         )}
       </Card>

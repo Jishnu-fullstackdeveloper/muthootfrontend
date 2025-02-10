@@ -17,7 +17,8 @@ import {
   DialogActions,
   FormGroup,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Chip
 } from '@mui/material'
 import { TextFieldProps } from '@mui/material'
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -136,13 +137,14 @@ const UserListing = () => {
             {row.original.status}
           </Typography>
         )
-      })
-      // columnHelper.accessor('action', {
-      //   header: 'Action',
-      //   cell: ({ row }) => (
-      //     <Box sx={{ display: 'flex', gap: 1 }}>
-      //       {/* View Button */}
-      //       {/* <IconButton
+      }),
+
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: ({ row }) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {/* View Button */}
+            {/* <IconButton
       //         onClick={(e: any) => {
       //           e.stopPropagation()
       //           handleView(row.original.id)
@@ -151,18 +153,18 @@ const UserListing = () => {
       //         <i className='tabler-eye' />
       //       </IconButton> */}
 
-      //       {/* Edit Button */}
-      //       {/* <IconButton
-      //         onClick={(e: any) => {
-      //           e.stopPropagation()
-      //           handleEdit(row.original.id)
-      //         }}
-      //       >
-      //         <i className='tabler-edit' />
-      //       </IconButton> */}
+            {/* Edit Button */}
+            <IconButton
+              onClick={(e: any) => {
+                e.stopPropagation()
+                handleEdit(row.original.id)
+              }}
+            >
+              <i className='tabler-edit' />
+            </IconButton>
 
-      //       {/* Delete Button */}
-      //       {/* <IconButton
+            {/* Delete Button */}
+            {/* <IconButton
       //         aria-label='Delete User'
       //         onClick={(e: any) => {
       //           e.stopPropagation()
@@ -171,9 +173,9 @@ const UserListing = () => {
       //       >
       //         <i className='tabler-trash' />
       //       </IconButton> */}
-      //     </Box>
-      //   )
-      // })
+          </Box>
+        )
+      })
     ],
     [columnHelper]
   )
@@ -214,9 +216,9 @@ const UserListing = () => {
   //   router.push(`/user-management/view/${id}`)
   // }
 
-  // const handleEdit = (id: number) => {
-  //   router.push(`/user-management/edit/${id}`)
-  // }
+  const handleEdit = (id: number) => {
+    router.push(`/user-management/edit/${id}`)
+  }
 
   // const handleDelete = (id: number) => {
   //   setSelectedUserId(id)
@@ -239,16 +241,16 @@ const UserListing = () => {
   const filteredData = useMemo(() => {
     return sampleData.filter(user => {
       const searchTerm = search.toLowerCase().trim()
-      
-      const matchesSearch = 
+
+      const matchesSearch =
         // Convert userId to string for searching
         user.userId.toString().includes(searchTerm) ||
         user.firstName.toLowerCase().includes(searchTerm) ||
         user.lastName.toLowerCase().includes(searchTerm) ||
         user.email.toLowerCase().includes(searchTerm)
 
-      const matchesStatus = 
-        (!appliedFilters.active && !appliedFilters.inactive) || 
+      const matchesStatus =
+        (!appliedFilters.active && !appliedFilters.inactive) ||
         (appliedFilters.active && user.status.toLowerCase().trim() === 'active') ||
         (appliedFilters.inactive && user.status.toLowerCase().trim() === 'inactive')
 
@@ -281,37 +283,77 @@ const UserListing = () => {
     handleFilterClose()
   }
 
+  const handleRemoveFilter = (filterType: 'active' | 'inactive') => {
+    setAppliedFilters(prev => ({
+      ...prev,
+      [filterType]: false
+    }))
+  }
+
   return (
     <div>
       <Card sx={{ mb: 4 }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <DebouncedInput
-              value={search}
-              onChange={(value: any) => setSearch(value)}
-              placeholder='Search by ID, name, or email...'
-              sx={{ width: '300px' }}
-              size='small'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <i className='tabler-search' />
-                  </InputAdornment>
-                )
-              }}
-            />
-            <Button
-              variant='outlined'
-              onClick={handleFilterOpen}
-              startIcon={<i className='tabler-filter' />}
-              size='medium'
-            >
-              Filter
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <DebouncedInput
+                value={search}
+                onChange={(value: any) => setSearch(value)}
+                placeholder='Search by ID, name, or email...'
+                sx={{ width: '300px' }}
+                size='small'
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <i className='tabler-search' />
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <Button
+                variant='outlined'
+                onClick={handleFilterOpen}
+                startIcon={<i className='tabler-filter' />}
+                size='medium'
+              >
+                Filter
+              </Button>
+            </Box>
+            <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />} size='medium'>
+              Add User
             </Button>
           </Box>
-          <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />} size='medium'>
-            Add User
-          </Button>
+
+          {/* Active Filters Display */}
+          {(appliedFilters.active || appliedFilters.inactive) && (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              {appliedFilters.active && (
+                <Chip label='Active Users' onDelete={() => handleRemoveFilter('active')} size='small' color='primary' />
+              )}
+              {appliedFilters.inactive && (
+                <Chip
+                  label='Inactive Users'
+                  onDelete={() => handleRemoveFilter('inactive')}
+                  size='small'
+                  color='primary'
+                />
+              )}
+              <Button
+                size='small'
+                color='error'
+                onClick={handleFilterClear}
+                sx={{
+                  ml: 1,
+                  textDecoration: 'underline',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Clear All
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
 

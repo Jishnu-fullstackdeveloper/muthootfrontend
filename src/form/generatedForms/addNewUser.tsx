@@ -18,13 +18,16 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
     initialValues: {
       firstName: '',
       lastName: '',
-      email: ''
+      email: '',
+      password: ''
     },
     validationSchema: Yup.object().shape({
       firstName: Yup.string().required('First Name is required'),
       lastName: Yup.string().required('Last Name is required'),
-      email: Yup.string().email('Invalid email').required('Email is required')
+      email: Yup.string().email('Invalid email').required('Email is required'),
+      password: Yup.string().required('Password is required')
     }),
+
     onSubmit: values => {
       console.log('Form submitted:', { ...values, ...(mode === 'edit' && { id }) })
       router.push('/users')
@@ -80,6 +83,19 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
             onBlur={userFormik.handleBlur}
             error={!!userFormik.errors.email && userFormik.touched.email}
             helperText={userFormik.touched.email && userFormik.errors.email}
+          />
+        </FormControl>
+
+        <FormControl fullWidth margin='normal'>
+          <TextField
+            label='Password *'
+            id='password'
+            name='password'
+            value={userFormik.values.password}
+            onChange={userFormik.handleChange}
+            onBlur={userFormik.handleBlur}
+            error={!!userFormik.errors.password && userFormik.touched.password}
+            helperText={userFormik.touched.password && userFormik.errors.password}
           />
         </FormControl>
       </fieldset>

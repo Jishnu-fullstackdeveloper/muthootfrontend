@@ -173,7 +173,7 @@ const BranchListing = () => {
           </Box>
         </div>
       </Card>
-
+     
       {(viewMode === 'grid' || viewMode === 'list') && (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
           {branchData?.map(branch => (
@@ -287,7 +287,6 @@ const BranchListing = () => {
           ))}
         </div>
       )}
-
       {viewMode === 'table' && <BranchListingTableView branchData={branchData} />}
       {viewMode !== 'table' && (
         <div className='flex items-center justify-end mt-6'>

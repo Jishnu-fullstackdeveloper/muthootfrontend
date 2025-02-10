@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 // MUI Imports
 import Button from '@mui/material/Button'
 
@@ -44,64 +43,31 @@ const Layout = async ({ children }: ChildrenType) => {
   //   }, 3000)
   // }
 
-  // return (
-  //   <Providers direction={direction}>
-  //     <LayoutWrapper
-  //       systemMode={systemMode}
-  //       verticalLayout={
-  //         <VerticalLayout
-  //           navigation={<Navigation mode={mode} systemMode={systemMode} />}
-  //           navbar={<Navbar />}
-  //           footer={<VerticalFooter />}
-  //         >
-  //           {children}
-  //         </VerticalLayout>
-  //       }
-  //       horizontalLayout={
-  //         <HorizontalLayout header={<Header />} footer={<HorizontalFooter />}>
-  //           {children}
-  //         </HorizontalLayout>
-  //       }
-  //     />
-  //     <ScrollToTop className='mui-fixed'>
-  //       <Button variant='contained' className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'>
-  //         <i className='tabler-arrow-up' />
-  //       </Button>
-  //     </ScrollToTop>
-  //   </Providers>
-  // )
   return (
-    <html lang='en'>
-      <body>
-        <Providers direction={direction}>
-          <LayoutWrapper
-            systemMode={systemMode}
-            verticalLayout={
-              <VerticalLayout
-                navigation={<Navigation mode={mode} systemMode={systemMode} />}
-                navbar={<Navbar />}
-                footer={<VerticalFooter />}
-              >
-                {children}
-              </VerticalLayout>
-            }
-            horizontalLayout={
-              <HorizontalLayout header={<Header />} footer={<HorizontalFooter />}>
-                {children}
-              </HorizontalLayout>
-            }
-          />
-          <ScrollToTop className='mui-fixed'>
-            <Button
-              variant='contained'
-              className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'
-            >
-              <i className='tabler-arrow-up' />
-            </Button>
-          </ScrollToTop>
-        </Providers>
-      </body>
-    </html>
+    <Providers direction={direction}>
+      <LayoutWrapper
+        systemMode={systemMode}
+        verticalLayout={
+          <VerticalLayout
+            navigation={<Navigation mode={mode} systemMode={systemMode} />}
+            navbar={<Navbar />}
+            footer={<VerticalFooter />}
+          >
+            {children}
+          </VerticalLayout>
+        }
+        horizontalLayout={
+          <HorizontalLayout header={<Header />} footer={<HorizontalFooter />}>
+            {children}
+          </HorizontalLayout>
+        }
+      />
+      <ScrollToTop className='mui-fixed'>
+        <Button variant='contained' className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'>
+          <i className='tabler-arrow-up' />
+        </Button>
+      </ScrollToTop>
+    </Providers>
   )
 }
 

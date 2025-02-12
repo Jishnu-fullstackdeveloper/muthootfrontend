@@ -26,7 +26,14 @@ import { useSettings } from '@core/hooks/useSettings'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@/redux/store'
 import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
-import { getAccessToken, getRefreshToken, Logout, setAccessToken, setRefreshToken } from '@/utils/functions'
+import {
+  decodeToken,
+  getAccessToken,
+  getRefreshToken,
+  Logout,
+  setAccessToken,
+  setRefreshToken
+} from '@/utils/functions'
 import { useAppSelector } from '@/lib/hooks'
 import { jwtDecode } from 'jwt-decode'
 
@@ -43,9 +50,10 @@ const BadgeContentSpan = styled('span')({
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
-  const [decodedAccessToken, setDecodedAccessToken] = useState<any>({})
   const access_token = getAccessToken()
+  const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
   const refresh_token = getRefreshToken()
+  const decodedToken = decodeToken(access_token)
 
   const loginStates = useAppSelector((state: any) => state.loginReducer)
 

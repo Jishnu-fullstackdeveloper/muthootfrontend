@@ -131,15 +131,15 @@ const BranchListing = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
-            <Button
+            {/* <Button
               className='mr-2'
               variant='contained'
               color='primary'
               startIcon={<AssessmentIcon />}
               onClick={() => router.push('/branch-management/budget-report')}
             >
-              Budget Report Dashboard
-            </Button>
+              Branch Report Dashboard
+            </Button> */}
             <Box
               sx={{
                 display: 'flex',
@@ -173,7 +173,7 @@ const BranchListing = () => {
           </Box>
         </div>
       </Card>
-     
+
       {(viewMode === 'grid' || viewMode === 'list') && (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
           {branchData?.map(branch => (

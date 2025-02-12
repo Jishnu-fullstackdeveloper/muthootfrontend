@@ -19,10 +19,10 @@ import { rgbaToHex } from '@/utils/rgbaToHex'
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
-// Sample data for profit margins
-const series = [{ data: [15, 20, 25, 30, 35, 40, 50] }]
+// Sample data for a single selected branch's openings and shortlisted candidates
+const series = [{ data: [30, 20] }] // Example data: [Openings, Shortlisted]
 
-const ProfitMarginChart = () => {
+const BranchOpeningsChart = () => {
   // Hooks
   const theme = useTheme()
   const { mode } = useColorScheme()
@@ -43,17 +43,17 @@ const ProfitMarginChart = () => {
       }
     },
     legend: { show: false },
-    tooltip: { enabled: true, theme: 'dark' },
+    tooltip: {
+      enabled: true,
+      theme: 'dark',
+      shared: true,
+      intersect: false
+      // y: {
+      //   formatter: value => `${value}` // Display the value directly
+      // }
+    },
     dataLabels: { enabled: false },
-    colors: [
-      primaryColorWithOpacity,
-      primaryColorWithOpacity,
-      primaryColorWithOpacity,
-      primaryColorWithOpacity,
-      theme.palette.primary.main,
-      primaryColorWithOpacity,
-      primaryColorWithOpacity
-    ],
+    colors: [theme.palette.primary.main, primaryColorWithOpacity],
     states: {
       hover: {
         filter: { type: 'none' }
@@ -72,9 +72,9 @@ const ProfitMarginChart = () => {
       }
     },
     xaxis: {
-      categories: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-      axisTicks: { show: false },
-      axisBorder: { show: false },
+      categories: ['O', 'S'], // Updated categories for single branch
+      axisTicks: { show: true },
+      axisBorder: { show: true },
       tickPlacement: 'on',
       labels: {
         style: {
@@ -84,7 +84,7 @@ const ProfitMarginChart = () => {
         }
       }
     },
-    yaxis: { show: false },
+    yaxis: { show: true, title: { text: 'Count' } }, // Show y-axis with title
     responsive: [
       {
         breakpoint: 1240,
@@ -124,18 +124,18 @@ const ProfitMarginChart = () => {
       <CardContent className='flex justify-between gap-2'>
         <div className='flex flex-col justify-between'>
           <div className='flex flex-col gap-y-2'>
-            <Typography variant='h5'>Profit Margins</Typography>
-            <Typography>Weekly Performance</Typography>
+            <Typography variant='h5'>Branch Openings & Shortlisted</Typography>
+            {/* <Typography>Performance for Selected Branch</Typography> */}
           </div>
           <div className='flex flex-col gap-y-2 items-start'>
-            <Typography variant='h3'>$50k</Typography>
+            <Typography variant='h3'>Total: 50</Typography> {/* Example total count for the selected branch */}
             <Chip variant='tonal' size='small' color='success' label='+12.8%' />
           </div>
         </div>
-        <AppReactApexCharts type='bar' width={170} height={172} series={series} options={options} />
+        <AppReactApexCharts type='bar' width={170} height={195} series={series} options={options} />
       </CardContent>
     </Card>
   )
 }
 
-export default ProfitMarginChart
+export default BranchOpeningsChart

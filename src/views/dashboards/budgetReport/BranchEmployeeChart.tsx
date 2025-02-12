@@ -17,9 +17,9 @@ import type { ApexOptions } from 'apexcharts'
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
 // Data for the chart
-const series = [{ data: [120, 150, 180, 210, 250, 200, 170] }] // Example revenue data for branches
+const series = [{ data: [50, 75, 100, 125, 150, 130, 90] }] // Example employee count data for branches
 
-const RevenueByBranchChart = () => {
+const BranchEmployeeChart = () => {
   // Hooks
   const theme = useTheme()
 
@@ -114,15 +114,15 @@ const RevenueByBranchChart = () => {
 
   return (
     <Card>
-      <CardHeader title='Revenue by Branch' subheader='Current Month' className='pbe-0' />
-      <CardContent className='flex flex-col justify-between'>
-        <AppReactApexCharts type='bar' height={84} width='100%' options={options} series={series} />
+      <CardHeader title='Branch Employee Count' subheader='Current Month' className='pbe-0' />
+      <CardContent className='flex flex-col justify-between' style={{ height: '172px' }}>
+        <AppReactApexCharts type='bar' height={95} width='100%' options={options} series={series} />
         <div className='flex items-center justify-between flex-wrap gap-x-4 gap-y-0.5'>
           <Typography variant='h4' color='text.primary'>
-            $1.24M
+            1,000 Employees
           </Typography>
           <Typography variant='body2' color='success.main'>
-            +8.5%
+            +5.0%
           </Typography>
         </div>
       </CardContent>
@@ -130,4 +130,4 @@ const RevenueByBranchChart = () => {
   )
 }
 
-export default RevenueByBranchChart
+export default BranchEmployeeChart

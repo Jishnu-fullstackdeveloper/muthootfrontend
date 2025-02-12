@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import WorkIcon from '@mui/icons-material/Work'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import CustomTable from '@/components/Table/CustomTable'
 import { useRouter } from 'next/navigation'
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
@@ -107,8 +108,17 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
       {/* Branch Details */}
       <Card sx={{ padding: 4, marginBottom: 4 }}>
         <Grid container spacing={2} alignItems='center'>
-          <Grid item xs={6}>
+          <Grid className='flex justify-between' item xs={12}>
             <Typography variant='h5'>Branch Details</Typography>
+            <Button
+              className='mr-2'
+              variant='contained'
+              color='primary'
+              startIcon={<AssessmentIcon />}
+              onClick={() => router.push('/branch-management/budget-report')}
+            >
+              Branch Report Dashboard
+            </Button>
           </Grid>
           <Grid item xs={6}>
             {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>

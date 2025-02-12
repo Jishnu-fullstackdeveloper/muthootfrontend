@@ -453,16 +453,24 @@ const ManualRequestGeneratedForm: React.FC = () => {
       const options = apiData.data.options || []
       const currentPagination = paginationState[currentField] || { page: 1 }
 
+      // const updateOptions = (categoryType: 'employeeCategoryDetails' | 'locationCategoryDetails', fieldId: string) => {
+      //   const index = newOptionsData[categoryType].findIndex(item => item.id === fieldId)
+      //   if (index !== -1) {
+      //     if (currentPagination.page > 1) {
+      //       // Append new options to existing ones
+      //       newOptionsData[categoryType][index].options = [...newOptionsData[categoryType][index].options, ...options]
+      //     } else {
+      //       // First page - replace options
+      //       newOptionsData[categoryType][index].options = options
+      //     }
+      //   }
+      // }
+
       const updateOptions = (categoryType: 'employeeCategoryDetails' | 'locationCategoryDetails', fieldId: string) => {
         const index = newOptionsData[categoryType].findIndex(item => item.id === fieldId)
         if (index !== -1) {
-          if (currentPagination.page > 1) {
-            // Append new options to existing ones
-            newOptionsData[categoryType][index].options = [...newOptionsData[categoryType][index].options, ...options]
-          } else {
-            // First page - replace options
-            newOptionsData[categoryType][index].options = options
-          }
+          // Append new options to existing ones regardless of the current page
+          newOptionsData[categoryType][index].options = [...newOptionsData[categoryType][index].options, ...options]
         }
       }
 

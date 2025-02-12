@@ -2,10 +2,10 @@
 import React from 'react'
 import { Box, Card, Grid } from '@mui/material'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
-import RevenueByBranchChart from '@/views/dashboards/budgetReport/RevenueByBranchChart'
-import ExpenseTrendsChart from '@/views/dashboards/budgetReport/ExpenseTrendsChart'
-import ProfitMarginChart from '@/views/dashboards/budgetReport/ProfitMarginChart'
-import BudgetAllocationReport from '@/views/dashboards/budgetReport/BudgetAllocationReport'
+import BranchEmployeeChart from '@/views/dashboards/budgetReport/BranchEmployeeChart'
+import BubblePositionTrendsChart from '@/views/dashboards/budgetReport/BubblePositionTrendsChart'
+import BranchOpeningsChart from '@/views/dashboards/budgetReport/BranchOpeningsChart'
+import ResignationsListReport from '@/views/dashboards/budgetReport/ResignationsListReport'
 import CostEfficiencyStatus from '@/views/dashboards/budgetReport/CostEfficiencyStatus'
 import ApprovalStatus from '@/views/dashboards/budgetReport/ApprovalStatus'
 
@@ -60,22 +60,22 @@ const BudgetReport = () => {
       <Grid container spacing={6}>
         {/* Revenue by Branch */}
         <Grid item xs={12} sm={6} md={4} lg={4}>
-          <RevenueByBranchChart />
+          <BranchEmployeeChart />
         </Grid>
 
         {/* Expense Trends */}
         <Grid item xs={12} sm={6} md={4} lg={4}>
-          <ExpenseTrendsChart />
+          <BubblePositionTrendsChart />
         </Grid>
 
         {/* Profit Margin Analysis */}
         <Grid item xs={12} md={8} lg={4}>
-          <ProfitMarginChart />
+          <BranchOpeningsChart />
         </Grid>
 
         {/* Budget Allocation */}
         <Grid item xs={12} md={12}>
-          <BudgetAllocationReport />
+          <ResignationsListReport />
         </Grid>
 
         {/* Cost Efficiency Status */}

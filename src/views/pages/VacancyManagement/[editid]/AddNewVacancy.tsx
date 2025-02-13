@@ -2,8 +2,9 @@
 import { Box, Card, Divider, Link, Typography } from '@mui/material'
 import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
-const GeneratedAddVacancyForm = dynamic(() => import('@/form/generatedForms/addVacancy'), { ssr: false })
 import { usePathname } from 'next/navigation'
+
+const GeneratedAddVacancyForm = dynamic(() => import('@/form/generatedForms/addVacancy'), { ssr: false })
 const JobVacancyView = dynamic(() => import('../ViewVacancy'), { ssr: false })
 
 const AddNewVacancy = () => {

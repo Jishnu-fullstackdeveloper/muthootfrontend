@@ -24,6 +24,7 @@ import type { TextFieldProps } from '@mui/material/TextField'
 
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 import ViewListIcon from '@mui/icons-material/ViewList'
+import TableChartIcon from '@mui/icons-material/TableChart'
 import DynamicButton from '@/components/Button/dynamicButton'
 import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
 import { RestartAlt } from '@mui/icons-material'
@@ -33,9 +34,13 @@ import {
   setVacancyManagementFiltersToCookie
 } from '@/utils/functions'
 
+import VacancyListingTableView from './VacancyTableView'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+
 const JobListing = () => {
   const router = useRouter()
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
   const [selectedFilters, setSelectedFilters] = useState({
     location: [],
@@ -78,8 +83,14 @@ const JobListing = () => {
       id: 1,
       title: 'Software Engineer',
       jobType: 'Full-time',
+      vacancyPositions: 2,
       numberOfOpenings: 5,
       branch: 'IT Department',
+      grade: 'A',
+      band: 'Band3',
+      noOfFilledPositions: 3,
+      noOfApplicants: 60,
+      shortlisted: 30,
       city: 'New York',
       experience: 3,
       startDate: '2024-01-15',
@@ -91,8 +102,14 @@ const JobListing = () => {
       id: 2,
       title: 'Marketing Manager',
       jobType: 'Part-time',
+      vacancyPositions: 2,
       numberOfOpenings: 2,
       branch: 'Marketing',
+      grade: 'C',
+      band: 'Band2',
+      noOfFilledPositions: 6,
+      noOfApplicants: 56,
+      shortlisted: 22,
       city: 'San Francisco',
       experience: 5,
       startDate: '2024-01-01',
@@ -104,8 +121,14 @@ const JobListing = () => {
       id: 3,
       title: 'Data Scientist',
       jobType: 'Full-time',
+      vacancyPositions: 2,
       numberOfOpenings: 3,
       branch: 'Data Analytics',
+      grade: 'A',
+      band: 'Band4',
+      noOfFilledPositions: 8,
+      noOfApplicants: 69,
+      shortlisted: 42,
       city: 'Los Angeles',
       experience: 4,
       startDate: '2024-02-01',
@@ -117,8 +140,14 @@ const JobListing = () => {
       id: 4,
       title: 'HR Specialist',
       jobType: 'Full-time',
+      vacancyPositions: 2,
       numberOfOpenings: 1,
       branch: 'Human Resources',
+      grade: 'B',
+      band: 'Band1',
+      noOfFilledPositions: 1,
+      noOfApplicants: 65,
+      shortlisted: 33,
       city: 'Chicago',
       experience: 3,
       startDate: '2024-02-15',
@@ -130,8 +159,14 @@ const JobListing = () => {
       id: 5,
       title: 'Sales Executive',
       jobType: 'Full-time',
+      vacancyPositions: 2,
       numberOfOpenings: 4,
       branch: 'Sales',
+      grade: 'B',
+      band: 'Band3',
+      noOfFilledPositions: 7,
+      noOfApplicants: 83,
+      shortlisted: 25,
       city: 'Dallas',
       experience: 2,
       startDate: '2024-01-10',
@@ -143,8 +178,14 @@ const JobListing = () => {
       id: 6,
       title: 'Product Manager',
       jobType: 'Full-time',
+      vacancyPositions: 2,
       numberOfOpenings: 2,
       branch: 'Product Development',
+      grade: 'C',
+      band: 'Band2',
+      noOfFilledPositions: 3,
+      noOfApplicants: 70,
+      shortlisted: 40,
       city: 'Austin',
       experience: 5,
       startDate: '2024-01-25',
@@ -291,6 +332,23 @@ const JobListing = () => {
     })
   }
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null);
+
+  const handleDeleteClick = (id: string | number) => {
+    setVacancyIdToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = (id?: string | number) => {
+    if (id) {
+      // Perform the delete operation here
+      console.log('Deleting vacancy with ID:', id);
+      // After deletion, you might want to refresh the data or remove the item from the list
+    }
+    setDeleteModalOpen(false);
+  };
+
   return (
     <div className=''>
       <VacancyManagementFilters
@@ -383,9 +441,14 @@ const JobListing = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title='List View'>
+              {/* <Tooltip title='List View'>
                 <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
                   <ViewListIcon />
+                </IconButton>
+              </Tooltip> */}
+              <Tooltip title='Table View'>
+                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
+                  <TableChartIcon />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -507,168 +570,26 @@ const JobListing = () => {
       </Card>
 
       <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
-        {vacancies?.map(vacancy => (
-          <Box
-            onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
-            key={vacancy.id}
-            className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
-              viewMode !== 'grid' && 'p-6'
-            }`}
-            sx={{
-              cursor: 'pointer',
-              minHeight: viewMode !== 'grid' ? '150px' : 'auto'
-            }}
-          >
-            {viewMode === 'grid' ? (
-              // Grid View
-              <>
-                {/* Header Section with Action Buttons */}
-                <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
-                  <div className='flex items-center'>
-                    <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
-                      {vacancy.title}
-                    </Typography>
-                  </div>
-                  <div className='flex space-x-2'>
-                    <Stack sx={{ marginTop: 2 }}>
-                      <Chip
-                        label={vacancy.status}
-                        color={
-                          vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'
-                        }
-                        size='small'
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem', // Slightly increased font size
-                          textTransform: 'uppercase'
-                        }}
-                      />
-                    </Stack>
-                    <Tooltip title='Edit Vacancy' placement='top'>
-                      <IconButton
-                        sx={{
-                          ':hover': { color: 'primary.main' }
-                        }}
-                        onClick={e => {
-                          e.stopPropagation() // Prevent card click
-                          router.push(`/vacancy-management/edit/${vacancy.id}`)
-                        }}
-                      >
-                        <i className='tabler-edit' />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Delete Vacancy' placement='top'>
-                      <IconButton
-                        sx={{
-                          ':hover': { color: 'error.main' }
-                        }}
-                        onClick={e => {
-                          e.stopPropagation() // Prevent card click
-                          // Add delete logic here
-                        }}
-                      >
-                        <i className='tabler-trash' />
-                      </IconButton>
-                    </Tooltip>
-                  </div>
-                </Box>
-
-                {/* Tabbed Details Section */}
-                <Box className='p-4 border-t'>
-                  <Tabs
-                    value={selectedTabs[vacancy.id] || 0} // Get the selected tab for the current vacancy
-                    onClick={e => e.stopPropagation()}
-                    onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)} // Pass vacancy ID to handleTabChange
-                    aria-label='vacancy details'
-                  >
-                    {/* Tab Labels */}
-                    <Tab label='Details' />
-                    <Tab label='Dates' />
-                    <Tab label='Contact' />
-                  </Tabs>
-
-                  {/* Tab Content */}
-                  <Box className='mt-4'>
-                    {selectedTabs[vacancy.id] === 0 && (
-                      <Box className='space-y-2 text-sm text-gray-700'>
-                        <p>
-                          <strong>Job Type:</strong> {vacancy.jobType}
-                        </p>
-                        <p>
-                          <strong>Openings:</strong> {vacancy.numberOfOpenings}
-                        </p>
-                        <p>
-                          <strong>Branch:</strong> {vacancy.branch}
-                        </p>
-                        <p>
-                          <strong>City:</strong> {vacancy.city}
-                        </p>
-                        <p>
-                          <strong>Experience:</strong> {vacancy.experience} years
-                        </p>
-                      </Box>
-                    )}
-                    {selectedTabs[vacancy.id] === 1 && (
-                      <Box className='space-y-2 text-sm text-gray-700'>
-                        <p>
-                          <strong>Start Date:</strong> {vacancy.startDate}
-                        </p>
-                        <p>
-                          <strong>End Date:</strong> {vacancy.endDate}
-                        </p>
-                      </Box>
-                    )}
-                    {selectedTabs[vacancy.id] === 2 && (
-                      <Box className='space-y-2 text-sm text-gray-700'>
-                        <p>
-                          <strong>Contact Person:</strong> {vacancy.contactPerson}
-                        </p>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-              </>
-            ) : (
-              // List View
-              <Grid container spacing={4} alignItems='center'>
-                {/* Column 1 */}
-                <Grid item xs={12} md={4}>
-                  <Typography variant='h5' fontWeight='bold' gutterBottom>
-                    {/* Increased size for title */}
+        {viewMode === 'grid' ? (
+          vacancies?.map(vacancy => (
+            <Box
+              onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
+              key={vacancy.id}
+              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1`}
+              sx={{
+                cursor: 'pointer',
+                minHeight: '150px'
+              }}
+            >
+              {/* Header Section with Action Buttons */}
+              <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
+                <div className='flex items-center'>
+                  <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
                     {vacancy.title}
                   </Typography>
-                  <Typography variant='body1'>
-                    {/* Larger font for body text */}
-                    <strong>Job Type:</strong> {vacancy.jobType}
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>Openings:</strong> {vacancy.numberOfOpenings}
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>Branch:</strong> {vacancy.branch}
-                  </Typography>
-                </Grid>
-
-                {/* Column 2 */}
-                <Grid item xs={12} md={4}>
-                  <Typography variant='body1'>
-                    <strong>City:</strong> {vacancy.city}
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>Experience:</strong> {vacancy.experience} years
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>Start Date:</strong> {vacancy.startDate}
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>End Date:</strong> {vacancy.endDate}
-                  </Typography>
-                </Grid>
-
-                {/* Column 3 */}
-                <Grid item xs={12} md={4}>
-                  <Typography variant='body1'>
-                    <strong>Status:</strong>{' '}
+                </div>
+                <div className='flex space-x-2'>
+                  <Stack sx={{ marginTop: 2 }}>
                     <Chip
                       label={vacancy.status}
                       color={
@@ -677,21 +598,148 @@ const JobListing = () => {
                       size='small'
                       sx={{
                         fontWeight: 'bold',
-                        fontSize: '0.85rem',
+                        fontSize: '0.85rem', // Slightly increased font size
                         textTransform: 'uppercase'
                       }}
                     />
-                  </Typography>
-                  <Typography variant='body1'>
-                    <strong>Contact Person:</strong> {vacancy.contactPerson}
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-          </Box>
-        ))}
-      </div>
+                  </Stack>
+                  <Tooltip title='Edit Vacancy' placement='top'>
+                    <IconButton
+                      sx={{
+                        ':hover': { color: 'primary.main' }
+                      }}
+                      onClick={e => {
+                        e.stopPropagation() // Prevent card click
+                        router.push(`/vacancy-management/edit/${vacancy.id}`)
+                      }}
+                    >
+                      <i className='tabler-edit' />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Delete Vacancy' placement='top'>
+                    <IconButton
+                      sx={{
+                        ':hover': { color: 'error.main' }
+                      }}
+                      onClick={e => {
+                        e.stopPropagation() // Prevent card click
+                        handleDeleteClick(vacancy.id);
+                        // Add delete logic here
+                      }}
+                    >
+                      <i className='tabler-trash' />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </Box>
 
+              {/* Tabbed Details Section */}
+              <Box className='p-4 border-t'>
+                <Tabs
+                  value={selectedTabs[vacancy.id] || 0} // Get the selected tab for the current vacancy
+                  onClick={e => e.stopPropagation()}
+                  onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)} // Pass vacancy ID to handleTabChange
+                  aria-label='vacancy details'
+                >
+                  {/* Tab Labels */}
+                  <Tab label='Details' />
+                  <Tab label='Dates' />
+                  {/* <Tab label='Contact' /> */}
+                </Tabs>
+
+                {/* Tab Content */}
+                <Box className='mt-4'>
+                  {selectedTabs[vacancy.id] === 0 && (
+                    <Box className='text-sm text-gray-700'>
+                      <Box className='grid grid-cols-2 gap-y-2'>
+                        <p>
+                          <strong>Job Type:</strong> {vacancy.jobType}
+                        </p>
+                        
+                        <p>
+                          <strong>Branch:</strong> {vacancy.branch}
+                        </p>
+                        <p>
+                          <strong>Grade:</strong> {vacancy.grade}
+                        </p>
+                        <p>
+                          <strong>Band:</strong> {vacancy.band}
+                        </p>
+                        <p>
+                          <strong>Experience:</strong> {vacancy.experience} years
+                        </p>
+                        <p>
+                          <strong>City:</strong> {vacancy.city}
+                        </p>
+                        
+                        {/* <p>
+                          <strong>Positions:</strong> {vacancy.vacancyPositions}
+                        </p> */}
+                      </Box>
+                      <Box className="mt-2 shadow-md ring-white flex flex-col items-center p-4" sx={{ borderRadius: 2 }}>
+                        <ul className=" space-y-2">
+                          <li className="text-success">
+                            <strong>No. of openings:</strong> {vacancy.numberOfOpenings}
+                          </li>
+                          <li className="text-warning">
+                            <strong>Filled positions:</strong> {vacancy.noOfFilledPositions}
+                          </li>
+                          <li className="text-primary">
+                            <strong>Applied:</strong> {vacancy.noOfApplicants}
+                          </li>
+                          <li className="text-error">
+                            <strong>Shortlisted:</strong> {vacancy.shortlisted}
+                          </li>
+                        </ul>
+                      </Box>
+
+                    </Box>
+                  )}
+                  {selectedTabs[vacancy.id] === 1 && (
+                    <Box className="text-sm text-gray-700 grid grid-cols-2 gap-2">
+                    <Chip
+                      variant='tonal' 
+                      label={`Start Date: ${vacancy.startDate}`} 
+                      color='secondary'
+                      size='medium'
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem', // Slightly increased font size
+                        textTransform: 'uppercase',
+                        width: 200
+                      }}
+                    />
+                    <Chip
+                      variant='tonal' 
+                      label={`End Date: ${vacancy.endDate}`}  
+                      color='error'
+                      size='medium'
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem', // Slightly increased font size
+                        textTransform: 'uppercase',
+                        width: 190
+                      }}
+                    />
+                  </Box>
+                  )}
+                  {/* {selectedTabs[vacancy.id] === 2 && (
+                    <Box className='space-y-2 text-sm text-gray-700'>
+                      <p>
+                        <strong>Contact Person:</strong> {vacancy.contactPerson}
+                      </p>
+                    </Box>
+                  )} */}
+                </Box>
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <VacancyListingTableView vacancies={vacancies} />
+        )}
+      </div>
+      
+      {viewMode !== 'table' && (
       <div className='flex items-center justify-end mt-6'>
         {/* Right-aligned Pagination */}
         <FormControl size='small' sx={{ minWidth: 70 }}>
@@ -719,7 +767,15 @@ const JobListing = () => {
             onChange={handlePageChange} //changing page function
           />
         </div>
+      
       </div>
+      )}
+      <ConfirmModal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        id={vacancyIdToDelete}
+      />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   useReactTable,
   ColumnDef,
@@ -39,14 +39,14 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 interface DynamicTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
+  pagination: { pageIndex: number; pageSize: number };
+  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
+  onPageChange: (newPage: number) => void;
+  onRowsPerPageChange: (newPageSize: number) => void;
 }
 
-const DynamicTable = ({ columns: initialColumns, data }: any) => {
+const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationChange, onPageChange, onRowsPerPageChange }: any) => {
   const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns)
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 5
-  })
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
   const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -73,13 +73,19 @@ const DynamicTable = ({ columns: initialColumns, data }: any) => {
 
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => extractHeaders(initialColumns))
 
+  const paginatedData = useMemo(() => {
+    const start = pagination.pageIndex * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    return data.slice(start, end); // Slice the data for the current page
+  }, [data, pagination]);
+
   const table = useReactTable({
     columns,
-    data,
+    data: paginatedData,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(data.length / pagination.pageSize),
+    pageCount: Math.ceil(data?.length / pagination.pageSize),
     state: {
       pagination,
       sorting,
@@ -205,9 +211,9 @@ const DynamicTable = ({ columns: initialColumns, data }: any) => {
                     count={data.length}
                     rowsPerPage={pagination.pageSize}
                     page={pagination.pageIndex}
-                    onPageChange={(_, page) => setPagination(prev => ({ ...prev, pageIndex: page }))}
-                    onRowsPerPageChange={e => setPagination({ pageIndex: 0, pageSize: Number(e.target.value) })}
-                  />
+                    onPageChange={(_, page) => onPageChange(page)}
+                    onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
+                    />
                 </Box>
               </TableCell>
             </TableRow>
@@ -222,7 +228,6 @@ const DynamicTable = ({ columns: initialColumns, data }: any) => {
           invisible: true, // Show backdrop for click handling
           sx: { backgroundColor: 'transparent' } // Make backdrop transparent
         }}
-        // sx={{ backgroundColor: 'transparent' }}
       >
         <Box sx={{ width: 350, p: 3 }}>
           <Typography variant='h6' gutterBottom>

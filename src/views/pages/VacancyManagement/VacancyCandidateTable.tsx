@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { IconButton, Tooltip, Typography, Chip, Button } from '@mui/material';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,29 @@ const CandidateListingTableView = () => {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [candidateIdToDelete, setCandidateIdToDelete] = useState<string | number | null>(null);
+
+  // Pagination state lifted to the parent component
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => {
+      const updatedPagination = { ...prev, pageIndex: newPage };
+      console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
+      return updatedPagination;
+    });
+  };
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize };
+    console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
+    setPagination(updatedPagination);
+  };
+  
 
   const handleDeleteClick = (id: string | number) => {
     setCandidateIdToDelete(id);
@@ -174,11 +197,27 @@ const CandidateListingTableView = () => {
         experience: 6, 
         atsScore: 40 
     },
+    { 
+      id: 6, 
+      name: 'Robert Downy Jr', 
+      appliedPost: 'Data Analyst', 
+      email: 'robert.downy@example.com', 
+      phoneNumber: '444-999-6666', 
+      experience: 5, 
+      atsScore: 80 
+  },
   ];
 
   return (
     <div>
-      <DynamicTable columns={columns} data={candidates} />
+      <DynamicTable 
+        columns={columns} 
+        data={candidates} 
+        pagination={pagination} // Pass pagination state
+        onPaginationChange={setPagination} // Pass pagination change handler
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
       <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

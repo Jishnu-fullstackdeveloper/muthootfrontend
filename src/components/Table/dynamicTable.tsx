@@ -74,9 +74,9 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => extractHeaders(initialColumns))
 
   const paginatedData = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    return data.slice(start, end); // Slice the data for the current page
+    const start = pagination?.pageIndex * pagination?.pageSize;
+    const end = start + pagination?.pageSize;
+    return data?.slice(start, end); // Slice the data for the current page
   }, [data, pagination]);
 
   const table = useReactTable({
@@ -85,7 +85,7 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(data?.length / pagination.pageSize),
+    pageCount: Math.ceil(data?.length / pagination?.pageSize),
     state: {
       pagination,
       sorting,
@@ -208,9 +208,9 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
                   />
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    count={data.length}
-                    rowsPerPage={pagination.pageSize}
-                    page={pagination.pageIndex}
+                    count={data?.length}
+                    rowsPerPage={pagination?.pageSize}
+                    page={pagination?.pageIndex}
                     onPageChange={(_, page) => onPageChange(page)}
                     onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
                     />

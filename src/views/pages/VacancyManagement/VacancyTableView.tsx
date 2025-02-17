@@ -12,6 +12,28 @@ const VacancyListingTableView = ({ vacancies }: any) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null);
 
+  // Pagination state lifted to the parent component
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => {
+      const updatedPagination = { ...prev, pageIndex: newPage };
+      console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
+      return updatedPagination;
+    });
+  };
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize };
+    console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
+    setPagination(updatedPagination);
+  };
+
   const handleDeleteClick = (id: string | number) => {
     setVacancyIdToDelete(id);
     setDeleteModalOpen(true);
@@ -281,7 +303,14 @@ const VacancyListingTableView = ({ vacancies }: any) => {
 
   return (
     <div>
-      <DynamicTable columns={columns} data={vacancies} />
+      <DynamicTable 
+        columns={columns} 
+        data={vacancies} 
+        pagination={pagination} // Pass pagination state
+        onPaginationChange={setPagination} // Pass pagination change handler
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
       <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

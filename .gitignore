@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+#SonarQube
+
+/.sonar
 # testing
 /coverage
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react'
 import {
   Box,
   Typography,
@@ -14,16 +14,16 @@ import {
   CardContent,
   Button,
   Tabs,
-  Tab,
-} from '@mui/material';
-import { LocationOn, Work, DateRange, Person, MonetizationOn, CheckCircle, ArrowBack } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
-import CandidateListingTableView from './VacancyCandidateTable';
+  Tab
+} from '@mui/material'
+import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
+import { useRouter } from 'next/navigation'
+import CandidateListingTableView from './VacancyCandidateTable'
 
 type Props = {
-  mode: any;
-  id: any;
-};
+  mode: any
+  id: any
+}
 
 const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
   const vacancy = {
@@ -33,18 +33,18 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
       'We are providing services for reviews, follows, likes for our clients social media pages as part of their company development. We seek employees for the same as part-time jobs, work-at-home options. Remunerations are calculated based on the counting of reviews, follows, or likes which you provide on the given links. Interested candidates can apply.',
     roleSummary:
       'Proven hands-on experience in leadership and full-stack development within a corporate setting. Candidates should demonstrate strong decision-making and communication skills, with proven expertise in technical design and agile project delivery.',
-      roleDetails: [
-        { label: "Company Name", value: "ABC Ltd" },
-        { label: "Reporting To", value: "John Doe" },
-        { label: "Function/Department", value: "Research & Development" },
-        { label: "Written By", value: "HR Department" },
-      ],
-      keySkillsAttributes: [
-        { label: "Factor/Category", value: "Technical Expertise" },
-        { label: "Competencies", value: "Java, Spring Boot, API Integration" },
-        { label: "Definitions", value: "Java development, Backend design" },
-        { label: "Behavioral Attributes", value: "Adaptability, Problem-solving" },
-      ],
+    roleDetails: [
+      { label: 'Company Name', value: 'ABC Ltd' },
+      { label: 'Reporting To', value: 'John Doe' },
+      { label: 'Function/Department', value: 'Research & Development' },
+      { label: 'Written By', value: 'HR Department' }
+    ],
+    keySkillsAttributes: [
+      { label: 'Factor/Category', value: 'Technical Expertise' },
+      { label: 'Competencies', value: 'Java, Spring Boot, API Integration' },
+      { label: 'Definitions', value: 'Java development, Backend design' },
+      { label: 'Behavioral Attributes', value: 'Adaptability, Problem-solving' }
+    ],
     numberOfOpenings: 5,
     branch: 'Head Office',
     grade: 'A',
@@ -67,24 +67,24 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
     noOfFilledPositions: 3,
     noOfApplicants: 40,
     shortlisted: 21
-  };
+  }
 
-  const router = useRouter();
-  const jobDetailRef = useRef<HTMLDivElement>(null);
-  const candidateListRef = useRef<HTMLDivElement>(null);
-  const [tabValue, setTabValue] = useState(0); // State for tab value
+  const router = useRouter()
+  const jobDetailRef = useRef<HTMLDivElement>(null)
+  const candidateListRef = useRef<HTMLDivElement>(null)
+  const [tabValue, setTabValue] = useState(0) // State for tab value
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
+    setTabValue(newValue)
+  }
 
-  const scrollToCandidateList = () => {
-    candidateListRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  // const scrollToCandidateList = () => {
+  //   candidateListRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // }
 
   const handleBack = () => {
-    router.push('/vacancy-management'); // Navigates to the previous page
-  };
+    router.push('/vacancy-management') // Navigates to the previous page
+  }
 
   return (
     <Box>
@@ -92,9 +92,9 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
         <Box mb={4} className='space-y-2'>
           {/* Tabs for Job Title and Job Details */}
           <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-            <Tabs value={tabValue} onChange={handleTabChange} aria-label="job tabs">
-              <Tab label="Job Title" />
-              <Tab label="Job Details" />
+            <Tabs value={tabValue} onChange={handleTabChange} aria-label='job tabs'>
+              <Tab label='Job Title' />
+              <Tab label='Job Details' />
             </Tabs>
           </Box>
           <Box>
@@ -116,28 +116,35 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
                   </Box> */}
                 </Box>
                 <Paper
-                  className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 p-6 border-primary shadow-lg rounded-sm bg-white"
-                  elevation={4} sx={{ margin: 'auto', borderRadius: 1 }}
+                  className='grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 p-6 border-primary shadow-lg rounded-sm bg-white'
+                  elevation={4}
+                  sx={{ margin: 'auto', borderRadius: 1 }}
                 >
-                  <Typography variant="subtitle1" color="text.secondary">
+                  <Typography variant='subtitle1' color='text.secondary'>
                     {vacancy?.jobType}
                   </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
+                  <Typography variant='subtitle1' color='text.secondary'>
                     Experience: {vacancy?.experience}
                   </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
+                  <Typography variant='subtitle1' color='text.secondary'>
                     Branch: {vacancy?.branch}
                   </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
+                  <Typography variant='subtitle1' color='text.secondary'>
                     City: {vacancy?.city}
                   </Typography>
                 </Paper>
                 <Paper className='mt-4 space-x-2' elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
-                  <List className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <ListItemText primary={<span className="text-green-500">No. of openings: {vacancy?.numberOfOpenings}</span>} />
-                    <ListItemText primary={<span className="text-blue-500">Applied: {vacancy?.noOfApplicants}</span>} />
-                    <ListItemText primary={<span className="text-yellow-500">Filled Positions: {vacancy?.noOfFilledPositions}</span>} />
-                    <ListItemText primary={<span className="text-red-500">Shortlisted: {vacancy?.shortlisted}</span>} />
+                  <List className='grid grid-cols-2 md:grid-cols-4 gap-2'>
+                    <ListItemText
+                      primary={<span className='text-green-500'>No. of openings: {vacancy?.numberOfOpenings}</span>}
+                    />
+                    <ListItemText primary={<span className='text-blue-500'>Applied: {vacancy?.noOfApplicants}</span>} />
+                    <ListItemText
+                      primary={
+                        <span className='text-yellow-500'>Filled Positions: {vacancy?.noOfFilledPositions}</span>
+                      }
+                    />
+                    <ListItemText primary={<span className='text-red-500'>Shortlisted: {vacancy?.shortlisted}</span>} />
                   </List>
                 </Paper>
                 <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
@@ -148,7 +155,8 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <DateRange fontSize='small' color='action' /> <strong>Start Date:</strong> {vacancy?.startDate}
+                          <DateRange fontSize='small' color='action' /> <strong>Start Date:</strong>{' '}
+                          {vacancy?.startDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -158,7 +166,8 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <Person fontSize='small' color='action' /> <strong>Contact Person:</strong> {vacancy?.contactPerson}
+                          <Person fontSize='small' color='action' /> <strong>Contact Person:</strong>{' '}
+                          {vacancy?.contactPerson}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -229,7 +238,8 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>State/Region:</strong> {vacancy?.stateRegion}
+                          <LocationOn fontSize='small' color='action' /> <strong>State/Region:</strong>{' '}
+                          {vacancy?.stateRegion}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -258,7 +268,13 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
                         </Typography>
                         <Stack direction='row' spacing={1} mt={1}>
                           {vacancy?.skills.map((skill, index) => (
-                            <Chip key={index} label={skill} variant='outlined' color='primary' sx={{ fontWeight: 'bold' }} />
+                            <Chip
+                              key={index}
+                              label={skill}
+                              variant='outlined'
+                              color='primary'
+                              sx={{ fontWeight: 'bold' }}
+                            />
                           ))}
                         </Stack>
                       </Box>
@@ -319,7 +335,9 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
 
       {/* Candidate Listing Table Section */}
       <Paper className='mt-4 p-6' ref={candidateListRef}>
-        <Typography variant='h4' color='primary' fontWeight='bold'>Applied Candidate Table</Typography>
+        <Typography variant='h4' color='primary' fontWeight='bold'>
+          Applied Candidate Table
+        </Typography>
         <Box className='mt-2'>
           <CandidateListingTableView />
         </Box>
@@ -332,7 +350,7 @@ const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
         </Button>
       </Box>
     </Box>
-  );
-};
+  )
+}
 
-export default JobVacancyView;
+export default JobVacancyView

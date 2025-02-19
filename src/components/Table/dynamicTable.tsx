@@ -5,7 +5,7 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  PaginationState,
+  //PaginationState,
   getSortedRowModel,
   SortingState,
   RowSelectionState
@@ -34,18 +34,25 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 
 interface DynamicTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
-  pagination: { pageIndex: number; pageSize: number };
-  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
-  onPageChange: (newPage: number) => void;
-  onRowsPerPageChange: (newPageSize: number) => void;
+  pagination: { pageIndex: number; pageSize: number }
+  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void
+  onPageChange: (newPage: number) => void
+  onRowsPerPageChange: (newPageSize: number) => void
 }
 
-const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationChange, onPageChange, onRowsPerPageChange }: any) => {
+const DynamicTable = ({
+  columns: initialColumns,
+  data,
+  pagination,
+  //onPaginationChange,
+  onPageChange,
+  onRowsPerPageChange
+}: any) => {
   const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns)
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
   const [dense, setDense] = useState(false)
@@ -74,10 +81,10 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => extractHeaders(initialColumns))
 
   const paginatedData = useMemo(() => {
-    const start = pagination?.pageIndex * pagination?.pageSize;
-    const end = start + pagination?.pageSize;
-    return data?.slice(start, end); // Slice the data for the current page
-  }, [data, pagination]);
+    const start = pagination?.pageIndex * pagination?.pageSize
+    const end = start + pagination?.pageSize
+    return data?.slice(start, end) // Slice the data for the current page
+  }, [data, pagination])
 
   const table = useReactTable({
     columns,
@@ -99,55 +106,58 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
     setSelectedColumns(prev => {
       const updatedSelectedColumns = {
         ...prev,
-        [columnKey]: !prev[columnKey],
-      };
+        [columnKey]: !prev[columnKey]
+      }
 
       // Update the columns state based on the updated selectedColumns
       const newColumns = Object.keys(updatedSelectedColumns)
         .filter(header => updatedSelectedColumns[header]) // Filter out unselected columns
         .map(header => initialColumns.find(col => col.header === header))
-        .filter(col => col !== undefined) as ColumnDef<any>[];
+        .filter(col => col !== undefined) as ColumnDef<any>[]
 
-      setColumns(newColumns);
+      setColumns(newColumns)
 
-      return updatedSelectedColumns;
-    });
+      return updatedSelectedColumns
+    })
   }
 
   // Drag-and-Drop Handlers for the drawer
   const handleDragStart = (event: React.DragEvent, index: number) => {
-    event.dataTransfer.setData('text/plain', index.toString());
-  };
+    event.dataTransfer.setData('text/plain', index.toString())
+  }
 
   const handleDrop = (event: React.DragEvent, index: number) => {
-    event.preventDefault();
-    const draggedIndex = parseInt(event.dataTransfer.getData('text/plain'));
-    if (draggedIndex === index) return;
+    event.preventDefault()
+    const draggedIndex = parseInt(event.dataTransfer.getData('text/plain'))
+    if (draggedIndex === index) return
 
-    const headersArray = Object.keys(selectedColumns);
-    const updatedHeaders = [...headersArray];
-    const [movedHeader] = updatedHeaders.splice(draggedIndex, 1);
-    updatedHeaders.splice(index, 0, movedHeader);
+    const headersArray = Object.keys(selectedColumns)
+    const updatedHeaders = [...headersArray]
+    const [movedHeader] = updatedHeaders.splice(draggedIndex, 1)
+    updatedHeaders.splice(index, 0, movedHeader)
 
-    const updatedSelectedColumns = updatedHeaders.reduce((acc, header) => {
-      acc[header] = selectedColumns[header];
-      return acc;
-    }, {} as Record<string, boolean>);
+    const updatedSelectedColumns = updatedHeaders.reduce(
+      (acc, header) => {
+        acc[header] = selectedColumns[header]
+        return acc
+      },
+      {} as Record<string, boolean>
+    )
 
-    setSelectedColumns(updatedSelectedColumns);
+    setSelectedColumns(updatedSelectedColumns)
 
     // Update the columns state based on the new order of headers and filter out unselected columns
     const newColumns = updatedHeaders
       .filter(header => updatedSelectedColumns[header]) // Filter out unselected columns
       .map(header => initialColumns.find(col => col.header === header))
-      .filter(col => col !== undefined) as ColumnDef<any>[];
+      .filter(col => col !== undefined) as ColumnDef<any>[]
 
-    setColumns(newColumns);
-  };
+    setColumns(newColumns)
+  }
 
   const allowDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
+    event.preventDefault()
+  }
 
   return (
     <>
@@ -213,7 +223,7 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
                     page={pagination?.pageIndex}
                     onPageChange={(_, page) => onPageChange(page)}
                     onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
-                    />
+                  />
                 </Box>
               </TableCell>
             </TableRow>
@@ -221,8 +231,9 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
         </Table>
       </TableContainer>
 
-      <Drawer 
-        anchor='right' open={openColumnDrawer} 
+      <Drawer
+        anchor='right'
+        open={openColumnDrawer}
         onClose={() => setOpenColumnDrawer(false)}
         BackdropProps={{
           invisible: true, // Show backdrop for click handling
@@ -235,13 +246,14 @@ const DynamicTable = ({ columns: initialColumns, data, pagination, onPaginationC
           </Typography>
           <Grid container spacing={2}>
             {Object.keys(selectedColumns).map((header, index) => (
-              <Grid 
-                item xs={12} 
-                key={header} 
-                draggable 
-                onDragStart={(e) => handleDragStart(e, index)} 
-                onDragOver={allowDrop} 
-                onDrop={(e) => handleDrop(e, index)}
+              <Grid
+                item
+                xs={12}
+                key={header}
+                draggable
+                onDragStart={e => handleDragStart(e, index)}
+                onDragOver={allowDrop}
+                onDrop={e => handleDrop(e, index)}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <DragIndicatorIcon sx={{ cursor: 'grab' }} />

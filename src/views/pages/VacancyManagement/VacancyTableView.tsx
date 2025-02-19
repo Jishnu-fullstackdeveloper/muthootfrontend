@@ -1,52 +1,52 @@
-import React, { useState, useMemo } from 'react';
-import { IconButton, Tooltip, Typography, Chip } from '@mui/material';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useRouter } from 'next/navigation';
-import DynamicTable from '@/components/Table/dynamicTable';
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog';
+import React, { useState, useMemo } from 'react'
+import { IconButton, Tooltip, Typography, Chip } from '@mui/material'
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import { useRouter } from 'next/navigation'
+import DynamicTable from '@/components/Table/dynamicTable'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
 const VacancyListingTableView = ({ vacancies }: any) => {
-  const router = useRouter();
-  const columnHelper = createColumnHelper<any>();
+  const router = useRouter()
+  const columnHelper = createColumnHelper<any>()
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
 
   // Pagination state lifted to the parent component
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 5,
-  });
+    pageSize: 5
+  })
 
   const handlePageChange = (newPage: number) => {
-    setPagination((prev) => {
-      const updatedPagination = { ...prev, pageIndex: newPage };
-      console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
-      console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
-      return updatedPagination;
-    });
-  };
+    setPagination(prev => {
+      const updatedPagination = { ...prev, pageIndex: newPage }
+      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+      return updatedPagination
+    })
+  }
 
   const handleRowsPerPageChange = (newPageSize: number) => {
-    const updatedPagination = { pageIndex: 0, pageSize: newPageSize };
-    console.log('Page Index:', updatedPagination.pageIndex); // Log pageIndex
-    console.log('Page Size:', updatedPagination.pageSize); // Log pageSize
-    setPagination(updatedPagination);
-  };
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+    setPagination(updatedPagination)
+  }
 
-  const handleDeleteClick = (id: string | number) => {
-    setVacancyIdToDelete(id);
-    setDeleteModalOpen(true);
-  };
+  // const handleDeleteClick = (id: string | number) => {
+  //   setVacancyIdToDelete(id);
+  //   setDeleteModalOpen(true);
+  // };
 
-  const handleDeleteConfirm = (id?: string | number) => {
-    if (id) {
-      // Perform the delete operation here
-      console.log('Deleting vacancy with ID:', id);
-      // After deletion, you might want to refresh the data or remove the item from the list
-    }
-    setDeleteModalOpen(false);
-  };
+  // const handleDeleteConfirm = (id?: string | number) => {
+  //   if (id) {
+  //     // Perform the delete operation here
+  //     console.log('Deleting vacancy with ID:', id);
+  //     // After deletion, you might want to refresh the data or remove the item from the list
+  //   }
+  //   setDeleteModalOpen(false);
+  // };
 
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
@@ -60,7 +60,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('jobType', {
@@ -73,10 +73,10 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
-    columnHelper.accessor('vacancyPositions', {
+      columnHelper.accessor('vacancyPositions', {
         header: 'POSITIONS',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -86,9 +86,9 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
-      
+
       columnHelper.accessor('numberOfOpenings', {
         header: 'OPENINGS',
         cell: ({ row }) => (
@@ -99,7 +99,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('branch', {
@@ -112,10 +112,10 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
-    columnHelper.accessor('noOfFilledPositions', {
+      columnHelper.accessor('noOfFilledPositions', {
         header: 'FILLED POSITIONS',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -125,7 +125,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('noOfApplicants', {
@@ -138,7 +138,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('shortlisted', {
@@ -151,7 +151,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('city', {
@@ -164,7 +164,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('experience', {
@@ -177,7 +177,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </Typography>
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('startDate', {
@@ -189,20 +189,20 @@ const VacancyListingTableView = ({ vacancies }: any) => {
                 {row.original.startDate}
               </Typography> */}
               <Chip
-                variant='tonal' 
-                label={`${row.original.startDate}`} 
+                variant='tonal'
+                label={`${row.original.startDate}`}
                 color='success'
                 size='medium'
                 sx={{
-                fontWeight: 'bold',
-                fontSize: '0.85rem', // Slightly increased font size
-                textTransform: 'uppercase',
-                width: 103
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem', // Slightly increased font size
+                  textTransform: 'uppercase',
+                  width: 103
                 }}
-            />
+              />
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('endDate', {
@@ -214,34 +214,34 @@ const VacancyListingTableView = ({ vacancies }: any) => {
                 {row.original.endDate}
               </Typography> */}
               <Chip
-                      variant='tonal' 
-                      label={`${row.original.endDate}`} 
-                      color='error'
-                      size='medium'
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '0.85rem', // Slightly increased font size
-                        textTransform: 'uppercase',
-                        width: 105
-                      }}
-                    />
+                variant='tonal'
+                label={`${row.original.endDate}`}
+                color='error'
+                size='medium'
+                sx={{
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem', // Slightly increased font size
+                  textTransform: 'uppercase',
+                  width: 105
+                }}
+              />
             </div>
           </div>
-        ),
+        )
       }),
 
-    //   columnHelper.accessor('contactPerson', {
-    //     header: 'CONTACT PERSON',
-    //     cell: ({ row }) => (
-    //       <div className='flex items-center gap-4'>
-    //         <div className='flex flex-col'>
-    //           <Typography color='text.primary' className='font-medium'>
-    //             {row.original.contactPerson}
-    //           </Typography>
-    //         </div>
-    //       </div>
-    //     ),
-    //   }),
+      //   columnHelper.accessor('contactPerson', {
+      //     header: 'CONTACT PERSON',
+      //     cell: ({ row }) => (
+      //       <div className='flex items-center gap-4'>
+      //         <div className='flex flex-col'>
+      //           <Typography color='text.primary' className='font-medium'>
+      //             {row.original.contactPerson}
+      //           </Typography>
+      //         </div>
+      //       </div>
+      //     ),
+      //   }),
 
       columnHelper.accessor('status', {
         header: 'STATUS',
@@ -251,28 +251,24 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               <Chip
                 label={row.original.status}
                 color={
-                  row.original.status === 'Open'
-                    ? 'success'
-                    : row.original.status === 'Closed'
-                    ? 'default'
-                    : 'warning'
+                  row.original.status === 'Open' ? 'success' : row.original.status === 'Closed' ? 'default' : 'warning'
                 }
                 size='small'
                 sx={{
                   fontWeight: 'bold',
                   fontSize: '0.85rem',
-                  textTransform: 'uppercase',
+                  textTransform: 'uppercase'
                 }}
               />
             </div>
           </div>
-        ),
+        )
       }),
 
       columnHelper.accessor('action', {
         header: 'ACTION',
         meta: {
-          className: 'sticky right-0',
+          className: 'sticky right-0'
         },
         cell: ({ row }) => (
           <div className='flex items-center'>
@@ -288,37 +284,37 @@ const VacancyListingTableView = ({ vacancies }: any) => {
               </IconButton>
             </Tooltip>
 
-            <Tooltip title='Delete' placement='top'>
+            {/* <Tooltip title='Delete' placement='top'>
               <IconButton onClick={() => handleDeleteClick(row.original.id)}>
                 <i className='tabler-trash text-textSecondary'></i>
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </div>
         ),
-        enableSorting: false,
-      }),
+        enableSorting: false
+      })
     ],
     []
-  );
+  )
 
   return (
     <div>
-      <DynamicTable 
-        columns={columns} 
-        data={vacancies} 
+      <DynamicTable
+        columns={columns}
+        data={vacancies}
         pagination={pagination} // Pass pagination state
         onPaginationChange={setPagination} // Pass pagination change handler
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
       />
-      <ConfirmModal
+      {/* <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         id={vacancyIdToDelete}
-      />
+      /> */}
     </div>
-  );
-};
+  )
+}
 
-export default VacancyListingTableView;
+export default VacancyListingTableView

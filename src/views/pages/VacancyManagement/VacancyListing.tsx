@@ -4,7 +4,6 @@ import {
   Card,
   Chip,
   FormControl,
-  Grid,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -23,7 +22,7 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import type { TextFieldProps } from '@mui/material/TextField'
 
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
-import ViewListIcon from '@mui/icons-material/ViewList'
+//import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import DynamicButton from '@/components/Button/dynamicButton'
 import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
@@ -35,7 +34,8 @@ import {
 } from '@/utils/functions'
 
 import VacancyListingTableView from './VacancyTableView'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+//import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+import { vacancies } from '@/utils/sampleData/VacancyListingData'
 
 const JobListing = () => {
   const router = useRouter()
@@ -77,123 +77,6 @@ const JobListing = () => {
       [vacancyId]: newValue // Update the tab index for the specific vacancy
     }))
   }
-
-  const vacancies = [
-    {
-      id: 1,
-      title: 'Software Engineer',
-      jobType: 'Full-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 5,
-      branch: 'IT Department',
-      grade: 'A',
-      band: 'Band3',
-      noOfFilledPositions: 3,
-      noOfApplicants: 60,
-      shortlisted: 30,
-      city: 'New York',
-      experience: 3,
-      startDate: '2024-01-15',
-      endDate: '2024-02-15',
-      contactPerson: 'John Doe',
-      status: 'Open' // Possible values: Open, Closed, On Hold
-    },
-    {
-      id: 2,
-      title: 'Marketing Manager',
-      jobType: 'Part-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 2,
-      branch: 'Marketing',
-      grade: 'C',
-      band: 'Band2',
-      noOfFilledPositions: 6,
-      noOfApplicants: 56,
-      shortlisted: 22,
-      city: 'San Francisco',
-      experience: 5,
-      startDate: '2024-01-01',
-      endDate: '2024-01-30',
-      contactPerson: 'Jane Smith',
-      status: 'On Hold'
-    },
-    {
-      id: 3,
-      title: 'Data Scientist',
-      jobType: 'Full-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 3,
-      branch: 'Data Analytics',
-      grade: 'A',
-      band: 'Band4',
-      noOfFilledPositions: 8,
-      noOfApplicants: 69,
-      shortlisted: 42,
-      city: 'Los Angeles',
-      experience: 4,
-      startDate: '2024-02-01',
-      endDate: '2024-03-01',
-      contactPerson: 'Emily Zhang',
-      status: 'Open'
-    },
-    {
-      id: 4,
-      title: 'HR Specialist',
-      jobType: 'Full-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 1,
-      branch: 'Human Resources',
-      grade: 'B',
-      band: 'Band1',
-      noOfFilledPositions: 1,
-      noOfApplicants: 65,
-      shortlisted: 33,
-      city: 'Chicago',
-      experience: 3,
-      startDate: '2024-02-15',
-      endDate: '2024-03-15',
-      contactPerson: 'Michael Johnson',
-      status: 'Closed'
-    },
-    {
-      id: 5,
-      title: 'Sales Executive',
-      jobType: 'Full-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 4,
-      branch: 'Sales',
-      grade: 'B',
-      band: 'Band3',
-      noOfFilledPositions: 7,
-      noOfApplicants: 83,
-      shortlisted: 25,
-      city: 'Dallas',
-      experience: 2,
-      startDate: '2024-01-10',
-      endDate: '2024-02-10',
-      contactPerson: 'Sarah Williams',
-      status: 'On Hold'
-    },
-    {
-      id: 6,
-      title: 'Product Manager',
-      jobType: 'Full-time',
-      vacancyPositions: 2,
-      numberOfOpenings: 2,
-      branch: 'Product Development',
-      grade: 'C',
-      band: 'Band2',
-      noOfFilledPositions: 3,
-      noOfApplicants: 70,
-      shortlisted: 40,
-      city: 'Austin',
-      experience: 5,
-      startDate: '2024-01-25',
-      endDate: '2024-02-25',
-      contactPerson: 'David Lee',
-      status: 'Open'
-    }
-  ]
 
   useEffect(() => {
     if (FiltersFromCookie?.selectedFilters) {
@@ -332,22 +215,22 @@ const JobListing = () => {
     })
   }
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
 
-  const handleDeleteClick = (id: string | number) => {
-    setVacancyIdToDelete(id);
-    setDeleteModalOpen(true);
-  };
+  // const handleDeleteClick = (id: string | number) => {
+  //   setVacancyIdToDelete(id)
+  //   setDeleteModalOpen(true)
+  // }
 
-  const handleDeleteConfirm = (id?: string | number) => {
-    if (id) {
-      // Perform the delete operation here
-      console.log('Deleting vacancy with ID:', id);
-      // After deletion, you might want to refresh the data or remove the item from the list
-    }
-    setDeleteModalOpen(false);
-  };
+  // const handleDeleteConfirm = (id?: string | number) => {
+  //   if (id) {
+  //     // Perform the delete operation here
+  //     console.log('Deleting vacancy with ID:', id)
+  //     // After deletion, you might want to refresh the data or remove the item from the list
+  //   }
+  //   setDeleteModalOpen(false)
+  // }
 
   return (
     <div className=''>
@@ -623,7 +506,7 @@ const JobListing = () => {
                       }}
                       onClick={e => {
                         e.stopPropagation() // Prevent card click
-                        handleDeleteClick(vacancy.id);
+                        //handleDeleteClick(vacancy.id)
                         // Add delete logic here
                       }}
                     >
@@ -655,7 +538,7 @@ const JobListing = () => {
                         <p>
                           <strong>Job Type:</strong> {vacancy.jobType}
                         </p>
-                        
+
                         <p>
                           <strong>Branch:</strong> {vacancy.branch}
                         </p>
@@ -671,57 +554,59 @@ const JobListing = () => {
                         <p>
                           <strong>City:</strong> {vacancy.city}
                         </p>
-                        
+
                         {/* <p>
                           <strong>Positions:</strong> {vacancy.vacancyPositions}
                         </p> */}
                       </Box>
-                      <Box className="mt-2 shadow-md ring-white flex flex-col items-center p-4" sx={{ borderRadius: 2 }}>
-                        <ul className=" space-y-2">
-                          <li className="text-success">
+                      <Box
+                        className='mt-2 shadow-md ring-white flex flex-col items-center p-4'
+                        sx={{ borderRadius: 2 }}
+                      >
+                        <ul className=' space-y-2'>
+                          <li className='text-success'>
                             <strong>No. of openings:</strong> {vacancy.numberOfOpenings}
                           </li>
-                          <li className="text-warning">
+                          <li className='text-warning'>
                             <strong>Filled positions:</strong> {vacancy.noOfFilledPositions}
                           </li>
-                          <li className="text-primary">
+                          <li className='text-primary'>
                             <strong>Applied:</strong> {vacancy.noOfApplicants}
                           </li>
-                          <li className="text-error">
+                          <li className='text-error'>
                             <strong>Shortlisted:</strong> {vacancy.shortlisted}
                           </li>
                         </ul>
                       </Box>
-
                     </Box>
                   )}
                   {selectedTabs[vacancy.id] === 1 && (
-                    <Box className="text-sm text-gray-700 grid grid-cols-2 gap-2">
-                    <Chip
-                      variant='tonal' 
-                      label={`Start Date: ${vacancy.startDate}`} 
-                      color='secondary'
-                      size='medium'
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '0.85rem', // Slightly increased font size
-                        textTransform: 'uppercase',
-                        width: 200
-                      }}
-                    />
-                    <Chip
-                      variant='tonal' 
-                      label={`End Date: ${vacancy.endDate}`}  
-                      color='error'
-                      size='medium'
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '0.85rem', // Slightly increased font size
-                        textTransform: 'uppercase',
-                        width: 190
-                      }}
-                    />
-                  </Box>
+                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
+                      <Chip
+                        variant='tonal'
+                        label={`Start Date: ${vacancy.startDate}`}
+                        color='secondary'
+                        size='medium'
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem', // Slightly increased font size
+                          textTransform: 'uppercase',
+                          width: 200
+                        }}
+                      />
+                      <Chip
+                        variant='tonal'
+                        label={`End Date: ${vacancy.endDate}`}
+                        color='error'
+                        size='medium'
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem', // Slightly increased font size
+                          textTransform: 'uppercase',
+                          width: 190
+                        }}
+                      />
+                    </Box>
                   )}
                   {/* {selectedTabs[vacancy.id] === 2 && (
                     <Box className='space-y-2 text-sm text-gray-700'>
@@ -738,44 +623,43 @@ const JobListing = () => {
           <VacancyListingTableView vacancies={vacancies} />
         )}
       </div>
-      
+
       {viewMode !== 'table' && (
-      <div className='flex items-center justify-end mt-6'>
-        {/* Right-aligned Pagination */}
-        <FormControl size='small' sx={{ minWidth: 70 }}>
-          <InputLabel>Count</InputLabel>
-          <Select
-            value={paginationState?.limit}
-            onChange={e => handleChangeLimit(e.target.value)}
-            label='Limit per page'
-          >
-            {[10, 25, 50, 100].map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <div>
-          <Pagination
-            color='primary'
-            shape='rounded'
-            showFirstButton
-            showLastButton
-            count={paginationState?.display_numbers_count} //pagination numbers display count
-            page={paginationState?.page} //current page
-            onChange={handlePageChange} //changing page function
-          />
+        <div className='flex items-center justify-end mt-6'>
+          {/* Right-aligned Pagination */}
+          <FormControl size='small' sx={{ minWidth: 70 }}>
+            <InputLabel>Count</InputLabel>
+            <Select
+              value={paginationState?.limit}
+              onChange={e => handleChangeLimit(e.target.value)}
+              label='Limit per page'
+            >
+              {[10, 25, 50, 100].map(option => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <div>
+            <Pagination
+              color='primary'
+              shape='rounded'
+              showFirstButton
+              showLastButton
+              count={paginationState?.display_numbers_count} //pagination numbers display count
+              page={paginationState?.page} //current page
+              onChange={handlePageChange} //changing page function
+            />
+          </div>
         </div>
-      
-      </div>
       )}
-      <ConfirmModal
+      {/* <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         id={vacancyIdToDelete}
-      />
+      /> */}
     </div>
   )
 }

@@ -127,7 +127,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             approvalBy: approval // Prefill `approvalBy` field
           }))
         )
-        
       }
     } catch (error) {
       console.error('Error fetching options:', error)
@@ -290,13 +289,13 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             color='primary'
             onClick={() => {
               if (sectionsVisible && areAllSectionsFilled) {
-                void ApprovalMatrixFormik.submitForm();
+                void ApprovalMatrixFormik.submitForm()
               } else {
-                handleAddSection();
+                handleAddSection()
               }
             }}
           >
-            {sectionsVisible && areAllSectionsFilled ? (isUpdateMode ? 'Update' : 'Create') : 'Add Levels'}
+            {sectionsVisible && areAllSectionsFilled ? (isUpdateMode ? 'Update' : 'Create') : 'Next'}
           </Button>
         </Box>
       </Box>

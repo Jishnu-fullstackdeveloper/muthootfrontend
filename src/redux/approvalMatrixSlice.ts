@@ -2,10 +2,11 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib' // Ensure AxiosLib is configured correctly
 
 // Define SectionConfig interface
-interface SectionConfig {
-  designationId: string
-  approvalSequenceLevel: number
-}
+
+// interface SectionConfig {
+//   designationId: string
+//   approvalSequenceLevel: number
+// }
 
 // Define ApprovalMatrixState interface
 interface ApprovalMatrixState {

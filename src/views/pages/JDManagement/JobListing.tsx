@@ -19,7 +19,7 @@ import Stack from '@mui/material/Stack'
 import CustomTextField from '@/@core/components/mui/TextField'
 import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
-import ViewListIcon from '@mui/icons-material/ViewList'
+//import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
 import { RestartAlt } from '@mui/icons-material'
@@ -29,10 +29,13 @@ import {
   setJDManagementFiltersToCookie
 } from '@/utils/functions'
 import FileUploadDialog from '@/components/Dialog/jdFileUploadDialog'
+import TableChartIcon from '@mui/icons-material/TableChart'
+import JobListingTableView from './JobListingTable'
+import { jobs } from '@/utils/sampleData/JobListingData'
 
 const JobListing = () => {
   const router = useRouter()
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'table'>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
   const [fileUploadDialogOpen, setFileUploadDialogOpen] = useState<any>(false)
   const FiltersFromCookie = getJDManagementFiltersFromCookie()
@@ -82,130 +85,6 @@ const JobListing = () => {
       appliedFilters
     })
   }, [selectedFilters, appliedFilters])
-
-  const jobs = [
-    {
-      id: 1,
-      title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Kochi, Bengaluru, Thiruvananthapuram',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development', 'ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 2,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Mumbai, Pune, Hyderabad',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 3,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Delhi, Gurugram, Noida',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 4,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description:
-        'As a member of the software engineering division, you will take an active role in the definition and evolution of standard practices and procedures. You will be responsible for defining and developing software for tasks associated with the developing, designing and debugging of software applications or operating systems.',
-      location: 'Chennai, Coimbatore, Bengaluru',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 5,
-      title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Ahmedabad, Surat, Vadodara',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 6,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Kolkata, Bhubaneswar, Guwahati',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 7,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Lucknow, Kanpur, Varanasi',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 8,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
-      location: 'Indore, Bhopal, Raipur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 9,
-      title: 'Software Engineer',
-      experience: '3+ years',
-      description: 'Develop and maintain web applications using React and Node.js.',
-      location: 'Jaipur, Jodhpur, Udaipur',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 10,
-      title: 'Project Manager',
-      experience: '5+ years',
-      description: 'Manage teams and deliver projects on time and budget.',
-      location: 'Patna, Ranchi, Jamshedpur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    },
-    {
-      id: 11,
-      title: 'UI/UX Designer',
-      experience: '2+ years',
-      description: 'Design intuitive user interfaces and enhance user experiences.',
-      location: 'Goa, Panaji, Vasco da Gama',
-      job_type: 'Remote',
-      job_placement: 'Full-Time',
-      tags: ['ERP', 'python', 'openrep', 'development', 'openrep']
-    },
-    {
-      id: 12,
-      title: 'Data Scientist',
-      experience: '4+ years',
-      description: 'Analyze complex datasets and build predictive models.',
-      location: 'Chandigarh, Mohali, Zirakpur',
-      job_type: 'Onsite',
-      job_placement: 'Part-Time',
-      tags: ['ERP', 'python', 'openrep', 'development']
-    }
-  ]
 
   const DebouncedInput = ({
     value: initialValue,
@@ -423,9 +302,14 @@ const JobListing = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title='List View'>
+              {/* <Tooltip title='List View'>
                 <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
                   <ViewListIcon />
+                </IconButton>
+              </Tooltip> */}
+              <Tooltip title='Table View'>
+                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
+                  <TableChartIcon />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -541,140 +425,133 @@ const JobListing = () => {
       </Card>
       {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
       {/* <div className='space-y-4'> */}
-      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-6'}`}>
-        {jobs.map(job => (
-          <Box
-            key={job.id}
-            sx={{
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              ':hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
-              },
-              backgroundColor: 'white',
-              borderRadius: 2,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              overflow: 'hidden',
-              border: '1px solid #e0e0e0'
-            }}
-            onClick={() => router.push(`/jd-management/view/${job.id}`)}
-          >
-            {/* Title and Icons */}
-            <Box className='flex justify-between items-center' sx={{ padding: '16px' }}>
-              {/* Job Title */}
-              <h2 className='text-lg font-bold text-gray-800'>{job.title}</h2>
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
+        {viewMode === 'grid' ? (
+          jobs?.map(job => (
+            <Box
+              onClick={() => router.push(`/jd-management/view/${job.id}`)}
+              key={job.id}
+              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1`}
+              sx={{
+                cursor: 'pointer',
+                minHeight: '150px'
+              }}
+            >
+              {/* Header Section with Action Buttons */}
+              <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
+                <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom color='primary'>
+                  {job.title}
+                </Typography>
+                <div className='flex space-x-2'>
+                  <Tooltip title='Edit JD' placement='top'>
+                    <IconButton
+                      sx={{ ':hover': { color: 'primary.main' } }}
+                      onClick={e => {
+                        e.stopPropagation()
+                        router.push(`/jd-management/edit/${job.id}`)
+                      }}
+                    >
+                      <i className='tabler-edit' />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Delete JD' placement='top'>
+                    <IconButton
+                      sx={{ ':hover': { color: 'error.main' } }}
+                      onClick={e => {
+                        e.stopPropagation()
+                        //handleDeleteClick(job.id);
+                      }}
+                    >
+                      <i className='tabler-trash' />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </Box>
 
-              {/* Icons */}
-              <Box className='flex items-center space-x-2'>
-                <Tooltip title='Download JD' placement='top'>
-                  <IconButton
-                    onClick={e => e.stopPropagation()}
-                    sx={{
-                      ':hover': { color: 'primary.main' }
-                    }}
-                  >
-                    <i className='tabler-download' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Edit JD' placement='top'>
-                  <IconButton
-                    onClick={e => {
-                      e.stopPropagation()
-                      router.push(`/jd-management/edit/${job.id}`)
-                    }}
-                    sx={{
-                      ':hover': { color: 'primary.main' }
-                    }}
-                  >
-                    <i className='tabler-edit' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Delete JD' placement='top'>
-                  <IconButton
-                    onClick={e => e.stopPropagation()}
-                    sx={{
-                      ':hover': { color: 'error.main' }
-                    }}
-                  >
-                    <i className='tabler-trash' />
-                  </IconButton>
-                </Tooltip>
+              {/* Job Details */}
+              <Box className='p-4 border-t grid grid-cols-2'>
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Job Type:</strong> {job.job_type}
+                </p>
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Job Role:</strong> {job.job_role}
+                </p>
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Experience:</strong> {job.experience}
+                </p>
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Education</strong> {job.education}
+                </p>
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Salary Range:</strong> {job.salary_range}
+                </p>
+                {/* <p className='text-sm text-gray-700 mb-4'>
+                  <strong>Role Description:</strong>{' '}
+                  {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
+                </p> */}
+                {/* <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                  {job.skills.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      variant='outlined'
+                      sx={{
+                        fontSize: '12px',
+                        backgroundColor: '#f5f5f5',
+                        color: '#555',
+                        ':hover': { backgroundColor: 'primary.light', color: 'white' }
+                      }}
+                    />
+                  ))}
+                </Stack> */}
+
+                <p className='text-sm text-gray-700 mb-2'>
+                  <strong>Skills:</strong> {job.skills.join(', ')}
+                </p>
               </Box>
             </Box>
+          ))
+        ) : (
+          <JobListingTableView jobs={jobs} />
+        )}
+      </div>
 
-            {/* Job Details */}
-            <Box sx={{ padding: '16px', borderTop: '1px solid #f0f0f0' }}>
-              <p className='text-sm text-gray-600 mb-2'>
-                <strong>Experience:</strong> {job.experience}
-              </p>
-              <p className='text-sm text-gray-700 mb-4'>
-                <strong>Role Description:</strong>{' '}
-                {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
-              </p>
-
-              {/* Tags */}
-              <Stack
-                direction='row'
-                spacing={1}
-                sx={{
-                  flexWrap: 'wrap',
-                  gap: 1
-                }}
-              >
-                {job.tags.map((tag, index) => (
-                  <Chip
-                    key={index}
-                    label={tag}
-                    variant='outlined'
-                    sx={{
-                      fontSize: '12px',
-                      backgroundColor: '#f5f5f5',
-                      color: '#555',
-                      ':hover': { backgroundColor: 'primary.light', color: 'white' }
-                    }}
-                  />
-                ))}
-              </Stack>
-            </Box>
-          </Box>
-        ))}
-      </Box>
-
-      <div className='flex items-center justify-end mt-6'>
-        {/* Center-aligned "Load More" Button */}
-        {/* <Box className='flex items-center justify-start flex-grow gap-4'>
+      {viewMode !== 'table' && (
+        <div className='flex items-center justify-end mt-6'>
+          {/* Center-aligned "Load More" Button */}
+          {/* <Box className='flex items-center justify-start flex-grow gap-4'>
           <Button variant='outlined' color='primary' endIcon={<ArrowDropDownIcon />}>
             Load More
           </Button>
         </Box> */}
 
-        <FormControl size='small' sx={{ minWidth: 70 }}>
-          <InputLabel>Count</InputLabel>
-          <Select
-            value={paginationState?.limit}
-            onChange={e => handleChangeLimit(e.target.value)}
-            label='Limit per page'
-          >
-            {[10, 25, 50, 100].map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <div>
-          <Pagination
-            color='primary'
-            shape='rounded'
-            showFirstButton
-            showLastButton
-            count={paginationState?.display_numbers_count} //pagination numbers display count
-            page={paginationState?.page} //current page
-            onChange={handlePageChange} //changing page function
-          />
+          <FormControl size='small' sx={{ minWidth: 70 }}>
+            <InputLabel>Count</InputLabel>
+            <Select
+              value={paginationState?.limit}
+              onChange={e => handleChangeLimit(e.target.value)}
+              label='Limit per page'
+            >
+              {[10, 25, 50, 100].map(option => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <div>
+            <Pagination
+              color='primary'
+              shape='rounded'
+              showFirstButton
+              showLastButton
+              count={paginationState?.display_numbers_count} //pagination numbers display count
+              page={paginationState?.page} //current page
+              onChange={handlePageChange} //changing page function
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

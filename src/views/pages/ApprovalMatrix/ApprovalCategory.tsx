@@ -10,10 +10,10 @@ import {
   MenuItem,
   Pagination
 } from '@mui/material'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import DynamicCard from '@/components/Card/dynamicCard'
-import { blue, blueGrey } from '@mui/material/colors'
+//import { blue, blueGrey } from '@mui/material/colors'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchApprovalCategories } from '@/redux/approvalMatrixSlice'
 
@@ -21,7 +21,7 @@ const ApprovalCategory = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
 
-  const { approvalCategories, status, page, limit, totalItems } = useAppSelector(state => state.approvalMatrixReducer)
+  const { approvalCategories, status, totalItems } = useAppSelector(state => state.approvalMatrixReducer)
 
   // Handle view
   const handleView = (rowData: any) => {

@@ -1,4 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib' // Ensure AxiosLib is configured correctly
 
 // Define SectionConfig interface
@@ -88,6 +90,7 @@ export const createNewApprovalMatrix = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('approval-actions', params)
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Failed to create approval matrix')
@@ -101,6 +104,7 @@ export const updateApprovalMatrix = createAsyncThunk(
   async ({ id, approvalMatrix }: { id: string; approvalMatrix: any }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.patch(`approval-actions/${id}`, { approvalMatrix })
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || { message: 'Update failed' })
@@ -114,17 +118,13 @@ export const deleteApprovalMatrix = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       await AxiosLib.delete(`approval-actions/${id}`)
+
       return id
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete approval matrix')
     }
   }
 )
-
-interface RequestOptionsPayload {
-  id: number
-  name: string
-}
 
 // set options for autocomplete/dropdown
 // export const setApprovalMatrixOptions = createAsyncThunk(
@@ -145,6 +145,7 @@ export const getApprovalMatrixOptions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/appproval-actions/designations')
+
       return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Error fetching approval matrix options')
@@ -170,10 +171,12 @@ const approvalMatrixSlice = createSlice({
         state.totalItems = action.payload.totalItems
         state.page = action.payload.page
         state.limit = action.payload.limit
+
         //state.totalPages = action.payload.totalPages
       })
-      .addCase(fetchApprovalCategories.rejected, (state, action) => {
+      .addCase(fetchApprovalCategories.rejected, state => {
         state.status = 'failed'
+
         //state.error = action.payload
       })
 
@@ -187,10 +190,12 @@ const approvalMatrixSlice = createSlice({
         state.totalItems = action.payload.totalItems
         state.page = action.payload.page
         state.limit = action.payload.limit
+
         //state.totalPages = action.payload.totalPages
       })
-      .addCase(fetchApprovalMatrices.rejected, (state, action) => {
+      .addCase(fetchApprovalMatrices.rejected, state => {
         state.status = 'failed'
+
         //state.error = action.payload
       })
 
@@ -214,6 +219,7 @@ const approvalMatrixSlice = createSlice({
       .addCase(updateApprovalMatrix.fulfilled, (state, action: PayloadAction<any>) => {
         state.status = 'succeeded'
         const index = state.approvalMatrixData.findIndex(matrix => matrix.id === action.payload.id)
+
         if (index !== -1) {
           state.approvalMatrixData[index] = action.payload
         }

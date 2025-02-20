@@ -1,26 +1,30 @@
 import React from 'react'
-import { Box, Card, Divider, Link, Typography, Grid, Button, Stack } from '@mui/material'
-import { ArrowBack } from '@mui/icons-material'
+
 import { useRouter } from 'next/navigation'
+
+import { Box, Card, Typography, Grid, Button } from '@mui/material'
+
+import { ArrowBack } from '@mui/icons-material'
 
 type Props = {
   mode: any
   id: any
 }
 
-const viewJD: React.FC<Props> = ({ mode, id }) => {
+const ViewJD: React.FC<Props> = () => {
   const router = useRouter()
-  let keyResponsibilities = [
+
+  const keyResponsibilities = [
     { title: 'Lead development', description: 'Manage the end-to-end product development lifecycle' },
     { title: 'Review processes', description: 'Ensure team compliance with coding best practices' }
   ]
 
-  let keyInteractions = [
+  const keyInteractions = [
     { type: 'Internal Stakeholders', description: 'Coordination with product and design teams' },
     { type: 'External Stakeholders', description: 'Client discussions and feedback loops' }
   ]
 
-  let keySkillsAndAttributes = [
+  const keySkillsAndAttributes = [
     {
       factor: 'Technical Expertise',
       competencies: ['Java', 'Spring Boot', 'API Integration'],
@@ -210,6 +214,7 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
               width: 2,
               height: 62,
               backgroundColor: '#3f51b5'
+
               // transform: 'translateX(-50%)'
             }}
           />
@@ -422,4 +427,4 @@ const viewJD: React.FC<Props> = ({ mode, id }) => {
   )
 }
 
-export default viewJD
+export default ViewJD

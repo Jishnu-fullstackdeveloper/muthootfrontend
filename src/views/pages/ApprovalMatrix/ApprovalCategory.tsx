@@ -1,4 +1,8 @@
 'use client'
+import React, { useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Typography,
@@ -10,9 +14,9 @@ import {
   MenuItem,
   Pagination
 } from '@mui/material'
-import React, { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+
 import DynamicCard from '@/components/Card/dynamicCard'
+
 //import { blue, blueGrey } from '@mui/material/colors'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchApprovalCategories } from '@/redux/approvalMatrixSlice'
@@ -28,6 +32,7 @@ const ApprovalCategory = () => {
     router.push(`/approval-matrix/view/${rowData.id}?id=${rowData.id}`)
   }
 
+  // eslint-disable-next-line import/no-named-as-default-member
   const [paginationState, setPaginationState] = React.useState({
     page: 1,
     limit: 10

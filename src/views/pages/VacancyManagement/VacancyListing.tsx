@@ -1,4 +1,8 @@
 'use client'
+import React, { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -14,19 +18,20 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-import CustomTextField from '@/@core/components/mui/TextField'
+
 import type { TextFieldProps } from '@mui/material/TextField'
 
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
 //import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
+
+import { RestartAlt } from '@mui/icons-material'
+
 import DynamicButton from '@/components/Button/dynamicButton'
 import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
-import { RestartAlt } from '@mui/icons-material'
+import CustomTextField from '@/@core/components/mui/TextField'
 import {
   getVacancyManagementFiltersFromCookie,
   removeVacancyManagementFiltersFromCookie,
@@ -34,14 +39,17 @@ import {
 } from '@/utils/functions'
 
 import VacancyListingTableView from './VacancyTableView'
+
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 import { vacancies } from '@/utils/sampleData/VacancyListingData'
 
-const JobListing = () => {
+const VacancyListingPage = () => {
   const router = useRouter()
+
   // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
   const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
+
   const [selectedFilters, setSelectedFilters] = useState({
     location: [],
     department: [],
@@ -82,6 +90,7 @@ const JobListing = () => {
     if (FiltersFromCookie?.selectedFilters) {
       setSelectedFilters(FiltersFromCookie?.selectedFilters)
     }
+
     if (FiltersFromCookie?.appliedFilters) {
       setAppliedFilters(FiltersFromCookie?.appliedFilters)
     }
@@ -105,6 +114,7 @@ const JobListing = () => {
     vacancies?.reduce(
       (acc, vacancy) => {
         acc[vacancy.id] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+
         return acc
       },
       {} as { [key: string]: number }
@@ -146,14 +156,17 @@ const JobListing = () => {
         // For arrays, check if empty or salaryRange specifically equals [0, 0]
         return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
       }
+
       if (typeof value === 'string') {
         // For strings, check if empty
         return value.trim() === ''
       }
+
       if (typeof value === 'object' && value !== null) {
         // For objects, check if they are empty
         return Object.keys(value).length === 0
       }
+
       return !value // Handles numbers, null, undefined, etc.
     })
   }
@@ -183,6 +196,7 @@ const JobListing = () => {
           [category]: prev[category].filter((item: string) => item !== value)
         }
       }
+
       return prev
     })
   }
@@ -215,8 +229,8 @@ const JobListing = () => {
     })
   }
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
+  // const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  // const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
 
   // const handleDeleteClick = (id: string | number) => {
   //   setVacancyIdToDelete(id)
@@ -257,8 +271,6 @@ const JobListing = () => {
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
               label='Search Vacancy'
-              // value={search}
-              // onChange={value => setSearch(String(value))}
               value=''
               onChange={() => {}}
               placeholder='Search by Job Title or skill...'
@@ -664,4 +676,4 @@ const JobListing = () => {
   )
 }
 
-export default JobListing
+export default VacancyListingPage

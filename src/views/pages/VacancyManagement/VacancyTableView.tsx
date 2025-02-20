@@ -1,16 +1,23 @@
 import React, { useState, useMemo } from 'react'
-import { IconButton, Tooltip, Typography, Chip } from '@mui/material'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+
 import { useRouter } from 'next/navigation'
+
+import { IconButton, Tooltip, Typography, Chip } from '@mui/material'
+
+import type { ColumnDef } from '@tanstack/react-table'
+
+import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+
+//import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
 const VacancyListingTableView = ({ vacancies }: any) => {
   const router = useRouter()
   const columnHelper = createColumnHelper<any>()
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
+  // const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  // const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
 
   // Pagination state lifted to the parent component
   const [pagination, setPagination] = useState({
@@ -21,16 +28,22 @@ const VacancyListingTableView = ({ vacancies }: any) => {
   const handlePageChange = (newPage: number) => {
     setPagination(prev => {
       const updatedPagination = { ...prev, pageIndex: newPage }
+
       console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+
       console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
       return updatedPagination
     })
   }
 
   const handleRowsPerPageChange = (newPageSize: number) => {
     const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+
     console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+
     console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
     setPagination(updatedPagination)
   }
 
@@ -294,7 +307,7 @@ const VacancyListingTableView = ({ vacancies }: any) => {
         enableSorting: false
       })
     ],
-    []
+    [columnHelper, router]
   )
 
   return (

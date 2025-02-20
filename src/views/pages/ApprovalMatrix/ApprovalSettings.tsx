@@ -1,4 +1,9 @@
 'use client'
+
+import React, { useState, useEffect } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import {
   Box,
   Typography,
@@ -11,15 +16,16 @@ import {
   Button,
   Card
 } from '@mui/material'
-import React, { useState, useEffect } from 'react'
-import { useRouter ,useSearchParams } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
-import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable'
-import { ColumnDef } from '@tanstack/react-table'
+
+import type { ColumnDef } from '@tanstack/react-table'
+
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+
+import ModifiedDynamicTable from '@/components/Modifiedtable/modifiedDynamicTable'
+import { fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
 const ApprovalSettings = () => {
   const router = useRouter()
@@ -27,11 +33,11 @@ const ApprovalSettings = () => {
   const dispatch = useAppDispatch()
 
   // Pagination states
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [page] = useState(1)
+  const [limit] = useState(10)
 
   // Redux state
-  const { approvalMatrixData, status, error, totalItems } = useAppSelector(state => state.approvalMatrixReducer)
+  const { approvalMatrixData, status, error } = useAppSelector(state => state.approvalMatrixReducer)
 
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false)
@@ -46,8 +52,7 @@ const ApprovalSettings = () => {
   useEffect(() => {
     console.log('Approval Matrix Data:', approvalMatrixData)
     console.log(searchParams.get('id'))
-
-  }, [approvalMatrixData])
+  }, [approvalMatrixData, searchParams])
 
   const handleEdit = (rowData: any) => {
     const queryParams = new URLSearchParams({
@@ -81,9 +86,11 @@ const ApprovalSettings = () => {
   const handleDelete = async () => {
     if (selectedId) {
       const resultAction = await dispatch(deleteApprovalMatrix(selectedId))
+
       if (deleteApprovalMatrix.fulfilled.match(resultAction)) {
         dispatch(fetchApprovalMatrices({ page, limit }))
       }
+
       setOpenDialog(false)
       setSelectedId(null)
     }
@@ -119,8 +126,6 @@ const ApprovalSettings = () => {
     }
   ]
 
-  const handlePageChange = (newPage: number) => setPage(newPage)
-
   return (
     <Box>
       <Card
@@ -136,7 +141,10 @@ const ApprovalSettings = () => {
         }}
       >
         <Typography variant='h4'>Approval Matrix</Typography>
-        <Button variant='contained' onClick={() => router.push(`/approval-matrix/add/new-approval?categoryId=${searchParams.get('id')}`)}>
+        <Button
+          variant='contained'
+          onClick={() => router.push(`/approval-matrix/add/new-approval?categoryId=${searchParams.get('id')}`)}
+        >
           <AddIcon sx={{ mr: 1, width: 17 }} /> New Approval
         </Button>
       </Card>

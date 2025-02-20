@@ -1,4 +1,7 @@
 import React, { useRef, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Typography,
@@ -16,8 +19,9 @@ import {
   Tabs,
   Tab
 } from '@mui/material'
+
 import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
-import { useRouter } from 'next/navigation'
+
 import CandidateListingTableView from './VacancyCandidateTable'
 
 type Props = {
@@ -25,7 +29,7 @@ type Props = {
   id: any
 }
 
-const JobVacancyView: React.FC<Props> = ({ mode, id }) => {
+const JobVacancyView: React.FC<Props> = () => {
   const vacancy = {
     title: 'Software Engineer',
     jobType: 'Full-Time',

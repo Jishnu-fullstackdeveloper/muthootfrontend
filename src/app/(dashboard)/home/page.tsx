@@ -1,11 +1,22 @@
-import { Button } from '@mui/material'
+import { Grid } from '@mui/material'
+
+import EmployeeCountChart from './Reports/EmployeeCountChart'
+import TotalBranchesChart from './Reports/TotalBranchesChart'
+import ShortlistedCandidateChart from './Reports/ShortlistedChart'
 
 const Page = () => {
   return (
-    <>
-      <h1>Home!</h1>
-      <Button variant='contained'>Click me</Button>
-    </>
+    <Grid container spacing={6}>
+      <Grid item xs={12} sm={6} md={4} lg={4}>
+        <EmployeeCountChart />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} lg={4}>
+        <TotalBranchesChart />
+      </Grid>
+      <Grid item xs={12} sm={6} md={4} lg={4}>
+        <ShortlistedCandidateChart />
+      </Grid>
+    </Grid>
   )
 }
 

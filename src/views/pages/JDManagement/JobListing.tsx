@@ -1,4 +1,8 @@
 'use client'
+import React, { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -12,24 +16,31 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-import CustomTextField from '@/@core/components/mui/TextField'
+
 import type { TextFieldProps } from '@mui/material/TextField'
+
 import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
+
+import { RestartAlt } from '@mui/icons-material'
+
+import TableChartIcon from '@mui/icons-material/TableChart'
+
+import CustomTextField from '@/@core/components/mui/TextField'
+
 //import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
-import { RestartAlt } from '@mui/icons-material'
+
 import {
   getJDManagementFiltersFromCookie,
   removeJDManagementFiltersFromCookie,
   setJDManagementFiltersToCookie
 } from '@/utils/functions'
 import FileUploadDialog from '@/components/Dialog/jdFileUploadDialog'
-import TableChartIcon from '@mui/icons-material/TableChart'
+
 import JobListingTableView from './JobListingTable'
 import { jobs } from '@/utils/sampleData/JobListingData'
 
@@ -62,6 +73,7 @@ const JobListing = () => {
     if (FiltersFromCookie?.selectedFilters) {
       setSelectedFilters(FiltersFromCookie?.selectedFilters)
     }
+
     if (FiltersFromCookie?.appliedFilters) {
       setAppliedFilters(FiltersFromCookie?.appliedFilters)
     }
@@ -108,7 +120,7 @@ const JobListing = () => {
       }, debounce)
 
       return () => clearTimeout(timeout)
-    }, [value])
+    }, [debounce, onChange, value])
 
     return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
@@ -133,14 +145,17 @@ const JobListing = () => {
         // For arrays, check if empty or salaryRange specifically equals [0, 0]
         return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
       }
+
       if (typeof value === 'string') {
         // For strings, check if empty
         return value.trim() === ''
       }
+
       if (typeof value === 'object' && value !== null) {
         // For objects, check if they are empty
         return Object.keys(value).length === 0
       }
+
       return !value // Handles numbers, null, undefined, etc.
     })
   }
@@ -156,6 +171,7 @@ const JobListing = () => {
           [category]: prev[category].filter((item: string) => item !== value)
         }
       }
+
       return prev
     })
   }
@@ -216,6 +232,7 @@ const JobListing = () => {
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
           backgroundColor: 'white',
+
           // height: 'auto', // Automatically adjusts height based on content
           paddingBottom: 2 // Adds some space at the bottom
         }}
@@ -225,8 +242,6 @@ const JobListing = () => {
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
               label='Search JD'
-              // value={search}
-              // onChange={value => setSearch(String(value))}
               value=''
               onChange={() => {}}
               placeholder='Search by Job Title or Job Description, Category...'
@@ -459,6 +474,7 @@ const JobListing = () => {
                       sx={{ ':hover': { color: 'error.main' } }}
                       onClick={e => {
                         e.stopPropagation()
+
                         //handleDeleteClick(job.id);
                       }}
                     >

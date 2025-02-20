@@ -1,14 +1,14 @@
 'use client'
 import React, { useState, useMemo } from 'react'
+
+import type { ColumnDef, SortingState, RowSelectionState } from '@tanstack/react-table'
 import {
   useReactTable,
-  ColumnDef,
   flexRender,
   getCoreRowModel,
+
   //PaginationState,
-  getSortedRowModel,
-  SortingState,
-  RowSelectionState
+  getSortedRowModel
 } from '@tanstack/react-table'
 import {
   Table,
@@ -36,19 +36,11 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 
-interface DynamicTableProps<TData> {
-  columns: ColumnDef<TData>[]
-  data: TData[]
-  pagination: { pageIndex: number; pageSize: number }
-  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void
-  onPageChange: (newPage: number) => void
-  onRowsPerPageChange: (newPageSize: number) => void
-}
-
 const DynamicTable = ({
   columns: initialColumns,
   data,
   pagination,
+
   //onPaginationChange,
   onPageChange,
   onRowsPerPageChange
@@ -68,6 +60,7 @@ const DynamicTable = ({
         if (col.header) {
           headers[col.header as string] = true
         }
+
         if ('columns' in col && col.columns) {
           traverse(col.columns as ColumnDef<any>[])
         }
@@ -75,6 +68,7 @@ const DynamicTable = ({
     }
 
     traverse(cols)
+
     return headers
   }
 
@@ -83,6 +77,7 @@ const DynamicTable = ({
   const paginatedData = useMemo(() => {
     const start = pagination?.pageIndex * pagination?.pageSize
     const end = start + pagination?.pageSize
+
     return data?.slice(start, end) // Slice the data for the current page
   }, [data, pagination])
 
@@ -129,16 +124,19 @@ const DynamicTable = ({
   const handleDrop = (event: React.DragEvent, index: number) => {
     event.preventDefault()
     const draggedIndex = parseInt(event.dataTransfer.getData('text/plain'))
+
     if (draggedIndex === index) return
 
     const headersArray = Object.keys(selectedColumns)
     const updatedHeaders = [...headersArray]
     const [movedHeader] = updatedHeaders.splice(draggedIndex, 1)
+
     updatedHeaders.splice(index, 0, movedHeader)
 
     const updatedSelectedColumns = updatedHeaders.reduce(
       (acc, header) => {
         acc[header] = selectedColumns[header]
+
         return acc
       },
       {} as Record<string, boolean>
@@ -174,6 +172,7 @@ const DynamicTable = ({
             <TableRow>
               {table.getHeaderGroups()[0].headers.map(header => {
                 const isSorted = sorting.find(s => s.id === header.column.id)
+
                 return (
                   <TableCell
                     key={header.id}

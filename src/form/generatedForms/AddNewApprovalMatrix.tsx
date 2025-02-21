@@ -1,5 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {
@@ -20,9 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { createNewApprovalMatrix, updateApprovalMatrix, getApprovalMatrixOptions } from '@/redux/approvalMatrixSlice'
-import { useSearchParams } from 'next/navigation'
-import { useRouter } from 'next/navigation'
+import { createNewApprovalMatrix, updateApprovalMatrix } from '@/redux/approvalMatrixSlice'
 
 type Section = {
   approvalBy: { id: number; name: string } | null
@@ -91,6 +92,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         try {
           // Create a new approval matrix
           const response = await dispatch(createNewApprovalMatrix(params as any)).unwrap()
+
           console.log('Approval Matrix created successfully:', response)
         } catch (error) {
           console.error('Error creating approval matrix:', error)
@@ -104,12 +106,9 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     }
   })
 
-  const fetchOptions = async (id: number, name: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const fetchOptions = async (_id: number, p0: string) => {
     try {
-      const requestBody = {
-        id: id,
-        name: name
-      }
       //await dispatch(getApprovalMatrixOptions()).unwrap()
 
       const tableId = searchParams.get('id') || ''
@@ -140,6 +139,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const handleAddSection = () => {
     const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels
     const newSections = Array.from({ length: numberOfSections }, () => ({ approvalBy: null }))
+
     ApprovalMatrixFormik.setFieldValue('sections', newSections)
     setSectionsVisible(true)
   }
@@ -154,10 +154,12 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
   const handleDrop = (index: number) => {
     const draggingIndex = ApprovalMatrixFormik.values.draggingIndex
+
     if (draggingIndex === null || draggingIndex === index) return
 
     const updatedSections = [...ApprovalMatrixFormik.values.sections]
     const [removed] = updatedSections.splice(draggingIndex, 1)
+
     updatedSections.splice(index, 0, removed)
 
     ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
@@ -177,9 +179,11 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const handleConfirmDelete = () => {
     if (deleteIndex !== null) {
       const updatedSections = ApprovalMatrixFormik.values.sections.filter((_, i) => i !== deleteIndex)
+
       ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
       ApprovalMatrixFormik.setFieldValue('numberOfLevels', updatedSections.length) // Update number of levels
     }
+
     handleCloseDialog()
   }
 
@@ -250,6 +254,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   value={section.approvalBy || null}
                   onChange={(_, value) => {
                     const updatedSections = [...ApprovalMatrixFormik.values.sections]
+
                     updatedSections[index].approvalBy = value
                     ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
                   }}
@@ -317,4 +322,5 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     </form>
   )
 }
+
 export default AddNewApprovalMatrixGenerated

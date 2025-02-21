@@ -1,10 +1,16 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
-import BucketView from '../BucketView'
+
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
+
+
 import '@testing-library/jest-dom'
 import { Provider } from 'react-redux'
 import configureStore from 'redux-mock-store'
+
+import BucketView from '../BucketView'
 
 // Mock the next/navigation hooks
 jest.mock('next/navigation', () => ({
@@ -14,6 +20,7 @@ jest.mock('next/navigation', () => ({
 
 // Create mock store with initial state
 const mockStore = configureStore([])
+
 const store = mockStore({
   bucket: {
     bucket: {
@@ -65,8 +72,6 @@ describe('BucketView Component', () => {
     })
   })
 
-
-
   it('renders bucket details correctly', async () => {
     renderWithProvider(<BucketView mode='view' id='1' />)
 
@@ -84,6 +89,7 @@ describe('BucketView Component', () => {
 
     await waitFor(() => {
       const editButton = screen.getByTestId('edit-button')
+
       fireEvent.click(editButton)
       expect(mockRouter.push).toHaveBeenCalledWith('/bucket-management/edit/1')
     })
@@ -93,6 +99,7 @@ describe('BucketView Component', () => {
     renderWithProvider(<BucketView mode='view' id='1' />)
 
     const backButton = await screen.findByRole('button', { name: /go back/i })
+
     fireEvent.click(backButton)
 
     expect(mockRouter.back).toHaveBeenCalled()
@@ -102,6 +109,7 @@ describe('BucketView Component', () => {
     renderWithProvider(<BucketView mode='view' id='1' />)
 
     const deleteButton = await screen.findByTestId('delete-button')
+
     fireEvent.click(deleteButton)
 
     // Check if modal is displayed
@@ -112,6 +120,7 @@ describe('BucketView Component', () => {
 
     // Test cancel button
     const cancelButton = screen.getByRole('button', { name: /cancel/i })
+
     fireEvent.click(cancelButton)
 
     // Modal should be closed

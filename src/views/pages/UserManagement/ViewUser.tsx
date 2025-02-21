@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+
 import {
   Dialog,
   DialogTitle,
@@ -9,9 +10,12 @@ import {
   FormControlLabel,
   Typography
 } from '@mui/material'
-import DynamicTabs from '@/components/Tab/dynamicTab'
-import DynamicButton from '@/components/Button/dynamicButton'
+
 import ModeEditIcon from '@mui/icons-material/ModeEdit'
+
+import DynamicTabs from '@/components/Tab/dynamicTab'
+
+import DynamicButton from '@/components/Button/dynamicButton'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 
 interface UserDetailsDialogProps {
@@ -30,6 +34,7 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
   formatDate
 }) => {
   const [isEditMode, setIsEditMode] = useState(false)
+
   const [formData, setFormData] = useState({
     name: 'John Doe',
     userId: '12345',
@@ -181,6 +186,7 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
             size='small'
             color='secondary'
             onClick={() => setIsEditMode(false)}
+
             // sx={{ width: '100px', height: '30px' }}
           >
             Cancel
@@ -190,6 +196,7 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
             color='primary'
             size='small'
             onClick={handleSave}
+
             // sx={{ width: '100px', height: '30px' }}
           >
             Save

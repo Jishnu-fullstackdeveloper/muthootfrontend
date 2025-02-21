@@ -1,22 +1,14 @@
-import React, { useState } from 'react'
-import { Box, Button, Modal, TextField } from '@mui/material'
+import React from 'react'
+
+import { Box, Button, Modal } from '@mui/material'
 
 const TurnOverModal = ({
-  showNewTurnoverModal,
-  handleCancelNewTurnover,
-  isEditMode,
-  turnoverCode,
-  setTurnoverCode,
-  handleSaveNewTurnover,
-  handleAddNewTurnover,
+ 
   turnoverListData,
   selectedTurnoverCode,
   hoveredRow,
   setHoveredRow,
-  handleEditTurnover,
-  handleOpenDeleteModal,
-  setSelectedTurnoverCode,
-  handleSubmit,
+ 
   submitselectedTurnoverCode,
   showTurnOverModal,
   handleCloseTurnoverModal,

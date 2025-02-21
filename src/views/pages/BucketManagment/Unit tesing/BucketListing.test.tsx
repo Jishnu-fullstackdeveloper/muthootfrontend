@@ -1,15 +1,18 @@
 import React from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
+
 import BucketListing from '../BucketListing'
-import { useRouter } from 'next/navigation'
 import '@testing-library/jest-dom'
 
 // Mock MUI components to avoid DOM nesting warnings
 jest.mock('@mui/material', () => ({
   ...jest.requireActual('@mui/material'),
-  TablePagination: ({ count, page, rowsPerPage, onPageChange }) => (
+  TablePagination: ({ page, onPageChange }) => (
     <div data-testid='table-pagination'>
       <button onClick={e => onPageChange(e, page + 1)}>next page</button>
     </div>
@@ -23,7 +26,7 @@ jest.mock('next/navigation', () => ({
 
 // Create a mock reducer
 const mockReducer = {
-  bucket: (state = { bucketListData: [], loading: false }, action) => state
+  bucket: (state = { bucketListData: [], loading: false }) => state
 }
 
 // Mock the redux hooks
@@ -53,6 +56,7 @@ describe('BucketListing Component', () => {
   const mockRouter = {
     push: jest.fn()
   }
+
   const mockDispatch = jest.fn()
 
   beforeEach(() => {
@@ -86,11 +90,13 @@ describe('BucketListing Component', () => {
 
     // Find the Grid View button by aria-label
     const gridViewButton = screen.getByRole('button', { name: 'Grid View' })
+
     expect(gridViewButton).toBeInTheDocument()
     fireEvent.click(gridViewButton)
 
     // Find the Table View button by aria-label
     const tableViewButton = screen.getByRole('button', { name: 'Table View' })
+
     expect(tableViewButton).toBeInTheDocument()
     fireEvent.click(tableViewButton)
 
@@ -102,6 +108,7 @@ describe('BucketListing Component', () => {
     renderWithProvider(<BucketListing />)
 
     const searchInput = screen.getByLabelText('Search Designation')
+
     fireEvent.change(searchInput, { target: { value: 'Test' } })
 
     await waitFor(() => {
@@ -114,6 +121,7 @@ describe('BucketListing Component', () => {
     renderWithProvider(<BucketListing />)
 
     const addButton = screen.getByText('New Bucket')
+
     fireEvent.click(addButton)
 
     expect(mockRouter.push).toHaveBeenCalledWith('/bucket-management/add/new-bucket')
@@ -123,9 +131,11 @@ describe('BucketListing Component', () => {
     renderWithProvider(<BucketListing />)
 
     const deleteButton = screen.getByLabelText('Delete Bucket')
+
     fireEvent.click(deleteButton)
 
     const confirmButton = await screen.findByText('Confirm')
+
     fireEvent.click(confirmButton)
 
     expect(mockDispatch).toHaveBeenCalled()
@@ -136,6 +146,7 @@ describe('BucketListing Component', () => {
 
     // Find pagination buttons by role instead of title
     const nextPageButton = screen.getByRole('button', { name: /next page/i })
+
     fireEvent.click(nextPageButton)
 
     expect(mockDispatch).toHaveBeenCalled()

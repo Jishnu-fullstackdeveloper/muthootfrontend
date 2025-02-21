@@ -1,8 +1,11 @@
 import React from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+
 import UserListing from '../UserListing'
-import { useRouter } from 'next/navigation'
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -13,6 +16,7 @@ jest.mock('next/navigation', () => ({
 const mockRouter = {
   push: jest.fn()
 }
+
 ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
 
 describe('UserListing Component', () => {
@@ -51,6 +55,7 @@ describe('UserListing Component', () => {
     render(<UserListing />)
 
     const addButton = screen.getByText('Add User')
+
     fireEvent.click(addButton)
 
     expect(mockRouter.push).toHaveBeenCalledWith('/user-management/add/add-new-user')
@@ -61,6 +66,7 @@ describe('UserListing Component', () => {
 
     // Find view button by finding button with eye icon
     const viewButtons = screen.getAllByRole('button').filter(button => button.querySelector('.tabler-eye'))
+
     fireEvent.click(viewButtons[0])
 
     expect(mockRouter.push).toHaveBeenCalled()
@@ -71,6 +77,7 @@ describe('UserListing Component', () => {
 
     // Find edit button by finding button with edit icon
     const editButtons = screen.getAllByRole('button').filter(button => button.querySelector('.tabler-edit'))
+
     fireEvent.click(editButtons[0])
 
     expect(mockRouter.push).toHaveBeenCalled()
@@ -81,6 +88,7 @@ describe('UserListing Component', () => {
 
     // Find delete button by finding button with trash icon
     const deleteButtons = screen.getAllByRole('button').filter(button => button.querySelector('.tabler-trash'))
+
     fireEvent.click(deleteButtons[0])
 
     // Check if modal content is visible
@@ -91,6 +99,7 @@ describe('UserListing Component', () => {
 
     // Find and click the Confirm button in the modal
     const confirmButton = screen.getByRole('button', { name: 'Confirm' })
+
     fireEvent.click(confirmButton)
 
     // Modal should be closed
@@ -102,10 +111,12 @@ describe('UserListing Component', () => {
 
     // Find and click delete button
     const deleteButtons = screen.getAllByRole('button').filter(button => button.querySelector('.tabler-trash'))
+
     fireEvent.click(deleteButtons[0])
 
     // Find and click Cancel button
     const cancelButton = screen.getByRole('button', { name: 'Cancel' })
+
     fireEvent.click(cancelButton)
 
     // Modal should be closed

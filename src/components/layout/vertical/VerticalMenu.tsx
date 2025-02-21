@@ -1,17 +1,19 @@
 'use client'
 
 // MUI Imports
+import { usePathname } from 'next/navigation'
+
 import { useTheme } from '@mui/material/styles'
 
 // Third-party Imports
 import PerfectScrollbar from 'react-perfect-scrollbar'
 
-// Type Imports
+
 import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Component Imports
-import { Menu, MenuItem, SubMenu } from '@menu/vertical-menu'
+import { Menu, MenuItem } from '@menu/vertical-menu'
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
@@ -23,8 +25,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 // Style Imports
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
-import { usePathname } from 'next/navigation'
-import ApprovalIcon from '@mui/icons-material/Approval'
+
 type RenderExpandIconProps = {
   open?: boolean
   transitionDuration?: VerticalMenuContextProps['transitionDuration']
@@ -47,7 +48,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
   const pathname = usePathname()
-  const pathSegments = pathname.split('/').pop()
   const isJDManagementPage = pathname.startsWith('/jd-management/')
 
   // Vars
@@ -96,10 +96,10 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </MenuItem>
 
         <MenuItem
-          href={pathname.startsWith('/user-roles/') ? pathname : '/user-roles'}
+          href={pathname.startsWith('/user-role/') ? pathname : '/user-role'}
           icon={<i className='tabler-key' />}
         >
-         User Roles
+          User Roles
         </MenuItem>
 
         <MenuItem href='/approval-management' icon={<i className='tabler-rosette-discount-check' />}>

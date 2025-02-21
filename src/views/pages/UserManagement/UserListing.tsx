@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
 import {
   Box,
-  Tooltip,
   IconButton,
-  InputAdornment,
   Button,
   Card,
   CardContent,
@@ -18,73 +19,90 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  Chip
+  Chip,
+  CircularProgress,
+  TextField,
+  
 } from '@mui/material'
-import { TextFieldProps } from '@mui/material'
-import CustomTextField from '@/@core/components/mui/TextField'
-import { useRouter } from 'next/navigation'
+
+import type { ColumnDef } from '@tanstack/react-table'
+
+import { createColumnHelper } from '@tanstack/react-table'
+
+import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
+
 import DynamicTable from '@/components/Table/dynamicTable'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import DeleteConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
-// Sample data - replace with your data source
-const sampleData = [
-  {
-    userId: 1001,
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john@example.com',
-    status: 'Active'
-  },
-
-  {
-    userId: 1002,
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane@example.com',
-    status: 'Inactive '
-  },
-
-  {
-    userId: 1003,
-    firstName: 'Raj',
-    lastName: 'Kumar',
-    email: 'raj@example.com',
-    status: 'Active'
-  },
-  {
-    userId: 1004,
-    firstName: 'Amit',
-    lastName: 'Sharma',
-    email: 'amit@example.com',
-    status: 'Inactive'
-  }
-
-  // Add more sample data as needed
-]
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchUserManagement } from '@/redux/userManagementSlice'
 
 const UserListing = () => {
-  const [search, setSearch] = useState('')
-  const [openModal, setOpenModal] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
-  const [paginationState, setPaginationState] = useState({
-    page: 1,
-    limit: 10
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
   })
+
   const [openFilterModal, setOpenFilterModal] = useState(false)
+
   const [tempFilters, setTempFilters] = useState({
     active: false,
     inactive: false
   })
+
   const [appliedFilters, setAppliedFilters] = useState({
     active: false,
     inactive: false
   })
 
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const { userManagementData, isUserManagementLoading } = useAppSelector((state: any) => state.UserManagementReducer)
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5
+  })
+
+  let totalPages = 0
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  useEffect(() => {
+    const params: any = {
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize
+    }
+
+    if (debouncedSearch) {
+      params.search = debouncedSearch
+    }
+
+    if (appliedFilters.active && !appliedFilters.inactive) {
+      params.status = 'Active'
+    } else if (!appliedFilters.active && appliedFilters.inactive) {
+      params.status = 'Inactive'
+    }
+
+    dispatch(fetchUserManagement(params))
+  }, [debouncedSearch, appliedFilters, paginationModel])
+
+  useEffect(() => {
+    if (userManagementData?.totalCount) {
+      totalPages = Math.ceil(userManagementData.totalCount / paginationModel.pageSize)
+    }
+  }, [userManagementData])
+
   const columnHelper = createColumnHelper<any>()
 
-  // Define columns using useMemo
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
       columnHelper.accessor('serialNo', {
@@ -143,17 +161,6 @@ const UserListing = () => {
         header: 'Action',
         cell: ({ row }) => (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {/* View Button */}
-            {/* <IconButton
-      //         onClick={(e: any) => {
-      //           e.stopPropagation()
-      //           handleView(row.original.id)
-      //         }}
-      //       >
-      //         <i className='tabler-eye' />
-      //       </IconButton> */}
-
-            {/* Edit Button */}
             <IconButton
               onClick={(e: any) => {
                 e.stopPropagation()
@@ -162,17 +169,6 @@ const UserListing = () => {
             >
               <i className='tabler-edit' />
             </IconButton>
-
-            {/* Delete Button */}
-            {/* <IconButton
-      //         aria-label='Delete User'
-      //         onClick={(e: any) => {
-      //           e.stopPropagation()
-      //           handleDelete(row.original.id)
-      //         }}
-      //       >
-      //         <i className='tabler-trash' />
-      //       </IconButton> */}
           </Box>
         )
       })
@@ -180,83 +176,40 @@ const UserListing = () => {
     [columnHelper]
   )
 
-  const DebouncedInput = ({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    ...props
-  }: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-  } & Omit<TextFieldProps, 'onChange'>) => {
-    const [value, setValue] = useState(initialValue)
+  // const DebouncedInput = ({
+  //   value: initialValue,
+  //   onChange,
+  //   debounce = 500,
+  //   ...props
+  // }: {
+  //   value: string | number
+  //   onChange: (value: string | number) => void
+  //   debounce?: number
+  // } & Omit<TextFieldProps, 'onChange'>) => {
+  //   const [value, setValue] = useState(initialValue)
 
-    useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
+  //   useEffect(() => {
+  //     setValue(initialValue)
+  //   }, [initialValue])
 
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange(value)
-      }, debounce)
+  //   useEffect(() => {
+  //     const timeout = setTimeout(() => {
+  //       onChange(value)
+  //     }, debounce)
 
-      return () => clearTimeout(timeout)
-    }, [value])
+  //     return () => clearTimeout(timeout)
+  //   }, [value])
 
-    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} variant='outlined' />
-  }
+  //   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} variant='outlined' />
+  // }
 
-  // Handler functions
   const handleAddUser = () => {
     router.push('/user-management/add/add-new-user')
   }
 
-  // const handleView = (id: number) => {
-  //   router.push(`/user-management/view/${id}`)
-  // }
-
   const handleEdit = (id: number) => {
     router.push(`/user-management/edit/${id}`)
   }
-
-  // const handleDelete = (id: number) => {
-  //   setSelectedUserId(id)
-  //   setOpenModal(true)
-  // }
-
-  // const handleDeleteConfirm = () => {
-  //   // Add your delete logic here
-  //   console.log('Deleting user:', selectedUserId)
-  //   setOpenModal(false)
-  //   setSelectedUserId(null)
-  // }
-
-  // const handleDeleteCancel = () => {
-  //   setOpenModal(false)
-  //   setSelectedUserId(null)
-  // }
-
-  // Update filteredData to include userId in search
-  const filteredData = useMemo(() => {
-    return sampleData.filter(user => {
-      const searchTerm = search.toLowerCase().trim()
-
-      const matchesSearch =
-        // Convert userId to string for searching
-        user.userId.toString().includes(searchTerm) ||
-        user.firstName.toLowerCase().includes(searchTerm) ||
-        user.lastName.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
-
-      const matchesStatus =
-        (!appliedFilters.active && !appliedFilters.inactive) ||
-        (appliedFilters.active && user.status.toLowerCase().trim() === 'active') ||
-        (appliedFilters.inactive && user.status.toLowerCase().trim() === 'inactive')
-
-      return matchesSearch && matchesStatus
-    })
-  }, [search, sampleData, appliedFilters])
 
   const handleFilterOpen = () => {
     setTempFilters(appliedFilters) // Initialize temp filters with current applied filters
@@ -278,6 +231,7 @@ const UserListing = () => {
       active: false,
       inactive: false
     }
+
     setTempFilters(clearedFilters)
     setAppliedFilters(clearedFilters)
     handleFilterClose()
@@ -290,26 +244,67 @@ const UserListing = () => {
     }))
   }
 
+  // Handle search input
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value)
+  }
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchTerm('')
+  }
+
+  // Handle filter changes
+  const handleFilterChange = (filterType: 'active' | 'inactive', checked: boolean) => {
+    setTempFilters(prev => ({
+      ...prev,
+      [filterType]: checked
+    }))
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => {
+      const updatedPagination = { ...prev, pageIndex: newPage }
+
+      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
+      return updatedPagination
+    })
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+
+    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+    setPagination(updatedPagination)
+  }
+
   return (
     <div>
       <Card sx={{ mb: 4 }}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <DebouncedInput
-                value={search}
-                onChange={(value: any) => setSearch(value)}
-                placeholder='Search by ID, name, or email...'
-                sx={{ width: '300px' }}
-                size='small'
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <i className='tabler-search' />
-                    </InputAdornment>
-                  )
-                }}
-              />
+              <Box className='flex-1 min-w-[200px]'>
+                <TextField
+                  fullWidth
+                  size='small'
+                  placeholder='Search users...'
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  InputProps={{
+                    startAdornment: <SearchIcon className='mr-2 text-gray-400' />,
+                    endAdornment: searchTerm && (
+                      <IconButton size='small' onClick={handleClearSearch}>
+                        <ClearIcon />
+                      </IconButton>
+                    )
+                  }}
+                />
+              </Box>
+
               <Button
                 variant='outlined'
                 onClick={handleFilterOpen}
@@ -364,10 +359,7 @@ const UserListing = () => {
           <FormGroup>
             <FormControlLabel
               control={
-                <Checkbox
-                  checked={tempFilters.active}
-                  onChange={e => setTempFilters(prev => ({ ...prev, active: e.target.checked }))}
-                />
+                <Checkbox checked={tempFilters.active} onChange={e => handleFilterChange('active', e.target.checked)} />
               }
               label='Active Users'
             />
@@ -375,7 +367,7 @@ const UserListing = () => {
               control={
                 <Checkbox
                   checked={tempFilters.inactive}
-                  onChange={e => setTempFilters(prev => ({ ...prev, inactive: e.target.checked }))}
+                  onChange={e => handleFilterChange('inactive', e.target.checked)}
                 />
               }
               label='Inactive Users'
@@ -394,8 +386,36 @@ const UserListing = () => {
 
       {/* Table Container */}
       <Card>
-        <DynamicTable columns={columns} data={filteredData} />
+        {isUserManagementLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <DynamicTable
+            columns={columns}
+            data={userManagementData?.data || []}
+            pagination={pagination} // Pass pagination state
+            onPaginationChange={setPagination} // Pass pagination change handler
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+          />
+        )}
       </Card>
+
+      {/* Pagination */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Pagination
+          color='primary'
+          shape='rounded'
+          count={totalPages}
+          page={paginationModel.page}
+          onChange={(event, value) => {
+            setPaginationModel({ ...paginationModel, page: value })
+          }}
+          showFirstButton
+          showLastButton
+        />
+      </Box>
 
       {/* Delete Confirmation Modal */}
       {/* <DeleteConfirmModal

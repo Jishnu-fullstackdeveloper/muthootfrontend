@@ -2,12 +2,11 @@
 import React, { useEffect, useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, IconButton, InputAdornment, Autocomplete, Tooltip, Card } from '@mui/material'
+import { FormControl, TextField, IconButton,  Autocomplete,  } from '@mui/material'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AddIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useRouter } from 'next/navigation'
-import { Modal, Box, Button } from '@mui/material'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   addNewBucket,
@@ -15,36 +14,36 @@ import {
   updateBucketList,
   addNewTurnoverCode,
   fetchBucketDetails,
-  fetchDesignationList
+  fetchDesignationList,
+  fetchGradeList
 } from '@/redux/BucketManagementSlice'
 import TurnOverModal from '@/views/pages/BucketManagment/TurnOverModal'
-import { Console } from 'console'
 
 type Props = {
   mode: any
   id: any
 }
-interface DataItem {
-  id: number
-  turnover: number
-  code: string
-}
+// interface DataItem {
+//   id: number
+//   turnover: number
+//   code: string
+// }
 
-interface Designation {
-  name: string
-  count: number
-}
+// interface Designation {
+//   name: string
+//   count: number
+//   grade: string
+// }
 
 const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
-  const [error, setError] = useState<string>('')
-  const [warning, setWarning] = useState<string>('')
-  const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1 }])
+
+  const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1, grade: '' }])
   const [modalData, setModalData] = useState(null)
   const [selectedTurnover, setSelectedTurnover] = useState<any>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [hoveredRow, setHoveredRow] = useState(null)
   const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('')
-  const [designationOptions, setDesignationOptions] = useState()
+
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -69,8 +68,11 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     fetchBucketDetailsData,
     isFetchBucketDetailsLoading,
     fetchBucketDetailsSuccess,
-    updateBucketListSuccess
+    updateBucketListSuccess,
+    designationData,
+    gradeData
   } = useAppSelector((state: any) => state.BucketManagementReducer)
+
   const [data, setData] = useState([{ turnoverID: 1, turnoverCode: 'ABC123' }])
   const dispatch = useAppDispatch()
 
@@ -85,25 +87,28 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     dispatch(getTurnOverCode(params))
   }
 
-  const { bucketListData, deleteBucketListSuccess, designationData } = useAppSelector(
-    (state: any) => state.BucketManagementReducer
-  )
-
   const getDesignationDatas = () => {
     let params = {
       page: 1,
-      limit: 100
+      limit: 10
     }
     dispatch(fetchDesignationList(params))
   }
 
-  useEffect(() => {
-    getDesignationDatas()
-  }, [])
+  const getGradeDatas = () => {
+    let params = {
+      page: 1,
+      limit: 10
+    }
+    dispatch(fetchGradeList(params))
+  }
+  console.log(gradeData, 'Grade Datas', designationData)
+
 
   useEffect(() => {
-    console.log('designationData', designationData)
-  }, [designationData])
+    getDesignationDatas()
+    getGradeDatas()
+  }, [])
 
   const handleAddNewTurnover = () => {
     setIsEditMode(false)
@@ -160,25 +165,19 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const handleCloseTurnoverModal = () => {
     setModalState({ ...modalState, showTurnOverModal: false })
   }
-  // const handleDeleteTurnover = () => {
-  //   const updatedData = data.filter(item => item.turnoverID !== selectedTurnover?.turnoverID)
-  //   setData(updatedData)
-  //   setShowDeleteModal(false)
-  // }
+
   const handleOpenDeleteModal = (item: any) => {
     setSelectedTurnover(item)
     setShowDeleteModal(true)
   }
-  // const handleCloseDeleteModal = () => {
-  //   setShowDeleteModal(false)
-  // }
+
 
   const bucketFormik = useFormik({
     initialValues: {
       bucketName: '',
       turnoverCode: '',
       note: '',
-      designations: [{ name: '', count: 1 }]
+      designations: [{ name: '', count: 1, grade: '' }]
     },
     validationSchema: Yup.object().shape({
       bucketName: Yup.string().required('Bucket Name is required'),
@@ -187,7 +186,8 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
         .of(
           Yup.object().shape({
             name: Yup.string().required('Designation is required'),
-            count: Yup.number().required('Role Count is required').min(1, 'Role Count must be at least 1')
+            count: Yup.number().required('Role Count is required').min(1, 'Role Count must be at least 1'),
+            grade: Yup.string().required('Grade is required')
           })
         )
         .min(1, 'At least one designation is required')
@@ -197,7 +197,8 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       const finalTurnoverCode = selectedTurnoverCode || turnoverCode
       const sanitizedDesignations = values.designations.map(designation => ({
         designationName: designation.name?.trim(),
-        count: designation.count || 1
+        count: designation.count || 1,
+        grade: designation.grade?.trim()
       }))
       const invalidDesignations = sanitizedDesignations.some(d => !d.designationName)
       if (invalidDesignations) {
@@ -223,8 +224,6 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     }
   })
 
-  console.log('designationsSSS', bucketFormik.values.designations)
-
   useEffect(() => {
     if (fetchBucketDetailsSuccess && fetchBucketDetailsData) {
       console.log('fetchBucketDetailsData', fetchBucketDetailsData)
@@ -238,7 +237,8 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       // Transform positionCategories into the required format for designations
       const tempDesignations = fetchBucketDetailsData?.positionCategories?.map((item: any) => ({
         name: item.name || '',
-        count: item.count || 1
+        count: item.count || 1,
+        grade: item.grade || ''
       }))
 
       // Update designations state and formik field value
@@ -247,10 +247,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     }
   }, [fetchBucketDetailsSuccess, fetchBucketDetailsData, updateBucketListSuccess])
 
-  // const handleBucketSubmit = (event: React.FormEvent) => {
-  //   event.preventDefault() // Prevent default form submission
-  //   // handleSaveNewBucket() // Call the function to save the new bucket
-  // }
+
   const router = useRouter()
   const handleCancel = () => {
     router.back()
@@ -344,47 +341,43 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
               }}
             >
               <div style={{ width: '300px' }}>
-              <Autocomplete
-  options={designationData}
-  getOptionLabel={(option) => option.name || ''}
-  isOptionEqualToValue={(option, value) => option.id === value.id}
-  value={designationData.find((item) => item.name === designation.name) || null}
-  onChange={(e, value) => {
-    const selectedName = value ? value.name.trim() : '';
+                <Autocomplete
+                  options={designationData}
+                  getOptionLabel={option => option.name || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  value={designationData.find(item => item.name === designation.name) || null}
+                  onChange={(e, value) => {
+                    const selectedName = value ? value.name.trim() : ''
 
-    const newDesignations = [...designations];
-    newDesignations[index].name = selectedName; // Update the name
-    setDesignations(newDesignations);
-    bucketFormik.setFieldValue('designations', newDesignations); // Sync with Formik
-  }}
-  renderInput={(params) => {
-    const isDuplicate =
-      designation.name &&
-      designations.some((d, i) => d.name === designation.name && i !== index);
+                    const newDesignations = [...designations]
+                    newDesignations[index].name = selectedName // Update the name
+                    setDesignations(newDesignations)
+                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
+                  }}
+                  renderInput={params => {
+                    const isDuplicate =
+                      designation.name && designations.some((d, i) => d.name === designation.name && i !== index)
 
-    const showRequiredError =
-      bucketFormik.touched.designations?.[index]?.name &&
-      !designation.name; // Check if the field is touched and empty
+                    const showRequiredError = bucketFormik.touched.designations?.[index]?.name && !designation.name // Check if the field is touched and empty
 
-    const showError = isDuplicate || showRequiredError; // Combine errors
+                    const showError = isDuplicate || showRequiredError // Combine errors
 
-    return (
-      <TextField
-        {...params}
-        label={`Designation ${index + 1}`}
-        error={showError}
-        helperText={
-          isDuplicate
-            ? 'Duplicate designation selected' // Duplicate error message
-            : showRequiredError
-            ? 'Designation is required' // Required field error message
-            : undefined
-        }
-      />
-    );
-  }}
-/>
-
+                    return (
+                      <TextField
+                        {...params}
+                        label={`Designation ${index + 1}`}
+                        error={showError}
+                        helperText={
+                          isDuplicate
+                            ? 'Duplicate designation selected' // Duplicate error message
+                            : showRequiredError
+                              ? 'Designation is required' // Required field error message
+                              : undefined
+                        }
+                      />
+                    )
+                  }}
+                />
               </div>
 
               <div style={{ width: '150px', marginLeft: '10px' }}>
@@ -409,6 +402,46 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                 />
               </div>
 
+              <div style={{ width: '300px', marginLeft: '10px' }}>
+                <Autocomplete
+                  options={gradeData || []}
+                  getOptionLabel={option => option.grade || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  value={gradeData.find(item => item.name === designation.name) || null}
+                  onChange={(e, value) => {
+                    const selectedName = value ? value.name.trim() : ''
+
+                    const newDesignations = [...designations]
+                    newDesignations[index].grade = selectedName // Update the name
+                    setDesignations(newDesignations)
+                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
+                  }}
+                  renderInput={params => {
+                    const isDuplicate =
+                      designation.grade && designations.some((d, i) => d.grade === designation.grade && i !== index)
+
+                    const showRequiredError = bucketFormik.touched.designations?.[index]?.grade && !designation.grade // Check if the field is touched and empty
+
+                    const showError = isDuplicate || showRequiredError // Combine errors
+
+                    return (
+                      <TextField
+                        {...params}
+                        label={`Grade ${index + 1}`}
+                        error={showError}
+                        helperText={
+                          isDuplicate
+                            ? 'Duplicate grade selected' // Duplicate error message
+                            : showRequiredError
+                              ? 'Grade is required' // Required field error message
+                              : undefined
+                        }
+                      />
+                    )
+                  }}
+                />
+              </div>
+
               {designations.length > 1 && index > 0 && (
                 <IconButton
                   color='secondary'
@@ -419,7 +452,10 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
               )}
 
               {index === designations.length - 1 && (
-                <IconButton color='primary' onClick={() => setDesignations([...designations, { name: '', count: 1 }])}>
+                <IconButton
+                  color='primary'
+                  onClick={() => setDesignations([...designations, { name: '', count: 1, grade: '' }])}
+                >
                   <AddIcon />
                 </IconButton>
               )}

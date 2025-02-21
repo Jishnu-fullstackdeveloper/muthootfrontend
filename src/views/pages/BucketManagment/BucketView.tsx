@@ -1,21 +1,32 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
-import { Box, Card, CardContent, Button, Divider, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  Button,
+  Divider,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
+} from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
-import { useSearchParam } from 'react-use'
-import { useDispatch } from 'react-redux'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+
 
 type Props = {
   mode: any
   id: any
 }
 
-const BucketView: React.FC<Props> = ({ mode, id }) => {
-  const [bucket, setBucket] = useState<any>(null)
+const BucketView: React.FC<Props> = ({  id }) => {
   const [bucketDetails, setBucketDetails] = useState<any>(null)
   const searchParams = useSearchParams()
   const name = searchParams.get('name')
@@ -25,13 +36,12 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
 
   const router = useRouter()
   const [bucketId, setBucketId] = useState<any>(null)
-  const [openModal, setOpenModal] = useState(false)
-  const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Decode and parse `positionCategories`
   let decodedPositionCategories: any[] = []
+
   if (positionCategories) {
     try {
       decodedPositionCategories = JSON.parse(decodeURIComponent(positionCategories))
@@ -49,15 +59,13 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
     setShowDeleteModal(true)
   }
 
-  const handleDeleteConfirm = (id: any) => {
+  const handleDeleteConfirm = () => {
     // useDispatch(deleteBucket(id))
     setShowDeleteModal(false)
-    setSelectedBucketId(null)
   }
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false)
-    setSelectedBucketId(null)
   }
 
   useEffect(() => {
@@ -75,7 +83,7 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
 
   if (loading) {
     return (
-      <div data-testid="loading-indicator">
+      <div data-testid='loading-indicator'>
         <CircularProgress />
       </div>
     )
@@ -177,17 +185,10 @@ const BucketView: React.FC<Props> = ({ mode, id }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button 
-            data-testid="cancel-delete-button"
-            onClick={handleDeleteCancel}
-          >
+          <Button data-testid='cancel-delete-button' onClick={handleDeleteCancel}>
             Cancel
           </Button>
-          <Button 
-            data-testid="confirm-delete-button"
-            onClick={() => handleDeleteConfirm(bucketId)} 
-            color="error"
-          >
+          <Button data-testid='confirm-delete-button' onClick={() => handleDeleteConfirm(bucketId)} color='error'>
             Confirm
           </Button>
         </DialogActions>

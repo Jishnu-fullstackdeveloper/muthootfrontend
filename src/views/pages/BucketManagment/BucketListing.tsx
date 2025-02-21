@@ -1,7 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
+import type { TextFieldProps } from '@mui/material'
 import {
   Box,
   Tooltip,
@@ -14,32 +18,35 @@ import {
   CardActions,
   Pagination
 } from '@mui/material'
-import { TextFieldProps } from '@mui/material'
+
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+
+import type { ColumnDef } from '@tanstack/react-table'
+
+import { createColumnHelper } from '@tanstack/react-table'
+
 import CustomTextField from '@/@core/components/mui/TextField'
 import DynamicButton from '@/components/Button/dynamicButton'
-import { useRouter } from 'next/navigation'
 import DynamicTable from '@/components/Table/dynamicTable'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { deleteBucket, fetchBucketList, updateBucketList } from '@/redux/BucketManagementSlice'
+
+import { deleteBucket, fetchBucketList } from '@/redux/BucketManagementSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
-import { original } from '@reduxjs/toolkit'
 
 const BucketListing = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [search, setSearch] = useState('')
   const [openModal, setOpenModal] = useState(false)
-  const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null)
+
   const [paginationState, setPaginationState] = useState<any>({
     page: 1,
     limit: 20
   })
+
   const [bucketId, setBucketId] = useState<any>(null)
 
-  let totalDataCount: number = 0
   let totalPages: number = 0
 
   const handlePageChange = (event: any, value: any) => {
@@ -48,15 +55,17 @@ const BucketListing = () => {
 
   const router = useRouter()
   const dispatch = useAppDispatch()
+
   const { bucketListData, deleteBucketListSuccess, updateBucketListSuccess } = useAppSelector(
     (state: any) => state.BucketManagementReducer
   )
 
   const getBucketListDatas = () => {
-    let params = {
+    const params = {
       page: paginationState.page,
       limit: paginationState.limit
     }
+
     dispatch(fetchBucketList(params))
   }
 
@@ -86,14 +95,13 @@ const BucketListing = () => {
         cell: ({ row }) => {
           // Limit to first 3 designations
           const visiblePositions = row.original.positionCategories?.slice(0, 3)
-          const remainingCount = row.original.positionCategories?.length - 3
 
           return (
             <>
               <ul style={{ listStyleType: 'none', padding: 0 }}>
                 {visiblePositions?.map((positionCategories: any, index: number) => (
                   <li key={index}>
-                    {positionCategories.name}: {positionCategories.count}
+                    {positionCategories.designationName}: {positionCategories.count}: {positionCategories.grade}
                   </li>
                 ))}
               </ul>
@@ -203,10 +211,12 @@ const BucketListing = () => {
 
     return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} variant='outlined' />
   }
+
   const sortedBucketData = useMemo(() => {
     if (bucketListData?.data) {
       return [...bucketListData.data].sort((a: any, b: any) => a.name.localeCompare(b.name))
     }
+
     return []
   }, [bucketListData])
 
@@ -226,13 +236,11 @@ const BucketListing = () => {
   const handleDeleteConfirm = (id: any) => {
     dispatch(deleteBucket(id))
     setOpenModal(false)
-    setSelectedBucketId(null)
     getBucketListDatas()
   }
 
   const handleDeleteCancel = () => {
     setOpenModal(false)
-    setSelectedBucketId(null)
   }
 
   useEffect(() => {
@@ -347,9 +355,7 @@ const BucketListing = () => {
                 <Grid item xs={12} sm={6} md={4} key={bucket.id}>
                   <Card
                     onClick={() =>
-                      // router.push(
-                      //   `/bucket-management/view/${bucket.turnoverCode}?name=${encodeURIComponent(bucket.name)}&turnoverCode=${bucket.turnoverCode}&notes=${encodeURIComponent(bucket.notes)}&positionCategories=${encodeURIComponent(JSON.stringify(bucket.positionCategories))}`
-                      // )
+                    
                       router.push(
                         `/bucket-management/view/${bucket.turnoverCode}?name=${bucket.name}&turnoverCode=${bucket.turnoverCode}&notes=${bucket.notes || ''}&positionCategories=${JSON.stringify(bucket.positionCategories)}`
                       )
@@ -409,7 +415,7 @@ const BucketListing = () => {
 
                           {/* Delete Button */}
                           <IconButton
-                          aria-label="Delete Bucket"
+                            aria-label='Delete Bucket'
                             onClick={(e: any) => {
                               e.stopPropagation()
                               handleDeleteBucket(bucket.id)
@@ -424,8 +430,6 @@ const BucketListing = () => {
                           >
                             <i className='tabler-trash' />
                           </IconButton>
-
-                         
                         </Box>
                       </Box>
 
@@ -462,7 +466,8 @@ const BucketListing = () => {
                         >
                           {bucket.positionCategories?.slice(0, 3)?.map((positionCategories: any) => (
                             <li key={positionCategories.name}>
-                              {positionCategories.name}: {positionCategories.count}
+                              {positionCategories.designationName}: {positionCategories.count}:{' '}
+                              {positionCategories.grade}
                             </li>
                           ))}
 

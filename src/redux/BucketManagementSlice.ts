@@ -4,19 +4,23 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 
 interface positionCategories {
-    designationName: string;
-    count: number;
-  }
-  
-  interface UpdateBucketListParams {
-    id: number;
-    name: string;
-    turnoverCode: string;
-    positionCategories: positionCategories[];
-    notes: string;
-    existingTurnoverCode : string
-  }
+  designationName: string
+  count: number
+}
 
+interface UpdateBucketListParams {
+  id: number
+  name: string
+  turnoverCode: string
+  positionCategories: positionCategories[]
+  notes: string
+  existingTurnoverCode: string
+  grade: Grade[]
+}
+
+interface Grade {
+  grade: string
+}
 
 export const fetchDesignationList = createAsyncThunk<any, any>(
   'appMuthoot/fetchDesignationList',
@@ -25,6 +29,24 @@ export const fetchDesignationList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/designation', {
         params
       })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchGradeList = createAsyncThunk<any, any>(
+  'appMuthoot/fetchGradeList',
+  async (params: any, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/grade', {
+        params
+      })
+
+      console.log('response', response.data)
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -41,6 +63,7 @@ export const fetchBucketList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/bucket', {
         params
       })
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -53,6 +76,7 @@ export const fetchBucketDetails = createAsyncThunk<any, any>(
   async (id: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`/bucket/${id}`)
+
       return response.data.data || []
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
@@ -65,6 +89,7 @@ export const addNewBucket = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/bucket', params)
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
@@ -72,45 +97,47 @@ export const addNewBucket = createAsyncThunk<any, any>(
   }
 )
 
-export const updateBucketList = createAsyncThunk<
-  any, 
-  UpdateBucketListParams
->(
-  'appMuthoot/updateBucketList', 
+export const updateBucketList = createAsyncThunk<any, UpdateBucketListParams>(
+  'appMuthoot/updateBucketList',
   async (params, { rejectWithValue }) => {
     try {
-      const turnoverCode = params.turnoverCode || params.existingTurnoverCode || ""; 
+      const turnoverCode = params.turnoverCode || params.existingTurnoverCode || ''
+
       const requestData = {
         id: params.id,
         name: params.name.toLowerCase(),
-        positionCategories: params.positionCategories, 
+        positionCategories: params.positionCategories,
         turnoverCode: turnoverCode,
         notes: params.notes
-      };
-      const response = await AxiosLib.patch(`/bucket/${params.id}`, requestData);
-      return response.data;
+      }
+
+      const response = await AxiosLib.patch(`/bucket/${params.id}`, requestData)
+
+      return response.data
     } catch (error: any) {
       if (error.response) {
-        console.error('API Error Response:', error.response);
-        return rejectWithValue(error.response.data);
+        console.error('API Error Response:', error.response)
+
+        return rejectWithValue(error.response.data)
       } else if (error.request) {
-        console.error('No response from server:', error.request);
-        return rejectWithValue({ message: 'No response from server. Please try again later.' });
+        console.error('No response from server:', error.request)
+
+        return rejectWithValue({ message: 'No response from server. Please try again later.' })
       } else {
-        console.error('Unexpected error:', error);
-        return rejectWithValue({ message: 'Unexpected error occurred.' });
+        console.error('Unexpected error:', error)
+
+        return rejectWithValue({ message: 'Unexpected error occurred.' })
       }
     }
   }
-);
-
-
+)
 
 export const deleteBucket = createAsyncThunk<any, string>(
   'appMuthoot/deleteBucket',
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.delete(`/bucket/${id}`)
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Error deleting the bucket')
@@ -127,6 +154,7 @@ export const getTurnOverCode = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/turnover', {
         params
       })
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -139,6 +167,7 @@ export const addNewTurnoverCode = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/turnover', params)
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
@@ -149,17 +178,23 @@ export const addNewTurnoverCode = createAsyncThunk<any, any>(
 export const BucketManagementSlice: any = createSlice({
   name: 'BucketManagement',
   initialState: {
-    designationData: [],
-    isBucketListLoading: false,
-    bucketListSuccess: false,
-    bucketListFailure: false,
-    bucketListFailureMessage: '',
+    gradeData: [],
+    isFetchGradeListLoading: false,
+    fetchGradeListSuccess: false,
+    fetchGradeListFailure: false,
+    fetchGradeListFailureMessage: '',
 
-    bucketListData: [],
+    designationData: [],
     isFetchDesignationListLoading: false,
     fetchDesignationListSuccess: false,
     fetchDesignationListFailure: false,
     fetchDesignationListFailureMessage: '',
+
+    bucketListData: [],
+    isBucketListLoading: false,
+    bucketListSuccess: false,
+    bucketListFailure: false,
+    bucketListFailureMessage: '',
 
     fetchBucketDetailsData: [],
     isFetchBucketDetailsLoading: false,
@@ -195,6 +230,22 @@ export const BucketManagementSlice: any = createSlice({
     }
   },
   extraReducers: builder => {
+    //fetch Grade List
+    builder.addCase(fetchGradeList.pending, state => {
+      state.isFetchGradeListLoading = true
+    })
+    builder.addCase(fetchGradeList.fulfilled, (state, action) => {
+      state.gradeData = action?.payload?.data
+      state.isFetchGradeListLoading = false
+      state.bucketListSuccess = true
+    })
+    builder.addCase(fetchGradeList.rejected, (state, action: any) => {
+      state.isFetchGradeListLoading = false
+      state.gradeData = []
+      state.fetchGradeListFailure = true
+      state.fetchGradeListFailureMessage = action?.payload?.message || 'Listing Failed'
+    })
+
     //fetch Designation List
     builder.addCase(fetchDesignationList.pending, state => {
       state.isFetchDesignationListLoading = true

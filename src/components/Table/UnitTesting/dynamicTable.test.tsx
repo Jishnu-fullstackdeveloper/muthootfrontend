@@ -1,8 +1,11 @@
 import React from 'react'
+
 import { render, screen, fireEvent } from '@testing-library/react'
+
 import '@testing-library/jest-dom'
+import type { ColumnDef } from '@tanstack/react-table'
+
 import DynamicTable from '../dynamicTable'
-import { ColumnDef } from '@tanstack/react-table'
 
 // Sample data and columns for testing
 const columns: ColumnDef<any>[] = [
@@ -41,6 +44,7 @@ describe('DynamicTable Component', () => {
     render(<DynamicTable columns={columns} data={data} />)
 
     const filterButton = screen.getByRole('button', { name: /filter columns/i })
+
     fireEvent.click(filterButton)
 
     expect(screen.getByText('Select Columns')).toBeInTheDocument()
@@ -50,6 +54,7 @@ describe('DynamicTable Component', () => {
     render(<DynamicTable columns={columns} data={data} />)
 
     const denseSwitch = screen.getByLabelText('Dense padding')
+
     expect(denseSwitch).toBeInTheDocument()
     
     fireEvent.click(denseSwitch)

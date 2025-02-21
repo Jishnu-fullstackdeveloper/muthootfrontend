@@ -16,6 +16,8 @@ const AxiosLib = axios.create({
 // Set Authorization header if accessToken is available
 if (accessToken) {
   const decodedToken: any = jwtDecode(accessToken)
+
+
   // const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
   AxiosLib.defaults.headers.common['refreshtoken'] = `${refreshToken}`
@@ -36,7 +38,9 @@ AxiosLib.interceptors.response.use(
       //   window.location.href = '/login'
       // }
     }
-    return Promise.reject(error)
+
+    
+return Promise.reject(error)
   }
 )
 

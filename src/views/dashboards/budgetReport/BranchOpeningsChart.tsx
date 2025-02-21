@@ -48,6 +48,7 @@ const BranchOpeningsChart = () => {
       theme: 'dark',
       shared: true,
       intersect: false
+
       // y: {
       //   formatter: value => `${value}` // Display the value directly
       // }

@@ -1,4 +1,7 @@
 import React, { useState } from 'react'
+
+import dynamic from 'next/dynamic'
+
 import {
   Box,
   Card,
@@ -21,7 +24,6 @@ import CheckIcon from '@mui/icons-material/Check'
 import ClearIcon from '@mui/icons-material/Clear'
 import { green, yellow, red } from '@mui/material/colors'
 import { Visibility } from '@mui/icons-material'
-import dynamic from 'next/dynamic'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 
 const MyRequestCard = () => {
@@ -30,6 +32,7 @@ const MyRequestCard = () => {
   const [openDialogViewJD, setOpenDialogViewJD] = useState(false)
 
   const ViewJd = dynamic(() => import('../JDManagement/viewJD'), { ssr: false })
+
   const handleViewJD = () => {
     setOpenDialogViewJD(true)
   }
@@ -38,6 +41,7 @@ const MyRequestCard = () => {
   const handleCloseDialogViewJD = () => {
     setOpenDialogViewJD(false)
   }
+
   const handleClickOpen = () => {
     setOpenDialog(true)
   }
@@ -72,13 +76,15 @@ const MyRequestCard = () => {
   const getStatusColor = (status: string) => {
     if (status === 'Approved') return green[500]
     if (status === 'Pending') return yellow[700]
-    return red[500]
+    
+return red[500]
   }
 
   const getStatusIcon = (status: string) => {
     if (status === 'Approved') return <CheckIcon />
     if (status === 'Rejected') return <ClearIcon />
-    return <CheckIcon />
+    
+return <CheckIcon />
   }
 
   return (
@@ -315,6 +321,7 @@ const MyRequestCard = () => {
                         Accept
                       </Button>
                       <Button
+
                         // variant='contained'
                         // color='primary'
                         size='small'

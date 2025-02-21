@@ -25,10 +25,11 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { email, object, minLength, string, array, forward, custom } from 'valibot'
 
 // Component Imports
+import DirectionalIcon from '@components/DirectionalIcon'
+
 import CustomTextField from '@core/components/mui/TextField'
 import StepperWrapper from '@core/styles/stepper'
 import StepperCustomDot from '@components/stepper-dot'
-import DirectionalIcon from '@components/DirectionalIcon'
 
 // Vars
 const steps = [

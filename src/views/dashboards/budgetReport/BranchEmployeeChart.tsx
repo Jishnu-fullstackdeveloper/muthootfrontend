@@ -74,6 +74,7 @@ const BranchEmployeeChart = () => {
     },
     xaxis: {
       labels: { show: false },
+
       //categories: ['Branch A', 'Branch B', 'Branch C', 'Branch D', 'Branch E', 'Branch F', 'Branch G'],
       axisTicks: { show: false },
       axisBorder: { show: false }

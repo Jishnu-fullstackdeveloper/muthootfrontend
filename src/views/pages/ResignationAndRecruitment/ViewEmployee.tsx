@@ -1,15 +1,17 @@
 import React, { useEffect, useMemo } from 'react'
-import { Box, Typography, Grid, Divider, Button, Paper, Chip, Stepper, Step, StepLabel, Card } from '@mui/material'
-import { Email, Phone, Business, CalendarToday, LocationCity, ArrowBack, Edit } from '@mui/icons-material'
+
 import { useRouter } from 'next/navigation'
-import ChartSample from './ChartSample'
-import BubblePositionTable from './BubblePositionTable'
+
+import { Box, Typography, Divider, Button, Paper, Chip, Stepper, Step, StepLabel, Card } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+
+// import ChartSample from './ChartSample'
+// import BubblePositionTable from './BubblePositionTable'
 import DesignationResignedReport from './BubblePositionTable'
 import { fetchRecruitmentRequestById, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { RootState } from '@/redux/store'
-import { isAdmin } from '@/utils/functions'
-import { getAccessToken, decodeToken } from '@/utils/functions'
+import type { RootState } from '@/redux/store'
+import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
 
 type Props = {
   mode: string
@@ -20,12 +22,9 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const {
-    fetchRecruitmentRequestByIdLoading,
-    fetchRecruitmentRequestByIdData,
-    fetchRecruitmentRequestByIdFailure,
-    fetchRecruitmentRequestByIdFailureMessage
-  } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
+  console.log(mode)
+
+  const { fetchRecruitmentRequestByIdData } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
 
   // Sample employee data
   // const employee = {
@@ -85,9 +84,11 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
   const getApproverId = () => {
     const token = getAccessToken()
+
     if (!token) return null
 
     const decodedToken = decodeToken(token)
+
     return decodedToken?.sub
   }
 
@@ -95,6 +96,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
   const employee = useMemo(() => {
     const data = safeGetData(fetchRecruitmentRequestByIdData)
+
     return data[0]
   }, [fetchRecruitmentRequestByIdData])
 
@@ -104,8 +106,10 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
   const handleApprove = async (e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
       if (!employee?.approval_id) throw new Error('No approval ID found')
 
@@ -124,8 +128,10 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
   const handleReject = async (e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
       if (!employee?.approval_id) throw new Error('No approval ID found')
 
@@ -167,11 +173,13 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           borderRadius: 2,
           marginBottom: 4,
           boxShadow: 3,
+
           //   transition: 'all 0.3s ease-in-out',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between'
+
           //   '&:hover': {
           //     transform: 'translateY(-8px)',
           //     boxShadow: 6,

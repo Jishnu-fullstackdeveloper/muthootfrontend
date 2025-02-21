@@ -1,6 +1,7 @@
 'use client'
-import DynamicRadioGroup from '@/components/RadioGroup/dynamicRadioGroup'
 import React from 'react'
+
+import DynamicRadioGroup from '@/components/RadioGroup/dynamicRadioGroup'
 
 function page() {
   const radioOptions = [

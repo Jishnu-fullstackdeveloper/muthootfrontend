@@ -1,5 +1,6 @@
-import DynamicTooltip from '@/components/Tooltip/dynamicTooltip'
 import React from 'react'
+
+import DynamicTooltip from '@/components/Tooltip/dynamicTooltip'
 
 function Page() {
   const tooltipTitle = 'Remove item'

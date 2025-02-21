@@ -1,9 +1,12 @@
 'use client'
 
 import React from 'react'
+
 import DeleteIcon from '@mui/icons-material/Delete'
-import DynamicChip from '@/components/Chip/dynamicChip'
+
 import { Stack } from '@mui/material'
+
+import DynamicChip from '@/components/Chip/dynamicChip'
 
 const Page: React.FC = () => {
   const handleClick = (label: string) => {

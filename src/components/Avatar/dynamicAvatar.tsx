@@ -1,5 +1,7 @@
 'use client'
-import React, { FC, useState } from 'react'
+import type { FC} from 'react';
+import React, { useState } from 'react'
+
 import { Avatar, AvatarGroup } from '@mui/material'
 
 interface AvatarItem {
@@ -40,7 +42,9 @@ const DynamicAvatar: FC<DynamicAvatarProps> = ({ avatars, maxGroup = 4, size = 4
     <AvatarGroup max={maxGroup}>
       {avatars.map((avatar, index) => {
         const [hasError, setHasError] = React.useState(false)
-        return (
+
+        
+return (
           <Avatar
             key={index}
             src={!hasError ? avatar.src : undefined}

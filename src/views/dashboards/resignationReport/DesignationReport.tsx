@@ -1,6 +1,10 @@
 'use client'
 
 // MUI Imports
+import { useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Chip from '@mui/material/Chip'
@@ -8,16 +12,20 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
 import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
-import { useRouter } from 'next/navigation'
+
+import { Clear } from '@mui/icons-material'
+
+import CalendarToday from '@mui/icons-material/CalendarToday'
+
+import tableStyles from '@core/styles/table.module.css'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
-import { Clear } from '@mui/icons-material'
-import CalendarToday from '@mui/icons-material/CalendarToday'
+
+
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
-import { useState } from 'react'
+
 
 // Data Type for the Resigned Report
 type ResignedDataType = {
@@ -108,6 +116,7 @@ const DesignationResignedReport = () => {
 
   return (
     <Card
+
     //  sx={{ minHeight: '67.5vh' }}
     >
       <CardHeader

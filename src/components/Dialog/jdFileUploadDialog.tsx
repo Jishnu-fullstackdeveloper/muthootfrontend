@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box } from '@mui/material'
 
 type FileUploadDialogProps = {
@@ -29,6 +30,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ open, onClose, onUp
         <Box sx={{ mt: 2 }}>
           <input
             type='file'
+
             // accept='.pdf,.docx'
             onChange={handleFileChange}
             style={{ display: 'none' }}

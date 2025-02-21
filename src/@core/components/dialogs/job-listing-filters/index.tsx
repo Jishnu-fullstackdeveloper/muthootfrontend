@@ -50,10 +50,13 @@ const JobListingCustomFilters = ({
   const handleCheckboxChange = (category: string, value: string) => {
     setSelectedFilters((prev: { [x: string]: string[] }) => {
       const categoryFilters = (prev[category] as string[]) || []
+
       const updatedFilters = categoryFilters.includes(value)
         ? categoryFilters.filter(item => item !== value)
         : [...categoryFilters, value]
-      return { ...prev, [category]: updatedFilters }
+
+      
+return { ...prev, [category]: updatedFilters }
     })
   }
 

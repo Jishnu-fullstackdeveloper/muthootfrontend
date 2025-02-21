@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
 
@@ -13,7 +14,9 @@ export const getBranchList = createAsyncThunk<any, { search: string; page: numbe
           limit
         }
       })
-      return response.data // Assuming the API returns the data directly
+
+      
+return response.data // Assuming the API returns the data directly
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }

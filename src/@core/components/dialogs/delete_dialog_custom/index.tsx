@@ -26,6 +26,7 @@ const ConfirmDeletePopup = ({ open, setOpen, setDeleteConfirmed, tooltipText, He
   return (
     <>
       <Dialog
+
         // fullWidth
         maxWidth='md'
         scroll='body'

@@ -1,12 +1,15 @@
 'use client'
-import DynamicTable, { Person } from '@/components/Table/dynamicTable'
-import { tableData } from '@/shared/tableData'
-import { Typography, IconButton } from '@mui/material'
-import { ColumnDef } from '@tanstack/react-table'
 import React from 'react'
+
+import { Typography, IconButton } from '@mui/material'
+import type { ColumnDef } from '@tanstack/react-table'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+
+import DynamicTable from '@/components/Table/dynamicTable'
+import type { Person } from '@/components/Table/dynamicTable';
+import { tableData } from '@/shared/tableData'
 
 function Page() {
   const handleView = (row: Person) => {

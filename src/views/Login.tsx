@@ -24,6 +24,14 @@ import 'react-toastify/dist/ReactToastify.css'
 import classnames from 'classnames'
 
 // Type Imports
+import { useDispatch, useSelector } from 'react-redux'
+
+import type { Dispatch } from '@reduxjs/toolkit'
+
+import { jwtDecode } from 'jwt-decode'
+
+import { Box, LinearProgress } from '@mui/material'
+
 import type { SystemMode } from '@core/types'
 
 // Component Imports
@@ -39,11 +47,9 @@ import themeConfig from '@configs/themeConfig'
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { fetchInitialLoginURL } from '@/redux/loginSlice'
-import { useDispatch, useSelector } from 'react-redux'
-import { Dispatch } from '@reduxjs/toolkit'
+
 import { getAccessToken, getRefreshToken } from '@/utils/functions'
-import { jwtDecode } from 'jwt-decode'
-import { Box, LinearProgress } from '@mui/material'
+
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -106,12 +112,15 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   const { firstLoginData, loginErrorMessage, loginFailure }: any = useSelector((state: any) => state.loginReducer)
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSubmit = (e: any) => {
     e.preventDefault()
     setSubmitted(true)
+
     const params = {
       email
     }
+
     dispatch<any>(fetchInitialLoginURL(params))
   }
 
@@ -125,6 +134,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   useEffect(() => {
     if (access_token) {
       const decodedToken: any = jwtDecode(access_token)
+
       if (decodedToken) {
         router.push('/home')
       }

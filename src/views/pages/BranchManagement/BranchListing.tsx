@@ -1,4 +1,8 @@
 'use client'
+import React, { useState, useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -14,22 +18,25 @@ import {
   Button,
   Tooltip
 } from '@mui/material'
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+
+
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-import CustomTextField from '@/@core/components/mui/TextField'
+
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import CustomTextField from '@/@core/components/mui/TextField'
 import BranchListingTableView from './BranchListingTableView'
 import { getBranchList } from '@/redux/BranchManagementSlice'
 
 const BranchListing = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+
   // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
   const [selectedTabs, setSelectedTabs] = useState<Record<number, number>>({})
@@ -86,10 +93,12 @@ const BranchListing = () => {
     const initialTabsState = branchData.reduce(
       (acc, branch) => {
         acc[branch.id] = 0 // Default to the 'Details' tab
-        return acc
+        
+return acc
       },
       {} as Record<number, number>
     )
+
     setSelectedTabs(initialTabsState)
   }, [])
 

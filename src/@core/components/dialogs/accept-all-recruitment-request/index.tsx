@@ -27,6 +27,7 @@ const ConfirmAcceptAllDialog = ({ open, setOpen, setAcceptAllConfirmed, tooltipT
   return (
     <>
       <Dialog
+
         // fullWidth
         maxWidth='md'
         scroll='body'
@@ -56,6 +57,7 @@ const ConfirmAcceptAllDialog = ({ open, setOpen, setAcceptAllConfirmed, tooltipT
         <DialogActions className=' pbs-0 flex justify-end' sx={{ p: 3 }}>
           <Button
             variant='outlined'
+
             // style={{ background: '#ff4c51' }}
             onClick={() => setOpen(false)}
             type='submit'

@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react'
-import { IconButton, Tooltip, Typography } from '@mui/material'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+
 import { useRouter } from 'next/navigation'
+
+import { IconButton, Tooltip, Typography } from '@mui/material'
+import type { ColumnDef} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 
 const BranchListingTableView = ({ branchData }: any) => {

@@ -1,5 +1,7 @@
 import * as React from 'react'
-import CircularProgress, { CircularProgressProps } from '@mui/material/CircularProgress'
+
+import type { CircularProgressProps } from '@mui/material/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 
@@ -36,7 +38,9 @@ export function CircularWithValueLabel() {
     const timer = setInterval(() => {
       setProgress(prevProgress => (prevProgress >= 100 ? 0 : prevProgress + 10))
     }, 800)
-    return () => {
+
+    
+return () => {
       clearInterval(timer)
     }
   }, [])

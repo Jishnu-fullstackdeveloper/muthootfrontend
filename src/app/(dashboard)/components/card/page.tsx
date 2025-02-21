@@ -1,6 +1,8 @@
 import React from 'react'
-import DynamicCard from '@/components/Card/dynamicCard'
+
 import { Divider, Stack, Typography } from '@mui/material'
+
+import DynamicCard from '@/components/Card/dynamicCard'
 
 function Page() {
   return (

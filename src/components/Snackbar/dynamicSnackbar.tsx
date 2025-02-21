@@ -1,8 +1,10 @@
 import * as React from 'react'
+
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar'
+import type { SnackbarOrigin } from '@mui/material/Snackbar';
+import Snackbar from '@mui/material/Snackbar'
 
 interface State extends SnackbarOrigin {
   open: boolean
@@ -19,6 +21,7 @@ export default function DynamicSnackbar({ message, buttonData }: DynamicSnackbar
     vertical: 'top',
     horizontal: 'center'
   })
+
   const { vertical, horizontal, open } = state
 
   const handleClick = (newState: SnackbarOrigin) => () => {

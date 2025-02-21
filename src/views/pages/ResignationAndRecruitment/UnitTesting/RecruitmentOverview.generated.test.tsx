@@ -1,9 +1,11 @@
+// import { useRouter } from 'next/navigation'
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
+
 import RecruitmentRequestOverview from '../RecruitmentOverview'
 import recruitmentResignationReducer, { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
-import { useRouter } from 'next/navigation'
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn()
@@ -20,6 +22,7 @@ const renderWithProviders = (ui: React.ReactElement, { store }: { store: any }) 
 
 describe('RecruitmentRequestOverview Component', () => {
   let store: any
+
   beforeEach(() => {
     const initialState = {
       recruitmentResignation: {
@@ -68,6 +71,7 @@ describe('RecruitmentRequestOverview Component', () => {
   test('handles pagination correctly', async () => {
     renderWithProviders(<RecruitmentRequestOverview />, { store })
     const pagination = screen.getByRole('navigation')
+
     expect(pagination).toBeInTheDocument()
     fireEvent.click(screen.getByText(/2/i)) // Simulate clicking on page 2
 
@@ -78,6 +82,7 @@ describe('RecruitmentRequestOverview Component', () => {
     renderWithProviders(<RecruitmentRequestOverview />, { store })
 
     const button = screen.getByRole('button', { name: /View/i })
+
     fireEvent.click(button)
 
     await waitFor(() => expect(screen.getByText(/Warning Dialog Title/i)).toBeInTheDocument())
@@ -87,6 +92,7 @@ describe('RecruitmentRequestOverview Component', () => {
     renderWithProviders(<RecruitmentRequestOverview />, { store })
 
     const button = screen.getByRole('button', { name: /Settings/i })
+
     fireEvent.click(button)
 
     await waitFor(() => expect(screen.getByText(/X-factor Dialog Title/i)).toBeInTheDocument())

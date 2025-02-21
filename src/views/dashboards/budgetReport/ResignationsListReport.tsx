@@ -1,22 +1,27 @@
 'use client'
 
 // MUI Imports
+import { useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 // Style Imports
+import { Clear } from '@mui/icons-material'
+
+import CalendarToday from '@mui/icons-material/CalendarToday'
+
 import tableStyles from '@core/styles/table.module.css'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
-import { Clear } from '@mui/icons-material'
-import CalendarToday from '@mui/icons-material/CalendarToday'
+
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Data Type for the Resignation List Report
@@ -43,6 +48,7 @@ const data: ResignationDataType[] = [
 
 const ResignationsListReport = () => {
   const router = useRouter()
+
   const [paginationState, setPaginationState] = useState({
     page: 1,
     limit: 10,

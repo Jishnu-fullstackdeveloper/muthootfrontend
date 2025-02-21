@@ -1,24 +1,30 @@
 'use client'
 import React, { useState } from 'react'
-import { Box, Card, Typography, TableCell, IconButton } from '@mui/material'
+
 import { useRouter } from 'next/navigation'
+
+import { Box, Card, Typography, TableCell, IconButton } from '@mui/material'
 import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors'
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
-import DynamicTable from '@/components/Table/dynamicTable'
-import { ColumnDef } from '@tanstack/react-table'
+
+import type { ColumnDef } from '@tanstack/react-table'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import EditIcon from '@mui/icons-material/Edit'
+
+import DynamicTable from '@/components/Table/dynamicTable'
 import MyRequestCard from './RequestID'
 import { approvalData } from '@/shared/approvalData'
 
 const ApprovalManagement = () => {
   const router = useRouter()
+
   const statusColors: any = {
     Completed: '#059669',
     Pending: '#D97706',
     Overdue: '#F00'
   }
+
   const [approvals] = useState([
     {
       id: 1,
@@ -42,9 +48,13 @@ const ApprovalManagement = () => {
 
   const getOverdueCount = () => {
     const currentDate = new Date()
-    return approvalData.filter(item => {
+
+    
+return approvalData.filter(item => {
       const approvalDueDate = new Date(item.approvalDueDate)
-      return item.status.toLowerCase() === 'overdue' && approvalDueDate < currentDate
+
+      
+return item.status.toLowerCase() === 'overdue' && approvalDueDate < currentDate
     }).length
   }
 

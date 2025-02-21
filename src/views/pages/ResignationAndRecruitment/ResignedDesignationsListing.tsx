@@ -1,9 +1,8 @@
 'use client'
 import React, { useEffect, useState, useMemo } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
-import { fetchRecruitmentRequestList } from '@/redux/RecruitmentResignationSlice'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { getAccessToken, isAdmin, decodeToken } from '@/utils/functions'
+
 
 import {
   Box,
@@ -32,20 +31,25 @@ import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import { CheckCircle, Clear, HourglassEmpty } from '@mui/icons-material'
+
+import { getAccessToken, isAdmin, decodeToken } from '@/utils/functions'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchRecruitmentRequestList , submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import CustomTextField from '@/@core/components/mui/TextField'
 import RecruitmentListTableView from './RecruitmentListTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
-import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+
 
 // import designationData from './sampleDesignationData'
-import { RootState } from '@/redux/store'
+import type { RootState } from '@/redux/store'
 
 const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState('grid')
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
   const [openLocationFilter, setOpenLocationFilter] = useState(false)
+
   const [selectedLocationFilters, setSelectedLocationFilters] = useState({
     territory: '',
     zone: '',
@@ -74,6 +78,7 @@ const ResignedDesignationsListing = () => {
   const handleApplyFilters = (selectedFilters: Record<string, any>) => {
     // Add logic to handle filters (e.g., make API calls, update state)
   }
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const filterParams = searchParams.get('filter')
@@ -91,7 +96,9 @@ const ResignedDesignationsListing = () => {
 
   const designationData = useMemo(() => {
     const data = safeGetData(fetchRecruitmentRequestListData)
-    return data
+
+    
+return data
   }, [fetchRecruitmentRequestListData])
 
   const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>({})
@@ -122,10 +129,13 @@ const ResignedDesignationsListing = () => {
 
   const getApproverId = () => {
     const token = getAccessToken()
+
     if (!token) return null
 
     const decodedToken = decodeToken(token)
-    return decodedToken?.sub
+
+    
+return decodedToken?.sub
   }
 
   const handlePageChange = (event: any, value: any) => {
@@ -146,10 +156,13 @@ const ResignedDesignationsListing = () => {
   const handleApprove = async (id: number, approval_id: number) => {
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
       const requestData = designationData.find((item: any) => item.id === id)
+
+
       // if (!approval_id) throw new Error('No approval ID found')
       await dispatch(
         submitRequestDecision({
@@ -166,10 +179,12 @@ const ResignedDesignationsListing = () => {
   const handleReject = async (id: number, approval_id: number) => {
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
       const requestData = designationData.find((item: any) => item.id === id)
+
       // if (!approval_id) throw new Error('No approval ID found')
 
       await dispatch(
@@ -227,10 +242,12 @@ const ResignedDesignationsListing = () => {
       const initialTabs = designationData.reduce(
         (acc, _, index) => {
           acc[index] = 0 // Set the default tab to 'Basic Details' (index 0) for each item
-          return acc
+          
+return acc
         },
         {} as { [key: number]: number }
       )
+
       setSelectedTabs(initialTabs)
     }
   }, [designationData])
@@ -353,6 +370,7 @@ const ResignedDesignationsListing = () => {
               variant='tonal'
               icon={<i className='tabler-file-arrow-right' />}
               position='start'
+
               // onClick={() => setFileUploadDialogOpen(true)}
               children='Export Excel'
             />
@@ -678,6 +696,7 @@ const ResignedDesignationsListing = () => {
                       </Box>
                     </>
                   ) : (
+
                     // List view: Display data in 3 columns
                     <Box className='p-4'>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>

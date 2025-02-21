@@ -12,11 +12,31 @@ export const getAccessToken = () => {
   }
 }
 
+export const storeLoginResponse = (response: any) => {
+  if (typeof window !== 'undefined') {
+    // Extract roles and permissions and store them separately if needed
+    const rolesAndPermissions = response.rolesAndPermissions || []
+
+    localStorage.setItem('rolesAndPermissions', JSON.stringify(rolesAndPermissions))
+  }
+}
+
+export const getCurrentPermissions = () => {
+  if (typeof window !== 'undefined') {
+    const rolesAndPermissions = localStorage.getItem('rolesAndPermissions')
+
+    return rolesAndPermissions ? JSON.parse(rolesAndPermissions) : [] // Return an empty array if no permissions found
+  }
+
+  return [] // Return an empty array if not in a browser environment
+}
+
 export const decodeToken = (token: string): DecodedToken | null => {
   try {
     return JSON.parse(atob(token.split('.')[1]))
   } catch (error) {
     console.error('Error decoding token:', error)
+
     return null
   }
 }
@@ -24,23 +44,32 @@ export const decodeToken = (token: string): DecodedToken | null => {
 export const isAdmin = (): boolean => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token')
+
     if (!token) return false
 
     const decodedToken = decodeToken(token)
+
     if (!decodedToken?.realm_access?.roles) return false
+
     return decodedToken.realm_access.roles.includes('admin')
   }
+
   return false
 }
+
 export const getRoleId = (): number | null => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token')
+
     if (!token) return null
 
     const decodedToken = decodeToken(token)
+
     if (!decodedToken?.roleid) return null
+
     return decodedToken.roleid
   }
+
   return null
 }
 
@@ -149,6 +178,7 @@ export const setJDManagementAddFormValues = (addFormikValues: any) => {
 export const getJDManagementAddFormValues = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('AddNewJDFormValues')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -170,6 +200,7 @@ export const setJDManagementFiltersToCookie = (JDManagementFilters: any) => {
 export const getJDManagementFiltersFromCookie = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('JDManagementFilters')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -191,6 +222,7 @@ export const setVacancyManagementAddFormValues = (addFormikValues: any) => {
 export const getVacancyManagementAddFormValues = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('AddNewVacancyFormValues')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -212,6 +244,7 @@ export const setVacancyManagementFiltersToCookie = (VacancyManagementFilters: an
 export const getVacancyManagementFiltersFromCookie = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('VacancyManagementFilters')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }

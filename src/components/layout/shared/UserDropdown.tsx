@@ -22,9 +22,12 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 
 // Hook Imports
-import { useSettings } from '@core/hooks/useSettings'
 import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/redux/store'
+
+import { jwtDecode } from 'jwt-decode'
+
+import { useSettings } from '@core/hooks/useSettings'
+import type { AppDispatch } from '@/redux/store'
 import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
 import {
   decodeToken,
@@ -35,7 +38,7 @@ import {
   setRefreshToken
 } from '@/utils/functions'
 import { useAppSelector } from '@/lib/hooks'
-import { jwtDecode } from 'jwt-decode'
+
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -93,7 +96,7 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    let params = {}
+    const params = {}
 
     dispatch(signOutApi(params))
       .then(() => {
@@ -106,7 +109,8 @@ const UserDropdown = () => {
   }
 
   const handleChangePassword = () => {
-    let params = {}
+    const params = {}
+
     dispatch(changePasswordApi(params))
   }
 
@@ -230,6 +234,7 @@ const UserDropdown = () => {
                   </MenuItem>
                   <MenuItem
                     className='mli-2 gap-3'
+
                     //  onClick={e => handleDropdownClose(e, '/account/change-password')}
                     onClick={e => {
                       handleDropdownClose(e)

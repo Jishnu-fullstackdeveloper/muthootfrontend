@@ -4,9 +4,11 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
+import type { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { FormControl } from '@mui/material'
+
 import { filterData } from '@/shared/filterData'
 
 type CustomFiltersProps = {
@@ -20,6 +22,7 @@ type CustomFiltersProps = {
 const CustomFilters = ({ open, setOpen, setSelectedFilters, selectedFilters, onApplyFilters }: CustomFiltersProps) => {
   const handleSelectChange = (field: string) => (event: SelectChangeEvent) => {
     const value = event.target.value
+
     setSelectedFilters((prev: Record<string, any>) => ({
       ...prev,
       [field]: value

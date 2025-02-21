@@ -14,6 +14,7 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import type { TimelineProps } from '@mui/lab/Timeline'
 import MuiTimeline from '@mui/lab/Timeline'
+
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Styled Timeline component
@@ -48,6 +49,7 @@ const BotRunStatusReport = () => {
           top: 0,
           zIndex: 1,
           backgroundColor: 'white'
+
           // borderBottom: '1px solid #ddd', // Optional for better header separation
           // '& .MuiCardHeader-avatar': { mr: 3 }
         }}

@@ -1,6 +1,7 @@
 'use client'
-import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import React, { useState } from 'react'
+
+import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 
 const allStates = [
   { name: 'Andhra Pradesh' },
@@ -43,6 +44,7 @@ function Page() {
 
   const handleStateChange = (state: { name: string } | null) => {
     setSelectedState(state?.name || null)
+
     if (state?.name === 'Kerala') {
       setDistricts(keralaDistricts)
     } else {

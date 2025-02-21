@@ -1,7 +1,9 @@
 'use client'
-import { DynamicAccordion, AccordionItem } from '@/components/Accordion/dynamicAccordion'
 import React from 'react'
+
 import Button from '@mui/material/Button'
+
+import { DynamicAccordion, AccordionItem } from '@/components/Accordion/dynamicAccordion'
 
 const Page: React.FC = () => {
   return (

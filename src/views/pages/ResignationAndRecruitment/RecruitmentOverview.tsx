@@ -1,5 +1,8 @@
 'use client'
 import React, { useEffect, useState, useMemo } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import {
   Box,
   Typography,
@@ -16,18 +19,24 @@ import {
   MenuItem,
   Pagination
 } from '@mui/material'
-import { useRouter, useSearchParams } from 'next/navigation'
 import WarningIcon from '@mui/icons-material/Warning'
+
+import AssessmentIcon from '@mui/icons-material/Assessment'
+
+import SettingsIcon from '@mui/icons-material/Settings'
+
+import AddIcon from '@mui/icons-material/Add'
+
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
-import AssessmentIcon from '@mui/icons-material/Assessment'
-import SettingsIcon from '@mui/icons-material/Settings'
+
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchResignationOverviewList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
-import AddIcon from '@mui/icons-material/Add'
-import { isAdmin, getRoleId } from '@/utils/functions'
-import { getAccessToken, decodeToken } from '@/utils/functions'
+
+
+import { isAdmin, getRoleId , getAccessToken, decodeToken } from '@/utils/functions'
+
 
 // const approvers = [
 //   {
@@ -114,6 +123,8 @@ const RecruitmentRequestOverview = () => {
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
   const dispatch = useAppDispatch()
   const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
+
+
   // const [approvers, setApprovers] = useState([])
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -145,24 +156,32 @@ const RecruitmentRequestOverview = () => {
 
   const approvers = useMemo(() => {
     const data = safeGetData(fetchResignationOverviewListData)
-    return data
+
+    
+return data
   }, [fetchResignationOverviewListData])
 
   const getApproverId = () => {
     const token = getAccessToken()
+
     if (!token) return null
 
     const decodedToken = decodeToken(token)
-    return decodedToken?.sub
+
+    
+return decodedToken?.sub
   }
 
   const handleApproveAll = async (id: number, approval_id: number) => {
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
       const requestData = approvers.find((item: any) => item.id === id)
+
+
       // if (!approval_id) throw new Error('No approval ID found')
       await dispatch(
         submitRequestDecision({
@@ -182,10 +201,12 @@ const RecruitmentRequestOverview = () => {
   const handleRejectAll = async (id: number, approval_id: number) => {
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
       const requestData = approvers.find((item: any) => item.id === id)
+
       // if (!approval_id) throw new Error('No approval ID found')
 
       await dispatch(
@@ -202,6 +223,7 @@ const RecruitmentRequestOverview = () => {
       console.error('Error rejecting request:', error)
     }
   }
+
   useEffect(() => {
     if (acceptAllConfirmed === true) {
       setAcceptAllConfirmed(false)
@@ -211,13 +233,16 @@ const RecruitmentRequestOverview = () => {
 
   const progressBar = approvers?.map(approver => {
     const daysRemaining = approver?.daysSinceCreated
-    return Math.max(0, 100 - daysRemaining * 10)
+
+    
+return Math.max(0, 100 - daysRemaining * 10)
   })
 
   const getLevelColor = (status: any) => {
     if (status === 'Approved') return '#4caf50' // Green for Approved
     if (status === 'Pending') return '#ff9800' // Orange for Pending
-    return '#f44336' // Red for Rejected
+    
+return '#f44336' // Red for Rejected
   }
 
   useEffect(() => {
@@ -225,6 +250,7 @@ const RecruitmentRequestOverview = () => {
       page: paginationState?.page,
       limit: paginationState?.limit
     }
+
     dispatch(fetchResignationOverviewList(params))
   }, [paginationState, dispatch])
 
@@ -447,6 +473,7 @@ const RecruitmentRequestOverview = () => {
                   className='transition transform hover:-translate-y-1'
                   onClick={() => {
                     const displayName = approver.designation?.replace(/\s+/g, '-') // Replace spaces with dashes
+
                     router.push(`/recruitment-management/request-listing?filter=${displayName}`)
                   }}
                 >
@@ -485,6 +512,7 @@ const RecruitmentRequestOverview = () => {
                       <Box
                         sx={{
                           backgroundColor: approver.bubblePositionsCount > 0 ? '#eceaea' : '#e0e0e0',
+
                           // color: approver.bubblePositionsCount > 0 ? '#fff' : '#555',
                           borderRadius: '12px',
                           padding: '6px 12px',

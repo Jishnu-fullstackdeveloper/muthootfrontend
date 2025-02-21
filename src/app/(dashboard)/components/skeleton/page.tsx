@@ -1,6 +1,7 @@
 'use client'
-import DynamicSkeleton from '@/components/Skeleton/dynamicSkeleton'
 import React from 'react'
+
+import DynamicSkeleton from '@/components/Skeleton/dynamicSkeleton'
 
 function page() {
   return (

@@ -23,6 +23,7 @@ import navigationCustomStyles from '@core/styles/vertical/navigationCustomStyles
 
 //cusom theme json import
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
+
 type Props = {
   mode: Mode
   systemMode: SystemMode
@@ -68,6 +69,7 @@ const Navigation = (props: Props) => {
   if (isServer) {
     isDark = mode === 'system' ? systemMode === 'dark' : mode === 'dark'
   }
+
   //  else {
   //   isDark = muiMode === 'system' ? muiMode === 'dark' : muiMode === 'dark'
   // }

@@ -1,8 +1,10 @@
 'use client'
 
-import { CircularIndeterminate, CircularWithValueLabel } from '@/components/Progress/dynamicProgress'
-import { Typography } from '@mui/material'
 import React from 'react'
+
+import { Typography } from '@mui/material'
+
+import { CircularIndeterminate, CircularWithValueLabel } from '@/components/Progress/dynamicProgress'
 
 function Page() {
   return (

@@ -1,7 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
+import type {
+ TextFieldProps } from '@mui/material';
 import {
   Box,
   Tooltip,
@@ -12,17 +17,21 @@ import {
   Card,
   CardContent,
   CardActions,
-  Pagination,
-} from '@mui/material'
-import { TextFieldProps } from '@mui/material'
+  Pagination } from '@mui/material'
+
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+
+import type { ColumnDef} from '@tanstack/react-table';
+
+import { createColumnHelper } from '@tanstack/react-table'
+
 import CustomTextField from '@/@core/components/mui/TextField'
 import DynamicButton from '@/components/Button/dynamicButton'
-import { useRouter } from 'next/navigation'
 import DynamicTable from '@/components/Table/dynamicTable'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+
+
 import { deleteBucket, fetchBucketList, updateBucketList } from '@/redux/BucketManagementSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
@@ -32,13 +41,15 @@ const BucketListing = () => {
   const [search, setSearch] = useState('')
   const [openModal, setOpenModal] = useState(false) // State to handle modal visibility
   const [selectedBucketId, setSelectedBucketId] = useState<number | null>(null) // Store the bucket ID to delete
+
   const [paginationState, setPaginationState] = useState<any>({
     page: 1,
     limit: 9
   })
+
   const [bucketId, setBucketId] = useState<any>(null)
 
-  let totalDataCount: number = 0
+  const totalDataCount: number = 0
   let totalPages: number = 0
 
   const handlePageChange = (event: any, value: any) => {
@@ -51,7 +62,7 @@ const BucketListing = () => {
   const { bucketListData, deleteBucketListSuccess, updateBucketListSuccess } = useAppSelector((state: any) => state.BucketManagementReducer)
 
   const getBucketListDatas = () => {
-    let params = {
+    const params = {
       page: paginationState.page,
       limit: paginationState.limit
     }

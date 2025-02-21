@@ -1,10 +1,13 @@
 'use client'
 import React from 'react'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { Autocomplete, TextField, FormControl, FormGroup, FormControlLabel, Checkbox, Grid } from '@mui/material'
-import DynamicButton from '@/components/Button/dynamicButton'
+
 import { styled } from '@mui/material/styles'
+
+import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch } from '@/lib/hooks'
 import { manualRecruitmentRequest } from '@/redux/manualRecruitmentRequestSlice'
 
@@ -44,11 +47,12 @@ const AddUserPermissionList: React.FC = () => {
     },
     validationSchema,
     onSubmit: values => {
-      let params = {
+      const params = {
         gradeId: 0,
         branchId: 0,
         permissions: values.permissions
       }
+
       dispatch(manualRecruitmentRequest(params))
       console.log('Form Submitted:', values)
     }
@@ -56,6 +60,7 @@ const AddUserPermissionList: React.FC = () => {
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { checked, value } = event.target
+
     requestFormik.setFieldValue(
       'permissions',
       checked

@@ -1,12 +1,16 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FormControl, TextField, IconButton,  Autocomplete,  } from '@mui/material'
-import DynamicButton from '@/components/Button/dynamicButton'
+
 import AddIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
-import { useRouter } from 'next/navigation'
+
+import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   addNewBucket,
@@ -23,6 +27,7 @@ type Props = {
   mode: any
   id: any
 }
+
 // interface DataItem {
 //   id: number
 //   turnover: number
@@ -58,6 +63,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [turnoverCode, setTurnoverCode] = useState('')
+
   const [modalState, setModalState] = useState({
     showTurnOverModal: false,
     showAddNewTurnoverModal: false
@@ -80,28 +86,32 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setModalData(item)
     setModalState({ ...modalState, showTurnOverModal: true })
 
-    let params = {
+    const params = {
       page: 1,
       limit: 10
     }
+
     dispatch(getTurnOverCode(params))
   }
 
   const getDesignationDatas = () => {
-    let params = {
+    const params = {
       page: 1,
       limit: 10
     }
+
     dispatch(fetchDesignationList(params))
   }
 
   const getGradeDatas = () => {
-    let params = {
+    const params = {
       page: 1,
       limit: 10
     }
+
     dispatch(fetchGradeList(params))
   }
+
   console.log(gradeData, 'Grade Datas', designationData)
 
 
@@ -115,6 +125,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setTurnoverCode('')
     setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
+
   const handleEditTurnover = (item: any) => {
     console.log(item)
     setIsEditMode(true)
@@ -122,6 +133,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setTurnoverCode(item.turnoverCode)
     setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
+
   const submitselectedTurnoverCode = (item: any) => {
     setTurnoverCode(selectedTurnoverCode)
     bucketFormik.setFieldValue('turnoverCode', selectedTurnoverCode)
@@ -131,11 +143,13 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const handleSaveNewTurnover = () => {
     if (!turnoverCode.trim()) {
       alert('Please provide a turnover code')
-      return
+      
+return
     } else {
-      let params = {
+      const params = {
         turnover: turnoverCode
       }
+
       dispatch(addNewTurnoverCode(params))
     }
 
@@ -145,12 +159,14 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       const updatedData = data.map(item =>
         item.turnoverID === selectedTurnover.turnoverID ? { ...item, turnoverCode: turnoverCode } : item
       )
+
       setData(updatedData)
     } else {
       const newTurnover = {
         turnoverID: data.length + 1,
         turnoverCode: turnoverCode
       }
+
       console.log('dataaaa', newTurnover)
       setData([...data, newTurnover])
     }
@@ -159,9 +175,11 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setModalState({ ...modalState, showAddNewTurnoverModal: false })
     setTurnoverCode('')
   }
+
   const handleCancelNewTurnover = () => {
     setModalState({ ...modalState, showAddNewTurnoverModal: false })
   }
+
   const handleCloseTurnoverModal = () => {
     setModalState({ ...modalState, showTurnOverModal: false })
   }
@@ -195,18 +213,22 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
     onSubmit: values => {
       const finalTurnoverCode = selectedTurnoverCode || turnoverCode
+
       const sanitizedDesignations = values.designations.map(designation => ({
         designationName: designation.name?.trim(),
         count: designation.count || 1,
         grade: designation.grade?.trim()
       }))
+
       const invalidDesignations = sanitizedDesignations.some(d => !d.designationName)
+
       if (invalidDesignations) {
         alert('All designation names must be filled.')
-        return
+        
+return
       }
 
-      let params: any = {
+      const params: any = {
         name: values.bucketName.toUpperCase(),
         positionCategories: sanitizedDesignations,
         turnoverCode: finalTurnoverCode,
@@ -249,6 +271,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
 
   const router = useRouter()
+
   const handleCancel = () => {
     router.back()
   }
@@ -350,6 +373,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                     const selectedName = value ? value.name.trim() : ''
 
                     const newDesignations = [...designations]
+
                     newDesignations[index].name = selectedName // Update the name
                     setDesignations(newDesignations)
                     bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
@@ -388,6 +412,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                   onChange={e => {
                     const value = e.target.value
                     const newDesignations = [...designations]
+
                     newDesignations[index].count = value === '' ? '' : parseInt(value, 10) || 1 // Ensure valid number
                     setDesignations(newDesignations)
                     bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
@@ -412,6 +437,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                     const selectedName = value ? value.name.trim() : ''
 
                     const newDesignations = [...designations]
+
                     newDesignations[index].grade = selectedName // Update the name
                     setDesignations(newDesignations)
                     bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik

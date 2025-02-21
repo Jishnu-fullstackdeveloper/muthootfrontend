@@ -1,6 +1,7 @@
 'use client'
-import DynamicMenu from '@/components/Menu/dynamicMenu'
 import React from 'react'
+
+import DynamicMenu from '@/components/Menu/dynamicMenu'
 
 function Page() {
   const menuItems = [

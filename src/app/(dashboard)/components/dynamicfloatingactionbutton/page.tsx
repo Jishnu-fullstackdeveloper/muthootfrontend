@@ -1,9 +1,13 @@
-import DynamicFloatingActionButton, { FabButton } from '@/components/FloatingActionButton/dynamicFloatingButton'
+
 import React from 'react'
+
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import NavigationIcon from '@mui/icons-material/Navigation'
+
+import DynamicFloatingActionButton from '@/components/FloatingActionButton/dynamicFloatingButton'
+import type { FabButton } from '@/components/FloatingActionButton/dynamicFloatingButton';
 
 function Page() {
   const buttons: FabButton[] = [

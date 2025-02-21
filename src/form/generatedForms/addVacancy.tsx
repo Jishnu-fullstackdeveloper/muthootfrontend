@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect } from 'react'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {
@@ -15,10 +16,12 @@ import {
   IconButton
 } from '@mui/material'
 import ReactDatePicker from 'react-datepicker'
+
+import { CalendarToday } from '@mui/icons-material'
+
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicButton from '@/components/Button/dynamicButton'
-import { CalendarToday } from '@mui/icons-material'
 import {
   getVacancyManagementAddFormValues,
   removeVacancyManagementAddFormValues,
@@ -49,7 +52,9 @@ const validationSchema = Yup.object().shape({
     .required('Vacancy End Date is required')
     .test('is-greater', 'Vacancy End Date must be greater than Vacancy Start Date', function (value) {
       const { vacancyStartDate } = this.parent
-      return value && vacancyStartDate && new Date(value) > new Date(vacancyStartDate)
+
+      
+return value && vacancyStartDate && new Date(value) > new Date(vacancyStartDate)
     }),
   contactPerson: Yup.string().required('Contact Person is required'),
   vacancyStatus: Yup.string().required('Vacancy Status is required')
@@ -59,6 +64,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
   const [activeStep, setActiveStep] = React.useState(0)
   const steps = ['Basic Details', 'Job Location', 'Qualification Needed', 'Salary Details', 'Application Details']
   const formikValuesFromCache = getVacancyManagementAddFormValues()
+
   const VacancyFormik: any = useFormik({
     initialValues:
       formikValuesFromCache && mode === 'add'
@@ -177,6 +183,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
           top: 70, // Sticks the card at the top of the viewport
           zIndex: 10, // Ensures it stays above other elements
           backgroundColor: 'white'
+
           // height: 'auto'
         }}
       >
@@ -184,6 +191,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
           {steps.map((label, index) => (
             <Step key={label}>
               <StepLabel
+
                 // onClick={() => setActiveStep(index)}
                 sx={{ cursor: 'pointer' }}
               >
@@ -593,6 +601,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
                 <ReactDatePicker
                   selected={VacancyFormik.values.vacancyStartDate}
                   onChange={(date: Date | null) => VacancyFormik.setFieldValue('vacancyStartDate', date)}
+
                   //selectsMultiple={false}
                   dateFormat='dd-MM-yyyy'
                   placeholderText='dd-mm-yyyy'

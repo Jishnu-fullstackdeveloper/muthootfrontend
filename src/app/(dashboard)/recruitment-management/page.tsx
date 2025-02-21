@@ -1,13 +1,16 @@
 'use client'
-import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
 
 const page = () => {
   const router = useRouter()
+
   useEffect(() => {
     router.push('/recruitment-management/overview')
   }, [])
-  return <div></div>
+  
+return <div></div>
 }
 
 export default page

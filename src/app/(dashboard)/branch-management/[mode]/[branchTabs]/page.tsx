@@ -1,5 +1,6 @@
-import BranchDetails from '@/views/pages/BranchManagement/BranchDetails'
 import React from 'react'
+
+import BranchDetails from '@/views/pages/BranchManagement/BranchDetails'
 
 export  const page = () => {
   return (

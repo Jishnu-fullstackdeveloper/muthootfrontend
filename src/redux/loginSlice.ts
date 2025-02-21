@@ -24,9 +24,12 @@ export const fetchInitialLoginURL = createAsyncThunk<any, any>(
     }
 
     api = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/login'
+
     try {
       const response = await axios.post(api, requestData)
-      return { ...response.data, filter: params }
+
+      
+return { ...response.data, filter: params }
     } catch (error: any) {
       throw rejectWithValue(error.response.data)
     }
@@ -42,7 +45,9 @@ export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', as
         state: params.state
       }
     })
-    return { ...response.data, filter: params }
+
+    
+return { ...response.data, filter: params }
   } catch (error) {
     throw error
   }
@@ -52,14 +57,17 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
   try {
     const refreshToken = getRefreshToken()
     const accessToken = getAccessToken()
-    let api = '/auth/user/signout'
+    const api = '/auth/user/signout'
+
     const response = await AxiosLib.get(api, {
       headers: {
         authorization: `Bearer ${accessToken}`,
         refreshtoken: refreshToken
       }
     })
-    return { ...response.data }
+
+    
+return { ...response.data }
   } catch (error) {
     throw error
   }
@@ -68,14 +76,16 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
 export const changePasswordApi = createAsyncThunk<any, any>('change-password', async (params: object) => {
   try {
     const accessToken = getAccessToken()
-    let api = '/auth/user/change-password'
+    const api = '/auth/user/change-password'
 
     const response = await AxiosLib.get(api, {
       headers: {
         authorization: `Bearer ${accessToken}`
       }
     })
-    return { ...response.data }
+
+    
+return { ...response.data }
   } catch (error) {
     throw error
   }
@@ -85,10 +95,13 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
   'appLogin/fetchNewAccessToken',
   async (params: any, { rejectWithValue }) => {
     try {
-      let api = `/auth/user/refreshToken/${params?.realm}`
+      const api = `/auth/user/refreshToken/${params?.realm}`
+
       AxiosLib.defaults.headers.common['refreshtoken'] = `${params.refreshtoken}`
       const response = await AxiosLib.get(api)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }

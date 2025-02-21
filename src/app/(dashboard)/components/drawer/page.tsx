@@ -1,6 +1,7 @@
 'use client'
-import DynamicDrawer from '@/components/Drawer/dynamicDrawer'
 import React from 'react'
+
+import DynamicDrawer from '@/components/Drawer/dynamicDrawer'
 
 function page() {
   const menuData = {

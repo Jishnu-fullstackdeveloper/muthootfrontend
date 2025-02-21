@@ -1,4 +1,5 @@
 import React from 'react'
+
 import {
   Box,
   Card,
@@ -12,6 +13,7 @@ import {
   TableRow,
   Paper
 } from '@mui/material'
+
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
 
 const EmployeeDetails = () => {

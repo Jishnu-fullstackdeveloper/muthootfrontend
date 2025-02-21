@@ -1,10 +1,15 @@
 'use client'
 import React, { useEffect, useMemo, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { Autocomplete, TextField, FormControl, CircularProgress } from '@mui/material'
-import DynamicButton from '@/components/Button/dynamicButton'
+
 import { styled } from '@mui/material/styles'
+
+import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   submitRecruitmentRequest,
@@ -12,7 +17,6 @@ import {
   fetchEmployeeHierarchyOptions,
   fetchCorporateHierarchyOptions
 } from '@/redux/RecruitmentResignationSlice'
-import { useRouter } from 'next/navigation'
 
 const initialOptionsData = {
   employeeCategoryDetails: [
@@ -46,7 +50,8 @@ const validationSchema = Yup.object(
     .reduce(
       (schema, field) => {
         schema[field.id] = Yup.string().required(`${field.label} is required`)
-        return schema
+        
+return schema
       },
       {} as { [key: string]: Yup.StringSchema }
     )
@@ -77,6 +82,7 @@ interface OptionsData {
 
 const ManualRequestGeneratedForm: React.FC = () => {
   const dispatch = useAppDispatch()
+
   const [optionsData, setOptionsData] = React.useState<OptionsData>({
     employeeCategoryDetails: [
       { id: 'department', label: 'Department', options: [] },
@@ -94,12 +100,14 @@ const ManualRequestGeneratedForm: React.FC = () => {
       { id: 'branch', label: 'Branches', options: [] }
     ]
   })
+
   const router = useRouter()
   const [currentField, setCurrentField] = React.useState<string>('')
   const [isHierarchyDataLoaded, setIsHierarchyDataLoaded] = React.useState(false)
   const [paginationState, setPaginationState] = useState<{ [key: string]: { page: number; hasMore: boolean } }>({})
 
   const [apiResponseData, setApiResponseData] = React.useState<any>({})
+
   // const { manualRequestLoading, manualRequestSuccess, manualRequestError, manualRequestErrorMessage } = useAppSelector(
   //   (state: any) => state.manualRecruitmentRequest
   // )
@@ -120,13 +128,15 @@ const ManualRequestGeneratedForm: React.FC = () => {
   const { fetchHierarchyDataData, fetchHierarchyDataLoading } = useAppSelector(
     state => state.recruitmentResignationReducer
   )
+
   const requestFormik = useFormik({
     initialValues: Object.values(optionsData)
       .flat()
       .reduce(
         (values, field) => {
           values[field.id] = ''
-          return values
+          
+return values
         },
         {} as { [key: string]: string }
       ),
@@ -137,6 +147,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
   })
 
   useAppSelector(state => state.recruitmentResignationReducer)
+
   const {
     submitRecruitmentRequestLoading,
     submitRecruitmentRequestSuccess,
@@ -150,7 +161,9 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
     const foundInEmployee = employeeHierarchy.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
     const foundInCorporate = corporateHierarchy.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
-    return foundInEmployee?.id || foundInCorporate?.id || null
+
+    
+return foundInEmployee?.id || foundInCorporate?.id || null
   }
 
   // Function to fetch dropdown options
@@ -163,9 +176,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
       }
 
       const hierarchyId = findHierarchyId(fetchHierarchyDataData, name)
+
       if (!hierarchyId) {
         console.error(`${name} hierarchy not found`)
-        return
+        
+return
       }
 
       const requestBody = {
@@ -179,6 +194,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
       const corporateFields = ['company', 'businessunit', 'territory', 'zone', 'region', 'area', 'branch']
 
       let response
+
       if (employeeFields.includes(name.toLowerCase())) {
         response = await dispatch(fetchEmployeeHierarchyOptions(requestBody)).unwrap()
       } else if (corporateFields.includes(name.toLowerCase())) {
@@ -204,6 +220,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     if (!currentPagination.hasMore) return
 
     const nextPage = currentPagination.page + 1
+
     await fetchOptions(0, name, nextPage) // Use appropriate ID instead of 0
   }
 
@@ -224,7 +241,8 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
       if (!selectedGrade || !selectedBranch || !selectedEmpCategoryType) {
         console.error('Required selections are missing')
-        return
+        
+return
       }
 
       const requestBody = {
@@ -235,12 +253,15 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
       await dispatch(submitRecruitmentRequest(requestBody)).unwrap()
       router.push('/recruitment-management/overview')
+
+
       // Handle success
       if (submitRecruitmentRequestSuccess) {
         // Show success message or redirect
       }
     } catch (error) {
       console.error('Error submitting form:', error)
+
       // Handle error (show error message)
     }
   }
@@ -262,6 +283,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedDept) {
           await fetchOptions(selectedDept.id, 'Designation')
         }
+
         break
 
       case 'designation':
@@ -272,6 +294,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedDesig) {
           await fetchOptions(selectedDesig.id, 'Grade')
         }
+
         break
       case 'grade':
         const selectedGrade = optionsData.employeeCategoryDetails
@@ -282,6 +305,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           // Start location chain with Company (using id: 0)
           await fetchOptions(0, 'Company')
         }
+
         break
     }
   }
@@ -299,6 +323,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedCompany) {
           await fetchOptions(selectedCompany.id, 'businessUnit')
         }
+
         break
 
       case 'businessUnit':
@@ -309,6 +334,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedBU) {
           await fetchOptions(selectedBU.id, 'territory')
         }
+
         break
 
       case 'territory':
@@ -319,6 +345,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedTerritory) {
           await fetchOptions(selectedTerritory.id, 'zone')
         }
+
         break
 
       case 'zone':
@@ -329,6 +356,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedZone) {
           await fetchOptions(selectedZone.id, 'region')
         }
+
         break
 
       case 'region':
@@ -339,6 +367,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedRegion) {
           await fetchOptions(selectedRegion.id, 'area')
         }
+
         break
 
       case 'area':
@@ -349,6 +378,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         if (selectedArea) {
           await fetchOptions(selectedArea.id, 'branches')
         }
+
         break
     }
   }
@@ -468,6 +498,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
       const updateOptions = (categoryType: 'employeeCategoryDetails' | 'locationCategoryDetails', fieldId: string) => {
         const index = newOptionsData[categoryType].findIndex(item => item.id === fieldId)
+
         if (index !== -1) {
           // Append new options to existing ones regardless of the current page
           newOptionsData[categoryType][index].options = [...newOptionsData[categoryType][index].options, ...options]
@@ -529,6 +560,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     ) {
       try {
         let apiData
+
         // Define which fields belong to which hierarchy
         const employeeFields = ['department', 'designation', 'grade']
         const corporateFields = ['company', 'businessunit', 'territory', 'zone', 'region', 'area', 'branches']
@@ -541,6 +573,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         }
 
         const updatedOptionsData = transformApiData(apiData)
+
         setOptionsData(updatedOptionsData)
       } catch (error) {
         console.error('Error processing API response:', error)
@@ -605,18 +638,21 @@ const ManualRequestGeneratedForm: React.FC = () => {
           options={field.options}
           getOptionLabel={(option: string | Option) => {
             if (typeof option === 'string') return option
-            return option.name
+            
+return option.name
           }}
           value={requestFormik.values[field.id] || null}
           disableClearable
           onChange={(_, value) => {
             const selectedValue = typeof value === 'string' ? value : (value as Option).name
+
             handleChange(field.id, selectedValue)
             setIsOpen(false)
           }}
           ListboxProps={{
             onScroll: (event: React.UIEvent<HTMLUListElement>) => {
               const listbox = event.currentTarget
+
               if (
                 listbox.scrollTop + listbox.clientHeight >= listbox.scrollHeight - 50 &&
                 pagination.hasMore &&

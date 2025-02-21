@@ -1,4 +1,6 @@
-import React, { ReactNode, FC, CSSProperties, JSX } from 'react'
+import type { ReactNode, FC, CSSProperties, JSX } from 'react';
+import React from 'react'
+
 import { Card, CardContent, CardActions } from '@mui/material'
 
 interface DynamicCardProps {

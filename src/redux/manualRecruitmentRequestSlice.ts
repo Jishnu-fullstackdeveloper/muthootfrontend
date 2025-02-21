@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
 import AxiosLib from '@/lib/AxiosLib';
 
 const initialState = {
@@ -15,7 +16,9 @@ export const manualRecruitmentRequest = createAsyncThunk<any, any>(
     async (params: Object, {rejectWithValue} ) => {
         try {
             const response = await AxiosLib.post('/api/recruitment-request', { params })
-            return response.data
+
+            
+return response.data
         } catch(error: any) {
             return rejectWithValue(error.response.data)
         }

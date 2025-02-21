@@ -1,7 +1,8 @@
 'use client'
 
-import DynamicList from '@/components/List/dynamicList'
 import React from 'react'
+
+import DynamicList from '@/components/List/dynamicList'
 
 const data = [
   { text: 'Sent mail', icon: 'SendIcon', children: [] },

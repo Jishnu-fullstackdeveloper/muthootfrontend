@@ -5,10 +5,10 @@ import dynamic from 'next/dynamic'
 
 // MUI Imports
 import Card from '@mui/material/Card'
-import { useColorScheme, useTheme } from '@mui/material/styles'
+import { useColorScheme, useTheme , alpha } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import { alpha } from '@mui/material/styles'
+
 
 // Third-party Imports
 import type { ApexOptions } from 'apexcharts'
@@ -34,6 +34,7 @@ const donutColors = {
 
 const ChartSample = () => {
   const serverMode = null
+
   //  getServerMode()
   // Hooks
   const theme = useTheme()

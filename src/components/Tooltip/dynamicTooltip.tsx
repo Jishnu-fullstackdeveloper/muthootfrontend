@@ -1,5 +1,7 @@
 import * as React from 'react'
-import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
+
+import type { TooltipProps } from '@mui/material/Tooltip';
+import Tooltip from '@mui/material/Tooltip'
 
 interface BasicTooltipProps extends Omit<TooltipProps, 'children'> {
   title: string

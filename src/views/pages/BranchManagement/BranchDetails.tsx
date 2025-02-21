@@ -1,9 +1,11 @@
 'use client'
 
-import { Box, Card, Divider, Typography } from '@mui/material'
-import dynamic from 'next/dynamic'
 import React from 'react'
+
+import dynamic from 'next/dynamic'
 import { usePathname, useSearchParams } from 'next/navigation'
+
+import { Box, Card, Divider, Typography } from '@mui/material'
 
 // Dynamically import the ViewBranch component
 const ViewBranch = dynamic(() => import('./ViewBranch'), { ssr: false })

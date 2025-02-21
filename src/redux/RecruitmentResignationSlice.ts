@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
 
@@ -16,7 +17,9 @@ export const fetchResignationOverviewList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/api/recruitment-request/group', {
         params
       })
-      return response.data.data
+
+      
+return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -28,7 +31,9 @@ export const fetchHierarchyData = createAsyncThunk<any, string>(
   async (hierarchyName: string, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`/api/recruitment-request/hierarchyData/${hierarchyName}`)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -47,7 +52,9 @@ export const fetchEmployeeHierarchyOptions = createAsyncThunk<any, EmployeeHiera
   async (requestData: EmployeeHierarchyOptionsPayload, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/api/recruitment-request/employeeHierarchyOptions', requestData)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -66,7 +73,9 @@ export const fetchCorporateHierarchyOptions = createAsyncThunk<any, CorporateHie
   async (requestData: CorporateHierarchyOptionsPayload, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/api/recruitment-request/corporateHierarchyOptions', requestData)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -84,7 +93,9 @@ export const submitRecruitmentRequest = createAsyncThunk<any, RecruitmentRequest
   async (requestData: RecruitmentRequestPayload, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/api/recruitment-request', requestData)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -105,7 +116,9 @@ export const submitRequestDecision = createAsyncThunk<any, RequestDecisionPayloa
         approverId: requestData.approverId,
         approvalStatus: requestData.approvalStatus
       })
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -129,7 +142,9 @@ export const fetchRecruitmentRequestList = createAsyncThunk<any, RequestListPara
           limit
         }
       })
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -141,7 +156,9 @@ export const fetchRecruitmentRequestById = createAsyncThunk<any, { id: string | 
   async ({ id }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`/api/recruitment-request/id/${id}`)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }

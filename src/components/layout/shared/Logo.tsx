@@ -11,6 +11,8 @@ import Link from 'next/link'
 import styled from '@emotion/styled'
 
 // Type Imports
+import { Box } from '@mui/material'
+
 import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
@@ -23,7 +25,6 @@ import themeConfig from '@configs/themeConfig'
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
 import { useSettings } from '@core/hooks/useSettings'
-import { Box } from '@mui/material'
 
 type LogoTextProps = {
   isHovered?: VerticalNavContextProps['isHovered']

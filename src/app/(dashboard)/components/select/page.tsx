@@ -1,11 +1,14 @@
 'use client'
 
-import DynamicSelect from '@/components/Select/dynamicSelect'
-import { InputLabel, MenuItem } from '@mui/material'
 import React, { useState } from 'react'
+
+import { InputLabel, MenuItem } from '@mui/material'
+
+import DynamicSelect from '@/components/Select/dynamicSelect'
 
 function Page() {
   const [selectedValue, setSelectedValue] = useState<string | number>('')
+
   const options = [
     { value: 10, label: 'Ten' },
     { value: 20, label: 'Twenty' },

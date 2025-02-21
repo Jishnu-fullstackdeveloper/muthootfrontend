@@ -1,21 +1,23 @@
 'use client'
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { useEffect } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import { Box, LinearProgress, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import type { Dispatch } from '@reduxjs/toolkit'
 import { jwtDecode } from 'jwt-decode'
 import { ToastContainer, toast } from 'react-toastify'
-import LogoImg from '@assets/images/connqt_icon_background_removed.png'
+
 import type { RootState } from '@/redux/store'
 import { fetchLoginToken } from '@/redux/loginSlice'
-import { setAccessToken, setRefreshToken, setUserId } from '@/utils/functions'
+import { setAccessToken, setRefreshToken, setUserId, storeLoginResponse } from '@/utils/functions'
 import AxiosLib from '@/lib/AxiosLib'
 
 const Login2Redirect = () => {
   const router = useRouter()
   let currentUrl
+
   if (typeof window !== 'undefined') {
     currentUrl = window?.location?.href
   }
@@ -34,26 +36,30 @@ const Login2Redirect = () => {
       issuer,
       state: stateFetched
     }
+
     dispatch<any>(fetchLoginToken(params))
   }, [])
 
   useEffect(() => {
     const handleLogin = () => {
       if (secondLoginData) {
-        const accessToken = secondLoginData?.token?.access_token || ''
-        const refreshToken = secondLoginData?.token?.refresh_token || ''
+        const accessToken = secondLoginData?.data?.token?.access_token || ''
+        const refreshToken = secondLoginData?.data?.token?.refresh_token || ''
         let decodedToken: any
+
         if (accessToken) decodedToken = jwtDecode(accessToken)
+
         if (decodedToken && decodedToken?.realm) {
           setAccessToken(accessToken)
           setRefreshToken(refreshToken)
           setUserId(decodedToken?.sub)
+          storeLoginResponse(secondLoginData?.data)
           AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${secondLoginData?.token?.access_token || ''}`
           toast.success('Login Successful.', {
             closeOnClick: true
           })
           setTimeout(() => {
-            router.push('/recruitment-management/overview')
+            router.push('/home')
           }, 2000)
         }
       }

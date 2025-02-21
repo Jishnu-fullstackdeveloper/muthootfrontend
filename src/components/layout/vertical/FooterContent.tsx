@@ -27,6 +27,7 @@ const FooterContent = () => {
 
   return (
     <></>
+
     // <div
     //   className={classnames(verticalLayoutClasses.footerContent, 'flex items-center justify-between flex-wrap gap-4')}
     //   style={{ backgroundColor: custom_theme_settings?.footer?.backgroundColor }}

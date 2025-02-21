@@ -1,6 +1,8 @@
 import React from 'react'
-import DynamicAvatar from '@/components/Avatar/dynamicAvatar'
+
 import { Stack } from '@mui/material'
+
+import DynamicAvatar from '@/components/Avatar/dynamicAvatar'
 
 function Page() {
   return (

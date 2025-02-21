@@ -1,32 +1,47 @@
-import DynamicTable from '@/components/Table/dynamicTable'
-import { IconButton, Tooltip, Typography } from '@mui/material'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { useRouter } from 'next/navigation'
 import React, { useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
+import { IconButton, Tooltip, Typography } from '@mui/material'
+
+import type { ColumnDef} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table'
+
+import DynamicTable from '@/components/Table/dynamicTable'
+
+
+
 import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
-import { getAccessToken, decodeToken } from '@/utils/functions'
+import { getAccessToken, decodeToken , isAdmin } from '@/utils/functions'
 import { useAppDispatch } from '@/lib/hooks'
-import { isAdmin } from '@/utils/functions'
+
 
 const RecruitmentListTableView = ({ designationData }: any) => {
   const dispatch = useAppDispatch()
   const router = useRouter()
+
   const getApproverId = () => {
     const token = getAccessToken()
+
     if (!token) return null
 
     const decodedToken = decodeToken(token)
-    return decodedToken?.sub
+
+    
+return decodedToken?.sub
   }
 
   const handleApprove = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the row data from designationData using id
       const rowData = designationData.find((row: any) => row.id === id)
+
       if (!rowData?.approval_id) throw new Error('No approval ID found')
 
       await dispatch(
@@ -44,12 +59,15 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
   const handleReject = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       const approverId = getApproverId()
+
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the row data from designationData using id
       const rowData = designationData.find((row: any) => row.id === id)
+
       if (!rowData?.approval_id) throw new Error('No approval ID found')
 
       await dispatch(
@@ -66,6 +84,7 @@ const RecruitmentListTableView = ({ designationData }: any) => {
   }
 
   const columnHelper = createColumnHelper<any>()
+
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
       columnHelper.accessor('requestType', {

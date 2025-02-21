@@ -1,12 +1,15 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import WorkIcon from '@mui/icons-material/Work'
 import AssessmentIcon from '@mui/icons-material/Assessment'
+
 import CustomTable from '@/components/Table/CustomTable'
-import { useRouter } from 'next/navigation'
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
 
 interface ViewBranchProps {
@@ -88,6 +91,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   // Tab change handler
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
+
     if (newValue === 0) {
       router.push(`employees-details?id=${id}`)
     } else if (newValue === 1) {

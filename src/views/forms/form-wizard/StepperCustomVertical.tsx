@@ -28,9 +28,10 @@ import { toast } from 'react-toastify'
 import classnames from 'classnames'
 
 // Components Imports
+import DirectionalIcon from '@components/DirectionalIcon'
+
 import CustomAvatar from '@core/components/mui/Avatar'
 import CustomTextField from '@core/components/mui/TextField'
-import DirectionalIcon from '@components/DirectionalIcon'
 
 // Styled Component Imports
 import StepperWrapper from '@core/styles/stepper'

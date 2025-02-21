@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+
 import {
   Dialog,
   DialogTitle,
@@ -33,6 +34,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     const value = newValue as number
+
     setXFactor(value.toString())
     setError('')
     setWarning('')
@@ -41,6 +43,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
+
     setXFactor(value)
     setTouched(true)
 
@@ -61,6 +64,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleSave = () => {
     const numericValue = parseInt(xFactor, 10)
+
     if (numericValue >= 1 && numericValue <= 30) {
       onSave(numericValue)
       onClose()

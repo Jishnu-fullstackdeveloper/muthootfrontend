@@ -1,8 +1,10 @@
 'use client'
-import DynamicBadge from '@/components/Badge/dynamicBadge'
 import React, { useState } from 'react'
+
 import MailIcon from '@mui/icons-material/Mail'
 import NotificationsIcon from '@mui/icons-material/Notifications'
+
+import DynamicBadge from '@/components/Badge/dynamicBadge'
 
 function Page() {
   const [badgeCount, setBadgeCount] = useState(4)

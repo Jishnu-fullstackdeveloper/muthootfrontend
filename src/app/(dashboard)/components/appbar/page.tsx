@@ -1,12 +1,15 @@
 'use client'
-import Dynamicappbar from '@/components/AppBar/dynamicAppBar'
 import React from 'react'
+
+import Dynamicappbar from '@/components/AppBar/dynamicAppBar'
 
 function page() {
   const pages = ['Products', 'Pricing', 'Blog']
   const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
   const logo = 'LOGO'
-  return (
+
+  
+return (
     <div>
       <Dynamicappbar pages={pages} settings={settings} logo={logo} />
     </div>

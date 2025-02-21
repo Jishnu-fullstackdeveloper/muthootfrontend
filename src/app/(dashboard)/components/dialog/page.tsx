@@ -1,8 +1,10 @@
 'use client'
 
-import DynamicDialog from '@/components/Dialog/dynamicDialog'
-import { Button } from '@mui/material'
 import React, { useState } from 'react'
+
+import { Button } from '@mui/material'
+
+import DynamicDialog from '@/components/Dialog/dynamicDialog'
 
 function Page() {
   const [open, setOpen] = useState(false)
@@ -16,8 +18,10 @@ function Page() {
   }
 
   const dialogTitles = "Use Google's location service?"
+
   const dialogDescription =
     'Let Google help apps determine location. This means sending anonymous location data to Google, even when no apps are running.'
+
   const dialogActions = (
     <>
       <Button onClick={handleClose}>Disagree</Button>

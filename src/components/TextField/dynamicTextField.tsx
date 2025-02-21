@@ -1,8 +1,9 @@
 import * as React from 'react'
+
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
-import { SxProps, Theme } from '@mui/material/styles'
-import { InputProps as MuiInputProps } from '@mui/material/Input'
+import type { SxProps, Theme } from '@mui/material/styles'
+import type { InputProps as MuiInputProps } from '@mui/material/Input'
 
 interface FieldProps {
   id?: string

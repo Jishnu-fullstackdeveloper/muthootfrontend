@@ -1,5 +1,6 @@
-import GeneratedForm from '@/form/generatedForms/addtrip'
 import React from 'react'
+
+import GeneratedForm from '@/form/generatedForms/addtrip'
 
 function Addtrip() {
   return (

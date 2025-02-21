@@ -1,197 +1,157 @@
 'use client'
 
-// MUI Imports
+import { useState, useEffect, useMemo } from 'react'
+
 import { usePathname } from 'next/navigation'
 
 import { useTheme } from '@mui/material/styles'
-
-// Third-party Imports
 import PerfectScrollbar from 'react-perfect-scrollbar'
 
-
-import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
-import custom_theme_settings from '@/utils/custom_theme_settings.json'
-
-// Component Imports
 import { Menu, MenuItem } from '@menu/vertical-menu'
-
-// Hook Imports
+import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import { useSettings } from '@core/hooks/useSettings'
 import useVerticalNav from '@menu/hooks/useVerticalNav'
-
-// Styled Component Imports
 import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
-
-// Style Imports
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
+import withPermission from '@/hocs/withPermission'
 
-type RenderExpandIconProps = {
-  open?: boolean
-  transitionDuration?: VerticalMenuContextProps['transitionDuration']
+interface MenuItemType {
+  path: string
+  label: string
+  iconClass: string
+  permission: string
 }
 
-type Props = {
-  scrollMenu: (container: any, isPerfectScrollbar: boolean) => void
-}
-
-const RenderExpandIcon = ({ open, transitionDuration }: RenderExpandIconProps) => (
+const RenderExpandIcon = ({ open, transitionDuration }: { open: boolean; transitionDuration: number }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
     <i className='tabler-chevron-right' />
   </StyledVerticalNavExpandIcon>
 )
 
-const VerticalMenu = ({ scrollMenu }: Props) => {
-  // Hooks
+interface VerticalMenuProps {
+  scrollMenu: (container: any, isPerfectScrollbar: boolean) => void
+}
+
+const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
+  const [clientMenuItems, setClientMenuItems] = useState<MenuItemType[]>([])
   const pathname = usePathname()
-  const isJDManagementPage = pathname.startsWith('/jd-management/')
-
-  // Vars
-  const { transitionDuration } = verticalNavOptions
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
+  const staticMenuItems = useMemo(
+    () => [
+      { path: '/user-management', label: 'User Management', iconClass: 'tabler-users', permission: 'userManagement' },
+      { path: '/user-role', label: 'User Roles', iconClass: 'tabler-key', permission: 'userRoles' },
+      {
+        path: '/approval-management',
+        label: 'Approval Management',
+        iconClass: 'tabler-rosette-discount-check',
+        permission: 'approvalManagement'
+      },
+      {
+        path: '/jd-management',
+        label: 'JD Management',
+        iconClass: 'tabler-file-description',
+        permission: 'jdManagement'
+      },
+      {
+        path: '/vacancy-management',
+        label: 'Vacancy Management',
+        iconClass: 'tabler-briefcase',
+        permission: 'vacancyManagement'
+      },
+      {
+        path: '/recruitment-management/overview',
+        label: 'Recruitment Management',
+        iconClass: 'tabler-user-plus',
+        permission: 'recruitmentManagement'
+      },
+      {
+        path: '/branch-management',
+        label: 'Branch Management',
+        iconClass: 'tabler-git-merge',
+        permission: 'branchManagement'
+      },
+      {
+        path: '/bucket-management',
+        label: 'Bucket Management',
+        iconClass: 'tabler-apps',
+        permission: 'bucketManagement'
+      },
+      {
+        path: '/approval-matrix',
+        label: 'Approval Matrix',
+        iconClass: 'tabler-settings-check',
+        permission: 'approvalMatrix'
+      }
+    ],
+    []
+  )
+
+  const isMenuItemActive = (item: MenuItemType) => {
+    if (item.path === '/recruitment-management/overview') {
+      return pathname.startsWith('/recruitment-management')
+    }
+
+    return pathname.startsWith(item.path)
+  }
+
+  useEffect(() => {
+    const dynamicMenuItems = (custom_theme_settings?.theme?.vertical_menu?.icons || []).map(item => ({
+      path: item.path,
+      label: item.label,
+      iconClass: item.iconClass,
+      permission: (item as { permission?: string }).permission || '' // Assert permission as optional
+    }))
+
+    setClientMenuItems([...dynamicMenuItems, ...staticMenuItems])
+  }, [staticMenuItems])
+
   return (
-    // eslint-disable-next-line lines-around-comment
-    /* Custom scrollbar instead of browser scroll, remove if you want browser scroll only */
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
             className: 'bs-full overflow-y-auto overflow-x-hidden',
-            style: {
-              backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white'
-            },
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' },
             onScroll: container => scrollMenu(container, false)
           }
         : {
             options: { wheelPropagation: false, suppressScrollX: true },
             onScrollY: container => scrollMenu(container, true),
-            style: {
-              backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white'
-            }
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' }
           })}
     >
-      {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
-      {/* Vertical Menu */}
       <Menu
         popoutMenuOffset={{ mainAxis: 23 }}
         menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
+        renderExpandIcon={({ open }) => (
+          <RenderExpandIcon open={open} transitionDuration={verticalNavOptions.transitionDuration ?? 0} />
+        )}
         renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        {/* the below is the code change */}
-        {custom_theme_settings?.theme?.vertical_menu?.icons?.map((menuItem, index) => (
-          <MenuItem key={index} href={menuItem.path} icon={<i className={menuItem.iconClass} />}>
-            {menuItem.label}
-          </MenuItem>
-        ))}
+        {clientMenuItems.map((item, index) => {
+          const MenuItemWithPermission = withPermission(
+            () => (
+              <MenuItem
+                key={index}
+                href={isMenuItemActive(item) ? pathname : item.path}
+                icon={<i className={item.iconClass} />}
+              >
+                {item.label}
+              </MenuItem>
+            ),
+            item.permission
+          )
 
-        <MenuItem href='/user-management' icon={<i className='tabler-users' />}>
-          User Management
-        </MenuItem>
-
-        <MenuItem
-          href={pathname.startsWith('/user-role/') ? pathname : '/user-role'}
-          icon={<i className='tabler-key' />}
-        >
-          User Roles
-        </MenuItem>
-
-        <MenuItem href='/approval-management' icon={<i className='tabler-rosette-discount-check' />}>
-          Approval Management
-        </MenuItem>
-
-        <MenuItem
-          href={isJDManagementPage ? pathname : '/jd-management'}
-          icon={<i className='tabler-file-description' />}
-        >
-          JD Management
-        </MenuItem>
-
-        <MenuItem
-          href={pathname.startsWith('/vacancy-management/') ? pathname : '/vacancy-management'}
-          icon={<i className='tabler-briefcase' />}
-        >
-          Vacancy Management
-        </MenuItem>
-
-        <MenuItem
-          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management/overview'}
-          icon={<i className='tabler-user-plus' />}
-        >
-          Recruitment Management
-        </MenuItem>
-
-        <MenuItem
-          href={pathname.startsWith('/branch-management/') ? pathname : '/branch-management'}
-          icon={<i className='tabler-git-merge' />}
-        >
-          Branch Management
-        </MenuItem>
-
-        <MenuItem
-          href={pathname.startsWith('/bucket-management/') ? pathname : '/bucket-management'}
-          icon={<i className='tabler-apps' />}
-        >
-          Bucket Management
-        </MenuItem>
-        <MenuItem
-          href={pathname.startsWith('/approval-matrix/') ? pathname : '/approval-matrix'}
-          icon={<i className='tabler-settings-check' />}
-        >
-          Approval Matrix
-        </MenuItem>
-
-        {/* <MenuItem href='/recruitment-management' icon={<i className='tabler-report-search' />}>
-          Recruitment Management
-        </MenuItem> */}
-
-        {/* <SubMenu label='Components'>
-          <MenuItem href='/components/accordion'>Accordion</MenuItem>
-          <MenuItem href='/components/alert'>Alert</MenuItem>
-          <MenuItem href='/components/appbar'>App Bar</MenuItem>
-          <MenuItem href='/components/autocomplete'>Autocomplete</MenuItem>
-          <MenuItem href='/components/avatar'>Avatar</MenuItem>
-          <MenuItem href='/components/backdrop'>Backdrop</MenuItem>
-          <MenuItem href='/components/badge'>Badge</MenuItem>
-          <MenuItem href='/components/button'>Button</MenuItem>
-          <MenuItem href='/components/card'>Card</MenuItem>
-          <MenuItem href='/components/checkbox'>Checkbox</MenuItem>
-          <MenuItem href='/components/chip'>Chip</MenuItem>
-          <MenuItem href='/components/datepicker'>Datepicker</MenuItem>
-          <MenuItem href='/components/dialog'>Dialog</MenuItem>
-          <MenuItem href='/components/drawer'>Drawer</MenuItem>
-          <MenuItem href='/components/dynamicfloatingactionbutton'>Floating Action Button</MenuItem>
-          <MenuItem href='/components/list'>List</MenuItem>
-          <MenuItem href='/components/menu'>Menu</MenuItem>
-          <MenuItem href='/components/progress'>Progress</MenuItem>
-          <MenuItem href='/components/radioGroup'>Radio Group</MenuItem>
-          <MenuItem href='/components/select'>Select</MenuItem>
-          <MenuItem href='/components/skeleton'>Skeleton</MenuItem>
-          <MenuItem href='/components/snackbar'>Snackbar</MenuItem>
-          <MenuItem href='/components/speeddial'>Speed Dial</MenuItem>
-          <MenuItem href='/components/switch'>Switch</MenuItem>
-          <MenuItem href='/components/tab'>Tab</MenuItem>
-          <MenuItem href='/components/table'>Table</MenuItem>
-          <MenuItem href='/components/textField'>Text Field</MenuItem>
-          <MenuItem href='/components/tooltip'>Tooltip</MenuItem>
-        </SubMenu> */}
+          return <MenuItemWithPermission key={index} />
+        })}
       </Menu>
-
-      {/* <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <GenerateVerticalMenu menuData={menuData(dictionary, params)} />
-      </Menu> */}
     </ScrollWrapper>
   )
 }

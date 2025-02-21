@@ -1,13 +1,22 @@
 'use client'
+import { Console } from 'console'
+
 import React, { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, IconButton, InputAdornment, Autocomplete, Tooltip, Card } from '@mui/material'
-import DynamicButton from '@/components/Button/dynamicButton'
+import { FormControl, TextField, IconButton, InputAdornment, Autocomplete, Tooltip, Card , Modal, Box, Button } from '@mui/material'
+
 import AddIcon from '@mui/icons-material/AddCircleOutline'
+
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
-import { useRouter } from 'next/navigation'
-import { Modal, Box, Button } from '@mui/material'
+
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
+import DynamicButton from '@/components/Button/dynamicButton'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   addNewBucket,
@@ -18,7 +27,6 @@ import {
   fetchDesignationList
 } from '@/redux/BucketManagementSlice'
 import TurnOverModal from '@/views/pages/BucketManagment/TurnOverModal'
-import { Console } from 'console'
 
 type Props = {
   mode: any
@@ -54,6 +62,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [turnoverCode, setTurnoverCode] = useState('')
+
   const [modalState, setModalState] = useState({
     showTurnOverModal: false,
     showAddNewTurnoverModal: false
@@ -61,6 +70,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
   const { turnoverListData, fetchBucketDetailsData, isFetchBucketDetailsLoading, fetchBucketDetailsSuccess } =
     useAppSelector((state: any) => state.BucketManagementReducer)
+
   const [data, setData] = useState([{ turnoverID: 1, turnoverCode: 'ABC123' }])
   const dispatch = useAppDispatch()
 
@@ -68,10 +78,11 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setModalData(item)
     setModalState({ ...modalState, showTurnOverModal: true })
 
-    let params = {
+    const params = {
       page: 1,
       limit: 10
     }
+
     dispatch(getTurnOverCode(params))
   }
 
@@ -81,10 +92,11 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   )
 
   const getDesignationDatas = () => {
-    let params = {
+    const params = {
       page: 1,
       limit: 100
     }
+
     dispatch(fetchDesignationList(params))
   }
 
@@ -101,6 +113,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setTurnoverCode('')
     setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
+
   const handleEditTurnover = (item: any) => {
     console.log(item)
     setIsEditMode(true)
@@ -108,18 +121,22 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setTurnoverCode(item.turnoverCode)
     setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
+
   const submitselectedTurnoverCode = (item: any) => {
     setTurnoverCode(selectedTurnoverCode)
     setModalState({ ...modalState, showTurnOverModal: false })
   }
+
   const handleSaveNewTurnover = () => {
     if (!turnoverCode.trim()) {
       alert('Please provide a turnover code')
-      return
+      
+return
     } else {
-      let params = {
+      const params = {
         turnover: turnoverCode
       }
+
       dispatch(addNewTurnoverCode(params))
     }
 
@@ -129,12 +146,14 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       const updatedData = data.map(item =>
         item.turnoverID === selectedTurnover.turnoverID ? { ...item, turnoverCode: turnoverCode } : item
       )
+
       setData(updatedData)
     } else {
       const newTurnover = {
         turnoverID: data.length + 1, // Ensure unique turnoverID, adjust logic if needed
         turnoverCode: turnoverCode
       }
+
       console.log('dataaaa', newTurnover)
       setData([...data, newTurnover])
     }
@@ -143,21 +162,27 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     setModalState({ ...modalState, showAddNewTurnoverModal: false })
     setTurnoverCode('') // Clear the turnoverCode input after save
   }
+
   const handleCancelNewTurnover = () => {
     setModalState({ ...modalState, showAddNewTurnoverModal: false })
   }
+
   const handleCloseTurnoverModal = () => {
     setModalState({ ...modalState, showTurnOverModal: false })
   }
+
   const handleDeleteTurnover = () => {
     const updatedData = data.filter(item => item.turnoverID !== selectedTurnover?.turnoverID)
+
     setData(updatedData)
     setShowDeleteModal(false)
   }
+
   const handleOpenDeleteModal = (item: any) => {
     setSelectedTurnover(item)
     setShowDeleteModal(true)
   }
+
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
   }
@@ -193,12 +218,14 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
     
       // Check if any designationName is empty
       const invalidDesignations = sanitizedDesignations.some(d => !d.designationName);
+
       if (invalidDesignations) {
         alert('All designation names must be filled.');
-        return;
+        
+return;
       }
     
-      let params: any = {
+      const params: any = {
         name: values.bucketName,
         positionCategories: sanitizedDesignations,
         turnoverCode: selectedTurnoverCode,
@@ -211,6 +238,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       } else {
         dispatch(addNewBucket(params));
       }
+
       router.push('/bucket-management');
     }
     
@@ -246,6 +274,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   //   // handleSaveNewBucket() // Call the function to save the new bucket
   // }
   const router = useRouter()
+
   const handleCancel = () => {
     router.back()
   }
@@ -267,6 +296,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
       setWarning('')
       newDesignations[index].count = parseInt(value, 10)
     }
+
     setDesignations(newDesignations)
     console.log('designationData:', designations)
   }
@@ -372,6 +402,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                 value={designationData.find(item => item.name === designation.name) || null} // Find the corresponding object based on the name
                 onChange={(e, value) => {
                   const newDesignations = [...designations];
+
                   newDesignations[index].name = value ? value.name.trim() : ''; // Ensure trimmed value
                   setDesignations(newDesignations);
                   bucketFormik.setFieldValue('designations', newDesignations); // Sync with Formik
@@ -401,6 +432,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                   onChange={e => {
                     const value = e.target.value
                     const newDesignations = [...designations]
+
                     newDesignations[index].count = value === '' ? '' : parseInt(value, 10) || 1 // Ensure valid number
                     setDesignations(newDesignations)
                     bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
@@ -408,6 +440,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
                   onBlur={() => {
                     if (designation.count === '') {
                       const newDesignations = [...designations]
+
                       newDesignations[index].count = 1 // Default to 1
                       setDesignations(newDesignations)
                     }
@@ -479,7 +512,6 @@ export default AddOrEditBucket
 
 
 
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 // ** Axios Imports
 import AxiosLib from '@/lib/AxiosLib'
@@ -491,7 +523,9 @@ export const fetchDesignationList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/designation', {
         params
       })
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -507,7 +541,9 @@ export const fetchBucketList = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/bucket', {
         params
       })
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -519,7 +555,9 @@ export const fetchBucketDetails = createAsyncThunk<any, any>(
   async (id: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`/bucket/${id}`)
-      return response.data.data
+
+      
+return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
     }
@@ -531,7 +569,9 @@ export const addNewBucket = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/bucket', params)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
     }
@@ -543,15 +583,18 @@ export const updateBucketList = createAsyncThunk<
   { bucketName: string; turnoverCode: any; Designation: any; note: string }
 >('appMuthoot/updateBucketList', async (params: any, { rejectWithValue }) => {
   try {
-    let requestData = {
+    const requestData = {
       id: params.id,
       name: params.bucketName.toLowerCase(),
       positionCategories: params.Designation,
       turnoverCode: params.turnoverCode,
       notes: params.note
     }
+
     const response = await AxiosLib.patch(`/bucket/${id}`, requestData)
-    return response
+
+    
+return response
   } catch (error: any) {
     if (error.response) {
       return rejectWithValue(error.response.data)
@@ -568,7 +611,9 @@ export const deleteBucket = createAsyncThunk<any, string>(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.delete(`/bucket/${id}`)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Error deleting the bucket')
     }
@@ -584,7 +629,9 @@ export const getTurnOverCode = createAsyncThunk<any, any>(
       const response = await AxiosLib.get('/turnover', {
         params
       })
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -596,7 +643,9 @@ export const addNewTurnoverCode = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/turnover', params)
-      return response.data
+
+      
+return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data || 'Unknown error occurred')
     }

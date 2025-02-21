@@ -1,10 +1,13 @@
 'use client'
 import React from 'react'
-import { SnackbarOrigin } from '@mui/material'
+
+import type { SnackbarOrigin } from '@mui/material'
+
 import DynamicSnackbar from '@/components/Snackbar/dynamicSnackbar'
 
 function Page() {
   const dynamicMessage = 'I love dynamic snacks!'
+
   const buttonData: { label: string; position: SnackbarOrigin }[] = [
     { label: 'Top-Center', position: { vertical: 'top', horizontal: 'center' } },
     { label: 'Top-Left', position: { vertical: 'top', horizontal: 'left' } },

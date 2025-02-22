@@ -294,3 +294,12 @@ export const handleAsyncThunkStates = (builder: any, thunk: any, statePrefix: st
       }
     )
 }
+
+export const constructUrlWithParams = (baseUrl: string, params: Record<string, any>): string => {
+  const queryString = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== null) // Filter out undefined or null values
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl // Append query string if it exists
+}

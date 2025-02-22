@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState, useMemo } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   LinearProgress,
   Card,
   Tooltip,
-  Badge,
   Chip,
   FormControl,
   InputLabel,
@@ -34,9 +33,7 @@ import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchResignationOverviewList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 
-
-import { isAdmin, getRoleId , getAccessToken, decodeToken } from '@/utils/functions'
-
+import { isAdmin, getRoleId, getAccessToken, decodeToken } from '@/utils/functions'
 
 // const approvers = [
 //   {
@@ -124,7 +121,6 @@ const RecruitmentRequestOverview = () => {
   const dispatch = useAppDispatch()
   const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
 
-
   // const [approvers, setApprovers] = useState([])
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
@@ -147,8 +143,8 @@ const RecruitmentRequestOverview = () => {
   }
 
   // const handleApproveAll = () => setAcceptAllDialogOpen(true)
-  const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
-  const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
+  // const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
+  // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
 
   const userRoleId = getRoleId()
 
@@ -157,8 +153,7 @@ const RecruitmentRequestOverview = () => {
   const approvers = useMemo(() => {
     const data = safeGetData(fetchResignationOverviewListData)
 
-    
-return data
+    return data
   }, [fetchResignationOverviewListData])
 
   const getApproverId = () => {
@@ -168,8 +163,7 @@ return data
 
     const decodedToken = decodeToken(token)
 
-    
-return decodedToken?.sub
+    return decodedToken?.sub
   }
 
   const handleApproveAll = async (id: number, approval_id: number) => {
@@ -179,8 +173,7 @@ return decodedToken?.sub
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
-      const requestData = approvers.find((item: any) => item.id === id)
-
+      // const requestData = approvers.find((item: any) => item.id === id)
 
       // if (!approval_id) throw new Error('No approval ID found')
       await dispatch(
@@ -205,7 +198,7 @@ return decodedToken?.sub
       if (!approverId) throw new Error('No approver ID found')
 
       // Find the request data from overview list using id
-      const requestData = approvers.find((item: any) => item.id === id)
+      // const requestData = approvers.find((item: any) => item.id === id)
 
       // if (!approval_id) throw new Error('No approval ID found')
 
@@ -234,15 +227,14 @@ return decodedToken?.sub
   const progressBar = approvers?.map(approver => {
     const daysRemaining = approver?.daysSinceCreated
 
-    
-return Math.max(0, 100 - daysRemaining * 10)
+    return Math.max(0, 100 - daysRemaining * 10)
   })
 
   const getLevelColor = (status: any) => {
     if (status === 'Approved') return '#4caf50' // Green for Approved
     if (status === 'Pending') return '#ff9800' // Orange for Pending
-    
-return '#f44336' // Red for Rejected
+
+    return '#f44336' // Red for Rejected
   }
 
   useEffect(() => {

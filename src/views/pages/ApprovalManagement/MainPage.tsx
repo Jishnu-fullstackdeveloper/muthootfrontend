@@ -19,6 +19,8 @@ import { approvalData } from '@/shared/approvalData'
 const ApprovalManagement = () => {
   const router = useRouter()
 
+  console.log(router)
+
   const statusColors: any = {
     Completed: '#059669',
     Pending: '#D97706',
@@ -49,12 +51,10 @@ const ApprovalManagement = () => {
   const getOverdueCount = () => {
     const currentDate = new Date()
 
-    
-return approvalData.filter(item => {
+    return approvalData.filter(item => {
       const approvalDueDate = new Date(item.approvalDueDate)
 
-      
-return item.status.toLowerCase() === 'overdue' && approvalDueDate < currentDate
+      return item.status.toLowerCase() === 'overdue' && approvalDueDate < currentDate
     }).length
   }
 
@@ -94,6 +94,7 @@ return item.status.toLowerCase() === 'overdue' && approvalDueDate < currentDate
         <div>
           <IconButton aria-label='view' sx={{ fontSize: 18 }}>
             <VisibilityIcon />
+            {info}
           </IconButton>
           <IconButton aria-label='edit' sx={{ fontSize: 18 }}>
             <EditIcon />

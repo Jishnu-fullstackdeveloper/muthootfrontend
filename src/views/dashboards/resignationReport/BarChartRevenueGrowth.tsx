@@ -26,6 +26,8 @@ const BarChartRevenueGrowth = () => {
   const theme = useTheme()
   const { mode } = useColorScheme()
 
+  console.log(mode)
+
   // Vars
   const successColorWithOpacity = rgbaToHex(`rgb(${theme.palette.success.mainChannel} / 0.16)`)
 

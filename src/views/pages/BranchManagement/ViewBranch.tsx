@@ -5,8 +5,9 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
-import ListAltIcon from '@mui/icons-material/ListAlt'
-import WorkIcon from '@mui/icons-material/Work'
+
+// import ListAltIcon from '@mui/icons-material/ListAlt'
+// import WorkIcon from '@mui/icons-material/Work'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 
 import CustomTable from '@/components/Table/CustomTable'
@@ -28,6 +29,8 @@ const tabMapping: { [key: string]: number } = {
 const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<number>(tabMapping[branchTab] || 0)
+
+  console.log(mode)
 
   // Simulated branch data
   const branchData = {

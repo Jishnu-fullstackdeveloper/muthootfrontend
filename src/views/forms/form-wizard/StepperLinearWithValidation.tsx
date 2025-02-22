@@ -22,14 +22,13 @@ import IconButton from '@mui/material/IconButton'
 import { toast } from 'react-toastify'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { email, object, minLength, string, array, forward, custom } from 'valibot'
+import { email, object, minLength, string, array, pipe } from 'valibot'
 
 // Component Imports
-import DirectionalIcon from '@components/DirectionalIcon'
-
 import CustomTextField from '@core/components/mui/TextField'
 import StepperWrapper from '@core/styles/stepper'
 import StepperCustomDot from '@components/stepper-dot'
+import DirectionalIcon from '@components/DirectionalIcon'
 
 // Vars
 const steps = [
@@ -47,36 +46,36 @@ const steps = [
   }
 ]
 
-const accountSchema = object(
-  {
-    username: string([minLength(1, 'This field is required')]),
-    email: string([minLength(1, 'This field is required'), email()]),
-    password: string([
-      minLength(1, 'This field is required'),
-      minLength(8, 'Password must be at least 8 characters long')
-    ]),
-    confirmPassword: string([minLength(1, 'This field is required')])
-  },
-  [
-    forward(
-      custom(input => input.password === input.confirmPassword, 'Passwords do not match.'),
-      ['confirmPassword']
-    )
-  ]
-)
+const accountSchema = object({
+  username: pipe(string(), minLength(1, 'This field is required')),
+  email: pipe(string(), minLength(1, 'This field is required'), email('Invalid email')),
+  password: pipe(
+    string(),
+    minLength(1, 'This field is required'),
+    minLength(8, 'Password must be at least 8 characters long')
+  ),
+  confirmPassword: pipe(
+    string(),
+    minLength(1, 'This field is required')
 
-const personalSchema = object({
-  firstName: string([minLength(1, 'This field is required')]),
-  lastName: string([minLength(1, 'This field is required')]),
-  country: string([minLength(1, 'This field is required')]),
-  language: array(string(), [minLength(1, 'This field is required')])
+    // custom((value, { input }) => value === input.password, 'Passwords do not match.')
+  )
 })
 
+// Personal Schema
+const personalSchema = object({
+  firstName: pipe(string(), minLength(1, 'This field is required')),
+  lastName: pipe(string(), minLength(1, 'This field is required')),
+  country: pipe(string(), minLength(1, 'This field is required')),
+  language: pipe(array(string()), minLength(1, 'This field is required'))
+})
+
+// Social Schema
 const socialSchema = object({
-  twitter: string([minLength(1, 'This field is required')]),
-  facebook: string([minLength(1, 'This field is required')]),
-  google: string([minLength(1, 'This field is required')]),
-  linkedIn: string([minLength(1, 'This field is required')])
+  twitter: pipe(string(), minLength(1, 'This field is required')),
+  facebook: pipe(string(), minLength(1, 'This field is required')),
+  google: pipe(string(), minLength(1, 'This field is required')),
+  linkedIn: pipe(string(), minLength(1, 'This field is required'))
 })
 
 const StepperLinearWithValidation = () => {

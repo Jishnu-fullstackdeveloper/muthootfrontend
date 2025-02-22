@@ -23,7 +23,8 @@ import {
 import CheckIcon from '@mui/icons-material/Check'
 import ClearIcon from '@mui/icons-material/Clear'
 import { green, yellow, red } from '@mui/material/colors'
-import { Visibility } from '@mui/icons-material'
+
+// import { Visibility } from '@mui/icons-material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 
 const MyRequestCard = () => {
@@ -76,15 +77,15 @@ const MyRequestCard = () => {
   const getStatusColor = (status: string) => {
     if (status === 'Approved') return green[500]
     if (status === 'Pending') return yellow[700]
-    
-return red[500]
+
+    return red[500]
   }
 
   const getStatusIcon = (status: string) => {
     if (status === 'Approved') return <CheckIcon />
     if (status === 'Rejected') return <ClearIcon />
-    
-return <CheckIcon />
+
+    return <CheckIcon />
   }
 
   return (
@@ -320,9 +321,7 @@ return <CheckIcon />
                       >
                         Accept
                       </Button>
-                      <Button
-
-                        // variant='contained'
+                      <Button // variant='contained'
                         // color='primary'
                         size='small'
                         onClick={handleViewJD}

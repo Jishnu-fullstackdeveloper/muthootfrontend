@@ -10,12 +10,14 @@ import { useRouter } from 'next/navigation'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
+
+// import IconButton from '@mui/material/IconButton'
+// import InputAdornment from '@mui/material/InputAdornment'
 import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Divider from '@mui/material/Divider'
+
+// import Divider from '@mui/material/Divider'
 
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -41,15 +43,14 @@ import CustomTextField from '@core/components/mui/TextField'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Config Imports
-import themeConfig from '@configs/themeConfig'
+// import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { fetchInitialLoginURL } from '@/redux/loginSlice'
 
-import { getAccessToken, getRefreshToken } from '@/utils/functions'
-
+import { getAccessToken } from '@/utils/functions'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -107,7 +108,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
     borderedDarkIllustration
   )
 
-  const handleClickShowPassword = () => setIsPasswordShown(show => !show)
+  // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
   const { firstLoginData, loginErrorMessage, loginFailure }: any = useSelector((state: any) => state.loginReducer)
 
@@ -125,6 +126,10 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   }
 
   useEffect(() => {
+    console.log(isPasswordShown)
+    setDisplayLoginPage(false)
+    setIsPasswordShown(false)
+
     if (Object?.entries(firstLoginData)?.length !== 0 && firstLoginData?.url) {
       window.location.replace(firstLoginData?.url)
     }

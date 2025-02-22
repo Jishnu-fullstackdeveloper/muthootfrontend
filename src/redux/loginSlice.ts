@@ -15,21 +15,18 @@ interface SignOutParams {
 export const fetchInitialLoginURL = createAsyncThunk<any, any>(
   'login/fetchurl',
   async (params, { rejectWithValue }) => {
-    let api
-    let requestData
     const email = params.email.toLowerCase()
 
-    requestData = {
+    const requestData = {
       email
     }
 
-    api = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/login'
+    const api = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/login'
 
     try {
       const response = await axios.post(api, requestData)
 
-      
-return { ...response.data, filter: params }
+      return { ...response.data, filter: params }
     } catch (error: any) {
       throw rejectWithValue(error.response.data)
     }
@@ -38,6 +35,8 @@ return { ...response.data, filter: params }
 
 export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', async (params, thunkAPI) => {
   try {
+    thunkAPI
+
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/auth`, {
       params: {
         iss: params.issuer,
@@ -46,8 +45,7 @@ export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', as
       }
     })
 
-    
-return { ...response.data, filter: params }
+    return { ...response.data, filter: params }
   } catch (error) {
     throw error
   }
@@ -55,6 +53,8 @@ return { ...response.data, filter: params }
 
 export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: SignOutParams, thunkAPI) => {
   try {
+    params
+    thunkAPI
     const refreshToken = getRefreshToken()
     const accessToken = getAccessToken()
     const api = '/auth/user/signout'
@@ -66,8 +66,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
       }
     })
 
-    
-return { ...response.data }
+    return { ...response.data }
   } catch (error) {
     throw error
   }
@@ -75,6 +74,7 @@ return { ...response.data }
 
 export const changePasswordApi = createAsyncThunk<any, any>('change-password', async (params: object) => {
   try {
+    params
     const accessToken = getAccessToken()
     const api = '/auth/user/change-password'
 
@@ -84,8 +84,7 @@ export const changePasswordApi = createAsyncThunk<any, any>('change-password', a
       }
     })
 
-    
-return { ...response.data }
+    return { ...response.data.data }
   } catch (error) {
     throw error
   }
@@ -100,8 +99,7 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
       AxiosLib.defaults.headers.common['refreshtoken'] = `${params.refreshtoken}`
       const response = await AxiosLib.get(api)
 
-      
-return response.data
+      return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -131,6 +129,7 @@ export const loginSlice: any = createSlice({
   },
   reducers: {
     LoginDataDismiss: (state, action: PayloadAction<boolean>) => {
+      action
       ;(state.newAccessTokenApiSuccess = false),
         (state.newAccessTokenApiFailure = false),
         (state.newAccessTokenApiFailureMessage = ''),

@@ -1,81 +1,191 @@
+// src/redux/RecruitmentResignationSlice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
-import { handleAsyncThunkStates } from '@/utils/functions'
-
-/**
- * @author Siyad M
- * @description Fetches the resignation overview list using Axios.
- * @function fetchResignationOverviewList
- * @param {string} params
- */
+import { handleAsyncThunkStates, constructUrlWithParams } from '@/utils/functions'
 
 export const fetchResignationOverviewList = createAsyncThunk<any, any>(
   'appTms/fetchTicketsList',
   async (params: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/api/recruitment-request/group', {
-        params
-      })
+      const response = await AxiosLib.get('/api/recruitment-request/group', { params })
 
-      
-return response.data.data
+      return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
   }
 )
 
-export const fetchHierarchyData = createAsyncThunk<any, string>(
-  'recruitmentResignation/fetchHierarchyData',
-  async (hierarchyName: string, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.get(`/api/recruitment-request/hierarchyData/${hierarchyName}`)
-
-      
-return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
-    }
-  }
-)
-
-interface EmployeeHierarchyOptionsPayload {
-  id: number
-  hierarchyId: number
+interface FetchParams {
+  search?: string
   page: number
   limit: number
+  parentId?: number // Optional parent ID for hierarchy
 }
 
-export const fetchEmployeeHierarchyOptions = createAsyncThunk<any, EmployeeHierarchyOptionsPayload>(
-  'recruitmentResignation/fetchEmployeeHierarchyOptions',
-  async (requestData: EmployeeHierarchyOptionsPayload, { rejectWithValue }) => {
+export const fetchBusinessUnits = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchBusinessUnits',
+  async (params: FetchParams, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.post('/api/recruitment-request/employeeHierarchyOptions', requestData)
+      const url = constructUrlWithParams('/businessUnit', params)
+      const response = await AxiosLib.get(url)
 
-      
-return response.data
+      return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
   }
 )
 
-interface CorporateHierarchyOptionsPayload {
-  id: number
-  hierarchyId: number
-  page: number
-  limit: number
-}
-
-export const fetchCorporateHierarchyOptions = createAsyncThunk<any, CorporateHierarchyOptionsPayload>(
-  'recruitmentResignation/fetchCorporateHierarchyOptions',
-  async (requestData: CorporateHierarchyOptionsPayload, { rejectWithValue }) => {
+export const fetchEmployeeCategoryType = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchEmployeeCategoryType',
+  async (params: FetchParams, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.post('/api/recruitment-request/corporateHierarchyOptions', requestData)
+      const url = constructUrlWithParams('/employeeCategoryType', params)
+      const response = await AxiosLib.get(url)
 
-      
-return response.data
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchDepartment = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchDepartment',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/department', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchDesignation = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchDesignation',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/designation', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchGrade = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchGrade',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/grade', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchBand = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchBand',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/band', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchZone = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchZone',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/zone', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchRegion = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchRegion',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/region', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchArea = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchArea',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/area', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchBranch = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchBranch',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/branch', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchState = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchState',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/state', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const fetchDistrict = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchDistrict',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/district', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -83,9 +193,18 @@ return response.data
 )
 
 interface RecruitmentRequestPayload {
-  gradeId: number
-  branchId: number
-  employeeCategoryTypeId: number
+  districtName: string
+  stateName: string
+  zoneName: string
+  regionName: string
+  areaName: string
+  branchesName: string
+  businessUnitName: string
+  employeeCategoryType: string
+  departmentName: string
+  designationName: string
+  gradeName: string
+  bandName: string
 }
 
 export const submitRecruitmentRequest = createAsyncThunk<any, RecruitmentRequestPayload>(
@@ -94,71 +213,7 @@ export const submitRecruitmentRequest = createAsyncThunk<any, RecruitmentRequest
     try {
       const response = await AxiosLib.post('/api/recruitment-request', requestData)
 
-      
-return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
-    }
-  }
-)
-
-interface RequestDecisionPayload {
-  id: number | string
-  approvalStatus: 'APPROVED' | 'REJECTED'
-  approverId: number | string
-}
-
-export const submitRequestDecision = createAsyncThunk<any, RequestDecisionPayload>(
-  'recruitmentResignation/submitDecision',
-  async (requestData: RequestDecisionPayload, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.patch(`/approval-requests/${requestData.id}/status`, {
-        approverId: requestData.approverId,
-        approvalStatus: requestData.approvalStatus
-      })
-
-      
-return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
-    }
-  }
-)
-
-interface RequestListParams {
-  designationName: string
-  page: number
-  limit: number
-}
-
-export const fetchRecruitmentRequestList = createAsyncThunk<any, RequestListParams>(
-  'appTms/fetchRequestList',
-  async ({ designationName, page, limit }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.get('/api/recruitment-request', {
-        params: {
-          designationName,
-          page,
-          limit
-        }
-      })
-
-      
-return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
-    }
-  }
-)
-
-export const fetchRecruitmentRequestById = createAsyncThunk<any, { id: string | number }>(
-  'appTms/fetchRequestById',
-  async ({ id }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.get(`/api/recruitment-request/id/${id}`)
-
-      
-return response.data
+      return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -166,7 +221,7 @@ return response.data
 )
 
 export const recruitmentResignationSlice = createSlice({
-  name: 'appMuthoot',
+  name: 'recruitmentResignation',
   initialState: {
     fetchResignationOverviewListLoading: false,
     fetchResignationOverviewListSuccess: false,
@@ -174,47 +229,83 @@ export const recruitmentResignationSlice = createSlice({
     fetchResignationOverviewListFailure: false,
     fetchResignationOverviewListFailureMessage: '',
 
-    fetchRecruitmentRequestListLoading: false,
-    fetchRecruitmentRequestListSuccess: false,
-    fetchRecruitmentRequestListData: [],
-    fetchRecruitmentRequestListFailure: false,
-    fetchRecruitmentRequestListFailureMessage: '',
+    fetchBusinessUnitsLoading: false,
+    fetchBusinessUnitsSuccess: false,
+    fetchBusinessUnitsData: [],
+    fetchBusinessUnitsFailure: false,
+    fetchBusinessUnitsFailureMessage: '',
 
-    fetchRecruitmentRequestByIdLoading: false,
-    fetchRecruitmentRequestByIdSuccess: false,
-    fetchRecruitmentRequestByIdData: null,
-    fetchRecruitmentRequestByIdFailure: false,
-    fetchRecruitmentRequestByIdFailureMessage: '',
+    fetchEmployeeCategoryTypeLoading: false,
+    fetchEmployeeCategoryTypeSuccess: false,
+    fetchEmployeeCategoryTypeData: [],
+    fetchEmployeeCategoryTypeFailure: false,
+    fetchEmployeeCategoryTypeFailureMessage: '',
 
-    fetchEmployeeHierarchyOptionsLoading: false,
-    fetchEmployeeHierarchyOptionsSuccess: false,
-    fetchEmployeeHierarchyOptionsData: null,
-    fetchEmployeeHierarchyOptionsFailure: false,
-    fetchEmployeeHierarchyOptionsFailureMessage: '',
+    fetchDepartmentLoading: false,
+    fetchDepartmentSuccess: false,
+    fetchDepartmentData: [],
+    fetchDepartmentFailure: false,
+    fetchDepartmentFailureMessage: '',
 
-    fetchCorporateHierarchyOptionsLoading: false,
-    fetchCorporateHierarchyOptionsSuccess: false,
-    fetchCorporateHierarchyOptionsData: null,
-    fetchCorporateHierarchyOptionsFailure: false,
-    fetchCorporateHierarchyOptionsFailureMessage: '',
+    fetchDesignationLoading: false,
+    fetchDesignationSuccess: false,
+    fetchDesignationData: [],
+    fetchDesignationFailure: false,
+    fetchDesignationFailureMessage: '',
+
+    fetchGradeLoading: false,
+    fetchGradeSuccess: false,
+    fetchGradeData: [],
+    fetchGradeFailure: false,
+    fetchGradeFailureMessage: '',
+
+    fetchBandLoading: false,
+    fetchBandSuccess: false,
+    fetchBandData: [],
+    fetchBandFailure: false,
+    fetchBandFailureMessage: '',
+
+    fetchZoneLoading: false,
+    fetchZoneSuccess: false,
+    fetchZoneData: [],
+    fetchZoneFailure: false,
+    fetchZoneFailureMessage: '',
+
+    fetchRegionLoading: false,
+    fetchRegionSuccess: false,
+    fetchRegionData: [],
+    fetchRegionFailure: false,
+    fetchRegionFailureMessage: '',
+
+    fetchAreaLoading: false,
+    fetchAreaSuccess: false,
+    fetchAreaData: [],
+    fetchAreaFailure: false,
+    fetchAreaFailureMessage: '',
+
+    fetchBranchLoading: false,
+    fetchBranchSuccess: false,
+    fetchBranchData: [],
+    fetchBranchFailure: false,
+    fetchBranchFailureMessage: '',
+
+    fetchStateLoading: false,
+    fetchStateSuccess: false,
+    fetchStateData: [],
+    fetchStateFailure: false,
+    fetchStateFailureMessage: '',
+
+    fetchDistrictLoading: false,
+    fetchDistrictSuccess: false,
+    fetchDistrictData: [],
+    fetchDistrictFailure: false,
+    fetchDistrictFailureMessage: '',
 
     submitRecruitmentRequestLoading: false,
     submitRecruitmentRequestSuccess: false,
     submitRecruitmentRequestData: null,
     submitRecruitmentRequestFailure: false,
-    submitRecruitmentRequestFailureMessage: '',
-
-    submitRequestDecisionLoading: false,
-    submitRequestDecisionSuccess: false,
-    submitRequestDecisionData: null,
-    submitRequestDecisionFailure: false,
-    submitRequestDecisionFailureMessage: '',
-
-    fetchHierarchyDataLoading: false,
-    fetchHierarchyDataSuccess: false,
-    fetchHierarchyDataData: null,
-    fetchHierarchyDataFailure: false,
-    fetchHierarchyDataFailureMessage: ''
+    submitRecruitmentRequestFailureMessage: ''
   },
   reducers: {
     fetchResignationAPIDismiss: state => {
@@ -222,67 +313,118 @@ export const recruitmentResignationSlice = createSlice({
       state.fetchResignationOverviewListSuccess = false
       state.fetchResignationOverviewListFailure = false
     },
-    fetchRecruitmentRequestListDismiss: state => {
-      state.fetchRecruitmentRequestListLoading = false
-      state.fetchRecruitmentRequestListSuccess = false
-      state.fetchRecruitmentRequestListFailure = false
-    },
-    fetchRecruitmentRequestByIdDismiss: state => {
-      state.fetchRecruitmentRequestByIdLoading = false
-      state.fetchRecruitmentRequestByIdSuccess = false
-      state.fetchRecruitmentRequestByIdFailure = false
-    },
-    fetchEmployeeHierarchyOptionsDismiss: state => {
-      state.fetchEmployeeHierarchyOptionsLoading = false
-      state.fetchEmployeeHierarchyOptionsSuccess = false
-      state.fetchEmployeeHierarchyOptionsFailure = false
+
+    fetchBusinessUnitsDismiss: state => {
+      state.fetchBusinessUnitsLoading = false
+      state.fetchBusinessUnitsSuccess = false
+      state.fetchBusinessUnitsFailure = false
     },
 
-    fetchCorporateHierarchyOptionsDismiss: state => {
-      state.fetchCorporateHierarchyOptionsLoading = false
-      state.fetchCorporateHierarchyOptionsSuccess = false
-      state.fetchCorporateHierarchyOptionsFailure = false
+    fetchEmployeeCategoryTypeDismiss: state => {
+      state.fetchEmployeeCategoryTypeLoading = false
+      state.fetchEmployeeCategoryTypeSuccess = false
+      state.fetchEmployeeCategoryTypeFailure = false
+    },
+
+    fetchDepartmentDismiss: state => {
+      state.fetchDepartmentLoading = false
+      state.fetchDepartmentSuccess = false
+      state.fetchDepartmentFailure = false
+    },
+
+    fetchDesignationDismiss: state => {
+      state.fetchDesignationLoading = false
+      state.fetchDesignationSuccess = false
+      state.fetchDesignationFailure = false
+    },
+
+    fetchGradeDismiss: state => {
+      state.fetchGradeLoading = false
+      state.fetchGradeSuccess = false
+      state.fetchGradeFailure = false
+    },
+
+    fetchBandDismiss: state => {
+      state.fetchBandLoading = false
+      state.fetchBandSuccess = false
+      state.fetchBandFailure = false
+    },
+
+    fetchZoneDismiss: state => {
+      state.fetchZoneLoading = false
+      state.fetchZoneSuccess = false
+      state.fetchZoneFailure = false
+    },
+
+    fetchRegionDismiss: state => {
+      state.fetchRegionLoading = false
+      state.fetchRegionSuccess = false
+      state.fetchRegionFailure = false
+    },
+
+    fetchAreaDismiss: state => {
+      state.fetchAreaLoading = false
+      state.fetchAreaSuccess = false
+      state.fetchAreaFailure = false
+    },
+
+    fetchBranchDismiss: state => {
+      state.fetchBranchLoading = false
+      state.fetchBranchSuccess = false
+      state.fetchBranchFailure = false
+    },
+
+    fetchStateDismiss: state => {
+      state.fetchStateLoading = false
+      state.fetchStateSuccess = false
+      state.fetchStateFailure = false
+    },
+
+    fetchDistrictDismiss: state => {
+      state.fetchDistrictLoading = false
+      state.fetchDistrictSuccess = false
+      state.fetchDistrictFailure = false
     },
 
     submitRecruitmentRequestDismiss: state => {
       state.submitRecruitmentRequestLoading = false
       state.submitRecruitmentRequestSuccess = false
       state.submitRecruitmentRequestFailure = false
-    },
-    submitRequestDecisionDismiss: state => {
-      state.submitRequestDecisionLoading = false
-      state.submitRequestDecisionSuccess = false
-      state.submitRequestDecisionFailure = false
-    },
-    fetchHierarchyDataDismiss: state => {
-      state.fetchHierarchyDataLoading = false
-      state.fetchHierarchyDataSuccess = false
-      state.fetchHierarchyDataFailure = false
     }
   },
-
   extraReducers: builder => {
-    // Use the helper function for each thunk
-    handleAsyncThunkStates(builder, fetchEmployeeHierarchyOptions, 'fetchEmployeeHierarchyOptions')
-    handleAsyncThunkStates(builder, fetchCorporateHierarchyOptions, 'fetchCorporateHierarchyOptions')
     handleAsyncThunkStates(builder, fetchResignationOverviewList, 'fetchResignationOverviewList')
-    handleAsyncThunkStates(builder, fetchRecruitmentRequestList, 'fetchRecruitmentRequestList')
-    handleAsyncThunkStates(builder, fetchRecruitmentRequestById, 'fetchRecruitmentRequestById')
+    handleAsyncThunkStates(builder, fetchBusinessUnits, 'fetchBusinessUnits')
+    handleAsyncThunkStates(builder, fetchEmployeeCategoryType, 'fetchEmployeeCategoryType')
+    handleAsyncThunkStates(builder, fetchDepartment, 'fetchDepartment')
+    handleAsyncThunkStates(builder, fetchDesignation, 'fetchDesignation')
+    handleAsyncThunkStates(builder, fetchGrade, 'fetchGrade')
+    handleAsyncThunkStates(builder, fetchBand, 'fetchBand')
+    handleAsyncThunkStates(builder, fetchZone, 'fetchZone')
+    handleAsyncThunkStates(builder, fetchRegion, 'fetchRegion')
+    handleAsyncThunkStates(builder, fetchArea, 'fetchArea')
+    handleAsyncThunkStates(builder, fetchBranch, 'fetchBranch')
+    handleAsyncThunkStates(builder, fetchState, 'fetchState')
+    handleAsyncThunkStates(builder, fetchDistrict, 'fetchDistrict')
     handleAsyncThunkStates(builder, submitRecruitmentRequest, 'submitRecruitmentRequest')
-    handleAsyncThunkStates(builder, submitRequestDecision, 'submitRequestDecision')
-    handleAsyncThunkStates(builder, fetchHierarchyData, 'fetchHierarchyData')
   }
 })
 
 export const {
   fetchResignationAPIDismiss,
-  fetchRecruitmentRequestListDismiss,
-  fetchRecruitmentRequestByIdDismiss,
-  fetchEmployeeHierarchyOptionsDismiss,
-  fetchCorporateHierarchyOptionsDismiss,
-  submitRecruitmentRequestDismiss,
-  submitRequestDecisionDismiss,
-  fetchHierarchyDataDismiss
+  fetchBusinessUnitsDismiss,
+  fetchEmployeeCategoryTypeDismiss,
+  fetchDepartmentDismiss,
+  fetchDesignationDismiss,
+  fetchGradeDismiss,
+  fetchBandDismiss,
+  fetchZoneDismiss,
+  fetchRegionDismiss,
+  fetchAreaDismiss,
+  fetchBranchDismiss,
+  fetchStateDismiss,
+  fetchDistrictDismiss,
+  submitRecruitmentRequestDismiss
 } = recruitmentResignationSlice.actions
 
 export default recruitmentResignationSlice.reducer

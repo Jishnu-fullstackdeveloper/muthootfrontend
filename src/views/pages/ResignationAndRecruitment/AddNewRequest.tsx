@@ -8,6 +8,8 @@ type Props = {
 }
 
 const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
+  console.log(mode, id)
+
   return (
     <>
       <ManualRequestGeneratedForm />

@@ -28,17 +28,20 @@ import { jwtDecode } from 'jwt-decode'
 
 import { useSettings } from '@core/hooks/useSettings'
 import type { AppDispatch } from '@/redux/store'
-import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
+import { changePasswordApi, signOutApi } from '@/redux/loginSlice'
+
+// fetchNewAccessToken // LoginDataDismiss These Two needed for future case
 import {
   decodeToken,
   getAccessToken,
-  getRefreshToken,
-  Logout,
-  setAccessToken,
-  setRefreshToken
+
+  // getRefreshToken,
+  Logout
+
+  // setAccessToken,
+  // setRefreshToken
 } from '@/utils/functions'
 import { useAppSelector } from '@/lib/hooks'
-
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -55,19 +58,21 @@ const UserDropdown = () => {
   const [open, setOpen] = useState(false)
   const access_token = getAccessToken()
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
-  const refresh_token = getRefreshToken()
-  const decodedToken = decodeToken(access_token)
+
+  // const refresh_token = getRefreshToken()
+  // const decodedToken = decodeToken(access_token)
 
   const loginStates = useAppSelector((state: any) => state.loginReducer)
 
   const {
-    newAccessTokenApiData,
-    newAccessTokenApiSuccess,
-    newAccessTokenApiFailure,
-    newAccessTokenApiFailureMessage,
-    changePasswordData,
-    changePasswordFailure,
-    changePasswordFailureMessage
+    // newAccessTokenApiData,
+    // newAccessTokenApiSuccess,
+    // newAccessTokenApiFailure,
+    // newAccessTokenApiFailureMessage,
+    changePasswordData
+
+    // changePasswordFailure,
+    // changePasswordFailureMessage
   } = loginStates || {}
 
   // Refs
@@ -118,26 +123,28 @@ const UserDropdown = () => {
   const guestRoutes = ['login', 'login-Redirect']
   const privateRoute = ![...guestRoutes].some(route => pathName.endsWith(route))
 
-  // useEffect(() => {
-  //   if (!access_token && privateRoute) {
-  //     setTimeout(() => {
-  //       Logout()
-  //       return router.push('/login')
-  //     }, 3000)
-  //   }
+  useEffect(() => {
+    if (!access_token && privateRoute) {
+      setTimeout(() => {
+        Logout()
 
-  //   var url
-  //   if (typeof window !== 'undefined') {
-  //     url = window.location.pathname
-  //   }
+        return router.push('/login')
+      }, 3000)
+    }
 
-  //   if (url?.includes('login/pass_update')) {
-  //     setTimeout(() => {
-  //       Logout()
-  //       router.push('/login')
-  //     }, 3000)
-  //   }
-  // }, [])
+    let url
+
+    if (typeof window !== 'undefined') {
+      url = window.location.pathname
+    }
+
+    if (url?.includes('login/pass_update')) {
+      setTimeout(() => {
+        Logout()
+        router.push('/login')
+      }, 3000)
+    }
+  }, [])
 
   // /** Author : Siyad-M
   //  functionality: Fetching new access token to avoid unauthorization issue*/
@@ -176,12 +183,13 @@ const UserDropdown = () => {
     }
   }, [changePasswordData])
 
-  // useEffect(() => {
-  //   if (access_token) {
-  //     let temp = jwtDecode(access_token)
-  //     setDecodedAccessToken(temp)
-  //   }
-  // }, [])
+  useEffect(() => {
+    if (access_token) {
+      const temp = jwtDecode(access_token)
+
+      setDecodedAccessToken(temp)
+    }
+  }, [])
 
   return (
     <>
@@ -233,9 +241,7 @@ const UserDropdown = () => {
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>
                   <MenuItem
-                    className='mli-2 gap-3'
-
-                    //  onClick={e => handleDropdownClose(e, '/account/change-password')}
+                    className='mli-2 gap-3' //  onClick={e => handleDropdownClose(e, '/account/change-password')}
                     onClick={e => {
                       handleDropdownClose(e)
                       handleChangePassword()

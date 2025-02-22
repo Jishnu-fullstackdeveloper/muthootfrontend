@@ -1,19 +1,21 @@
 'use client'
 import React from 'react'
 
-import { Box, Card, Grid , Popper } from '@mui/material'
+import { Grid, Popper } from '@mui/material'
 
-
-import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
+// import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import BranchEmployeeChart from '@/views/dashboards/budgetReport/BranchEmployeeChart'
 import BubblePositionTrendsChart from '@/views/dashboards/budgetReport/BubblePositionTrendsChart'
 import BranchOpeningsChart from '@/views/dashboards/budgetReport/BranchOpeningsChart'
 import ResignationsListReport from '@/views/dashboards/budgetReport/ResignationsListReport'
-import CostEfficiencyStatus from '@/views/dashboards/budgetReport/CostEfficiencyStatus'
-import ApprovalStatus from '@/views/dashboards/budgetReport/ApprovalStatus'
+
+// import CostEfficiencyStatus from '@/views/dashboards/budgetReport/CostEfficiencyStatus'
+// import ApprovalStatus from '@/views/dashboards/budgetReport/ApprovalStatus'
 
 // Custom Popper component to fix dropdown positioning
 const CustomPopper = (props: any) => <Popper {...props} placement='bottom-start' style={{ zIndex: 1300 }} />
+
+console.log(CustomPopper)
 
 const BudgetReport = () => {
   return (

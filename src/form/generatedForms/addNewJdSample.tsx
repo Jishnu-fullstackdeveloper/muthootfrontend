@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -73,8 +73,7 @@ const validationSchema = Yup.object().shape({
         return !!value // Ensure value exists for 'description_only'
       }
 
-      
-return true // Skip validation for other types
+      return true // Skip validation for other types
     }
   ),
   skillsAndAttributesDetails: Yup.array()
@@ -98,8 +97,7 @@ return true // Skip validation for other types
         return Array.isArray(value) && value.length > 0 // Ensure non-empty array for other types
       }
 
-      
-return true // Skip validation for 'description_only'
+      return true // Skip validation for 'description_only'
     }),
   minimumQualification: Yup.string().required('Minimum Qualification is required'),
   experienceDescription: Yup.string().required('Experience Description is required'),
@@ -164,6 +162,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
   })
 
   useEffect(() => {
+    console.log(id)
     let completedSteps = 0
 
     const {
@@ -312,10 +311,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
       >
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
           {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel
-
-                // onClick={() => setActiveStep(index)}
+            <Step key={label} index={index}>
+              <StepLabel // onClick={() => setActiveStep(index)}
                 sx={{ cursor: 'pointer' }}
               >
                 <Typography>{label}</Typography>
@@ -326,9 +323,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
 
         {/* Reset Filters */}
       </Card>
-      <div
-
-        // onScroll={handleScroll}
+      <div // onScroll={handleScroll}
         style={
           {
             // height: '530px',
@@ -356,9 +351,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     name='roleTitle'
                     type='text'
                     value={AddNewJDFormik.values.roleTitle}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('roleTitle', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('roleTitle', true)}
                     error={AddNewJDFormik.touched.roleTitle && Boolean(AddNewJDFormik.errors.roleTitle)}
                     helperText={
                       AddNewJDFormik.touched.roleTitle && AddNewJDFormik.errors.roleTitle
@@ -378,9 +371,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     id='reportingTo'
                     name='reportingTo'
                     value={AddNewJDFormik.values.reportingTo}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('reportingTo', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('reportingTo', true)}
                     error={AddNewJDFormik.touched.reportingTo && Boolean(AddNewJDFormik.errors.reportingTo)}
                     helperText={
                       AddNewJDFormik.touched.reportingTo && AddNewJDFormik.errors.reportingTo
@@ -449,9 +440,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     name='functionOrDepartment'
                     type='text'
                     value={AddNewJDFormik.values.functionOrDepartment}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('functionOrDepartment', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('functionOrDepartment', true)}
                     error={
                       AddNewJDFormik.touched.functionOrDepartment && Boolean(AddNewJDFormik.errors.functionOrDepartment)
                     }
@@ -474,9 +463,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     name='writtenBy'
                     type='text'
                     value={AddNewJDFormik.values.writtenBy}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('writtenBy', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('writtenBy', true)}
                     error={AddNewJDFormik.touched.writtenBy && Boolean(AddNewJDFormik.errors.writtenBy)}
                     helperText={
                       AddNewJDFormik.touched.writtenBy && AddNewJDFormik.errors.writtenBy
@@ -823,9 +810,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     rows={4}
                     name='internalStakeholders'
                     value={AddNewJDFormik.values.internalStakeholders}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('internalStakeholders', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('internalStakeholders', true)}
                     error={
                       AddNewJDFormik.touched.internalStakeholders && Boolean(AddNewJDFormik.errors.internalStakeholders)
                     }
@@ -849,9 +834,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     rows={4}
                     name='externalStakeholders'
                     value={AddNewJDFormik.values.externalStakeholders}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('externalStakeholders', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('externalStakeholders', true)}
                     error={
                       AddNewJDFormik.touched.externalStakeholders && Boolean(AddNewJDFormik.errors.externalStakeholders)
                     }
@@ -1271,9 +1254,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                     name='minimumQualification'
                     type='text'
                     value={AddNewJDFormik.values.minimumQualification}
-                    onChange={AddNewJDFormik.handleChange}
-
-                    // onFocus={() => AddNewJDFormik.setFieldTouched('minimumQualification', true)}
+                    onChange={AddNewJDFormik.handleChange} // onFocus={() => AddNewJDFormik.setFieldTouched('minimumQualification', true)}
                     error={
                       AddNewJDFormik.touched.minimumQualification && Boolean(AddNewJDFormik.errors.minimumQualification)
                     }
@@ -1330,14 +1311,11 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             </DynamicButton> */}
 
             <Box sx={{ display: 'flex', gap: 5 }}>
-
               <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
                 Reset Form
               </DynamicButton>
               <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-
                 {mode === 'add' ? 'Create Request' : 'Update Request'}
-
               </DynamicButton>
             </Box>
           </div>

@@ -23,9 +23,7 @@ import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
 
-
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
-
 
 // Data Type for the Resigned Report
 type ResignedDataType = {
@@ -93,7 +91,8 @@ const data: ResignedDataType[] = [
 const DesignationResignedReport = () => {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null])
-  const [startDate, endDate] = dateRange
+
+  // const [startDate, endDate] = dateRange
 
   const [paginationState, setPaginationState] = useState({
     page: 1,

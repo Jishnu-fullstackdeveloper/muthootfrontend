@@ -5,20 +5,19 @@ import dynamic from 'next/dynamic'
 
 // MUI Imports
 import Card from '@mui/material/Card'
-import { useColorScheme, useTheme , alpha } from '@mui/material/styles'
+import { useColorScheme, useTheme, alpha } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-
 
 // Third-party Imports
 import type { ApexOptions } from 'apexcharts'
 
 // Type Imports
-import type { SystemMode } from '@core/types'
+// import type { SystemMode } from '@core/types'
 
 // Util Imports
-import { rgbaToHex } from '@/utils/rgbaToHex'
-import { getServerMode } from '@/@core/utils/serverHelpers'
+// import { rgbaToHex } from '@/utils/rgbaToHex'
+// import { getServerMode } from '@/@core/utils/serverHelpers'
 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
@@ -42,6 +41,8 @@ const OverviewDesignationRequestChart = () => {
 
   // Vars
   const _mode = (mode === 'system' ? serverMode : mode) || serverMode
+
+  console.log(_mode)
   const textSecondary = alpha(theme.palette.text.secondary, 0.7)
 
   // Updated Options for Pie Chart (Bubble Positions per Branch)
@@ -131,9 +132,7 @@ const OverviewDesignationRequestChart = () => {
 
   return (
     <Card sx={{ maxWidth: 400, margin: '0 auto' }}>
-      <CardHeader
-
-        // title='Bubble Positions Availability'
+      <CardHeader // title='Bubble Positions Availability'
         // subheader='Software Engineer positions across various branches'
         sx={{ fontSize: '0.9rem' }} // Reduced font size for header
       />

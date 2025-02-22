@@ -4,17 +4,14 @@ import { useRouter } from 'next/navigation'
 
 import { IconButton, Tooltip, Typography } from '@mui/material'
 
-import type { ColumnDef} from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
-
-
 import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
-import { getAccessToken, decodeToken , isAdmin } from '@/utils/functions'
+import { getAccessToken, decodeToken, isAdmin } from '@/utils/functions'
 import { useAppDispatch } from '@/lib/hooks'
-
 
 const RecruitmentListTableView = ({ designationData }: any) => {
   const dispatch = useAppDispatch()
@@ -27,8 +24,7 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
     const decodedToken = decodeToken(token)
 
-    
-return decodedToken?.sub
+    return decodedToken?.sub
   }
 
   const handleApprove = async (id: number, e: React.MouseEvent) => {
@@ -154,7 +150,8 @@ return decodedToken?.sub
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
                 <Typography color='text.primary' className='font-medium'>
-                  {/* {row.original.band} */} B1
+                  {row.original.band}
+                  {/* B1 */}
                 </Typography>
               </div>
             </div>

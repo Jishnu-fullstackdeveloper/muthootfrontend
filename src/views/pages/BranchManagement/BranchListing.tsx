@@ -15,23 +15,22 @@ import {
   MenuItem,
   Select,
   Typography,
-  Button,
   Tooltip
 } from '@mui/material'
-
 
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
 
-import AssessmentIcon from '@mui/icons-material/Assessment'
+// import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { useAppDispatch } from '@/lib/hooks'
 import CustomTextField from '@/@core/components/mui/TextField'
 import BranchListingTableView from './BranchListingTableView'
-import { getBranchList } from '@/redux/BranchManagementSlice'
+
+// import { getBranchList } from '@/redux/BranchManagementSlice'
 
 const BranchListing = () => {
   const router = useRouter()
@@ -40,6 +39,8 @@ const BranchListing = () => {
   // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
   const [selectedTabs, setSelectedTabs] = useState<Record<number, number>>({})
+
+  console.log(dispatch, selectedTabs)
 
   const branchData = [
     {
@@ -93,8 +94,8 @@ const BranchListing = () => {
     const initialTabsState = branchData.reduce(
       (acc, branch) => {
         acc[branch.id] = 0 // Default to the 'Details' tab
-        
-return acc
+
+        return acc
       },
       {} as Record<number, number>
     )

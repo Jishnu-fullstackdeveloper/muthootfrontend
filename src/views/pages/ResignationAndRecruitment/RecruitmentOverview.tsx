@@ -26,14 +26,15 @@ import SettingsIcon from '@mui/icons-material/Settings'
 
 import AddIcon from '@mui/icons-material/Add'
 
+import withPermission from '@/hocs/withPermission'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
 
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchResignationOverviewList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
 
-import { isAdmin, getRoleId, getAccessToken, decodeToken } from '@/utils/functions'
+import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
 
 // const approvers = [
 //   {
@@ -142,11 +143,30 @@ const RecruitmentRequestOverview = () => {
     setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
+  const NewRequestButton: React.FC<{ buttonDisable?: boolean }> = ({ buttonDisable }) => (
+    <Button
+      variant='contained'
+      color='primary'
+      startIcon={<AddIcon />}
+      onClick={() => router.push('/recruitment-management/add/new-request')}
+      disabled={buttonDisable || false}
+    >
+      New Request
+    </Button>
+  )
+
+  const NewRequestWithPermission = withPermission(
+    NewRequestButton,
+    'recruitmentManagement'
+  )({
+    individualPermission: 'recruitment_create'
+  })
+
   // const handleApproveAll = () => setAcceptAllDialogOpen(true)
   // const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
   // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
 
-  const userRoleId = getRoleId()
+  // const userRoleId = getRoleId()
 
   const safeGetData = (source: any): any[] => (source?.options && Array.isArray(source.options) ? source.options : [])
 
@@ -176,13 +196,16 @@ const RecruitmentRequestOverview = () => {
       // const requestData = approvers.find((item: any) => item.id === id)
 
       // if (!approval_id) throw new Error('No approval ID found')
-      await dispatch(
-        submitRequestDecision({
-          id: approval_id, // Using approval_id from overview data
-          approvalStatus: 'APPROVED',
-          approverId: userRoleId
-        })
-      ).unwrap()
+
+      console.log(approval_id, id)
+
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id, // Using approval_id from overview data
+      //     approvalStatus: 'APPROVED',
+      //     approverId: userRoleId
+      //   })
+      // ).unwrap()
 
       // Refresh the list after approval
       dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
@@ -202,13 +225,15 @@ const RecruitmentRequestOverview = () => {
 
       // if (!approval_id) throw new Error('No approval ID found')
 
-      await dispatch(
-        submitRequestDecision({
-          id: approval_id, // Using approval_id from overview data
-          approvalStatus: 'REJECTED',
-          approverId: userRoleId
-        })
-      ).unwrap()
+      console.log(approval_id, id)
+
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id, // Using approval_id from overview data
+      //     approvalStatus: 'REJECTED',
+      //     approverId: userRoleId
+      //   })
+      // ).unwrap()
 
       // Refresh the list after rejection
       dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
@@ -267,15 +292,7 @@ const RecruitmentRequestOverview = () => {
             Recruitment Request Overview
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
-            <Button
-              variant='contained'
-              color='primary'
-              startIcon={<AddIcon />}
-              onClick={() => router.push('/recruitment-management/add/new-request')}
-            >
-              New Request
-            </Button>
-
+            {NewRequestWithPermission}
             <Button
               variant='contained'
               color='primary'

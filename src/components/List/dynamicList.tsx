@@ -28,10 +28,10 @@ const DynamicList: React.FC<DynamicListProps> = ({ data }) => {
   }
 
   const renderIcon = (iconName: string) => {
+    // eslint-disable-next-line import/namespace
     const IconComponent = Icons[iconName as keyof typeof Icons]
 
-    
-return IconComponent ? <IconComponent /> : null
+    return IconComponent ? <IconComponent /> : null
   }
 
   return (

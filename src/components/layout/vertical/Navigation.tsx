@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react'
 
 // MUI Imports
-import { styled, useColorScheme, useTheme } from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles' //useColorScheme
 
 // Type Imports
 import type { Mode, SystemMode } from '@core/types'
@@ -54,7 +54,8 @@ const Navigation = (props: Props) => {
   // Hooks
   const verticalNavOptions = useVerticalNav()
   const { updateSettings, settings } = useSettings()
-  const { mode: muiMode, systemMode: muiSystemMode } = useColorScheme()
+
+  // const { mode: muiMode, systemMode: muiSystemMode } = useColorScheme()
   const theme = useTheme()
 
   // Refs

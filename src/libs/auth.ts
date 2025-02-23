@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 // Third-party Imports
 import CredentialProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'

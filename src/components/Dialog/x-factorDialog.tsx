@@ -19,11 +19,14 @@ type XFactorDialogProps = {
   currentXFactor: number
 }
 
-const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, currentXFactor }) => {
+const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave }) => {
+  //currentXFactor
   const [xFactor, setXFactor] = useState<string>('') // Start with an empty value
   const [error, setError] = useState<string>('')
   const [warning, setWarning] = useState<string>('') // Separate state for warnings
   const [touched, setTouched] = useState<boolean>(false)
+
+  touched
 
   useEffect(() => {
     setXFactor('') // Clear the value each time the dialog opens

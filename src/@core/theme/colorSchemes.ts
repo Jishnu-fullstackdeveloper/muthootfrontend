@@ -5,6 +5,11 @@ import type { Theme } from '@mui/material/styles'
 import type { Skin } from '@core/types'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
+const themeSettings = custom_theme_settings.theme as { secondaryColor?: string }
+
+// Use the asserted type
+const secondaryColor = themeSettings.secondaryColor || '#808390'
+
 const colorSchemes = (skin: Skin): Theme['colorSchemes'] => {
   return {
     light: {
@@ -20,7 +25,7 @@ const colorSchemes = (skin: Skin): Theme['colorSchemes'] => {
           darkerOpacity: 'rgb(var(--mui-palette-primary-mainChannel) / 0.38)'
         },
         secondary: {
-          main: custom_theme_settings?.theme?.secondaryColor || '#808390',
+          main: secondaryColor,
           light: '#999CA6',
           dark: '#737682',
           contrastText: '#FFF',
@@ -172,7 +177,7 @@ const colorSchemes = (skin: Skin): Theme['colorSchemes'] => {
           darkerOpacity: 'rgb(var(--mui-palette-primary-mainChannel) / 0.38)'
         },
         secondary: {
-          main: custom_theme_settings?.theme?.secondaryColor || '#808390',
+          main: secondaryColor,
           light: '#999CA6',
           dark: '#737682',
           contrastText: '#FFF',

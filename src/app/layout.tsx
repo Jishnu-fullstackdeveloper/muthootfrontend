@@ -11,7 +11,8 @@ import '@/app/globals.css'
 // Generated Icon CSS Imports
 import '@assets/iconify-icons/generated-icons.css'
 import '@/app/custom.css'
-import { getAccessToken, Logout } from '@/utils/functions'
+
+// import { getAccessToken, Logout } from '@/utils/functions'
 
 import 'react-quill/dist/quill.snow.css'
 import 'react-datepicker/dist/react-datepicker.css'

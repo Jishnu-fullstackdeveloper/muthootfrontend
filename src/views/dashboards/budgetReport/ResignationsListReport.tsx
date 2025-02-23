@@ -9,7 +9,8 @@ import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
+
+// import Chip from '@mui/material/Chip'
 import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
 
 // Style Imports
@@ -86,6 +87,7 @@ const ResignationsListReport = () => {
                   }
                 }}
                 label='Employee Name'
+                value=''
                 options={data.map(item => ({ name: item.employeeName }))}
               />
             </Grid>
@@ -94,7 +96,9 @@ const ResignationsListReport = () => {
             <Grid item xs={12} sm={4} md={5}>
               <AppReactDatepicker
                 selectsRange={true}
-                onChange={(date: [Date | null, Date | null] | null) => {}}
+                onChange={(date: [Date | null, Date | null] | null) => {
+                  console.log(date)
+                }}
                 dateFormat='dd-MMMM-yyyy'
                 placeholderText='Filter by date'
                 customInput={

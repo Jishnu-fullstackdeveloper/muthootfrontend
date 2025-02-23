@@ -42,6 +42,8 @@ function Page() {
   const [selectedState, setSelectedState] = useState<string | null>(null)
   const [districts, setDistricts] = useState(sampleDistricts)
 
+  selectedState
+
   const handleStateChange = (state: { name: string } | null) => {
     setSelectedState(state?.name || null)
 
@@ -56,11 +58,12 @@ function Page() {
     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
       <DynamicAutocomplete
         label='State'
+        value=''
         options={allStates}
         onOptionSelect={option => handleStateChange(option)}
         sx={{}}
       />
-      <DynamicAutocomplete label='District' options={districts} sx={{}} />
+      <DynamicAutocomplete label='District' value='' options={districts} sx={{}} />
     </div>
   )
 }

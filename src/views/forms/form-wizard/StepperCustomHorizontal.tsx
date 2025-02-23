@@ -345,7 +345,8 @@ const StepperCustomHorizontal = () => {
                   <DirectionalIcon
                     ltrIconClass='tabler-chevron-right'
                     rtlIconClass='tabler-chevron-left'
-                    className='text-xl'
+
+                    // className='text-xl'
                   />
                 ) : null
               }

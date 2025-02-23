@@ -2,7 +2,8 @@ import * as React from 'react'
 
 import TextField from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
-import { styled } from '@mui/material/styles'
+
+// import { styled } from '@mui/material/styles'
 
 interface dynamicAutocompleteProps {
   label: string
@@ -20,8 +21,9 @@ const DynamicAutocomplete = ({
   options,
   onOptionSelect,
   sx,
-  PopperComponent = '',
-  ListboxProps = ''
+  PopperComponent = ''
+
+  // ListboxProps = ''
 }: dynamicAutocompleteProps) => {
   return (
     <Autocomplete

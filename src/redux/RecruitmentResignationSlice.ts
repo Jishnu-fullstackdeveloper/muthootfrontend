@@ -4,11 +4,32 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates, constructUrlWithParams } from '@/utils/functions'
 
-export const fetchResignationOverviewList = createAsyncThunk<any, any>(
+// Define parameters for fetchResignationOverviewList
+interface FetchResignationOverviewParams {
+  search?: string
+  page: number
+  limit: number
+  designationName?: string // Optional for second page
+  id?: string // Optional for third page
+}
+
+export const fetchResignationOverviewList = createAsyncThunk<any, FetchResignationOverviewParams>(
   'appTms/fetchTicketsList',
-  async (params: string, { rejectWithValue }) => {
+  async (params: FetchResignationOverviewParams, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/api/recruitment-request/group', { params })
+      // Construct URL and params
+      const { search, page, limit, designationName, id } = params
+      const queryParams: Record<string, any> = { search, page, limit }
+
+      // Add designationName for second page, id for third page
+      if (designationName !== undefined) {
+        queryParams.designationName = designationName
+      } else if (id !== undefined) {
+        queryParams.id = id
+      }
+
+      const url = constructUrlWithParams('/api/recruitment-request', queryParams)
+      const response = await AxiosLib.get(url)
 
       return response.data.data
     } catch (error: any) {

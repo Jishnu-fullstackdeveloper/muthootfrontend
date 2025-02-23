@@ -6,7 +6,6 @@ import * as Yup from 'yup'
 import {
   FormControl,
   MenuItem,
-  FormControlLabel,
   Card,
   Stepper,
   StepLabel,
@@ -53,14 +52,14 @@ const validationSchema = Yup.object().shape({
     .test('is-greater', 'Vacancy End Date must be greater than Vacancy Start Date', function (value) {
       const { vacancyStartDate } = this.parent
 
-      
-return value && vacancyStartDate && new Date(value) > new Date(vacancyStartDate)
+      return value && vacancyStartDate && new Date(value) > new Date(vacancyStartDate)
     }),
   contactPerson: Yup.string().required('Contact Person is required'),
   vacancyStatus: Yup.string().required('Vacancy Status is required')
 })
 
 const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
+  id
   const [activeStep, setActiveStep] = React.useState(0)
   const steps = ['Basic Details', 'Job Location', 'Qualification Needed', 'Salary Details', 'Application Details']
   const formikValuesFromCache = getVacancyManagementAddFormValues()
@@ -190,11 +189,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
           {steps.map((label, index) => (
             <Step key={label}>
-              <StepLabel
-
-                // onClick={() => setActiveStep(index)}
-                sx={{ cursor: 'pointer' }}
-              >
+              <StepLabel onClick={() => setActiveStep(index)} sx={{ cursor: 'pointer' }}>
                 <Typography>{label}</Typography>
               </StepLabel>
             </Step>
@@ -600,9 +595,7 @@ const GeneratedAddVacancyForm: React.FC<Props> = ({ mode, id }) => {
                 </label>
                 <ReactDatePicker
                   selected={VacancyFormik.values.vacancyStartDate}
-                  onChange={(date: Date | null) => VacancyFormik.setFieldValue('vacancyStartDate', date)}
-
-                  //selectsMultiple={false}
+                  onChange={(date: Date | null) => VacancyFormik.setFieldValue('vacancyStartDate', date)} // selectsMultiple={false}
                   dateFormat='dd-MM-yyyy'
                   placeholderText='dd-mm-yyyy'
                   wrapperClassName='datePickerWrapper'

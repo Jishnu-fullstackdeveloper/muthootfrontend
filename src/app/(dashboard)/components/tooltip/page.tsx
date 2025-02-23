@@ -7,7 +7,7 @@ function Page() {
 
   return (
     <div>
-      <DynamicTooltip title={tooltipTitle} />
+      <DynamicTooltip title={tooltipTitle} children={<div></div>} />
     </div>
   )
 }

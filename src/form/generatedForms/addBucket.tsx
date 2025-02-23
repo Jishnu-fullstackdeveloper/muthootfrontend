@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, IconButton,  Autocomplete,  } from '@mui/material'
+import { FormControl, TextField, IconButton, Autocomplete } from '@mui/material'
 
 import AddIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
@@ -41,7 +41,6 @@ type Props = {
 // }
 
 const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
-
   const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1, grade: '' }])
   const [modalData, setModalData] = useState(null)
   const [selectedTurnover, setSelectedTurnover] = useState<any>(null)
@@ -49,6 +48,9 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const [hoveredRow, setHoveredRow] = useState(null)
   const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('')
 
+  modalData
+  showDeleteModal
+  hoveredRow
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -72,7 +74,8 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const {
     turnoverListData,
     fetchBucketDetailsData,
-    isFetchBucketDetailsLoading,
+
+    // isFetchBucketDetailsLoading,
     fetchBucketDetailsSuccess,
     updateBucketListSuccess,
     designationData,
@@ -114,7 +117,6 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
 
   console.log(gradeData, 'Grade Datas', designationData)
 
-
   useEffect(() => {
     getDesignationDatas()
     getGradeDatas()
@@ -135,6 +137,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   }
 
   const submitselectedTurnoverCode = (item: any) => {
+    item
     setTurnoverCode(selectedTurnoverCode)
     bucketFormik.setFieldValue('turnoverCode', selectedTurnoverCode)
     setModalState({ ...modalState, showTurnOverModal: false })
@@ -143,8 +146,8 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const handleSaveNewTurnover = () => {
     if (!turnoverCode.trim()) {
       alert('Please provide a turnover code')
-      
-return
+
+      return
     } else {
       const params = {
         turnover: turnoverCode
@@ -167,7 +170,6 @@ return
         turnoverCode: turnoverCode
       }
 
-      console.log('dataaaa', newTurnover)
       setData([...data, newTurnover])
     }
 
@@ -188,7 +190,6 @@ return
     setSelectedTurnover(item)
     setShowDeleteModal(true)
   }
-
 
   const bucketFormik = useFormik({
     initialValues: {
@@ -224,8 +225,8 @@ return
 
       if (invalidDesignations) {
         alert('All designation names must be filled.')
-        
-return
+
+        return
       }
 
       const params: any = {
@@ -268,7 +269,6 @@ return
       bucketFormik.setFieldValue('designations', tempDesignations)
     }
   }, [fetchBucketDetailsSuccess, fetchBucketDetailsData, updateBucketListSuccess])
-
 
   const router = useRouter()
 
@@ -417,10 +417,17 @@ return
                     setDesignations(newDesignations)
                     bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
                   }}
-                  error={!!(bucketFormik.errors.designations && bucketFormik.errors.designations[index]?.count)}
+                  error={
+                    !!(
+                      typeof bucketFormik.errors.designations[index] === 'object' &&
+                      bucketFormik.errors.designations[index]?.count
+                    )
+                  }
                   helperText={
-                    bucketFormik.errors.designations && bucketFormik.errors.designations[index]?.count
-                      ? bucketFormik.errors.designations[index]?.count
+                    bucketFormik.errors.designations &&
+                    typeof bucketFormik.errors.designations[index] === 'object' &&
+                    bucketFormik.errors.designations[index]?.count
+                      ? bucketFormik.errors.designations[index].count
                       : undefined
                   }
                   fullWidth

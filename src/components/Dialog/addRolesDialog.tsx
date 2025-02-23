@@ -4,7 +4,8 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
-import { SelectChangeEvent } from '@mui/material/Select'
+
+// import { SelectChangeEvent } from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 
 import DynamicTextField from '../TextField/dynamicTextField'
@@ -20,7 +21,8 @@ type CustomRoleProps = {
   onAddRole: (newRole: Record<string, any>) => void // New prop
 }
 
-const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyRoles, onAddRole }: CustomRoleProps) => {
+const CustomRoles = ({ open, setOpen, setSelectedRole }: CustomRoleProps) => {
+  // selectedFilters, onApplyRoles, onAddRole
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -32,8 +34,7 @@ const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyR
     setOpen(false) // Close the dialog
   }
 
-  
-return (
+  return (
     <Dialog
       maxWidth='sm'
       scroll='body'

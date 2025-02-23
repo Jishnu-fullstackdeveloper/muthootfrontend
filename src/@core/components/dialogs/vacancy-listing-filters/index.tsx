@@ -3,7 +3,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+// import { useState } from 'react'
 
 // MUI Imports
 import Drawer from '@mui/material/Drawer'
@@ -11,7 +11,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import CheckIcon from '@mui/icons-material/Check'
 import IconButton from '@mui/material/IconButton'
-import Button from '@mui/material/Button'
+
+// import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -19,7 +20,7 @@ import FormGroup from '@mui/material/FormGroup'
 import Slider from '@mui/material/Slider'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { Box, InputLabel, FormControl } from '@mui/material'
+import { Box, FormControl } from '@mui/material' //InputLabel
 
 // Type Imports
 type VacancyFiltersProps = {
@@ -57,8 +58,7 @@ const VacancyManagementFilters = ({
         ? categoryFilters.filter(item => item !== value)
         : [...categoryFilters, value]
 
-      
-return { ...prev, [category]: updatedFilters }
+      return { ...prev, [category]: updatedFilters }
     })
   }
 

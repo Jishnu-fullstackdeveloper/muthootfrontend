@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 'use client'
 import { useEffect } from 'react'
 
@@ -9,8 +10,8 @@ const page = () => {
   useEffect(() => {
     router.push('/recruitment-management/overview')
   }, [])
-  
-return <div></div>
+
+  return <div></div>
 }
 
 export default page

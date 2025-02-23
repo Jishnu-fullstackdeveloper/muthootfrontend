@@ -2,10 +2,7 @@ import React from 'react'
 
 import BranchDetails from '@/views/pages/BranchManagement/BranchDetails'
 
-export  const page = () => {
-  return (
-    <BranchDetails/>
-  )
+// Define the page component as the default export
+export default function Page() {
+  return <BranchDetails />
 }
-
-export default page

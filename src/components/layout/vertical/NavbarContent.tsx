@@ -9,7 +9,8 @@ import classnames from 'classnames'
 import { Breadcrumbs, Link, Typography } from '@mui/material'
 
 import NavToggle from './NavToggle'
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
+
+// import ModeDropdown from '@components/layout/shared/ModeDropdown'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
@@ -18,8 +19,7 @@ const NavbarContent = () => {
   const pathname = usePathname()
   const pathSegments = pathname.split('/').filter(Boolean)
 
-  
-return (
+  return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
         <NavToggle />

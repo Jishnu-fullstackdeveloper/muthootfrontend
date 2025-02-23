@@ -1,11 +1,12 @@
 'use client'
 
 // Next Imports
-import dynamic from 'next/dynamic'
+// import dynamic from 'next/dynamic'
 
 // MUI Imports
 import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
+
+// import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import { useTheme } from '@mui/material/styles'

@@ -8,20 +8,26 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import DynamicTable from '@/components/Table/dynamicTable'
-import type { Person } from '@/components/Table/dynamicTable';
 import { tableData } from '@/shared/tableData'
+
+type Person = {
+  id: number
+  name: string
+  age: number
+  email: string
+}
 
 function Page() {
   const handleView = (row: Person) => {
-    alert('View action clicked ')
+    alert(`View action clicked ${row}`)
   }
 
   const handleEdit = (row: Person) => {
-    alert('Edit action clicked')
+    alert(`Edit action clicked ${row}`)
   }
 
   const handleDelete = (row: Person) => {
-    alert('Delete action clicked ')
+    alert(`Delete action clicked ${row}`)
   }
 
   const columns: ColumnDef<Person>[] = [

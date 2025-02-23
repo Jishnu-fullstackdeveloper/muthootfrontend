@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography'
 import { Tooltip } from '@mui/material'
 
 // Type Imports
-import { toast } from 'react-toastify'
+// import { toast } from 'react-toastify'
 
 // Component Imports
 import 'react-toastify/dist/ReactToastify.css'
@@ -25,9 +25,7 @@ type delete_props = {
 const ConfirmDeletePopup = ({ open, setOpen, setDeleteConfirmed, tooltipText, HeadingText }: delete_props) => {
   return (
     <>
-      <Dialog
-
-        // fullWidth
+      <Dialog // fullWidth
         maxWidth='md'
         scroll='body'
         open={open}

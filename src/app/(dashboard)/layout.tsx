@@ -20,7 +20,8 @@ import ScrollToTop from '@core/components/scroll-to-top'
 
 // Util Imports
 import { getMode, getSystemMode } from '@core/utils/serverHelpers'
-import { getAccessToken, Logout } from '@/utils/functions'
+
+// import { getAccessToken, Logout } from '@/utils/functions'
 
 const Layout = async ({ children }: ChildrenType) => {
   // Vars

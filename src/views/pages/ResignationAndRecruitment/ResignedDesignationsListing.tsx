@@ -1,8 +1,14 @@
+// src/form/generatedForms/ResignedDesignationsListing.tsx
 'use client'
-import React, { useEffect, useState, useMemo } from 'react'
 
+// React Imports
+import { useEffect, useState } from 'react'
+
+// Next Imports
 import { useRouter, useSearchParams } from 'next/navigation'
 
+// MUI Imports
+import type { TextFieldProps } from '@mui/material'
 import {
   Box,
   Card,
@@ -23,27 +29,30 @@ import {
   CircularProgress
 } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import type { TextFieldProps } from '@mui/material/TextField'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import { CheckCircle, Clear, HourglassEmpty } from '@mui/icons-material'
 
-import { getAccessToken, isAdmin, decodeToken } from '@/utils/functions'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchRecruitmentRequestList, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+// Components and Utils
 import CustomTextField from '@/@core/components/mui/TextField'
-import RecruitmentListTableView from './RecruitmentListTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
+import RecruitmentListTableView from './RecruitmentListTableView'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
+import { getAccessToken, isAdmin, decodeToken } from '@/utils/functions'
 
+// Sample Data (to be removed if using real API data)
 // import designationData from './sampleDesignationData'
 import type { RootState } from '@/redux/store'
+
+// import type { TextFieldProps } from '@mui/material/TextField'
 
 const ResignedDesignationsListing = () => {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState('grid')
-  const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
+  const [paginationState, setPaginationState] = useState({ limit: 10, page: 2, display_numbers_count: 5 }) // Page 2 for second page
   const [openLocationFilter, setOpenLocationFilter] = useState(false)
 
   const [selectedLocationFilters, setSelectedLocationFilters] = useState({
@@ -65,10 +74,7 @@ const ResignedDesignationsListing = () => {
   }
 
   const handleLocationFilterChange = (filterKey: string) => (value: any) => {
-    setSelectedLocationFilters(prev => ({
-      ...prev,
-      [filterKey]: value
-    }))
+    setSelectedLocationFilters(prev => ({ ...prev, [filterKey]: value }))
   }
 
   const handleApplyFilters = (selectedFilters: Record<string, any>) => {
@@ -79,37 +85,23 @@ const ResignedDesignationsListing = () => {
 
   const router = useRouter()
   const searchParams = useSearchParams()
-  const filterParams = searchParams.get('filter')
+  const filterParams = searchParams.get('filter') // Assuming filterParams provides designationName
   const dispatch = useAppDispatch()
 
   const {
-    fetchRecruitmentRequestListLoading,
-    fetchRecruitmentRequestListData,
-    fetchRecruitmentRequestListFailure,
-    fetchRecruitmentRequestListFailureMessage
+    fetchResignationOverviewListLoading,
+    fetchResignationOverviewListData,
+    fetchResignationOverviewListFailure,
+    fetchResignationOverviewListFailureMessage
   } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
 
   const safeGetData = (source: any): any[] =>
     source?.data?.options && Array.isArray(source.data?.options) ? source.data?.options : []
 
-  const designationData = useMemo(() => {
-    const data = safeGetData(fetchRecruitmentRequestListData)
-
-    return data
-  }, [fetchRecruitmentRequestListData])
+  // Use real API data instead of sample data
+  const designationData = safeGetData(fetchResignationOverviewListData)
 
   const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>({})
-
-  // const [selectedTabs, setSelectedTabs] = useState<{ [key: number]: number }>(() =>
-  //   designationData?.reduce(
-  //     (acc, reqst, index) => {
-  //       acc[index] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
-
-  //       return acc
-  //     },
-  //     {} as { [key: number]: number }
-  //   )
-  // )
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -128,44 +120,37 @@ const ResignedDesignationsListing = () => {
     const token = getAccessToken()
 
     if (!token) return null
-
     const decodedToken = decodeToken(token)
 
     return decodedToken?.sub
   }
 
-  const handlePageChange = (event: any, value: any) => {
+  const handlePageChange = (event: any, value: number) => {
     setPaginationState(prev => ({ ...prev, page: value }))
   }
 
-  const handleChangeLimit = (value: any) => {
+  const handleChangeLimit = (value: number) => {
     setPaginationState(prev => ({ ...prev, limit: value }))
   }
 
-  // const handleTabChange = (index: number, newTab: number) => {
-  //   setSelectedTabs(prev => ({
-  //     ...prev,
-  //     [index]: newTab // Update the tab for the specific index
-  //   }))
-  // }
+  const handleTabChange = (index: number, newTab: number) => {
+    setSelectedTabs(prev => ({ ...prev, [index]: newTab }))
+  }
 
   const handleApprove = async (id: number, approval_id: number) => {
     try {
       const approverId = getApproverId()
 
       if (!approverId) throw new Error('No approver ID found')
+      console.log(id, approval_id)
 
-      // Find the request data from overview list using id
-      // const requestData = designationData.find((item: any) => item.id === id)
-
-      // if (!approval_id) throw new Error('No approval ID found')
-      await dispatch(
-        submitRequestDecision({
-          id: approval_id, // Using approval_id from overview data
-          approvalStatus: 'APPROVED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id,
+      //     approvalStatus: 'APPROVED',
+      //     approverId
+      //   })
+      // ).unwrap()
     } catch (error) {
       console.error('Error approving request:', error)
     }
@@ -176,19 +161,15 @@ const ResignedDesignationsListing = () => {
       const approverId = getApproverId()
 
       if (!approverId) throw new Error('No approver ID found')
+      console.log(id, approval_id)
 
-      // Find the request data from overview list using id
-      // const requestData = designationData.find((item: any) => item.id === id)
-
-      // if (!approval_id) throw new Error('No approval ID found')
-
-      await dispatch(
-        submitRequestDecision({
-          id: approval_id, // Using approval_id from overview data
-          approvalStatus: 'REJECTED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id,
+      //     approvalStatus: 'REJECTED',
+      //     approverId
+      //   })
+      // ).unwrap()
     } catch (error) {
       console.error('Error rejecting request:', error)
     }
@@ -200,8 +181,8 @@ const ResignedDesignationsListing = () => {
     debounce = 500,
     ...props
   }: {
-    value: string | number
-    onChange: (value: string | number) => void
+    value: string
+    onChange: (value: string) => void
     debounce?: number
   } & Omit<TextFieldProps, 'onChange'>) => {
     const [value, setValue] = useState(initialValue)
@@ -216,27 +197,28 @@ const ResignedDesignationsListing = () => {
       }, debounce)
 
       return () => clearTimeout(timeout)
-    }, [value])
+    }, [value, debounce, onChange])
 
     return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
+  // Fetch data for second page with designationName
   useEffect(() => {
     const params = {
+      search: search || '',
       page: paginationState.page,
       limit: paginationState.limit,
-      designationName: filterParams?.replace(/-/g, ' ') || '', // Make designationName optional
-      search: search || ''
+      designationName: filterParams?.replace(/-/g, ' ') || 'Developer' // Example designationName, adjust as needed
     }
 
-    dispatch(fetchRecruitmentRequestList(params))
-  }, [dispatch, paginationState.page, paginationState.limit, filterParams, search]) // Add dependencies
+    dispatch(fetchResignationOverviewList(params))
+  }, [dispatch, paginationState.page, paginationState.limit, search, filterParams])
 
   useEffect(() => {
     if (designationData?.length > 0) {
       const initialTabs = designationData.reduce(
         (acc, _, index) => {
-          acc[index] = 0 // Set the default tab to 'Basic Details' (index 0) for each item
+          acc[index] = 0 // Default tab is 'Basic Details'
 
           return acc
         },
@@ -247,16 +229,7 @@ const ResignedDesignationsListing = () => {
     }
   }, [designationData])
 
-  const handleTabChange = (index: number, newTab: number) => {
-    setSelectedTabs(prev => ({
-      ...prev,
-      [index]: newTab
-    }))
-  }
-
-  // useEffect(() => {}, [designationData])
-
-  if (fetchRecruitmentRequestListLoading) {
+  if (fetchResignationOverviewListLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
         <CircularProgress />
@@ -264,10 +237,10 @@ const ResignedDesignationsListing = () => {
     )
   }
 
-  if (fetchRecruitmentRequestListFailure) {
+  if (fetchResignationOverviewListFailure) {
     return (
       <Box sx={{ padding: 4 }}>
-        <Typography color='error'>Error loading data: {fetchRecruitmentRequestListFailureMessage}</Typography>
+        <Typography color='error'>Error loading data: {fetchResignationOverviewListFailureMessage}</Typography>
       </Box>
     )
   }
@@ -323,7 +296,6 @@ const ResignedDesignationsListing = () => {
             <Typography variant='body2' color='textSecondary'>
               Last Bot Update on: <span style={{ fontWeight: 'bold', color: '#2d2c2c' }}>January 6, 2025</span>
             </Typography>
-
             <Tooltip title='Click here for help'>
               <IconButton size='small'>
                 <HelpOutlineIcon fontSize='small' />
@@ -336,7 +308,7 @@ const ResignedDesignationsListing = () => {
             <DebouncedInput
               label='Search Department'
               value={search}
-              onChange={(value: any) => setSearch(value)}
+              onChange={value => setSearch(value)}
               placeholder='Search by Department...'
               className='is-full sm:is-[400px]'
               InputProps={{
@@ -358,13 +330,12 @@ const ResignedDesignationsListing = () => {
               />
             </Box>
           </div>
-
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
             <DynamicButton
               label='Export Excel'
               variant='tonal'
               icon={<i className='tabler-file-arrow-right' />}
-              position='start' // onClick={() => setFileUploadDialogOpen(true)}
+              position='start'
               children='Export Excel'
             />
             <DynamicButton
@@ -375,7 +346,6 @@ const ResignedDesignationsListing = () => {
               onClick={() => router.push(`/recruitment-management/add/new`)}
               children='New Request'
             />
-
             <Box
               sx={{
                 display: 'flex',
@@ -401,7 +371,6 @@ const ResignedDesignationsListing = () => {
                   <ViewListIcon />
                 </IconButton>
               </Tooltip>
-
               <Tooltip title='Table View'>
                 <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
                   <TableChartIcon />
@@ -418,284 +387,67 @@ const ResignedDesignationsListing = () => {
             viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6' : 'space-y-4'
           }`}
         >
-          {designationData
-
-            // ?.filter((d: any) => d.designation === filterParams?.replace(/-/g, ' '))
-            ?.map((designation: any, index: number) => (
-              <Box
-                key={index}
-                onClick={() => router.push(`/recruitment-management/view/${designation.id}`)}
-                className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
-                  viewMode !== 'grid' ? 'p-0' : ''
-                }`}
-                sx={{
-                  cursor: 'pointer',
-                  minHeight: viewMode !== 'grid' ? '150px' : 'auto',
-                  display: 'flex',
-                  flexDirection: 'column', // Ensure column layout
-                  justifyContent: 'space-between' // Space between content and buttons
-                }}
-              >
-                <Box>
-                  {viewMode === 'grid' ? (
-                    <>
-                      <Box className='p-4 border-t'>
-                        <Tabs
-                          value={selectedTabs[index] ?? 0}
-                          onClick={e => e.stopPropagation()}
-                          onChange={(e, newValue) => handleTabChange(index, newValue)}
-                          aria-label='employee details'
-                          sx={{
-                            minHeight: '40px' // Adjust the height of the Tabs container
-                          }}
-                        >
-                          <Tab
-                            label='Basic Details'
-                            sx={{
-                              minWidth: 0, // Reduce the default minimum width
-                              padding: '6px 12px', // Adjust padding to reduce spacing
-                              fontSize: '0.85rem', // Adjust font size for compact design
-                              minHeight: '40px' // Reduce tab height
-                            }}
-                          />
-                          <Tab
-                            label={
-                              <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
-                                <Typography sx={{ fontSize: '0.85rem' }}>Bubble Positions</Typography>
-                                <Box
-                                  sx={{
-                                    backgroundColor: '#2faad3',
-                                    color: '#fff',
-                                    borderRadius: '100%',
-                                    padding: '3px 6px',
-                                    marginLeft: '8px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 'bold',
-                                    minWidth: '24px',
-                                    textAlign: 'center'
-                                  }}
-                                >
-                                  {designation?.bubblePositionBranchIds?.length || 0}
-                                </Box>
-                              </Box>
-                            }
-                            sx={{
-                              minWidth: 0,
-                              padding: '6px 12px',
-                              fontSize: '0.85rem',
-                              minHeight: '40px'
-                            }}
-                          />
-                          <Tab
-                            label='More Details'
-                            sx={{
-                              minWidth: 0,
-                              padding: '6px 12px',
-                              fontSize: '0.85rem',
-                              minHeight: '40px'
-                            }}
-                          />
-                        </Tabs>
-
-                        <Box className='mt-4'>
-                          {selectedTabs[index] === 0 && (
-                            <Box className='space-y-2 text-sm text-gray-700'>
-                              <p>
-                                <strong>Request Type:</strong> {designation?.origin}
-                              </p>
-                              <p>
-                                <strong>Department:</strong> {designation?.Department}
-                              </p>
-                              <p>
-                                <strong>Branch:</strong> {designation?.Branches}
-                              </p>
-                              {designation.origin === 'Resignation' && (
-                                <p>
-                                  <strong>Resigned Employee Code:</strong> {designation?.id}
-                                </p>
-                              )}
-
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <strong>Status:</strong>&nbsp;
-                                  <span
-                                    style={{
-                                      marginRight: '3px',
-                                      color:
-                                        designation?.employmentStatus === 'Approval Pending'
-                                          ? '#ff9800' // Orange for Pending
-                                          : designation?.employmentStatus === 'Approved'
-                                            ? '#4caf50' // Green for Approved
-                                            : designation?.employmentStatus === 'Rejected'
-                                              ? '#f44336' // Red for Rejected
-                                              : '#757575' // Default grey
-                                    }}
-                                  >
-                                    {designation?.id}
-                                  </span>
-                                  {getStatusIcon(designation?.id)}
-                                </Typography>
-                              </Box>
-
-                              <Divider sx={{ marginY: 2 }} />
-                              {/* Approve & Reject Buttons */}
-                              {isAdmin() ? (
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    justifyContent: 'flex-end',
-                                    gap: 1
-                                  }}
-                                >
-                                  <Tooltip title='Approve Request'>
-                                    <Button
-                                      variant='contained'
-                                      color='success'
-                                      onClick={e => {
-                                        e.stopPropagation()
-                                        handleApprove(designation?.id, designation?.approval_id)
-                                      }}
-                                      sx={{ padding: '6px 16px' }}
-                                      startIcon={<i className='tabler-check' />}
-                                    >
-                                      Approve All
-                                    </Button>
-                                  </Tooltip>
-                                  <Tooltip title='Reject Request'>
-                                    <Button
-                                      variant='contained'
-                                      color='error'
-                                      onClick={e => {
-                                        e.stopPropagation()
-                                        handleReject(designation?.id, designation?.approval_id)
-                                      }}
-                                      sx={{ padding: '6px 16px' }}
-                                      startIcon={<i className='tabler-playstation-x' />}
-                                    >
-                                      Reject All
-                                    </Button>
-                                  </Tooltip>
-                                </Box>
-                              ) : (
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    justifyContent: 'flex-end',
-                                    alignItems: 'center'
-                                  }}
-                                >
-                                  <Chip
-                                    label='Pending'
-                                    color='warning'
-                                    sx={{
-                                      borderRadius: '16px',
-                                      fontSize: '0.875rem',
-                                      '& .MuiChip-label': {
-                                        px: 2,
-                                        py: 0.5
-                                      }
-                                    }}
-                                    icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
-                                  />
-                                </Box>
-                              )}
-                              <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
-                                <Typography
-                                  variant='body2'
-                                  sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}
-                                >
-                                  Additional Details: {designation.additionalDetails || 'N/A'}
-                                </Typography>
+          {designationData.map((designation: any, index: number) => (
+            <Box
+              key={index}
+              onClick={() => router.push(`/recruitment-management/view/${designation.id}`)}
+              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
+                viewMode !== 'grid' ? 'p-0' : ''
+              }`}
+              sx={{
+                cursor: 'pointer',
+                minHeight: viewMode !== 'grid' ? '150px' : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box>
+                {viewMode === 'grid' ? (
+                  <>
+                    <Box className='p-4 border-t'>
+                      <Tabs
+                        value={selectedTabs[index] ?? 0}
+                        onClick={e => e.stopPropagation()}
+                        onChange={(e, newValue) => handleTabChange(index, newValue)}
+                        aria-label='employee details'
+                        sx={{ minHeight: '40px' }}
+                      >
+                        <Tab
+                          label='Basic Details'
+                          sx={{ minWidth: 0, padding: '6px 12px', fontSize: '0.85rem', minHeight: '40px' }}
+                        />
+                        <Tab
+                          label={
+                            <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
+                              <Typography sx={{ fontSize: '0.85rem' }}>Bubble Positions</Typography>
+                              <Box
+                                sx={{
+                                  backgroundColor: '#2faad3',
+                                  color: '#fff',
+                                  borderRadius: '100%',
+                                  padding: '3px 6px',
+                                  marginLeft: '8px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 'bold',
+                                  minWidth: '24px',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                {designation?.bubblePositionBranchIds?.length || 0}
                               </Box>
                             </Box>
-                          )}
-                          {selectedTabs[index] === 1 && (
-                            <Box className='space-y-2 text-sm text-gray-700'>
-                              {/* Check if bubblePositionBranchIds exist */}
-                              {designation?.bubblePositionBranchIds?.length > 0 ? (
-                                <Box>
-                                  <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                                    Branch IDs with Bubble Positions
-                                  </Typography>
+                          }
+                          sx={{ minWidth: 0, padding: '6px 12px', fontSize: '0.85rem', minHeight: '40px' }}
+                        />
+                        <Tab
+                          label='More Details'
+                          sx={{ minWidth: 0, padding: '6px 12px', fontSize: '0.85rem', minHeight: '40px' }}
+                        />
+                      </Tabs>
 
-                                  {/* Render only the first three items */}
-                                  {designation?.bubblePositionBranchIds.slice(0, 3).map((codes: any, index: number) => (
-                                    <Box
-                                      key={index}
-                                      sx={{
-                                        backgroundColor: '#f3f3f3',
-                                        padding: '8px 12px',
-                                        borderRadius: '8px',
-                                        color: 'black',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        fontSize: '0.875rem',
-                                        marginBottom: '8px'
-                                      }}
-                                    >
-                                      <Typography>{codes}</Typography>
-                                    </Box>
-                                  ))}
-
-                                  {/* Show 'More' indicator if there are more than 3 items */}
-                                  {designation?.bubblePositionBranchIds.length > 3 && (
-                                    <Box
-                                      sx={{
-                                        padding: '8px 12px',
-                                        display: 'flex',
-                                        justifyContent: 'flex-end',
-                                        alignItems: 'center',
-                                        fontSize: '0.875rem',
-                                        cursor: 'pointer',
-                                        color: '#007bff'
-                                      }}
-                                      onClick={
-                                        e => {
-                                          e.stopPropagation()
-                                          alert('Show all branch IDs')
-                                        } // You can add a function to show more details here
-                                      }
-                                    >
-                                      <Typography>
-                                        +{designation?.bubblePositionBranchIds.length - 3} more...
-                                      </Typography>
-                                    </Box>
-                                  )}
-                                </Box>
-                              ) : (
-                                <Typography variant='body2' sx={{ color: '#757575' }}>
-                                  No branch IDs available.
-                                </Typography>
-                              )}
-                            </Box>
-                          )}
-
-                          {selectedTabs[index] === 2 && (
-                            <Box className='space-y-2 text-sm text-gray-700'>
-                              <p>
-                                <strong>Band:</strong> {designation?.band}
-                              </p>
-                              <p>
-                                <strong>Grade:</strong> {designation?.Grade}
-                              </p>
-                              <p>
-                                <strong>Company:</strong> {designation?.Company}
-                              </p>
-                            </Box>
-                          )}
-                        </Box>
-                      </Box>
-                    </>
-                  ) : (
-                    <Box className='p-4'>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                        {/* First Column */}
-                        <Box>
-                          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                            Basic Details
-                          </Typography>
+                      <Box className='mt-4'>
+                        {selectedTabs[index] === 0 && (
                           <Box className='space-y-2 text-sm text-gray-700'>
                             <p>
                               <strong>Request Type:</strong> {designation?.origin}
@@ -711,81 +463,143 @@ const ResignedDesignationsListing = () => {
                                 <strong>Resigned Employee Code:</strong> {designation?.id}
                               </p>
                             )}
-
-                            <Typography variant='body1'>
-                              <strong>Status:</strong>&nbsp;
-                              <span
-                                style={{
-                                  marginRight: '3px',
-                                  color:
-                                    designation?.employmentStatus === 'Approval Pending'
-                                      ? '#ff9800' // Orange for Pending
-                                      : designation?.employmentStatus === 'Approved'
-                                        ? '#4caf50' // Green for Approved
-                                        : designation?.employmentStatus === 'Rejected'
-                                          ? '#f44336' // Red for Rejected
-                                          : '#757575' // Default grey
-                                }}
-                              >
-                                {designation?.id}
-                              </span>
-                              {getStatusIcon(designation?.id)}
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        {/* Second Column */}
-                        <Box>
-                          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                            Bubble Positions
-                          </Typography>
-                          {designation?.bubblePositionBranchIds?.length > 0 ? (
-                            <Box>
-                              {designation?.bubblePositionBranchIds.slice(0, 3).map((codes: any, index: number) => (
-                                <Box
-                                  key={index}
-                                  sx={{
-                                    backgroundColor: '#f3f3f3',
-                                    padding: '8px 12px',
-                                    borderRadius: '8px',
-                                    color: 'black',
-                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    fontSize: '0.875rem',
-                                    marginBottom: '8px'
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                              <Typography variant='body1' sx={{ display: 'flex', alignItems: 'center' }}>
+                                <strong>Status:</strong> 
+                                <span
+                                  style={{
+                                    marginRight: '3px',
+                                    color:
+                                      designation?.employmentStatus === 'Approval Pending'
+                                        ? '#ff9800'
+                                        : designation?.employmentStatus === 'Approved'
+                                          ? '#4caf50'
+                                          : designation?.employmentStatus === 'Rejected'
+                                            ? '#f44336'
+                                            : '#757575'
                                   }}
                                 >
-                                  <Typography>{codes}</Typography>
-                                </Box>
-                              ))}
-                              {designation?.bubblePositionBranchIds.length > 3 && (
-                                <Box
-                                  sx={{
-                                    padding: '8px 12px',
-                                    display: 'flex',
-                                    justifyContent: 'flex-end',
-                                    alignItems: 'center',
-                                    fontSize: '0.875rem',
-                                    cursor: 'pointer',
-                                    color: '#007bff'
-                                  }}
-                                  onClick={() => alert('Show all branch IDs')}
-                                >
-                                  <Typography>+{designation?.bubblePositionBranchIds.length - 3} more...</Typography>
-                                </Box>
-                              )}
+                                  {designation?.employmentStatus}
+                                </span>
+                                {getStatusIcon(designation?.employmentStatus)}
+                              </Typography>
                             </Box>
-                          ) : (
-                            <Typography variant='body2' sx={{ color: '#757575' }}>
-                              No bubble positions available.
-                            </Typography>
-                          )}
-                        </Box>
-
-                        {/* Third Column */}
-                        <Box>
+                            <Divider sx={{ marginY: 2 }} />
+                            {isAdmin() && designation?.employmentStatus === 'Approval Pending' ? (
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                <Tooltip title='Approve Request'>
+                                  <Button
+                                    variant='contained'
+                                    color='success'
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      handleApprove(designation?.id, designation?.approval_id)
+                                    }}
+                                    sx={{ padding: '6px 16px' }}
+                                    startIcon={<i className='tabler-check' />}
+                                  >
+                                    Approve All
+                                  </Button>
+                                </Tooltip>
+                                <Tooltip title='Reject Request'>
+                                  <Button
+                                    variant='contained'
+                                    color='error'
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      handleReject(designation?.id, designation?.approval_id)
+                                    }}
+                                    sx={{ padding: '6px 16px' }}
+                                    startIcon={<i className='tabler-playstation-x' />}
+                                  >
+                                    Reject All
+                                  </Button>
+                                </Tooltip>
+                              </Box>
+                            ) : (
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <Chip
+                                  label={designation?.employmentStatus}
+                                  color={
+                                    designation?.employmentStatus === 'Approval Pending'
+                                      ? 'warning'
+                                      : designation?.employmentStatus === 'Approved'
+                                        ? 'success'
+                                        : 'error'
+                                  }
+                                  sx={{
+                                    borderRadius: '16px',
+                                    fontSize: '0.875rem',
+                                    '& .MuiChip-label': { px: 2, py: 0.5 }
+                                  }}
+                                  icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
+                                />
+                              </Box>
+                            )}
+                            <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
+                              <Typography
+                                variant='body2'
+                                sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}
+                              >
+                                Additional Details: {designation.additionalDetails || 'N/A'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                        {selectedTabs[index] === 1 && (
+                          <Box className='space-y-2 text-sm text-gray-700'>
+                            {designation?.bubblePositionBranchIds?.length > 0 ? (
+                              <Box>
+                                <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                                  Branch IDs with Bubble Positions
+                                </Typography>
+                                {designation?.bubblePositionBranchIds.slice(0, 3).map((codes: any, idx: number) => (
+                                  <Box
+                                    key={idx}
+                                    sx={{
+                                      backgroundColor: '#f3f3f3',
+                                      padding: '8px 12px',
+                                      borderRadius: '8px',
+                                      color: 'black',
+                                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      fontSize: '0.875rem',
+                                      marginBottom: '8px'
+                                    }}
+                                  >
+                                    <Typography>{codes}</Typography>
+                                  </Box>
+                                ))}
+                                {designation?.bubblePositionBranchIds.length > 3 && (
+                                  <Box
+                                    sx={{
+                                      padding: '8px 12px',
+                                      display: 'flex',
+                                      justifyContent: 'flex-end',
+                                      alignItems: 'center',
+                                      fontSize: '0.875rem',
+                                      cursor: 'pointer',
+                                      color: '#007bff'
+                                    }}
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      alert('Show all branch IDs')
+                                    }}
+                                  >
+                                    <Typography>+{designation?.bubblePositionBranchIds.length - 3} more...</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            ) : (
+                              <Typography variant='body2' sx={{ color: '#757575' }}>
+                                No branch IDs available.
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                        {selectedTabs[index] === 2 && (
                           <Box className='space-y-2 text-sm text-gray-700'>
                             <p>
                               <strong>Band:</strong> {designation?.band}
@@ -797,59 +611,166 @@ const ResignedDesignationsListing = () => {
                               <strong>Company:</strong> {designation?.Company}
                             </p>
                           </Box>
-
-                          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                            Additional Details
+                        )}
+                      </Box>
+                    </Box>
+                  </>
+                ) : (
+                  <Box className='p-4'>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                      <Box>
+                        <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                          Basic Details
+                        </Typography>
+                        <Box className='space-y-2 text-sm text-gray-700'>
+                          <p>
+                            <strong>Request Type:</strong> {designation?.origin}
+                          </p>
+                          <p>
+                            <strong>Department:</strong> {designation?.Department}
+                          </p>
+                          <p>
+                            <strong>Branch:</strong> {designation?.Branches}
+                          </p>
+                          {designation.origin === 'Resignation' && (
+                            <p>
+                              <strong>Resigned Employee Code:</strong> {designation?.id}
+                            </p>
+                          )}
+                          <Typography variant='body1'>
+                            <strong>Status:</strong> 
+                            <span
+                              style={{
+                                marginRight: '3px',
+                                color:
+                                  designation?.employmentStatus === 'Approval Pending'
+                                    ? '#ff9800'
+                                    : designation?.employmentStatus === 'Approved'
+                                      ? '#4caf50'
+                                      : designation?.employmentStatus === 'Rejected'
+                                        ? '#f44336'
+                                        : '#757575'
+                              }}
+                            >
+                              {designation?.employmentStatus}
+                            </span>
+                            {getStatusIcon(designation?.employmentStatus)}
                           </Typography>
-                          <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
-                            <Typography variant='body2' sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                              {designation?.additionalDetails || 'N/A'}
-                            </Typography>
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                          Bubble Positions
+                        </Typography>
+                        {designation?.bubblePositionBranchIds?.length > 0 ? (
+                          <Box>
+                            {designation?.bubblePositionBranchIds.slice(0, 3).map((codes: any, idx: number) => (
+                              <Box
+                                key={idx}
+                                sx={{
+                                  backgroundColor: '#f3f3f3',
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  color: 'black',
+                                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  fontSize: '0.875rem',
+                                  marginBottom: '8px'
+                                }}
+                              >
+                                <Typography>{codes}</Typography>
+                              </Box>
+                            ))}
+                            {designation?.bubblePositionBranchIds.length > 3 && (
+                              <Box
+                                sx={{
+                                  padding: '8px 12px',
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  alignItems: 'center',
+                                  fontSize: '0.875rem',
+                                  cursor: 'pointer',
+                                  color: '#007bff'
+                                }}
+                                onClick={() => alert('Show all branch IDs')}
+                              >
+                                <Typography>+{designation?.bubblePositionBranchIds.length - 3} more...</Typography>
+                              </Box>
+                            )}
                           </Box>
+                        ) : (
+                          <Typography variant='body2' sx={{ color: '#757575' }}>
+                            No bubble positions available.
+                          </Typography>
+                        )}
+                      </Box>
+                      <Box>
+                        <Box className='space-y-2 text-sm text-gray-700'>
+                          <p>
+                            <strong>Band:</strong> {designation?.band}
+                          </p>
+                          <p>
+                            <strong>Grade:</strong> {designation?.Grade}
+                          </p>
+                          <p>
+                            <strong>Company:</strong> {designation?.Company}
+                          </p>
+                        </Box>
+                        <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                          Additional Details
+                        </Typography>
+                        <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
+                          <Typography variant='body2' sx={{ color: '#777', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                            {designation?.additionalDetails || 'N/A'}
+                          </Typography>
                         </Box>
                       </Box>
                     </Box>
-                  )}
-                </Box>
-
-                {/* Approve and Reject Buttons */}
-                {designation.employmentStatus === 'Approval Pending' && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end', // Ensure buttons are spaced apart
-                      gap: 2,
-                      marginTop: 'auto', // Push to the bottom
-                      padding: 2,
-                      marginRight: 2
-                    }}
-                  >
-                    <Button
-                      variant='contained'
-                      color='success'
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                      sx={{ padding: '6px 16px' }}
-                      startIcon={<i className='tabler-check' />}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      variant='contained'
-                      color='error'
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                      sx={{ padding: '6px 16px' }}
-                      startIcon={<i className='tabler-playstation-x' />}
-                    >
-                      Reject
-                    </Button>
                   </Box>
                 )}
               </Box>
-            ))}
+
+              {designation.employmentStatus === 'Approval Pending' && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                    marginTop: 'auto',
+                    padding: 2,
+                    marginRight: 2
+                  }}
+                >
+                  <Button
+                    variant='contained'
+                    color='success'
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleApprove(designation?.id, designation?.approval_id)
+                    }}
+                    sx={{ padding: '6px 16px' }}
+                    startIcon={<i className='tabler-check' />}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant='contained'
+                    color='error'
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleReject(designation?.id, designation?.approval_id)
+                    }}
+                    sx={{ padding: '6px 16px' }}
+                    startIcon={<i className='tabler-playstation-x' />}
+                  >
+                    Reject
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          ))}
         </Box>
       )}
 
@@ -860,7 +781,7 @@ const ResignedDesignationsListing = () => {
           <InputLabel>Count</InputLabel>
           <Select
             value={paginationState?.limit}
-            onChange={e => handleChangeLimit(e.target.value)}
+            onChange={e => handleChangeLimit(Number(e.target.value))}
             label='Limit per page'
           >
             {[10, 25, 50, 100].map(option => (

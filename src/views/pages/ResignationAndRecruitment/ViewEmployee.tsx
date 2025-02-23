@@ -8,7 +8,7 @@ import { ArrowBack } from '@mui/icons-material'
 // import ChartSample from './ChartSample'
 // import BubblePositionTable from './BubblePositionTable'
 import DesignationResignedReport from './BubblePositionTable'
-import { fetchRecruitmentRequestById, submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
 import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
@@ -24,7 +24,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
 
   console.log(mode)
 
-  const { fetchRecruitmentRequestByIdData } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
+  const { fetchResignationOverviewListData } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
 
   // Sample employee data
   // const employee = {
@@ -95,13 +95,13 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
   const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
 
   const employee = useMemo(() => {
-    const data = safeGetData(fetchRecruitmentRequestByIdData)
+    const data = safeGetData(fetchResignationOverviewListData)
 
     return data[0]
-  }, [fetchRecruitmentRequestByIdData])
+  }, [fetchResignationOverviewListData])
 
   useEffect(() => {
-    dispatch(fetchRecruitmentRequestById({ id }))
+    dispatch(fetchResignationOverviewList({ id, page: 1, limit: 10 }))
   }, [])
 
   const handleApprove = async (e: React.MouseEvent) => {
@@ -113,13 +113,13 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       if (!approverId) throw new Error('No approver ID found')
       if (!employee?.approval_id) throw new Error('No approval ID found')
 
-      await dispatch(
-        submitRequestDecision({
-          id: employee.approval_id, // Using approval_id from fetched data
-          approvalStatus: 'APPROVED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: employee.approval_id, // Using approval_id from fetched data
+      //     approvalStatus: 'APPROVED',
+      //     approverId
+      //   })
+      // ).unwrap()
       router.push('/recruitment-management/overview')
     } catch (error) {
       console.error('Error approving request:', error)
@@ -135,13 +135,13 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       if (!approverId) throw new Error('No approver ID found')
       if (!employee?.approval_id) throw new Error('No approval ID found')
 
-      await dispatch(
-        submitRequestDecision({
-          id: employee.approval_id, // Using approval_id from fetched data
-          approvalStatus: 'REJECTED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: employee.approval_id, // Using approval_id from fetched data
+      //     approvalStatus: 'REJECTED',
+      //     approverId
+      //   })
+      // ).unwrap()
       router.push('/recruitment-management/overview')
     } catch (error) {
       console.error('Error rejecting request:', error)

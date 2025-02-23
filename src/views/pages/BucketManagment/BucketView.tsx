@@ -20,13 +20,12 @@ import {
 } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 
-
 type Props = {
   mode: any
   id: any
 }
 
-const BucketView: React.FC<Props> = ({  id }) => {
+const BucketView: React.FC<Props> = ({ id }) => {
   const [bucketDetails, setBucketDetails] = useState<any>(null)
   const searchParams = useSearchParams()
   const name = searchParams.get('name')
@@ -59,8 +58,9 @@ const BucketView: React.FC<Props> = ({  id }) => {
     setShowDeleteModal(true)
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = id => {
     // useDispatch(deleteBucket(id))
+    console.log(id)
     setShowDeleteModal(false)
   }
 

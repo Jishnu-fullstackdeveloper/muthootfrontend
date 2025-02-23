@@ -1,5 +1,6 @@
 import ApprovalCategory from '@/views/pages/ApprovalMatrix/ApprovalCategory'
-import ApprovalSettings from '@/views/pages/ApprovalMatrix/ApprovalSettings'
+
+// import ApprovalSettings from '@/views/pages/ApprovalMatrix/ApprovalSettings'
 
 const Page = () => {
   return <ApprovalCategory />

@@ -16,28 +16,35 @@ import IconButton from '@mui/material/IconButton'
 import { toast } from 'react-toastify'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { email, object, minLength, string } from 'valibot'
-import type { Input } from 'valibot'
+import { email, object, minLength, pipe, string } from 'valibot'
 
 // Components Imports
 import CustomTextField from '@core/components/mui/TextField'
 
-type FormData = Input<typeof schema>
+type FormData = {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+} // Manual type definition
 
 const schema = object({
-  firstName: string([
+  firstName: pipe(
+    string(),
     minLength(1, 'This field is required'),
     minLength(3, 'First Name must be at least 3 characters long')
-  ]),
-  lastName: string([
+  ),
+  lastName: pipe(
+    string(),
     minLength(1, 'This field is required'),
     minLength(3, 'Last Name must be at least 3 characters long')
-  ]),
-  email: string([minLength(1, 'This field is required'), email('Please enter a valid email address')]),
-  password: string([
+  ),
+  email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
+  password: pipe(
+    string(),
     minLength(1, 'This field is required'),
     minLength(8, 'Password must be at least 8 characters long')
-  ])
+  )
 })
 
 const FormValidationOnScheme = () => {

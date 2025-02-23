@@ -2,7 +2,7 @@ import axios from 'axios'
 
 import { jwtDecode } from 'jwt-decode'
 
-import { getAccessToken, getRefreshToken, Logout } from '@/utils/functions'
+import { getAccessToken, getRefreshToken } from '@/utils/functions' //Logout
 
 const controller = new AbortController()
 const accessToken = getAccessToken()
@@ -16,7 +16,6 @@ const AxiosLib = axios.create({
 // Set Authorization header if accessToken is available
 if (accessToken) {
   const decodedToken: any = jwtDecode(accessToken)
-
 
   // const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
@@ -39,8 +38,7 @@ AxiosLib.interceptors.response.use(
       // }
     }
 
-    
-return Promise.reject(error)
+    return Promise.reject(error)
   }
 )
 

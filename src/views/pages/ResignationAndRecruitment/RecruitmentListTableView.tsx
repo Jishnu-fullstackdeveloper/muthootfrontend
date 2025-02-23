@@ -9,12 +9,13 @@ import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
-import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
+// import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import { getAccessToken, decodeToken, isAdmin } from '@/utils/functions'
-import { useAppDispatch } from '@/lib/hooks'
+
+// import { useAppDispatch } from '@/lib/hooks'
 
 const RecruitmentListTableView = ({ designationData }: any) => {
-  const dispatch = useAppDispatch()
+  // const dispatch = useAppDispatch()
   const router = useRouter()
 
   const getApproverId = () => {
@@ -40,13 +41,13 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
       if (!rowData?.approval_id) throw new Error('No approval ID found')
 
-      await dispatch(
-        submitRequestDecision({
-          id: rowData.approval_id, // Using approval_id from table data
-          approvalStatus: 'APPROVED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: rowData.approval_id, // Using approval_id from table data
+      //     approvalStatus: 'APPROVED',
+      //     approverId
+      //   })
+      // ).unwrap()
       router.push('/recruitment-management/overview')
     } catch (error) {
       console.error('Error approving request:', error)
@@ -66,13 +67,13 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
       if (!rowData?.approval_id) throw new Error('No approval ID found')
 
-      await dispatch(
-        submitRequestDecision({
-          id: rowData.approval_id, // Using approval_id from table data
-          approvalStatus: 'REJECTED',
-          approverId
-        })
-      ).unwrap()
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: rowData.approval_id, // Using approval_id from table data
+      //     approvalStatus: 'REJECTED',
+      //     approverId
+      //   })
+      // ).unwrap()
       router.push('/recruitment-management/overview')
     } catch (error) {
       console.error('Error rejecting request:', error)

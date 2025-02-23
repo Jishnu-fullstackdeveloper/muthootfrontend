@@ -74,7 +74,7 @@ const DynamicDrawer: React.FC<DynamicDrawerProps> = ({ menuData }) => {
       onKeyDown={toggleDrawer(anchor, false)}
     >
       <List>
-        {menuData.firstList.map(({ text, icon }, index) => (
+        {menuData.firstList.map(({ text, icon }) => (
           <ListItem key={text} disablePadding>
             <ListItemButton>
               <ListItemIcon>{getIcon(icon)}</ListItemIcon>
@@ -85,7 +85,7 @@ const DynamicDrawer: React.FC<DynamicDrawerProps> = ({ menuData }) => {
       </List>
       <Divider />
       <List>
-        {menuData.secondList.map(({ text, icon }, index) => (
+        {menuData.secondList.map(({ text, icon }) => (
           <ListItem key={text} disablePadding>
             <ListItemButton>
               <ListItemIcon>{getIcon(icon)}</ListItemIcon>

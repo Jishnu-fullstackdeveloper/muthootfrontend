@@ -27,6 +27,8 @@ const BranchOpeningsChart = () => {
   const theme = useTheme()
   const { mode } = useColorScheme()
 
+  mode
+
   // Vars
   const primaryColorWithOpacity = rgbaToHex(`rgb(${theme.palette.primary.mainChannel} / 0.16)`)
 

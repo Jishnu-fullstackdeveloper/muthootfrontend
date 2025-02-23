@@ -40,7 +40,8 @@ export default function DynamicTextField({
   variant = 'outlined',
   required,
   disabled,
-  readOnly,
+
+  // readOnly,
   multiline,
   error,
   value,

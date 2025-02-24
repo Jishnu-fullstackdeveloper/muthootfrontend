@@ -3,11 +3,10 @@ name: Deploying recruit-it-ui
 on:
   push:
     branches:
-      - dev-environment  # Change to your deployment branch if needed
+      - dev-environment
 
 env:
   IMAGE_NAME: recruit-it-ui
-  IMAGE_TAG: ${{ github.run_id }}
 
 jobs:
   build-and-push:
@@ -25,7 +24,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          envs: IMAGE_NAME,IMAGE_TAG
           script: |
+            export IMAGE_TAG=${{ env.IMAGE_TAG }}
             sudo docker build -t $IMAGE_NAME:$IMAGE_TAG .
             sudo docker tag $IMAGE_NAME:$IMAGE_TAG localhost:32000/$IMAGE_NAME:$IMAGE_TAG
             sudo docker push localhost:32000/$IMAGE_NAME:$IMAGE_TAG
@@ -40,6 +41,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          envs: IMAGE_TAG
           script: |
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
             envsubst < /home/${{ secrets.VM_USER }}/deployment.yaml | microk8s kubectl apply -f -

@@ -23,6 +23,18 @@ spec:
           image: localhost:32000/recruit-it-ui:${IMAGE_TAG}
           ports:
             - containerPort: 80
+          env:
+            - name: NEXT_PUBLIC_URL
+              value: "http://localhost:3000"
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: "https://hrms-dev.eastus.cloudapp.azure.com"
+            - name: NEXT_PUBLIC_KEYCLOAK_LOGIN_URL
+              value: "https://hrms-dev.eastus.cloudapp.azure.com/keycloak"
+            - name: NEXT_PUBLIC_KEYCLOAK_REALM
+              value: "gnxsolutions"
+            - name: NEXT_PUBLIC_LOGIN_REDIRECT_URL
+              value: "http://20.244.26.72/pages/auth/login-redirect"         
+
 ---
 apiVersion: v1
 kind: Service

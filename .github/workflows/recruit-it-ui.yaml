@@ -3,7 +3,7 @@ name: Deploying recruit-it-ui
 on:
   push:
     branches:
-      - dev-environment
+      - mains
 
 env:
   IMAGE_NAME: recruit-it-ui

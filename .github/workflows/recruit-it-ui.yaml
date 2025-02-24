@@ -26,6 +26,7 @@ jobs:
           script: |
             # Change to the directory where Dockerfile and deployment.yaml reside
             cd /home/azureuser/hrms/recruit-lt-frontend
+            git pull
             echo "IMAGE_NAME: $IMAGE_NAME"
             echo "IMAGE_TAG: $IMAGE_TAG"
             export IMAGE_NAME=${{ env.IMAGE_NAME }}

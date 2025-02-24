@@ -7,6 +7,7 @@ on:
 
 env:
   IMAGE_NAME: recruit-it-ui
+  IMAGE_TAG: ${{ github.run_id }}
 
 jobs:
   build-and-push:
@@ -14,9 +15,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Set IMAGE_TAG with Timestamp
-        run: echo "IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
 
       - name: Build and Push Docker Image to MicroK8s Registry
         uses: appleboy/ssh-action@v0.1.7
@@ -28,7 +26,9 @@ jobs:
           script: |
             # Change to the directory where Dockerfile and deployment.yaml reside
             cd /home/azureuser/hrms/recruit-lt-frontend
-            ls -l Dockerfile
+            echo "IMAGE_NAME: $IMAGE_NAME"
+            echo "IMAGE_TAG: $IMAGE_TAG"
+            export IMAGE_NAME=${{ env.IMAGE_NAME }}
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
             sudo docker build -t $IMAGE_NAME:$IMAGE_TAG .
             sudo docker tag $IMAGE_NAME:$IMAGE_TAG localhost:32000/$IMAGE_NAME:$IMAGE_TAG
@@ -47,6 +47,8 @@ jobs:
           envs: IMAGE_NAME,IMAGE_TAG
           script: |
             cd /home/azureuser/hrms/recruit-lt-frontend
+            echo "IMAGE_NAME: $IMAGE_NAME"
+            echo "IMAGE_TAG: $IMAGE_TAG"
             export IMAGE_TAG=${IMAGE_TAG}
             export IMAGE_NAME=${IMAGE_NAME}
             envsubst < deployment.yaml | microk8s kubectl apply -f -

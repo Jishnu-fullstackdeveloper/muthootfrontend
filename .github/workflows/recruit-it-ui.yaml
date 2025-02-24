@@ -26,6 +26,9 @@ jobs:
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           envs: IMAGE_NAME,IMAGE_TAG
           script: |
+            # Change to the directory where Dockerfile and deployment.yaml reside
+            cd /home/azureuser/hrms/recruit-lt-frontend
+            ls -l Dockerfile
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
             sudo docker build -t $IMAGE_NAME:$IMAGE_TAG .
             sudo docker tag $IMAGE_NAME:$IMAGE_TAG localhost:32000/$IMAGE_NAME:$IMAGE_TAG
@@ -41,20 +44,22 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
-          envs: IMAGE_TAG
+          envs: IMAGE_NAME,IMAGE_TAG
           script: |
-            export IMAGE_TAG=${{ env.IMAGE_TAG }}
-            envsubst < /home/${{ secrets.VM_USER }}/deployment.yaml | microk8s kubectl apply -f -
+            cd /home/azureuser/hrms/recruit-lt-frontend
+            export IMAGE_TAG=${IMAGE_TAG}
+            export IMAGE_NAME=${IMAGE_NAME}
+            envsubst < deployment.yaml | microk8s kubectl apply -f -
 
   cleanup:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Remove Old Images from MicroK8s Registry
+      - name: Cleanup Older Images from MicroK8s Registry
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
-            microk8s crictl rmi $(microk8s crictl images -q | grep "localhost:32000/recruit-it-ui" | head -n -2) || true
+            microk8s crictl images | grep "localhost:32000/$IMAGE_NAME" | awk '{print $3}' | sort -r | tail -n +2 | xargs -r microk8s crictl rmi || true

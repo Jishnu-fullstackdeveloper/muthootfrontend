@@ -1,0 +1,54 @@
+name: Deploying recruit-it-ui
+
+on:
+  push:
+    branches:
+      - dev-environment  # Change to your deployment branch if needed
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set IMAGE_TAG with Timestamp
+        run: echo "IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Build and Push Docker Image to MicroK8s Registry
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          script: |
+            sudo docker build -t recruit-it-ui:$IMAGE_TAG .
+            sudo docker tag recruit-it-ui:$IMAGE_TAG localhost:32000/recruit-it-ui:$IMAGE_TAG
+            sudo docker push localhost:32000/recruit-it-ui:$IMAGE_TAG
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to MicroK8s
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          script: |
+            export IMAGE_TAG=${{ env.IMAGE_TAG }}
+            envsubst < /home/${{ secrets.VM_USER }}/deployment.yaml | microk8s kubectl apply -f -
+
+  cleanup:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove Old Images from MicroK8s Registry
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          script: |
+            microk8s crictl rmi $(microk8s crictl images -q | grep "localhost:32000/recruit-it-ui" | head -n -2) || true

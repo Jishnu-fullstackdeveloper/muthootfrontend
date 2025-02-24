@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hrms-ui
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recruit-it-ui
+  namespace: hrms-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recruit-it-ui
+  template:
+    metadata:
+      labels:
+        app: recruit-it-ui
+    spec:
+      containers:
+        - name: recruit-it-ui
+          image: localhost:32000/recruit-it-ui:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recruit-it-ui-service
+  namespace: hrms-ui
+spec:
+  selector:
+    app: recruit-it-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort  # Change to LoadBalancer if needed

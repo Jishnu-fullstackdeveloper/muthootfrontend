@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 
 import AddNewApprovalMatrixGenerated from '@/form/generatedForms/AddNewApprovalMatrix'
 
-import ApprovalSettings from './ApprovalSettings'
+// import ApprovalSettings from './ApprovalSettings'
 
 const AddNewApproval = () => {
   const pathname = usePathname() // Gets the full pathname
@@ -14,7 +14,7 @@ const AddNewApproval = () => {
 
   return (
     <div>
-      {mode === 'view' && <ApprovalSettings />}
+      {/* {mode === 'view' && <ApprovalSettings />} */}
       {mode === 'add' && <AddNewApprovalMatrixGenerated />}
       {mode === 'edit' && <AddNewApprovalMatrixGenerated />}
     </div>

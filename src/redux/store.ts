@@ -8,6 +8,8 @@ import manualRequestReducer from './manualRecruitmentRequestSlice'
 
 import BucketManagementReducer from './BucketManagementSlice'
 
+import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
+
 export const makeStore = () =>
   configureStore({
     reducer: {
@@ -16,7 +18,8 @@ export const makeStore = () =>
       recruitmentResignationReducer,
       approvalMatrixReducer,
       manualRequestReducer,
-      BucketManagementReducer
+      BucketManagementReducer,
+      vacancyManagementReducer
     }
   })
 

@@ -40,11 +40,21 @@ import {
 
 import VacancyListingTableView from './VacancyTableView'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
-import { vacancies } from '@/utils/sampleData/VacancyListingData'
+//import { vacancyList } from '@/utils/sampleData/VacancyListingData'
 
 const VacancyListingPage = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  const { vacancies, totalCount, currentPage, limit, loading, error } = useAppSelector(
+    state => state.vacancyManagementReducer
+  )
+
+  console.log(totalCount, limit, currentPage)
 
   // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
@@ -98,7 +108,7 @@ const VacancyListingPage = () => {
 
   const [paginationState, setPaginationState] = useState({
     page: 1,
-    limit: 10,
+    limit: 5,
     display_numbers_count: 5
   })
 
@@ -110,16 +120,23 @@ const VacancyListingPage = () => {
     setPaginationState({ ...paginationState, limit: value })
   }
 
-  const [selectedTabs, setSelectedTabs] = useState<{ [key: string]: number }>(() =>
-    vacancies?.reduce(
-      (acc, vacancy) => {
-        acc[vacancy.id] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+  const [selectedTabs, setSelectedTabs] = useState<{ [key: string]: number }>({})
 
-        return acc
-      },
-      {} as { [key: string]: number }
-    )
-  )
+  // Update selectedTabs when vacancies data is fetched to ensure Details tab (index 0) is selected by default
+  useEffect(() => {
+    if (vacancies && vacancies.length > 0) {
+      const updatedTabs = vacancies.reduce(
+        (acc, vacancy) => {
+          acc[vacancy.id] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+
+          return acc
+        },
+        {} as { [key: string]: number }
+      )
+
+      setSelectedTabs(updatedTabs)
+    }
+  }, [vacancies])
 
   const DebouncedInput = ({
     value: initialValue,
@@ -245,6 +262,11 @@ const VacancyListingPage = () => {
   //   }
   //   setDeleteModalOpen(false)
   // }
+
+  // Fetch vacancies when page or limit changes
+  useEffect(() => {
+    dispatch(fetchVacancies({ page: paginationState.page, limit: paginationState.limit }))
+  }, [dispatch, paginationState.page, paginationState.limit])
 
   return (
     <div className=''>
@@ -480,15 +502,19 @@ const VacancyListingPage = () => {
               <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
                 <div className='flex items-center'>
                   <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
-                    {vacancy.title}
+                    {vacancy.designationName}
                   </Typography>
                 </div>
                 <div className='flex space-x-2'>
                   <Stack sx={{ marginTop: 2 }}>
-                    <Chip
-                      label={vacancy.status}
+                    {/* <Chip
+                      label={vacancy.gradeName}
                       color={
-                        vacancy.status === 'Open' ? 'success' : vacancy.status === 'Closed' ? 'default' : 'warning'
+                        vacancy.gradeName === 'Open'
+                          ? 'success'
+                          : vacancy.gradeName === 'Closed'
+                            ? 'default'
+                            : 'warning'
                       }
                       size='small'
                       sx={{
@@ -496,7 +522,7 @@ const VacancyListingPage = () => {
                         fontSize: '0.85rem', // Slightly increased font size
                         textTransform: 'uppercase'
                       }}
-                    />
+                    /> */}
                   </Stack>
                   <Tooltip title='Edit Vacancy' placement='top'>
                     <IconButton
@@ -548,24 +574,44 @@ const VacancyListingPage = () => {
                     <Box className='text-sm text-gray-700'>
                       <Box className='grid grid-cols-2 gap-y-2'>
                         <p>
-                          <strong>Job Type:</strong> {vacancy.jobType}
+                          <strong>Employee Category:</strong> {vacancy.employeeCategoryType}
                         </p>
 
                         <p>
-                          <strong>Branch:</strong> {vacancy.branch}
+                          <strong>Grade:</strong> {vacancy.gradeName}
                         </p>
                         <p>
-                          <strong>Grade:</strong> {vacancy.grade}
+                          <strong>Band:</strong> {vacancy.bandName}
                         </p>
                         <p>
-                          <strong>Band:</strong> {vacancy.band}
+                          <strong>Branch:</strong> {vacancy.branchesName}
                         </p>
                         <p>
-                          <strong>Experience:</strong> {vacancy.experience} years
+                          <strong>Business Unit:</strong> {vacancy.businessUnitName}
                         </p>
                         <p>
-                          <strong>City:</strong> {vacancy.city}
+                          <strong>Department:</strong> {vacancy.departmentName}
                         </p>
+
+                        {/* <p>
+                          <strong>State:</strong> {vacancy.stateName}
+                        </p>
+
+                        <p>
+                          <strong>City:</strong> {vacancy.districtName}
+                        </p>
+                        <p>
+                          <strong>Region:</strong> {vacancy.regionName}
+                        </p>
+                        <p>
+                          <strong>Zone:</strong> {vacancy.zoneName}
+                        </p>
+                        <p>
+                          <strong>Area:</strong> {vacancy.areaName}
+                        </p>
+                        <p>
+                          <strong>Branch:</strong> {vacancy.branchesName}
+                        </p> */}
 
                         {/* <p>
                           <strong>Positions:</strong> {vacancy.vacancyPositions}
@@ -577,16 +623,16 @@ const VacancyListingPage = () => {
                       >
                         <ul className=' space-y-2'>
                           <li className='text-success'>
-                            <strong>No. of openings:</strong> {vacancy.numberOfOpenings}
+                            <strong>State:</strong> {vacancy.stateName}
                           </li>
                           <li className='text-warning'>
-                            <strong>Filled positions:</strong> {vacancy.noOfFilledPositions}
+                            <strong>Zone:</strong> {vacancy.zoneName}
                           </li>
                           <li className='text-primary'>
-                            <strong>Applied:</strong> {vacancy.noOfApplicants}
+                            <strong>Region:</strong> {vacancy.regionName}
                           </li>
                           <li className='text-error'>
-                            <strong>Shortlisted:</strong> {vacancy.shortlisted}
+                            <strong>Area:</strong> {vacancy.areaName}
                           </li>
                         </ul>
                       </Box>
@@ -596,7 +642,7 @@ const VacancyListingPage = () => {
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
                       <Chip
                         variant='tonal'
-                        label={`Start Date: ${vacancy.startDate}`}
+                        label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
                         color='secondary'
                         size='medium'
                         sx={{
@@ -608,7 +654,7 @@ const VacancyListingPage = () => {
                       />
                       <Chip
                         variant='tonal'
-                        label={`End Date: ${vacancy.endDate}`}
+                        label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
                         color='error'
                         size='medium'
                         sx={{
@@ -632,7 +678,7 @@ const VacancyListingPage = () => {
             </Box>
           ))
         ) : (
-          <VacancyListingTableView vacancies={vacancies} />
+          <VacancyListingTableView vacancies={vacancies} count={totalCount} />
         )}
       </div>
 

@@ -2,14 +2,7 @@
 import React, { useState, useMemo } from 'react'
 
 import type { ColumnDef, SortingState, RowSelectionState } from '@tanstack/react-table'
-import {
-  useReactTable,
-  flexRender,
-  getCoreRowModel,
-
-  //PaginationState,
-  getSortedRowModel
-} from '@tanstack/react-table'
+import { useReactTable, flexRender, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import {
   Table,
   TableBody,
@@ -39,13 +32,13 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 const DynamicTable = ({
   columns: initialColumns,
   data,
+  totalCount,
   pagination,
-
-  //onPaginationChange,
   onPageChange,
-  onRowsPerPageChange
+  onRowsPerPageChange,
+  onPageCountChange // Added
 }: any) => {
-  const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns)
+  const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 5)) // Start with first 5 columns
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
   const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -72,22 +65,46 @@ const DynamicTable = ({
     return headers
   }
 
-  const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => extractHeaders(initialColumns))
+  // Initialize selectedColumns with first 5 columns selected
+  const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => {
+    const allHeaders = extractHeaders(initialColumns)
+    const selectedHeaders = Object.keys(allHeaders).slice(0, 5) // Take the first 5 headers
 
-  const paginatedData = useMemo(() => {
-    const start = pagination?.pageIndex * pagination?.pageSize
-    const end = start + pagination?.pageSize
+    return Object.keys(allHeaders).reduce(
+      (acc, header) => {
+        acc[header] = selectedHeaders.includes(header) // True for first 5, false for others
 
-    return data?.slice(start, end) // Slice the data for the current page
-  }, [data, pagination])
+        return acc
+      },
+      {} as Record<string, boolean>
+    )
+  })
+
+  // const paginatedData = useMemo(() => {
+  //   const start = pagination?.pageIndex * pagination?.pageSize
+  //   const end = start + pagination?.pageSize
+
+  //   return data?.data?.slice(start, end) || []
+  // }, [data, pagination])
+
+  // Pass pageCount to parent whenever it changes
+  const pageCount = useMemo(() => Math.ceil((totalCount || 0) / pagination?.pageSize), [totalCount, pagination])
+
+  //console.log(totalCount, 'dddddddddddddddddddddddddd')
+
+  useMemo(() => {
+    if (onPageCountChange) {
+      onPageCountChange(pageCount)
+    }
+  }, [pageCount, onPageCountChange])
 
   const table = useReactTable({
     columns,
-    data: paginatedData,
+    data: data,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(data?.length / pagination?.pageSize),
+    pageCount: Math.ceil(totalCount / pagination?.pageSize),
     state: {
       pagination,
       sorting,
@@ -106,7 +123,7 @@ const DynamicTable = ({
 
       // Update the columns state based on the updated selectedColumns
       const newColumns = Object.keys(updatedSelectedColumns)
-        .filter(header => updatedSelectedColumns[header]) // Filter out unselected columns
+        .filter(header => updatedSelectedColumns[header])
         .map(header => initialColumns.find(col => col.header === header))
         .filter(col => col !== undefined) as ColumnDef<any>[]
 
@@ -116,7 +133,7 @@ const DynamicTable = ({
     })
   }
 
-  // Drag-and-Drop Handlers for the drawer
+  // Drag-and-Drop Handlers for the drawer (unchanged)
   const handleDragStart = (event: React.DragEvent, index: number) => {
     event.dataTransfer.setData('text/plain', index.toString())
   }
@@ -144,9 +161,8 @@ const DynamicTable = ({
 
     setSelectedColumns(updatedSelectedColumns)
 
-    // Update the columns state based on the new order of headers and filter out unselected columns
     const newColumns = updatedHeaders
-      .filter(header => updatedSelectedColumns[header]) // Filter out unselected columns
+      .filter(header => updatedSelectedColumns[header])
       .map(header => initialColumns.find(col => col.header === header))
       .filter(col => col !== undefined) as ColumnDef<any>[]
 
@@ -157,6 +173,7 @@ const DynamicTable = ({
     event.preventDefault()
   }
 
+  // Rest of the component (Table, Drawer, etc.) remains unchanged
   return (
     <>
       <TableContainer component={Paper}>
@@ -217,7 +234,7 @@ const DynamicTable = ({
                   />
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    count={data?.length}
+                    count={totalCount || 0}
                     rowsPerPage={pagination?.pageSize}
                     page={pagination?.pageIndex}
                     onPageChange={(_, page) => onPageChange(page)}
@@ -235,8 +252,8 @@ const DynamicTable = ({
         open={openColumnDrawer}
         onClose={() => setOpenColumnDrawer(false)}
         BackdropProps={{
-          invisible: true, // Show backdrop for click handling
-          sx: { backgroundColor: 'transparent' } // Make backdrop transparent
+          invisible: true,
+          sx: { backgroundColor: 'transparent' }
         }}
       >
         <Box sx={{ width: 350, p: 3 }}>

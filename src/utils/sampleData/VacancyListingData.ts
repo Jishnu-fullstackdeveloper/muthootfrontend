@@ -1,4 +1,4 @@
-export const vacancies = [
+export const vacancyList = [
   {
     id: 1,
     title: 'Software Engineer',

@@ -16,7 +16,8 @@ import {
   Tab,
   Tabs,
   Tooltip,
-  Typography
+  Typography,
+  Alert
 } from '@mui/material'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
@@ -50,9 +51,7 @@ const VacancyListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { vacancies, totalCount, currentPage, limit, loading, error } = useAppSelector(
-    state => state.vacancyManagementReducer
-  )
+  const { vacancies, totalCount, currentPage, limit, error } = useAppSelector(state => state.vacancyManagementReducer)
 
   console.log(totalCount, limit, currentPage)
 
@@ -108,7 +107,7 @@ const VacancyListingPage = () => {
 
   const [paginationState, setPaginationState] = useState({
     page: 1,
-    limit: 5,
+    limit: 6,
     display_numbers_count: 5
   })
 
@@ -486,6 +485,15 @@ const VacancyListingPage = () => {
         </Box>
       </Card>
 
+      {/* Error Message Display */}
+      {error && (
+        <Box sx={{ mb: 4, mx: 6 }}>
+          <Alert severity='error' variant='filled'>
+            <Typography>{error}</Typography>
+          </Alert>
+        </Box>
+      )}
+
       <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
           vacancies?.map(vacancy => (
@@ -499,7 +507,7 @@ const VacancyListingPage = () => {
               }}
             >
               {/* Header Section with Action Buttons */}
-              <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
+              <Box className='pt-3 pl-4 pb-3 pr-2 flex justify-between items-center'>
                 <div className='flex items-center'>
                   <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
                     {vacancy.designationName}
@@ -564,7 +572,7 @@ const VacancyListingPage = () => {
                 >
                   {/* Tab Labels */}
                   <Tab label='Details' />
-                  <Tab label='Dates' />
+                  <Tab label='More details' />
                   {/* <Tab label='Contact' /> */}
                 </Tabs>
 
@@ -593,6 +601,31 @@ const VacancyListingPage = () => {
                           <strong>Department:</strong> {vacancy.departmentName}
                         </p>
 
+                        <Chip
+                          variant='tonal'
+                          label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
+                          color='success'
+                          size='medium'
+                          sx={{
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem', // Slightly increased font size
+                            textTransform: 'uppercase',
+                            width: 200
+                          }}
+                        />
+                        <Chip
+                          variant='tonal'
+                          label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
+                          color='error'
+                          size='medium'
+                          sx={{
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem', // Slightly increased font size
+                            textTransform: 'uppercase',
+                            width: 190
+                          }}
+                        />
+
                         {/* <p>
                           <strong>State:</strong> {vacancy.stateName}
                         </p>
@@ -617,7 +650,7 @@ const VacancyListingPage = () => {
                           <strong>Positions:</strong> {vacancy.vacancyPositions}
                         </p> */}
                       </Box>
-                      <Box
+                      {/* <Box
                         className='mt-2 shadow-md ring-white flex flex-col items-center p-4'
                         sx={{ borderRadius: 2 }}
                       >
@@ -635,12 +668,12 @@ const VacancyListingPage = () => {
                             <strong>Area:</strong> {vacancy.areaName}
                           </li>
                         </ul>
-                      </Box>
+                      </Box> */}
                     </Box>
                   )}
                   {selectedTabs[vacancy.id] === 1 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
-                      <Chip
+                      {/* <Chip
                         variant='tonal'
                         label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
                         color='secondary'
@@ -663,7 +696,26 @@ const VacancyListingPage = () => {
                           textTransform: 'uppercase',
                           width: 190
                         }}
-                      />
+                      /> */}
+                      <p>
+                        <strong>State:</strong> {vacancy.stateName}
+                      </p>
+
+                      <p>
+                        <strong>City:</strong> {vacancy.districtName}
+                      </p>
+                      <p>
+                        <strong>Region:</strong> {vacancy.regionName}
+                      </p>
+                      <p>
+                        <strong>Zone:</strong> {vacancy.zoneName}
+                      </p>
+                      <p>
+                        <strong>Area:</strong> {vacancy.areaName}
+                      </p>
+                      {/* <p>
+                        <strong>Branch:</strong> {vacancy.branchesName}
+                      </p> */}
                     </Box>
                   )}
                   {/* {selectedTabs[vacancy.id] === 2 && (

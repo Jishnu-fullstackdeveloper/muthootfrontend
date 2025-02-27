@@ -38,7 +38,7 @@ const DynamicTable = ({
   onRowsPerPageChange,
   onPageCountChange // Added
 }: any) => {
-  const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 5)) // Start with first 5 columns
+  const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 7)) // Start with first 5 columns
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
   const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -68,7 +68,7 @@ const DynamicTable = ({
   // Initialize selectedColumns with first 5 columns selected
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => {
     const allHeaders = extractHeaders(initialColumns)
-    const selectedHeaders = Object.keys(allHeaders).slice(0, 5) // Take the first 5 headers
+    const selectedHeaders = Object.keys(allHeaders).slice(0, 7) // Take the first 5 headers
 
     return Object.keys(allHeaders).reduce(
       (acc, header) => {

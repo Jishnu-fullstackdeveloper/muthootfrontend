@@ -1,4 +1,3 @@
-// src/redux/RecruitmentResignationSlice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
@@ -31,7 +30,7 @@ export const fetchResignationOverviewList = createAsyncThunk<any, FetchResignati
       const url = constructUrlWithParams('/api/recruitment-request', queryParams)
       const response = await AxiosLib.get(url)
 
-      return response.data.data
+      return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -241,6 +240,35 @@ export const submitRecruitmentRequest = createAsyncThunk<any, RecruitmentRequest
   }
 )
 
+interface ApproveRecruitmentPayload {
+  districtName: string
+  stateName: string
+  zoneName: string
+  regionName: string
+  areaName: string
+  branchesName: string
+  businessUnitName: string
+  employeeCategoryType: string
+  departmentName: string
+  designationName: string
+  gradeName: string
+  bandName: string
+  metaData: Record<string, any> // Flexible object for metaData
+}
+
+export const approveRecruitment = createAsyncThunk<any, ApproveRecruitmentPayload>(
+  'recruitmentResignation/approveRecruitment',
+  async (requestData: ApproveRecruitmentPayload, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.post('/vacancy', requestData)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 export const recruitmentResignationSlice = createSlice({
   name: 'recruitmentResignation',
   initialState: {
@@ -326,7 +354,13 @@ export const recruitmentResignationSlice = createSlice({
     submitRecruitmentRequestSuccess: false,
     submitRecruitmentRequestData: null,
     submitRecruitmentRequestFailure: false,
-    submitRecruitmentRequestFailureMessage: ''
+    submitRecruitmentRequestFailureMessage: '',
+
+    approveRecruitmentLoading: false,
+    approveRecruitmentSuccess: false,
+    approveRecruitmentData: null,
+    approveRecruitmentFailure: false,
+    approveRecruitmentFailureMessage: ''
   },
   reducers: {
     fetchResignationAPIDismiss: state => {
@@ -411,6 +445,12 @@ export const recruitmentResignationSlice = createSlice({
       state.submitRecruitmentRequestLoading = false
       state.submitRecruitmentRequestSuccess = false
       state.submitRecruitmentRequestFailure = false
+    },
+
+    approveRecruitmentDismiss: state => {
+      state.approveRecruitmentLoading = false
+      state.approveRecruitmentSuccess = false
+      state.approveRecruitmentFailure = false
     }
   },
   extraReducers: builder => {
@@ -428,6 +468,7 @@ export const recruitmentResignationSlice = createSlice({
     handleAsyncThunkStates(builder, fetchState, 'fetchState')
     handleAsyncThunkStates(builder, fetchDistrict, 'fetchDistrict')
     handleAsyncThunkStates(builder, submitRecruitmentRequest, 'submitRecruitmentRequest')
+    handleAsyncThunkStates(builder, approveRecruitment, 'approveRecruitment')
   }
 })
 
@@ -445,7 +486,8 @@ export const {
   fetchBranchDismiss,
   fetchStateDismiss,
   fetchDistrictDismiss,
-  submitRecruitmentRequestDismiss
+  submitRecruitmentRequestDismiss,
+  approveRecruitmentDismiss
 } = recruitmentResignationSlice.actions
 
 export default recruitmentResignationSlice.reducer

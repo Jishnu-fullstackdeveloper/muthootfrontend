@@ -21,6 +21,7 @@ interface MenuItemType {
   label: string
   iconClass: string
   permission: string
+  read?: string // Updated to optional string for individualPermission
 }
 
 const RenderExpandIcon = ({ open, transitionDuration }: { open: boolean; transitionDuration: number }) => (
@@ -45,49 +46,62 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
   const staticMenuItems = useMemo(
     () => [
-      { path: '/user-management', label: 'User Management', iconClass: 'tabler-users', permission: 'userManagement' },
-      { path: '/user-role', label: 'User Roles', iconClass: 'tabler-key', permission: 'userRoles' },
+      {
+        path: '/user-management',
+        label: 'User Management',
+        iconClass: 'tabler-users',
+        permission: 'userManagement',
+        read: 'user_read'
+      },
+      { path: '/user-role', label: 'User Roles', iconClass: 'tabler-key', permission: 'userRoles', read: 'role_read' },
       {
         path: '/approval-management',
         label: 'Approval Management',
         iconClass: 'tabler-rosette-discount-check',
-        permission: 'approvalManagement'
+        permission: 'approvalManagement',
+        read: 'approval_read'
       },
       {
         path: '/jd-management',
         label: 'JD Management',
         iconClass: 'tabler-file-description',
-        permission: 'jdManagement'
+        permission: 'jdManagement',
+        read: 'jd_read'
       },
       {
         path: '/vacancy-management',
         label: 'Vacancy Management',
         iconClass: 'tabler-briefcase',
-        permission: 'vacancyManagement'
+        permission: 'vacancyManagement',
+        read: 'vacancy_read'
       },
       {
         path: '/recruitment-management/overview',
         label: 'Recruitment Management',
         iconClass: 'tabler-user-plus',
-        permission: 'recruitmentManagement'
+        permission: 'recruitmentManagement',
+        read: 'recruitment_read'
       },
       {
         path: '/branch-management',
         label: 'Branch Management',
         iconClass: 'tabler-git-merge',
-        permission: 'branchManagement'
+        permission: 'branchManagement',
+        read: 'branch_read'
       },
       {
         path: '/bucket-management',
         label: 'Bucket Management',
         iconClass: 'tabler-apps',
-        permission: 'bucketManagement'
+        permission: 'bucketManagement',
+        read: 'bucket_read'
       },
       {
         path: '/approval-matrix',
         label: 'Approval Matrix',
         iconClass: 'tabler-settings-check',
-        permission: 'approvalMatrix'
+        permission: 'approvalMatrix',
+        read: 'approvalmatrix_read'
       }
     ],
     []
@@ -106,7 +120,8 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       path: item.path,
       label: item.label,
       iconClass: item.iconClass,
-      permission: (item as { permission?: string }).permission || '' // Assert permission as optional
+      permission: (item as { permission?: string }).permission || '', // Assert permission as optional
+      read: (item as { read?: string }).read || '' // Add read as optional
     }))
 
     setClientMenuItems([...dynamicMenuItems, ...staticMenuItems])
@@ -136,20 +151,29 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
         {clientMenuItems.map((item, index) => {
+          // Create the permission-wrapped component
           const MenuItemWithPermission = withPermission(
-            () => (
+            (
+              props: { read?: string } // Type the props to include read
+            ) => (
               <MenuItem
                 key={index}
                 href={isMenuItemActive(item) ? pathname : item.path}
                 icon={<i className={item.iconClass} />}
+                {...(props.read && { disabled: true })} // Disable if read is provided (e.g., non-empty string)
               >
                 {item.label}
               </MenuItem>
             ),
-            item.permission
+            item.permission // Use permission from permissionsMap
           )
 
-          return <MenuItemWithPermission key={index} />
+          // Invoke the function with individualPermission as item.read
+          return MenuItemWithPermission({
+            individualPermission: item.read || ''
+            // fallback: <div>Unauthorized</div>,
+            // buttonDisable: true
+          })
         })}
       </Menu>
     </ScrollWrapper>

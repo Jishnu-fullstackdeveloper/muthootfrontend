@@ -42,35 +42,60 @@ const Login2Redirect = () => {
 
   useEffect(() => {
     const handleLogin = () => {
-      if (secondLoginData) {
-        const accessToken = secondLoginData?.data?.token?.access_token || ''
-        const refreshToken = secondLoginData?.data?.token?.refresh_token || ''
-        let decodedToken: any
+      if (!secondLoginData) return // Exit early if no login data
 
-        if (accessToken) decodedToken = jwtDecode(accessToken)
+      // Extract tokens safely
+      const accessToken = secondLoginData?.data?.token?.access_token || ''
+      const refreshToken = secondLoginData?.data?.token?.refresh_token || ''
 
-        if (decodedToken && decodedToken?.realm) {
-          setAccessToken(accessToken)
-          setRefreshToken(refreshToken)
-          setUserId(decodedToken?.sub)
-          storeLoginResponse(secondLoginData?.data)
-          AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${secondLoginData?.token?.access_token || ''}`
-          toast.success('Login Successful.', {
+      if (!accessToken) {
+        toast.error('Login failed: No access token received.', {
+          closeOnClick: true
+        })
+
+        return
+      }
+
+      try {
+        // Decode the token to verify its format and extract claims
+        const decodedToken: any = jwtDecode(accessToken)
+
+        if (!decodedToken || !decodedToken.sub || !decodedToken.realm) {
+          toast.error('Login failed: Invalid token format.', {
             closeOnClick: true
           })
-          setTimeout(() => {
-            router.push('/home')
-          }, 2000)
+
+          return
         }
+
+        // Store tokens and user ID
+        setAccessToken(accessToken)
+        setRefreshToken(refreshToken)
+        setUserId(decodedToken.sub)
+
+        // Store login response in your storage (e.g., localStorage, context, or state management)
+        storeLoginResponse(secondLoginData.data)
+
+        // Set Authorization header for all Axios requests
+        AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+
+        // Show success toast and redirect
+        toast.success('Login Successful.', {
+          closeOnClick: true
+        })
+
+        setTimeout(() => {
+          router.push('/home')
+        }, 2000)
+      } catch (error) {
+        toast.error('Login failed: Invalid token format or decoding error.', {
+          closeOnClick: true
+        })
       }
     }
 
     handleLogin()
-
-    return () => {
-      // Cleanup function to remove the effect
-    }
-  }, [secondLoginData])
+  }, [secondLoginData, router])
 
   return (
     <>

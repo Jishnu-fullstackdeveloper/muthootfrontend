@@ -1,18 +1,95 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
 import { IconButton, Tooltip, Typography } from '@mui/material'
-import type { ColumnDef} from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
-const BranchListingTableView = ({ branchData }: any) => {
-  const router = useRouter()
-  const columnHelper = createColumnHelper<any>()
+interface Branch {
+  id: string
+  name: string
+  branchCode: string
+  turnoverCode: string
+  bucketName: string
+  branchStatus: string
+  areaId: string
+  districtId: string
+  stateId: string
+  createdAt: string
+  updatedAt: string
+  bucket: {
+    id: string
+    name: string
+    positionCategories: {
+      designationName: string
+      count: number
+      grade: string
+    }[]
+    turnoverCode: string
+    notes: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  area: {
+    id: string
+    name: string
+    regionId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  district: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  state: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+}
 
-  const columns = useMemo<ColumnDef<any, any>[]>(
+type BranchData = Branch[]
+
+const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
+  const router = useRouter()
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5
+  })
+
+  const columnHelper = createColumnHelper<Branch>()
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => {
+      const updatedPagination = { ...prev, pageIndex: newPage }
+
+      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
+      return updatedPagination
+    })
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+
+    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+    setPagination(updatedPagination)
+  }
+
+  const columns = useMemo<ColumnDef<Branch, any>[]>(
     () => [
       columnHelper.accessor('name', {
         header: 'BRANCH NAME',
@@ -40,111 +117,120 @@ const BranchListingTableView = ({ branchData }: any) => {
         )
       }),
 
-      columnHelper.accessor('territory', {
+      columnHelper.accessor('area.regionId', {
+        id: 'territory', // Use a custom ID to match the expected header name
         header: 'TERRITORY',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.territory}
+                {row.original.area.regionId}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('zonal', {
+      columnHelper.accessor('area.name', {
+        id: 'zonal', // Use a custom ID to match the expected header name
         header: 'ZONAL',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.zonal}
+                {row.original.area.name}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('region', {
+      columnHelper.accessor('area.regionId', {
+        id: 'region', // Use a custom ID to match the expected header name
         header: 'REGION',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.region}
+                {row.original.area.regionId}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('area', {
+      columnHelper.accessor('area.name', {
+        id: 'area', // Use a custom ID to match the expected header name
         header: 'AREA',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.area}
+                {row.original.area.name}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('cluster', {
+      columnHelper.accessor('bucket.name', {
+        id: 'cluster', // Use a custom ID to match the expected header name
         header: 'CLUSTER',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.cluster}
+                {row.original.bucket.name}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('cityClassification', {
+      columnHelper.accessor('district.name', {
+        id: 'cityClassification', // Use a custom ID to match the expected header name
         header: 'CITY CLASSIFICATION',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.cityClassification}
+                {row.original.district.name}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('state', {
+      columnHelper.accessor('state.name', {
+        id: 'state', // Use a custom ID to match the expected header name
         header: 'STATE',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.state}
+                {row.original.state.name}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('status', {
+      columnHelper.accessor('branchStatus', {
+        id: 'status', // Use a custom ID to match the expected header name
         header: 'STATUS',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.status}
+                {row.original.branchStatus}
               </Typography>
             </div>
           </div>
         )
       }),
 
-      columnHelper.accessor('action', {
+      columnHelper.accessor('id', {
+        id: 'action',
         header: 'ACTION',
         meta: {
           className: 'sticky right-0'
@@ -178,7 +264,15 @@ const BranchListingTableView = ({ branchData }: any) => {
 
   return (
     <div>
-      <DynamicTable columns={columns} data={branchData} />
+      <DynamicTable
+        columns={columns}
+        data={branchData}
+        pagination={pagination} // Pass pagination state
+        onPaginationChange={setPagination} // Pass pagination change handler
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
+      {/* Removed the duplicate DynamicTable call to avoid redundancy */}
     </div>
   )
 }

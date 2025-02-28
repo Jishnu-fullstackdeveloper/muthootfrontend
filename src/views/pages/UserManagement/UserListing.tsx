@@ -1,9 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import Typography from '@mui/material/Typography'
 import {
   Box,
@@ -11,99 +9,78 @@ import {
   Button,
   Card,
   CardContent,
-  Pagination,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Drawer,
   FormGroup,
   FormControlLabel,
   Checkbox,
   Chip,
   CircularProgress,
   TextField,
-  
+  Divider
 } from '@mui/material'
-
-import type { ColumnDef } from '@tanstack/react-table'
-
 import { createColumnHelper } from '@tanstack/react-table'
-
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
-
 import DynamicTable from '@/components/Table/dynamicTable'
-
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUserManagement } from '@/redux/userManagementSlice'
+import { fetchUserManagement, fetchEmployees, fetchUserRole } from '@/redux/userManagementSlice'
+
+interface FilterState {
+  active: boolean
+  inactive: boolean
+  roles: string[]
+}
 
 const UserListing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
     pageSize: 10
   })
-
-  const [openFilterModal, setOpenFilterModal] = useState(false)
-
-  const [tempFilters, setTempFilters] = useState({
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [tempFilters, setTempFilters] = useState<FilterState>({
     active: false,
-    inactive: false
+    inactive: false,
+    roles: []
   })
-
-  const [appliedFilters, setAppliedFilters] = useState({
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     active: false,
-    inactive: false
+    inactive: false,
+    roles: []
   })
 
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { userManagementData, isUserManagementLoading } = useAppSelector((state: any) => state.UserManagementReducer)
-
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 5
-  })
-
-  let totalPages = 0
+  const { userManagementData, isUserManagementLoading, employeeData } = useAppSelector(
+    (state: any) => state.UserManagementReducer
+  )
+  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm)
     }, 500)
-
     return () => clearTimeout(timer)
   }, [searchTerm])
 
   useEffect(() => {
-    const params: any = {
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize
+    const userParams: any = {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize
     }
+    if (debouncedSearch) userParams.search = debouncedSearch
+    if (appliedFilters.active && !appliedFilters.inactive) userParams.status = 'Active'
+    else if (!appliedFilters.active && appliedFilters.inactive) userParams.status = 'Inactive'
+    if (appliedFilters.roles.length > 0) userParams.roles = appliedFilters.roles.join(',')
 
-    if (debouncedSearch) {
-      params.search = debouncedSearch
-    }
-
-    if (appliedFilters.active && !appliedFilters.inactive) {
-      params.status = 'Active'
-    } else if (!appliedFilters.active && appliedFilters.inactive) {
-      params.status = 'Inactive'
-    }
-
-    dispatch(fetchUserManagement(params))
-  }, [debouncedSearch, appliedFilters, paginationModel])
-
-  useEffect(() => {
-    if (userManagementData?.totalCount) {
-      totalPages = Math.ceil(userManagementData.totalCount / paginationModel.pageSize)
-    }
-  }, [userManagementData])
+    dispatch(fetchEmployees({}))
+    dispatch(fetchUserManagement(userParams))
+    dispatch(fetchUserRole({ limit: 1000 }))
+  }, [debouncedSearch, appliedFilters, pagination, dispatch])
 
   const columnHelper = createColumnHelper<any>()
 
-  const columns = useMemo<ColumnDef<any, any>[]>(
+  const columns = useMemo(
     () => [
       columnHelper.accessor('serialNo', {
         header: 'No',
@@ -113,11 +90,11 @@ const UserListing = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor('userId', {
-        header: 'User ID',
+      columnHelper.accessor('employeeCode', {
+        header: 'Employee Code',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.userId}
+            {row.original.employeeCode || 'N/A'}
           </Typography>
         )
       }),
@@ -125,7 +102,7 @@ const UserListing = () => {
         header: 'First Name',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.firstName}
+            {row.original.firstName || 'N/A'}
           </Typography>
         )
       }),
@@ -133,15 +110,17 @@ const UserListing = () => {
         header: 'Last Name',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.lastName}
+            {row.original.lastName || 'N/A'}
           </Typography>
         )
       }),
-      columnHelper.accessor('email', {
-        header: 'Email',
+      columnHelper.accessor('roles', {
+        header: 'Role',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.email}
+            {Array.isArray(row.original.roles) && row.original.roles.length > 0
+              ? row.original.roles[0]
+              : row.original.role || 'No Role'}
           </Typography>
         )
       }),
@@ -149,14 +128,13 @@ const UserListing = () => {
         header: 'Status',
         cell: ({ row }) => (
           <Typography
-            color={row.original.status.toLowerCase().trim() === 'active' ? 'success.main' : 'error.main'}
+            color={row.original.status?.toLowerCase().trim() === 'active' ? 'success.main' : 'error.main'}
             className='font-medium'
           >
-            {row.original.status}
+            {row.original.status || 'N/A'}
           </Typography>
         )
       }),
-
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
@@ -164,268 +142,317 @@ const UserListing = () => {
             <IconButton
               onClick={(e: any) => {
                 e.stopPropagation()
-                handleEdit(row.original.id)
+                handleEdit(row.original.id, row.original)
               }}
             >
               <i className='tabler-edit' />
             </IconButton>
           </Box>
         )
+      }),
+      columnHelper.accessor('mobileNumber', {
+        header: 'Mobile Number',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.mobileNumber || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('email', {
+        header: 'Email',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.email || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('band', {
+        header: 'Band',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.band || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('grade', {
+        header: 'Grade',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.grade || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('designation', {
+        header: 'Designation',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.designation || 'N/A'}
+          </Typography>
+        )
       })
     ],
     [columnHelper]
   )
 
-  // const DebouncedInput = ({
-  //   value: initialValue,
-  //   onChange,
-  //   debounce = 500,
-  //   ...props
-  // }: {
-  //   value: string | number
-  //   onChange: (value: string | number) => void
-  //   debounce?: number
-  // } & Omit<TextFieldProps, 'onChange'>) => {
-  //   const [value, setValue] = useState(initialValue)
+  const handleAddUser = () => router.push('/user-management/add/add-new-user')
 
-  //   useEffect(() => {
-  //     setValue(initialValue)
-  //   }, [initialValue])
+  const handleEdit = (id: string | number, rowData: any) => {
+    const queryParams = new URLSearchParams({
+      employeeCode: rowData.employeeCode || '',
+      firstName: rowData.firstName || '',
+      lastName: rowData.lastName || '',
+      email: rowData.email || '',
+      role: Array.isArray(rowData.roles) && rowData.roles.length > 0 ? rowData.roles[0] : rowData.role || ''
+    }).toString()
 
-  //   useEffect(() => {
-  //     const timeout = setTimeout(() => {
-  //       onChange(value)
-  //     }, debounce)
-
-  //     return () => clearTimeout(timeout)
-  //   }, [value])
-
-  //   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} variant='outlined' />
-  // }
-
-  const handleAddUser = () => {
-    router.push('/user-management/add/add-new-user')
+    router.push(`/user-management/edit/${id}?${queryParams}`)
   }
 
-  const handleEdit = (id: number) => {
-    router.push(`/user-management/edit/${id}`)
-  }
-
-  const handleFilterOpen = () => {
-    setTempFilters(appliedFilters) // Initialize temp filters with current applied filters
-    setOpenFilterModal(true)
-  }
-
-  const handleFilterClose = () => {
-    setTempFilters(appliedFilters) // Reset temp filters to applied filters on close
-    setOpenFilterModal(false)
+  const handleFilterToggle = () => {
+    setTempFilters(appliedFilters)
+    setIsFilterOpen(!isFilterOpen)
   }
 
   const handleFilterApply = () => {
-    setAppliedFilters(tempFilters) // Apply the temp filters
-    handleFilterClose()
+    setAppliedFilters({ ...tempFilters })
+    setIsFilterOpen(false)
   }
 
   const handleFilterClear = () => {
-    const clearedFilters = {
-      active: false,
-      inactive: false
-    }
-
+    const clearedFilters = { active: false, inactive: false, roles: [] }
     setTempFilters(clearedFilters)
     setAppliedFilters(clearedFilters)
-    handleFilterClose()
+    setIsFilterOpen(false)
   }
 
-  const handleRemoveFilter = (filterType: 'active' | 'inactive') => {
-    setAppliedFilters(prev => ({
-      ...prev,
-      [filterType]: false
-    }))
-  }
-
-  // Handle search input
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value)
-  }
-
-  // Clear search
-  const handleClearSearch = () => {
-    setSearchTerm('')
-  }
-
-  // Handle filter changes
-  const handleFilterChange = (filterType: 'active' | 'inactive', checked: boolean) => {
-    setTempFilters(prev => ({
-      ...prev,
-      [filterType]: checked
-    }))
-  }
-
-  const handlePageChange = (newPage: number) => {
-    setPagination(prev => {
-      const updatedPagination = { ...prev, pageIndex: newPage }
-
-      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-
-      return updatedPagination
+  const handleRemoveFilter = (filterType: 'active' | 'inactive' | string) => {
+    setAppliedFilters(prev => {
+      if (filterType === 'active' || filterType === 'inactive') {
+        return { ...prev, [filterType]: false }
+      } else {
+        return {
+          ...prev,
+          roles: prev.roles.filter(role => role !== filterType)
+        }
+      }
     })
   }
 
-  const handleRowsPerPageChange = (newPageSize: number) => {
-    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)
+  const handleClearSearch = () => setSearchTerm('')
 
-    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-    setPagination(updatedPagination)
+  const handleFilterChange = (filterType: 'active' | 'inactive' | string, checked: boolean) => {
+    setTempFilters(prev => {
+      if (filterType === 'active' || filterType === 'inactive') {
+        return { ...prev, [filterType]: checked }
+      } else {
+        return {
+          ...prev,
+          roles: checked ? [...prev.roles, filterType] : prev.roles.filter(role => role !== filterType)
+        }
+      }
+    })
   }
 
-  return (
-    <div>
-      <Card sx={{ mb: 4 }}>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Box className='flex-1 min-w-[200px]'>
-                <TextField
-                  fullWidth
-                  size='small'
-                  placeholder='Search users...'
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  InputProps={{
-                    startAdornment: <SearchIcon className='mr-2 text-gray-400' />,
-                    endAdornment: searchTerm && (
-                      <IconButton size='small' onClick={handleClearSearch}>
-                        <ClearIcon />
-                      </IconButton>
-                    )
-                  }}
-                />
-              </Box>
+  const enrichedUserData = useMemo(() => {
+    const users = userManagementData?.data || []
+    const employees = employeeData?.data || employeeData || []
 
+    let filteredUsers = users.map(user => {
+      const matchingEmployee = employees.find(emp => emp.employeeCode === user.employeeCode)
+      return {
+        ...user,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        mobileNumber: matchingEmployee?.mobileNumber || user.mobileNumber || 'N/A',
+        employeeCode: user.employeeCode,
+        roles: user.roles || (user.role ? [user.role] : []),
+        band: matchingEmployee?.employeeDetails?.band || 'N/A',
+        grade: matchingEmployee?.employeeDetails?.grade || 'N/A',
+        designation: matchingEmployee?.employeeDetails?.designation || 'N/A',
+        status: user.status || 'N/A'
+      }
+    })
+
+    if (appliedFilters.roles.length > 0) {
+      filteredUsers = filteredUsers.filter(user => user.roles.some(role => appliedFilters.roles.includes(role)))
+    }
+
+    if (appliedFilters.active && !appliedFilters.inactive) {
+      filteredUsers = filteredUsers.filter(user => user.status.toLowerCase().trim() === 'active')
+    } else if (!appliedFilters.active && appliedFilters.inactive) {
+      filteredUsers = filteredUsers.filter(user => user.status.toLowerCase().trim() === 'inactive')
+    }
+
+    return filteredUsers
+  }, [userManagementData, employeeData, appliedFilters])
+
+  const totalCount = useMemo(() => {
+    return userManagementData?.totalCount || 0
+  }, [userManagementData])
+
+  const availableRoles = useMemo(() => {
+    return userRoleData?.data?.map(role => role.name) || []
+  }, [userRoleData])
+
+  return (
+    <div style={{ display: 'flex' }}>
+      <Box sx={{ flexGrow: 1 }}>
+        <Card sx={{ mb: 4 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box className='flex-1 min-w-[200px]'>
+                  <TextField
+                    fullWidth
+                    size='small'
+                    placeholder='Search users...'
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    InputProps={{
+                      startAdornment: <SearchIcon className='mr-2 text-gray-400' />,
+                      endAdornment: searchTerm && (
+                        <IconButton size='small' onClick={handleClearSearch}>
+                          <ClearIcon />
+                        </IconButton>
+                      )
+                    }}
+                  />
+                </Box>
+                <Button
+                  variant='outlined'
+                  onClick={handleFilterToggle}
+                  startIcon={<i className='tabler-filter' />}
+                  size='medium'
+                >
+                  Filter
+                </Button>
+              </Box>
               <Button
-                variant='outlined'
-                onClick={handleFilterOpen}
-                startIcon={<i className='tabler-filter' />}
+                variant='contained'
+                onClick={handleAddUser}
+                startIcon={<i className='tabler-plus' />}
                 size='medium'
               >
-                Filter
+                Add User
               </Button>
             </Box>
-            <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />} size='medium'>
-              Add User
-            </Button>
-          </Box>
 
-          {/* Active Filters Display */}
-          {(appliedFilters.active || appliedFilters.inactive) && (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {appliedFilters.active && (
-                <Chip label='Active Users' onDelete={() => handleRemoveFilter('active')} size='small' color='primary' />
-              )}
-              {appliedFilters.inactive && (
-                <Chip
-                  label='Inactive Users'
-                  onDelete={() => handleRemoveFilter('inactive')}
-                  size='small'
-                  color='primary'
-                />
-              )}
-              <Button
-                size='small'
-                color='error'
-                onClick={handleFilterClear}
-                sx={{
-                  ml: 1,
-                  textDecoration: 'underline',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                Clear All
-              </Button>
+            {(appliedFilters.active || appliedFilters.inactive || appliedFilters.roles.length > 0) && (
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                {appliedFilters.active && (
+                  <Chip
+                    label='Active Users'
+                    onDelete={() => handleRemoveFilter('active')}
+                    size='small'
+                    color='primary'
+                  />
+                )}
+                {appliedFilters.inactive && (
+                  <Chip
+                    label='Inactive Users'
+                    onDelete={() => handleRemoveFilter('inactive')}
+                    size='small'
+                    color='primary'
+                  />
+                )}
+                {appliedFilters.roles.map(role => (
+                  <Chip
+                    key={role}
+                    label={role}
+                    onDelete={() => handleRemoveFilter(role)}
+                    size='small'
+                    color='primary'
+                  />
+                ))}
+                <Button size='small' color='error' onClick={handleFilterClear}>
+                  Clear All
+                </Button>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          {isUserManagementLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+              <CircularProgress />
             </Box>
+          ) : (
+            <DynamicTable
+              columns={columns}
+              data={enrichedUserData}
+              pagination={pagination}
+              totalCount={totalCount}
+              onPageChange={(newPage: number) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
+              onRowsPerPageChange={(newPageSize: number) => setPagination({ pageIndex: 0, pageSize: newPageSize })}
+            />
           )}
-        </CardContent>
-      </Card>
-
-      {/* Filter Modal */}
-      <Dialog open={openFilterModal} onClose={handleFilterClose}>
-        <DialogTitle>Filter Users</DialogTitle>
-        <DialogContent>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox checked={tempFilters.active} onChange={e => handleFilterChange('active', e.target.checked)} />
-              }
-              label='Active Users'
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={tempFilters.inactive}
-                  onChange={e => handleFilterChange('inactive', e.target.checked)}
-                />
-              }
-              label='Inactive Users'
-            />
-          </FormGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleFilterClear} color='error'>
-            Clear Filters
-          </Button>
-          <Button onClick={handleFilterApply} variant='contained'>
-            Apply
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Table Container */}
-      <Card>
-        {isUserManagementLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <DynamicTable
-            columns={columns}
-            data={userManagementData?.data || []}
-            pagination={pagination} // Pass pagination state
-            onPaginationChange={setPagination} // Pass pagination change handler
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-          />
-        )}
-      </Card>
-
-      {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-        <Pagination
-          color='primary'
-          shape='rounded'
-          count={totalPages}
-          page={paginationModel.page}
-          onChange={(event, value) => {
-            setPaginationModel({ ...paginationModel, page: value })
-          }}
-          showFirstButton
-          showLastButton
-        />
+        </Card>
       </Box>
 
-      {/* Delete Confirmation Modal */}
-      {/* <DeleteConfirmModal
-        open={openModal}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        id={selectedUserId}
-        title='Delete User'
-        description='Are you sure you want to delete this user? This action cannot be undone.'
-      /> */}
+      {/* Right Side Filter Panel */}
+      <Drawer
+        anchor='right'
+        open={isFilterOpen}
+        onClose={handleFilterToggle}
+        sx={{ '& .MuiDrawer-paper': { width: 300, padding: 5 } }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant='h5'sx={{ padding: '5px' }}>Filter Users</Typography>
+          <IconButton onClick={handleFilterToggle}>
+            <ClearIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Checkbox checked={tempFilters.active} onChange={e => handleFilterChange('active', e.target.checked)} />
+            }
+            label='Active Users'
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={tempFilters.inactive}
+                onChange={e => handleFilterChange('inactive', e.target.checked)}
+              />
+            }
+            label='Inactive Users'
+          />
+
+          <Typography variant='h5' sx={{ padding: '10px' }}>
+            Roles
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          {isUserRoleLoading ? (
+            <CircularProgress size={20} />
+          ) : (
+            availableRoles.map(role => (
+              <FormControlLabel
+                key={role}
+                control={
+                  <Checkbox
+                    checked={tempFilters.roles.includes(role)}
+                    onChange={e => handleFilterChange(role, e.target.checked)}
+                  />
+                }
+                label={role}
+              />
+            ))
+          )}
+        </FormGroup>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+          <Button fullWidth variant='outlined' color='error' onClick={handleFilterClear}>
+            Clear
+          </Button>
+          <Button fullWidth variant='contained' onClick={handleFilterApply}>
+            Apply
+          </Button>
+        </Box>
+      </Drawer>
     </div>
   )
 }

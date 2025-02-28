@@ -3,7 +3,7 @@ name: Deploying recruit-it-ui
 on:
   push:
     branches:
-      - mains
+      - dev-environment
 
 env:
   IMAGE_NAME: recruit-it-ui
@@ -64,5 +64,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          envs: IMAGE_NAME
           script: |
-            microk8s crictl images | grep "localhost:32000/$IMAGE_NAME" | awk '{print $3}' | sort -r | tail -n +2 | xargs -r microk8s crictl rmi || true
+            echo "Removing all MicroK8s registry images except localhost:32000/recruit-it-ui:$IMAGE_TAG"
+            microk8s ctr images ls | grep localhost:32000 | grep -v "$IMAGE_TAG" | awk '{print $1}' | xargs microk8s ctr images rm
+            echo "Removing images from docker"
+            sudo docker rmi -f $(sudo docker images -a -q)

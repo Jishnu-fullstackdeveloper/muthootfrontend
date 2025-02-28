@@ -34,6 +34,7 @@ const BucketView: React.FC<Props> = ({ id }) => {
   const positionCategories = searchParams.get('positionCategories')
 
   const router = useRouter()
+  
   const [bucketId, setBucketId] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showDeleteModal, setShowDeleteModal] = useState(false)

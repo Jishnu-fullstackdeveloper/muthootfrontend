@@ -1,15 +1,35 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-
 import AxiosLib from '@/lib/AxiosLib'
 
 export const fetchUserManagement = createAsyncThunk(
   'userManagement/fetchUserManagement',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/users', {
-        params
-      })
+      const response = await AxiosLib.get('/users', { params })
+      return response
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
 
+export const fetchEmployees = createAsyncThunk(
+  'userManagement/fetchEmployees',
+  async (params: any, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/employee', { params })
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data.data)
+    }
+  }
+)
+
+export const fetchUserRole = createAsyncThunk(
+  'userManagement/fetchUserRole',
+  async (params: any, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/users/roles', { params })
       return response
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -22,15 +42,33 @@ export const addNewUser = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/users', params)
-
       return response.data
     } catch (error: any) {
-      // Handle array of validation messages or single message
       const errorMessage = error.response?.data?.message
-
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode
+      })
+    }
+  }
+)
+
+
+
+export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleName: string[] } }>(
+  'userManagement/updateUser',
+  async ({ id, params }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.patch(`/users/role`, {
+        email: params.email,
+        newRoleName: params.newRoleName
+      })
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to update role'
+      return rejectWithValue({
+        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+        statusCode: error.response?.data?.statusCode || 500
       })
     }
   }
@@ -45,29 +83,49 @@ export const UserManagementSlice = createSlice({
     userManagementFailure: false,
     userManagementFailureMessage: '',
 
+    employeeData: [],
+    isEmployeeLoading: false,
+    EmployeeSuccess: false,
+    EmployeeFailure: false,
+    EmployeeFailureMessage: '',
+
+    userRoleData: [],
+    isUserRoleLoading: false,
+    userRoleSuccess: false,
+    userRoleFailure: false,
+    userRoleFailureMessage: '',
+
     addNewUserData: [],
     isAddUserLoading: false,
     addUserSuccess: false,
     addUserFailure: false,
-    addUserFailureMessage: ''
-  },
+    addUserFailureMessage: '',
 
+    selectedUser: null, // To store user data for editing
+    isUserLoading: false,
+    userSuccess: false,
+    userFailure: false,
+    userFailureMessage: ''
+  },
   reducers: {
     fetchUserManagementDismiss: state => {
-      ;(state.isUserManagementLoading = false),
-        (state.userManagementSuccess = false),
-        (state.userManagementFailure = false),
-        (state.userManagementFailureMessage = '')
+      state.isUserManagementLoading = false
+      state.userManagementSuccess = false
+      state.userManagementFailure = false
+      state.userManagementFailureMessage = ''
     },
     resetAddUserStatus: state => {
       state.isAddUserLoading = false
       state.addUserSuccess = false
       state.addUserFailure = false
       state.addUserFailureMessage = ''
+      state.userSuccess = false
+      state.userFailure = false
+      state.userFailureMessage = ''
     }
   },
   extraReducers: builder => {
-    //fetch User Management List
+    // Fetch User Management List
     builder.addCase(fetchUserManagement.pending, state => {
       state.isUserManagementLoading = true
     })
@@ -83,7 +141,37 @@ export const UserManagementSlice = createSlice({
       state.userManagementFailureMessage = action?.payload?.message || 'Listing Failed'
     })
 
-    // Add new user reducers
+    builder.addCase(fetchUserRole.pending, state => {
+      state.isUserRoleLoading = true
+    })
+    builder.addCase(fetchUserRole.fulfilled, (state, action) => {
+      state.userRoleData = action?.payload?.data
+      state.isUserRoleLoading = false
+      state.userRoleSuccess = true
+    })
+    builder.addCase(fetchUserRole.rejected, (state, action: any) => {
+      state.isUserRoleLoading = false
+      state.userRoleData = []
+      state.userRoleFailure = true
+      state.userRoleFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
+    })
+    // Fetch Employee Management List
+    builder.addCase(fetchEmployees.pending, state => {
+      state.isEmployeeLoading = true
+    })
+    builder.addCase(fetchEmployees.fulfilled, (state, action) => {
+      state.employeeData = action?.payload?.data
+      state.isEmployeeLoading = false
+      state.EmployeeSuccess = true
+    })
+    builder.addCase(fetchEmployees.rejected, (state, action: any) => {
+      state.isEmployeeLoading = false
+      state.employeeData = []
+      state.EmployeeFailure = true
+      state.EmployeeFailureMessage = action?.payload?.message || 'Listing Failed'
+    })
+
+    // Add New User
     builder.addCase(addNewUser.pending, state => {
       state.isAddUserLoading = true
       state.addUserSuccess = false
@@ -100,6 +188,25 @@ export const UserManagementSlice = createSlice({
       state.addUserSuccess = false
       state.addUserFailure = true
       state.addUserFailureMessage = action.payload?.message || 'Failed to add user'
+    })
+
+    // Update User
+    builder.addCase(updateUser.pending, state => {
+      state.isAddUserLoading = true
+      state.addUserSuccess = false
+      state.addUserFailure = false
+      state.addUserFailureMessage = ''
+    })
+    builder.addCase(updateUser.fulfilled, state => {
+      state.isAddUserLoading = false
+      state.addUserSuccess = true
+      state.addUserFailure = false
+    })
+    builder.addCase(updateUser.rejected, (state, action: any) => {
+      state.isAddUserLoading = false
+      state.addUserSuccess = false
+      state.addUserFailure = true
+      state.addUserFailureMessage = action.payload?.message || 'Failed to update user'
     })
   }
 })

@@ -1,93 +1,136 @@
-// import AxiosLib from '@/lib/AxiosLib'
-// import { userRoleData } from '@/shared/userRoleData'
-// import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import AxiosLib from '@/lib/AxiosLib'
 
-// interface FetchUserRoleParams {
-//   search?: string
-//   filter?: Record<string, string | number>
-//   limit?: number
-//   page?: number
-// }
+export const fetchUserRole = createAsyncThunk(
+  'userManagement/fetchUserRole',
+  async (params: any, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/users/roles', { params })
+      return response
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
 
-// export const fetchUserRole = createAsyncThunk<any, FetchUserRoleParams>(
-//   '/roles',
-//   async ({ search, filter, limit = 10, page = 1 }, { rejectWithValue }) => {
-//     try {
-//       const params = new URLSearchParams()
 
-//       if (search) params.append('search', search)
-//       if (filter) params.append('filter', JSON.stringify(filter))
-//       params.append('limit', limit.toString())
-//       params.append('page', page.toString())
+export const addNewUserRole = createAsyncThunk<any, any>(
+  'userManagement/addNewUserRole',
+  async (params: object, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.post('/users/roles', params)
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to add role'
+      return rejectWithValue({
+        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+        statusCode: error.response?.data?.statusCode || 500
+      })
+    }
+  }
+)
 
-//       const response = await AxiosLib.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/roles?${params.toString()}`)
-//       return response.data
-//     } catch (error: any) {
-//       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user role data')
-//     }
-//   }
-// )
+export const updateUserRole = createAsyncThunk<any, { id: string; params: { roleName: string; newPermissionNames: string[] } }>(
+  'userManagement/updateUserRole',
+  async ({ id, params }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.patch(`/users/roles/permissions`, {
+        roleName: params.roleName,
+        newPermissionNames: params.newPermissionNames
+      })
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to update role'
+      return rejectWithValue({
+        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+        statusCode: error.response?.data?.statusCode || 500
+      })
+    }
+  }
+)
 
-// export const fetchUserRolebyId = createAsyncThunk<any, any>('/rolesbyid', async (params: any, { rejectWithValue }) => {
-//   console.log('id in slice', params)
-//   try {
-//     const response = await AxiosLib.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/roles/${params.id}`)
-//     return response.data
-//   } catch (error: any) {
-//     return rejectWithValue(error.response?.data?.message || 'Failed to fetch user role data')
-//   }
-// })
+export const UserRoleSlice = createSlice({
+  name: 'UserRole',
+  initialState: {
+    userRoleData: [],
+    isUserRoleLoading: false,
+    userRoleSuccess: false,
+    userRoleFailure: false,
+    userRoleFailureMessage: '',
 
-// const userRoleSlice = createSlice({
-//   name: 'userRole',
-//   initialState: {
-//     getUserRoleBegin: false,
-//     getUserRoleData: userRoleData,
-//     getUserRoleError: false,
-//     getUserRoleErrorMessage: '',
-//     getUserRoleSuccess: false,
-//     getUserRoleIdBegin: false,
-//     getUserRoleIdData: {},
-//     getUserRoleIdError: false,
-//     getUserRoleIdErrorMessage: '',
-//     getUserRoleIdSuccess: false
-//   },
-//   reducers: {
-//     clearUserData: state => {
-//       ;(state.getUserRoleBegin = false),
-//         (state.getUserRoleData = []),
-//         (state.getUserRoleError = false),
-//         (state.getUserRoleErrorMessage = ''),
-//         (state.getUserRoleSuccess = false),
-//         (state.getUserRoleIdBegin = false),
-//         (state.getUserRoleIdData = {}),
-//         (state.getUserRoleIdError = false),
-//         (state.getUserRoleIdErrorMessage = ''),
-//         (state.getUserRoleIdSuccess = false)
-//     }
-//   },
-//   extraReducers: builder => {
-//     builder.addCase(fetchUserRole.pending, state => {
-//       state.getUserRoleBegin = true
-//       state.getUserRoleIdBegin = true
-//     })
-//     builder.addCase(fetchUserRole.fulfilled, (state, action) => {
-//       state.getUserRoleData = action.payload
-//       state.getUserRoleBegin = false
-//       state.getUserRoleSuccess = true
-//       state.getUserRoleIdData = action.payload
-//       state.getUserRoleIdBegin = false
-//       state.getUserRoleIdSuccess = true
-//     })
-//     builder.addCase(fetchUserRole.rejected, (state, action: any) => {
-//       state.getUserRoleBegin = false
-//       state.getUserRoleErrorMessage = action.payload?.message
-//       state.getUserRoleIdBegin = false
-//       state.getUserRoleIdErrorMessage = action.payload?.message
-//     })
-//   }
-// })
+    addNewRoleData: [],
+    isAddRoleLoading: false,
+    addUserRoleSuccess: false,
+    addUserRoleFailure: false,
+    addUserRoleFailureMessage: ''
+  },
+  reducers: {
+    fetchUserRoleDismiss: state => {
+      state.isUserRoleLoading = false
+      state.userRoleSuccess = false
+      state.userRoleFailure = false
+      state.userRoleFailureMessage = ''
+    },
+    resetAddUserRoleStatus: state => {
+      state.isAddRoleLoading = false
+      state.addUserRoleSuccess = false
+      state.addUserRoleFailure = false
+      state.addUserRoleFailureMessage = ''
+    }
+  },
+  extraReducers: builder => {
+    builder.addCase(fetchUserRole.pending, state => {
+      state.isUserRoleLoading = true
+    })
+    builder.addCase(fetchUserRole.fulfilled, (state, action) => {
+      state.userRoleData = action?.payload?.data
+      state.isUserRoleLoading = false
+      state.userRoleSuccess = true
+    })
+    builder.addCase(fetchUserRole.rejected, (state, action: any) => {
+      state.isUserRoleLoading = false
+      state.userRoleData = []
+      state.userRoleFailure = true
+      state.userRoleFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
+    })
 
-// // Export actions and reducer
-// export const { clearUserData } = userRoleSlice.actions
-// export default userRoleSlice.reducer
+    builder.addCase(addNewUserRole.pending, state => {
+      state.isAddRoleLoading = true
+      state.addUserRoleSuccess = false
+      state.addUserRoleFailure = false
+      state.addUserRoleFailureMessage = ''
+    })
+    builder.addCase(addNewUserRole.fulfilled, state => {
+      state.isAddRoleLoading = false
+      state.addUserRoleSuccess = true
+      state.addUserRoleFailure = false
+    })
+    builder.addCase(addNewUserRole.rejected, (state, action: any) => {
+      state.isAddRoleLoading = false
+      state.addUserRoleSuccess = false
+      state.addUserRoleFailure = true
+      state.addUserRoleFailureMessage = action.payload?.message || 'Failed to add role'
+    })
+
+    builder.addCase(updateUserRole.pending, state => {
+      state.isAddRoleLoading = true
+      state.addUserRoleSuccess = false
+      state.addUserRoleFailure = false
+      state.addUserRoleFailureMessage = ''
+    })
+    builder.addCase(updateUserRole.fulfilled, state => {
+      state.isAddRoleLoading = false
+      state.addUserRoleSuccess = true
+      state.addUserRoleFailure = false
+    })
+    builder.addCase(updateUserRole.rejected, (state, action: any) => {
+      state.isAddRoleLoading = false
+      state.addUserRoleSuccess = false
+      state.addUserRoleFailure = true
+      state.addUserRoleFailureMessage = action.payload?.message || 'Failed to update role'
+    })
+  }
+})
+
+export const { fetchUserRoleDismiss, resetAddUserRoleStatus } = UserRoleSlice.actions
+export default UserRoleSlice.reducer

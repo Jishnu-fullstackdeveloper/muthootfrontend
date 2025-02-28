@@ -17,7 +17,7 @@ const UserRolesIndex = () => {
   return <>
 
   {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole  mode={mode} id={id} />}
-  {mode === 'view' && <ViewUserRole  mode={mode} id={id} />}
+  {mode === 'view' && <ViewUserRole />}
   </>
 }
 

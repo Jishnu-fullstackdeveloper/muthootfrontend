@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -11,12 +11,18 @@ import DynamicTable from '@/components/Table/dynamicTable'
 
 // import { submitRequestDecision } from '@/redux/RecruitmentResignationSlice'
 import { getAccessToken, decodeToken, isAdmin } from '@/utils/functions'
+import withPermission from '@/hocs/withPermission'
 
 // import { useAppDispatch } from '@/lib/hooks'
 
 const RecruitmentListTableView = ({ designationData }: any) => {
   // const dispatch = useAppDispatch()
   const router = useRouter()
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5
+  })
 
   const getApproverId = () => {
     const token = getAccessToken()
@@ -26,6 +32,25 @@ const RecruitmentListTableView = ({ designationData }: any) => {
     const decodedToken = decodeToken(token)
 
     return decodedToken?.sub
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => {
+      const updatedPagination = { ...prev, pageIndex: newPage }
+
+      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
+      return updatedPagination
+    })
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+
+    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+    setPagination(updatedPagination)
   }
 
   const handleApprove = async (id: number, e: React.MouseEvent) => {
@@ -84,20 +109,20 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
-      columnHelper.accessor('requestType', {
-        header: 'REQUEST TYPE',
-        cell: ({ row }) => {
-          return (
-            <div className='flex items-center gap-4'>
-              <div className='flex flex-col'>
-                <Typography color='text.primary' className='font-medium'>
-                  {row.original.origin}
-                </Typography>
-              </div>
-            </div>
-          )
-        }
-      }),
+      // columnHelper.accessor('requestType', {
+      //   header: 'REQUEST TYPE',
+      //   cell: ({ row }) => {
+      //     return (
+      //       <div className='flex items-center gap-4'>
+      //         <div className='flex flex-col'>
+      //           <Typography color='text.primary' className='font-medium'>
+      //             {row.original.origin}
+      //           </Typography>
+      //         </div>
+      //       </div>
+      //     )
+      //   }
+      // }),
 
       columnHelper.accessor('department', {
         header: 'DEPARTMENT',
@@ -106,7 +131,7 @@ const RecruitmentListTableView = ({ designationData }: any) => {
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
                 <Typography color='text.primary' className='font-medium'>
-                  {row.original.Department}
+                  {row.original.departmentName}
                 </Typography>
               </div>
             </div>
@@ -121,7 +146,7 @@ const RecruitmentListTableView = ({ designationData }: any) => {
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
                 <Typography color='text.primary' className='font-medium'>
-                  {row.original.Branches}
+                  {row.original.branchesName}
                 </Typography>
               </div>
             </div>
@@ -129,20 +154,20 @@ const RecruitmentListTableView = ({ designationData }: any) => {
         }
       }),
 
-      columnHelper.accessor('bubble_positions', {
-        header: 'BUBBLE POSITIONS',
-        cell: ({ row }) => {
-          return (
-            <div className='flex items-center gap-4'>
-              <div className='flex flex-col'>
-                <Typography color='text.primary' className='font-medium'>
-                  {row.original.bubblePositionsCount}
-                </Typography>
-              </div>
-            </div>
-          )
-        }
-      }),
+      // columnHelper.accessor('bubble_positions', {
+      //   header: 'BUBBLE POSITIONS',
+      //   cell: ({ row }) => {
+      //     return (
+      //       <div className='flex items-center gap-4'>
+      //         <div className='flex flex-col'>
+      //           <Typography color='text.primary' className='font-medium'>
+      //             {row.original.bubblePositionsCount}
+      //           </Typography>
+      //         </div>
+      //       </div>
+      //     )
+      //   }
+      // }),
 
       columnHelper.accessor('band', {
         header: 'BAND',
@@ -151,7 +176,7 @@ const RecruitmentListTableView = ({ designationData }: any) => {
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
                 <Typography color='text.primary' className='font-medium'>
-                  {row.original.band}
+                  {row.original.bandName}
                   {/* B1 */}
                 </Typography>
               </div>
@@ -166,7 +191,21 @@ const RecruitmentListTableView = ({ designationData }: any) => {
             <div className='flex items-center gap-4'>
               <div className='flex flex-col'>
                 <Typography color='text.primary' className='font-medium'>
-                  {row.original.Grade}
+                  {row.original.gradeName}
+                </Typography>
+              </div>
+            </div>
+          )
+        }
+      }),
+      columnHelper.accessor('status', {
+        header: 'STATUS',
+        cell: ({ row }) => {
+          return (
+            <div className='flex items-center gap-4'>
+              <div className='flex flex-col'>
+                <Typography color='text.primary' className='font-medium'>
+                  {row.original.approvalStatus}
                 </Typography>
               </div>
             </div>
@@ -188,11 +227,30 @@ const RecruitmentListTableView = ({ designationData }: any) => {
             </Tooltip>
             {/* <Tooltip title='Edit' placement='top'>
               <IconButton
+
               // onClick={() => handleEditUserClick(row.original.id)}
               >
                 <i className='tabler-edit text-[22px] text-textSecondary' />
               </IconButton>
             </Tooltip> */}
+
+            {withPermission(
+              () => (
+                <>
+                  <Tooltip title='Approve' placement='top'>
+                    <IconButton onClick={e => handleApprove(row.original.id, e)}>
+                      <i className='tabler-check text-green-500'></i>
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Reject' placement='top'>
+                    <IconButton onClick={e => handleReject(row.original.id, e)}>
+                      <i className='tabler-x text-red-500'></i>
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ),
+              'recruitmentManagement'
+            )({ individualPermission: 'recruitment_approval' })}
 
             {isAdmin() ? (
               <>
@@ -229,7 +287,14 @@ const RecruitmentListTableView = ({ designationData }: any) => {
 
   return (
     <div>
-      <DynamicTable columns={columns} data={designationData} />
+      <DynamicTable
+        columns={columns}
+        data={designationData}
+        pagination={pagination} // Pass pagination state
+        onPaginationChange={setPagination} // Pass pagination change handler
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
     </div>
   )
 }

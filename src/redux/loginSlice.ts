@@ -21,7 +21,7 @@ export const fetchInitialLoginURL = createAsyncThunk<any, any>(
       email
     }
 
-    const api = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/login'
+    const api = process.env.NEXT_PUBLIC_API_BASE_URL
 
     try {
       const response = await axios.post(api, requestData)

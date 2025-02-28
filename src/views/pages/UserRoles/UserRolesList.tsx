@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import {
   Typography,
   IconButton,
@@ -19,6 +21,7 @@ import {
   Pagination,
   Divider
 } from '@mui/material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/userRoleSlice'
@@ -87,6 +90,7 @@ const UserRolesAndPermisstionList = () => {
     const timer = setTimeout(() => {
       setDebouncedSearchText(searchText)
     }, 500)
+
     return () => clearTimeout(timer)
   }, [searchText])
 
@@ -98,6 +102,7 @@ const UserRolesAndPermisstionList = () => {
     }
 
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+
     if (activePermissions.length > 0) {
       params.permissionName = activePermissions.join(',')
     }
@@ -114,6 +119,7 @@ const UserRolesAndPermisstionList = () => {
 
     return (userRoleData?.data || []).filter(role => {
       const rolePermissions = role.permissions || []
+
       return activePermissions.every(permission => rolePermissions.includes(permission))
     })
   }, [userRoleData?.data, appliedPermissionFilters])
@@ -132,7 +138,9 @@ const UserRolesAndPermisstionList = () => {
       description: item.description || '',
       permissions: JSON.stringify(item.permissions || [])
     }).toString()
+
     const formattedRoleName = item.name.replace(/\s+/g, '-')
+
     router.push(`/user-role/edit/${formattedRoleName}?${query}`)
   }
 
@@ -164,6 +172,7 @@ const UserRolesAndPermisstionList = () => {
 
   const handleFilterClear = () => {
     const clearedFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
+
     setTempPermissionFilters(clearedFilters)
     setAppliedPermissionFilters(clearedFilters)
     handleFilterClose()
@@ -184,6 +193,7 @@ const UserRolesAndPermisstionList = () => {
 
   useEffect(() => {
     const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
+
     setTempPermissionFilters(initialFilters)
     setAppliedPermissionFilters(initialFilters)
   }, [])
@@ -247,9 +257,7 @@ const UserRolesAndPermisstionList = () => {
 
       <Drawer anchor='right' open={openFilterDrawer} onClose={handleFilterClose}>
         <Box sx={{ width: 300, p: 5 }}>
-          <Typography variant='h5'>
-            Filter by Permissions
-          </Typography>
+          <Typography variant='h5'>Filter by Permissions</Typography>
           <Divider sx={{ mb: 2 }} />
           <FormGroup>
             {permissionsList.map(permission => (

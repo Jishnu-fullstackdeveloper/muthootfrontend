@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, Divider, Button, Paper, Chip, Stepper, Step, StepLabel, Card } from '@mui/material'
+import { Box, Typography, Divider, Button, Paper, Stepper, Step, StepLabel, Card, Tooltip } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 
 // import ChartSample from './ChartSample'
@@ -11,11 +11,29 @@ import DesignationResignedReport from './BubblePositionTable'
 import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
-import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
+import { getAccessToken, decodeToken } from '@/utils/functions'
+import withPermission from '@/hocs/withPermission'
 
 type Props = {
   mode: string
   id: string
+}
+export interface ApprovalStatusStep {
+  designation: string
+  label: string
+  approverName: string
+  employeeCode: string
+  status: string
+}
+
+export interface Employee {
+  approvalId?: number | string
+  designationName?: string
+  departmentName?: string
+  approvalStatus?: string
+  approvalStatusLevel?: ApprovalStatusStep[]
+  additionalDetails?: string
+  employee?: string | Employee | any // Optional, can be a string, another Employee object, or any type (refine as needed)
 }
 
 const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
@@ -92,12 +110,16 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
     return decodedToken?.sub
   }
 
-  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+  const safeGetData = (source: any): any[] => (source?.data || Array.isArray(source.data) ? source.data : [])
 
-  const employee = useMemo(() => {
+  const employee = useMemo((): Employee => {
     const data = safeGetData(fetchResignationOverviewListData)
 
-    return data[0]
+    // if (!data || !Array.isArray(data)) {
+    //   throw new Error('Invalid data format for employee')
+    // }
+
+    return data as Employee
   }, [fetchResignationOverviewListData])
 
   useEffect(() => {
@@ -111,7 +133,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       const approverId = getApproverId()
 
       if (!approverId) throw new Error('No approver ID found')
-      if (!employee?.approval_id) throw new Error('No approval ID found')
+      if (!employee?.approvalId) throw new Error('No approval ID found')
 
       // await dispatch(
       //   submitRequestDecision({
@@ -133,7 +155,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       const approverId = getApproverId()
 
       if (!approverId) throw new Error('No approver ID found')
-      if (!employee?.approval_id) throw new Error('No approval ID found')
+      if (!employee?.approvalId) throw new Error('No approval ID found')
 
       // await dispatch(
       //   submitRequestDecision({
@@ -199,11 +221,11 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
               textTransform: 'capitalize'
             }}
           >
-            {employee?.Designation}
+            {employee?.designationName}
             {/* Software Engineer */}
           </Typography>
           <Typography variant='body1' sx={{ color: '#555', marginBottom: 0.5, fontWeight: '500', paddingY: 1 }}>
-            {employee?.Department}
+            {employee?.departmentName}
             {/* Information Technology */}
           </Typography>
           {/* <Typography
@@ -218,11 +240,11 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
               paddingY: 1,
               fontSize: 15,
               textTransform: 'capitalize',
-              color: employee?.employmentStatus === 'Resigned' ? '#d32f2f' : '#388e3c',
+              color: employee?.approvalStatus === 'PENDING' ? '#ff9800' : '#388e3c',
               maxWidth: '120px'
             }}
           >
-            {employee?.employmentStatus}
+            {employee?.approvalStatus}
           </Box>
         </Box>
 
@@ -242,57 +264,36 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           }}
         /> */}
 
-        {isAdmin() ? (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 2,
-              marginTop: 2
-            }}
-          >
-            <Button
-              variant='contained'
-              color='success'
-              onClick={handleApprove}
-              sx={{ padding: '6px 16px' }}
-              startIcon={<i className='tabler-check' />}
-            >
-              Approve
-            </Button>
-            <Button
-              variant='contained'
-              color='error'
-              onClick={handleReject}
-              sx={{ padding: '6px 16px' }}
-              startIcon={<i className='tabler-playstation-x' />}
-            >
-              Reject
-            </Button>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              marginTop: 2
-            }}
-          >
-            <Chip
-              label='Pending'
-              color='warning'
-              sx={{
-                borderRadius: '16px',
-                fontSize: '0.875rem',
-                '& .MuiChip-label': {
-                  px: 2,
-                  py: 0.5
-                }
-              }}
-              icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
-            />
-          </Box>
-        )}
+        {withPermission(
+          () => (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              <Tooltip title='Approve Request'>
+                <Button
+                  variant='contained'
+                  color='success'
+                  onClick={handleApprove}
+                  sx={{ padding: '6px 16px' }}
+                  startIcon={<i className='tabler-check' />}
+                >
+                  Approve
+                </Button>
+              </Tooltip>
+
+              <Tooltip title='Reject Request'>
+                <Button
+                  variant='contained'
+                  color='error'
+                  onClick={handleReject}
+                  sx={{ padding: '6px 16px' }}
+                  startIcon={<i className='tabler-playstation-x' />}
+                >
+                  Reject All
+                </Button>
+              </Tooltip>
+            </Box>
+          ),
+          'recruitmentManagement'
+        )({ individualPermission: 'recruitment_approval' })}
       </Box>
 
       {/* Action Buttons */}
@@ -395,7 +396,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
       <Divider sx={{ marginBottom: 3 }} />
       <Box sx={{ p: 10 }}>
         <Stepper activeStep={activeStep} alternativeLabel>
-          {employee?.approvalStatus?.map((step, index) => (
+          {employee?.approvalStatusLevel?.map((step, index) => (
             <Step key={index}>
               <StepLabel
                 error={step.status === 'Rejected'}
@@ -420,7 +421,7 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           gap: '16px'
         }}
       >
-        {employee?.approvalStatus?.map((approver, index) => (
+        {employee?.approvalStatusLevel?.map((approver, index) => (
           <Card
             key={index}
             sx={{

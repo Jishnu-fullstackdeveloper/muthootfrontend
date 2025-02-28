@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -10,13 +11,276 @@ import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/ma
 // import WorkIcon from '@mui/icons-material/Work'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 
+import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
+
 import CustomTable from '@/components/Table/CustomTable'
 import sampleEmployeeData from '@/utils/sampleData/sampleEmployeeData.json'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { getBranchDetails, getEmployeeDetailsWithBranchId } from '@/redux/BranchManagementSlice'
+import type { RootState } from '@/redux/store'
+import DynamicTable from '@/components/Table/dynamicTable'
 
 interface ViewBranchProps {
   mode: string
   id: string
   branchTab: string
+}
+
+interface Branch {
+  id: string
+  name: string
+  branchCode: string
+  turnoverCode: string
+  bucketName: string
+  branchStatus: string
+  areaId: string
+  districtId: string
+  stateId: string
+  createdAt: string
+  updatedAt: string
+  bucket: {
+    id: string
+    name: string
+    positionCategories: {
+      designationName: string
+      count: number
+      grade: string
+    }[]
+    turnoverCode: string
+    notes: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  area: {
+    id: string
+    name: string
+    regionId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  district: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  state: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+}
+
+interface BranchDetailsResponse {
+  status: string
+  message: string
+  data: Branch
+}
+
+interface Employee {
+  id: string
+  employeeCode: string
+  title: string
+  firstName: string
+  middleName: string
+  lastName: string
+  officeEmailAddress: string
+  personalEmailAddress: string
+  mobileNumber: string
+  businessUnitId: string
+  resignedEmployeeId: string | null
+  departmentId: string
+  gradeId: string
+  bandId: string
+  designationId: string
+  employeeDetails: {
+    position: string
+    experience: string
+  }
+  companyStructure: {
+    structure: string
+  }
+  managementHierarchy: {
+    hierarchy: string
+  }
+  payrollDetails: {
+    tax: string
+    salary: string
+  }
+  address: {
+    city: string
+    street: string
+    country: string
+  }
+  emergencyContact: {
+    name: string
+    contact: string
+    relation: string
+  }
+  experienceDetails: {
+    previousCompany: string
+    yearsOfExperience: number
+  }
+  personalDetails: {
+    dob: string
+    nationality: string
+  }
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  band: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  businessUnit: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  grade: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  designation: {
+    id: string
+    name: string
+    departmentId: string
+    type: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  department: {
+    id: string
+    name: string
+    employeeCategoryTypeId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+}
+
+interface BranchManagementState {
+  branchDetailsData: Branch | null
+  branchDetailsLoading: boolean
+  branchDetailsSuccess: boolean
+  branchDetailsFailure: boolean
+  branchDetailsFailureMessage: string
+  employeeListData: EmployeeListResponse | null // Updated to store the full API response
+}
+
+interface EmployeeDetails {
+  id: string
+  employeeCode: string
+  title: string
+  firstName: string
+  middleName: string
+  lastName: string
+  officeEmailAddress: string
+  personalEmailAddress: string
+  mobileNumber: string
+  businessUnitId: string
+  resignedEmployeeId: string | null
+  departmentId: string
+  gradeId: string
+  bandId: string
+  designationId: string
+  employeeDetails: {
+    position: string
+    experience: string
+  }
+  companyStructure: {
+    structure: string
+  }
+  managementHierarchy: {
+    hierarchy: string
+  }
+  payrollDetails: {
+    tax: string
+    salary: string
+  }
+  address: {
+    city: string
+    street: string
+    country: string
+  }
+  emergencyContact: {
+    name: string
+    contact: string
+    relation: string
+  }
+  experienceDetails: {
+    previousCompany: string
+    yearsOfExperience: number
+  }
+  personalDetails: {
+    dob: string
+    nationality: string
+  }
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  band: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  businessUnit: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  grade: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  designation: {
+    id: string
+    name: string
+    departmentId: string
+    type: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  department: {
+    id: string
+    name: string
+    employeeCategoryTypeId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+}
+
+interface EmployeeListResponse {
+  status: string
+  message: string
+  totalCount: number
+  data: EmployeeDetails[]
+  page: number
+  limit: number
 }
 
 const tabMapping: { [key: string]: number } = {
@@ -28,26 +292,25 @@ const tabMapping: { [key: string]: number } = {
 
 const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
   const [activeTab, setActiveTab] = useState<number>(tabMapping[branchTab] || 0)
 
   console.log(mode)
 
-  // Simulated branch data
-  const branchData = {
-    id: id,
-    name: 'Market Square',
-    branchCode: 'B002',
-    territory: 'West',
-    zonal: 'Zone2',
-    region: 'Region2',
-    area: 'Area2',
-    cluster: 'Cluster2',
-    cityClassification: 'Urban',
-    state: 'Texas',
-    status: 'Inactive',
-    turnoverCode: 'B123'
-  }
+  // Fetch branch data from Redux store
+  const {
+    branchDetailsData,
+    branchDetailsLoading,
+    branchDetailsFailure,
+    branchDetailsFailureMessage,
+    employeeListData
 
+    // employeeListLoading,
+    // employeeListFailure,
+    // employeeListFailureMessage
+  } = useAppSelector((state: RootState) => state.branchManagementReducer) as BranchManagementState
+
+  // Simulated bubble position data (unchanged)
   const bubblePositionData = [
     {
       position: 'Branch Manager',
@@ -70,19 +333,84 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     }
   ]
 
-  // Sample employee data
-  const employeeData: any[] = sampleEmployeeData
+  // Sample employee data (updated to use the full API response)
+  const employeeData: EmployeeDetails[] = employeeListData?.data || []
+  const totalCount: number = employeeListData?.totalCount || 0
 
-  // Employee Table Columns
-  const employeeColumns = [
-    { header: 'ID', accessorKey: 'employeeCode' },
-    { header: 'Name', accessorKey: 'First Name' },
-    { header: 'Employment Status', accessorKey: 'Employment Status' },
-    { header: 'Email', accessorKey: 'Personal Email Address' },
-    { header: 'Designation', accessorKey: 'Title' }
-  ]
+  const columnHelper = createColumnHelper<EmployeeDetails>()
 
-  // Action buttons for the employee table
+  const columns = useMemo<ColumnDef<EmployeeDetails, any>[]>(
+    () => [
+      columnHelper.accessor('employeeCode', {
+        header: 'ID',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.employeeCode}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('firstName', {
+        header: 'First Name',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.firstName}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('lastName', {
+        header: 'Last Name',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.lastName}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('personalEmailAddress', {
+        header: 'Email',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.personalEmailAddress}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('designation.name', {
+        header: 'Designation',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.designation?.name || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('resignedEmployeeId', {
+        header: 'Status',
+        cell: ({ row }) => (
+          <Typography color={row.original.resignedEmployeeId ? 'error.main' : 'success.main'} className='font-medium'>
+            {row.original.resignedEmployeeId ? 'Resigned' : 'Active'}
+          </Typography>
+        )
+      })
+
+      // columnHelper.accessor('id', {
+      //   header: 'Action',
+      //   cell: ({ row }) => (
+      //     <Box sx={{ display: 'flex', gap: 1 }}>
+      //       <IconButton
+      //         onClick={(e: any) => {
+      //           e.stopPropagation()
+      //           router.push(`/employee-details?employeeId=${row.original.employeeCode}`)
+      //         }}
+      //       >
+      //         <i className='tabler-eye' />
+      //       </IconButton>
+      //     </Box>
+      //   ),
+      //   enableSorting: false
+      // })
+    ],
+    []
+  )
+
+  // Action buttons for the employee table (unchanged)
   const actionButtons = [
     {
       icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
@@ -91,7 +419,32 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     }
   ]
 
-  // Tab change handler
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5
+  })
+
+  const handlePageChange = (newPage: number) => {
+    console.log(employeeListData)
+    setPagination(prev => {
+      const updatedPagination = { ...prev, pageIndex: newPage }
+
+      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+
+      return updatedPagination
+    })
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
+
+    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
+    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
+    setPagination(updatedPagination)
+  }
+
+  // Tab change handler (unchanged)
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
 
@@ -107,8 +460,71 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   }
 
   useEffect(() => {
-    console.log('SearchParams', branchTab)
-  }, [])
+    // Fetch branch details when the component mounts or id changes
+    dispatch(getBranchDetails({ id }))
+    const branchId = id
+
+    dispatch(getEmployeeDetailsWithBranchId({ branchId, page: 1, limit: 10 }))
+  }, [dispatch, id])
+
+  // useEffect(() => {
+  //   console.log('SearchParams', branchTab, branchDetailsData)
+  // }, [])
+
+  if (branchDetailsLoading) {
+    return <div>Loading branch details...</div>
+  }
+
+  if (branchDetailsFailure) {
+    return <div>Error: {branchDetailsFailureMessage}</div>
+  }
+
+  // Use branchDetailsData from API or fallback to empty object if null
+  const branchData = branchDetailsData || {
+    id: '',
+    name: '',
+    branchCode: '',
+    turnoverCode: '',
+    bucketName: '',
+    branchStatus: '',
+    areaId: '',
+    districtId: '',
+    stateId: '',
+    createdAt: '',
+    updatedAt: '',
+    bucket: {
+      id: '',
+      name: '',
+      positionCategories: [],
+      turnoverCode: '',
+      notes: '',
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null
+    },
+    area: {
+      id: '',
+      name: '',
+      regionId: '',
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null
+    },
+    district: {
+      id: '',
+      name: '',
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null
+    },
+    state: {
+      id: '',
+      name: '',
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null
+    }
+  }
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -127,7 +543,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               Branch Report Dashboard
             </Button>
           </Grid>
-          <Grid item xs={6}>
+          <Grid className='flex justify-between' item xs={6}>
             {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
                 variant='contained'
@@ -163,29 +579,29 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               <strong>Branch Code:</strong> {branchData.branchCode}
             </Typography>
             <Typography variant='body1'>
-              <strong>Territory:</strong> {branchData.territory}
+              <strong>Territory:</strong> {branchData.area?.regionId || 'N/A'}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>Zonal:</strong> {branchData.zonal}
+              <strong>Zonal:</strong> {branchData.area?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Region:</strong> {branchData.region}
+              <strong>Region:</strong> {branchData.area?.regionId || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Area:</strong> {branchData.area}
+              <strong>Area:</strong> {branchData.area?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Cluster:</strong> {branchData.cluster}
+              <strong>Cluster:</strong> {branchData?.bucket?.name || 'N/A'}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>City Classification:</strong> {branchData.cityClassification}
+              <strong>City Classification:</strong> {branchData?.district?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>State:</strong> {branchData.state}
+              <strong>State:</strong> {branchData.state?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
               <strong>Turnover Code:</strong> {branchData.turnoverCode}
@@ -206,12 +622,29 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
 
         {/* Tab Content */}
         {activeTab === 0 && (
-          <CustomTable
-            columns={employeeColumns}
-            data={employeeData}
-            showCheckbox={false}
-            actionButtons={actionButtons}
-          />
+          <>
+            {employeeData.length === 0 ? (
+              <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
+                No employees found for this branch.
+              </Typography>
+            ) : (
+              <DynamicTable
+                columns={columns}
+                data={employeeData}
+                totalCount={totalCount}
+                pagination={{ pageIndex: pagination.pageIndex, pageSize: pagination.pageSize }} // Pass pagination state
+                onPageChange={(newPage: number) => handlePageChange(newPage)} // Use 0-based indexing for DynamicTable
+                onRowsPerPageChange={handleRowsPerPageChange}
+              />
+            )}
+          </>
+
+          // <CustomTable
+          //   columns={employeeColumns}
+          //   data={employeeData}
+          //   showCheckbox={false}
+          //   actionButtons={actionButtons}
+          // />
         )}
 
         {activeTab === 1 && (
@@ -278,20 +711,22 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             <Typography variant='h6' sx={{ mb: 3 }}>
               Bucket Management Overview
             </Typography>
-            {/* Sample Bucket Management Data */}
+            {/* Use bucket data from API response */}
             <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
               <Typography variant='body1'>
-                <strong>Bucket Name:</strong> Example Bucket
+                <strong>Bucket Name:</strong> {branchData?.bucket?.name || 'N/A'}
               </Typography>
               <Typography variant='body1'>
-                <strong>Total Capacity:</strong> 100
+                <strong>Total Position Categories:</strong>{' '}
+                {branchData.bucket?.positionCategories.reduce((sum, category) => sum + category.count, 0) || 0}
               </Typography>
-              <Typography variant='body1'>
-                <strong>Current Count:</strong> 75
-              </Typography>
-              <Typography variant='body1' color='error'>
-                <strong>Available Slots:</strong> {100 - 75}
-              </Typography>
+              {/* <Typography variant='body1'>
+                <strong>Current Count:</strong>{' '}
+                {branchData?.bucket?.positionCategories.reduce((sum, category) => sum + category.count, 0) || 0}
+              </Typography> */}
+              {/* <Typography variant='body1' color='error'>
+                <strong>Available Slots:</strong> 0
+              </Typography> */}
             </Card>
           </Box>
         )}

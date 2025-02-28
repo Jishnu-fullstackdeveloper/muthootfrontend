@@ -23,66 +23,108 @@ import Stack from '@mui/material/Stack'
 
 // import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
-import ViewListIcon from '@mui/icons-material/ViewList'
+
+// import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 
-import { useAppDispatch } from '@/lib/hooks'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import CustomTextField from '@/@core/components/mui/TextField'
 import BranchListingTableView from './BranchListingTableView'
+import { getBranchList } from '@/redux/BranchManagementSlice'
 
-// import { getBranchList } from '@/redux/BranchManagementSlice'
+type Props = {}
 
-const BranchListing = () => {
+interface Branch {
+  id: string
+  name: string
+  branchCode: string
+  turnoverCode: string
+  bucketName: string
+  branchStatus: string
+  areaId: string
+  districtId: string
+  stateId: string
+  createdAt: string
+  updatedAt: string
+  bucket: {
+    id: string
+    name: string
+    positionCategories: {
+      designationName: string
+      count: number
+      grade: string
+    }[]
+    turnoverCode: string
+    notes: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  area: {
+    id: string
+    name: string
+    regionId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  district: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  state: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface BranchListResponse {
+  status: string
+  message: string
+  totalCount: number
+  data: Branch[]
+  page: number
+  limit: number
+}
+
+interface BranchManagementState {
+  branchListData: Branch[] | null // Allow null to handle initial state or errors
+  branchListLoading: boolean
+  branchListSuccess: boolean
+  branchListTotal: number
+  branchListFailure: boolean
+  branchListFailureMessage: string
+}
+
+const BranchListing = ({}: Props) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [viewMode, setViewMode] = useState('grid')
-  const [selectedTabs, setSelectedTabs] = useState<Record<number, number>>({})
+  const [selectedTabs, setSelectedTabs] = useState<Record<string, number>>({})
+  const [searchQuery, setSearchQuery] = useState('')
 
   console.log(dispatch, selectedTabs)
 
-  const branchData = [
-    {
-      id: 1,
-      name: 'Downtown Branch',
-      branchCode: 'B001',
-      territory: 'North',
-      zonal: 'Zone1',
-      region: 'Region1',
-      area: 'Area1',
-      cluster: 'Cluster1',
-      cityClassification: 'Metro',
-      state: 'California',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      name: 'Market Square',
-      branchCode: 'B002',
-      territory: 'West',
-      zonal: 'Zone2',
-      region: 'Region2',
-      area: 'Area2',
-      cluster: 'Cluster2',
-      cityClassification: 'Urban',
-      state: 'Texas',
-      status: 'Inactive'
-    },
-    {
-      id: 3,
-      name: 'Tech Hub',
-      branchCode: 'B003',
-      territory: 'East',
-      zonal: 'Zone3',
-      region: 'Region3',
-      area: 'Area3',
-      cluster: 'Cluster3',
-      cityClassification: 'Rural',
-      state: 'New York',
-      status: 'Active'
-    }
-  ]
+  // Use optional chaining and provide defaults to handle undefined state
+  const branchManagementState = useAppSelector(state => state.branchManagementReducer) as
+    | BranchManagementState
+    | undefined
+
+  const {
+    branchListData = [], // Default to empty array if undefined
+    branchListLoading = false, // Default to false if undefined
+    branchListTotal = 0, // Default to 0 if undefined
+    branchListFailure = false, // Default to false if undefined
+    branchListFailureMessage = '' // Default to empty string if undefined
+  } = branchManagementState || {}
 
   const [paginationState, setPaginationState] = useState({
     page: 1,
@@ -91,17 +133,28 @@ const BranchListing = () => {
   })
 
   useEffect(() => {
-    const initialTabsState = branchData.reduce(
+    dispatch(
+      getBranchList({
+        search: searchQuery,
+        page: paginationState.page,
+        limit: paginationState.limit,
+        branchStatus: 'ACTIVE' // Example: filter for active branches, adjust as needed
+      })
+    )
+  }, [dispatch, searchQuery, paginationState.page, paginationState.limit])
+
+  useEffect(() => {
+    const initialTabsState = (branchListData || []).reduce(
       (acc, branch) => {
         acc[branch.id] = 0 // Default to the 'Details' tab
 
         return acc
       },
-      {} as Record<number, number>
+      {} as Record<string, number>
     )
 
     setSelectedTabs(initialTabsState)
-  }, [])
+  }, [branchListData])
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPaginationState({ ...paginationState, page: value })
@@ -109,6 +162,19 @@ const BranchListing = () => {
 
   const handleChangeLimit = (value: any) => {
     setPaginationState({ ...paginationState, limit: value })
+  }
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value)
+    setPaginationState({ ...paginationState, page: 1 }) // Reset to first page on search
+  }
+
+  if (branchListLoading) {
+    return <div>Loading branches...</div>
+  }
+
+  if (branchListFailure) {
+    return <div>Error: {branchListFailureMessage}</div>
   }
 
   return (
@@ -130,6 +196,8 @@ const BranchListing = () => {
               label='Search Branch'
               placeholder='Search by Branch Name or Code...'
               className='is-full sm:is-[400px]'
+              value={searchQuery}
+              onChange={handleSearch}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
@@ -169,11 +237,11 @@ const BranchListing = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title='List View'>
+              {/* <Tooltip title='List View'>
                 <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
                   <ViewListIcon />
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip title='Table View'>
                 <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
                   <TableChartIcon />
@@ -186,7 +254,7 @@ const BranchListing = () => {
 
       {(viewMode === 'grid' || viewMode === 'list') && (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
-          {branchData?.map(branch => (
+          {(branchListData || []).map(branch => (
             <Box
               onClick={() => router.push(`/branch-management/view/employees-details?id=${branch.id}`)}
               key={branch.id}
@@ -209,11 +277,11 @@ const BranchListing = () => {
                     <div className='flex space-x-2 mr-10'>
                       <Stack sx={{ marginTop: 2 }}>
                         <Chip
-                          label={branch.status}
+                          label={branch.branchStatus}
                           color={
-                            branch.status === 'Active'
+                            branch.branchStatus === 'ACTIVE'
                               ? 'success'
-                              : branch.status === 'Inactive'
+                              : branch.branchStatus === 'INACTIVE'
                                 ? 'default'
                                 : 'warning'
                           }
@@ -233,27 +301,30 @@ const BranchListing = () => {
                         <strong>Branch Code:</strong> {branch.branchCode}
                       </p>
                       <p>
-                        <strong>Territory:</strong> {branch.territory}
+                        <strong>Territory:</strong> {branch.area.regionId}{' '}
+                        {/* Using area.regionId as a proxy for territory */}
                       </p>
                       <p>
-                        <strong>Zonal:</strong> {branch.zonal}
+                        <strong>Zonal:</strong> {branch.area.name} {/* Using area.name as a proxy for zonal */}
                       </p>
                       <p>
-                        <strong>Region:</strong> {branch.region}
+                        <strong>Region:</strong> {branch.area.regionId}{' '}
+                        {/* Using area.regionId as a proxy for region */}
                       </p>
                     </Box>
                     <Box className='space-y-2 text-sm text-gray-700'>
                       <p>
-                        <strong>Area:</strong> {branch.area}
+                        <strong>Area:</strong> {branch.area.name}
                       </p>
                       <p>
-                        <strong>Cluster:</strong> {branch.cluster}
+                        <strong>Cluster:</strong> {branch.bucket?.name} {/* Using bucket.name as a proxy for cluster */}
                       </p>
                       <p>
-                        <strong>City Classification:</strong> {branch.cityClassification}
+                        <strong>City Classification:</strong> {branch.district?.name}{' '}
+                        {/* Using district.name as a proxy for city classification */}
                       </p>
                       <p>
-                        <strong>State:</strong> {branch.state}
+                        <strong>State:</strong> {branch.state?.name}
                       </p>
                     </Box>
                   </Box>
@@ -268,27 +339,27 @@ const BranchListing = () => {
                       <strong>Branch Code:</strong> {branch.branchCode}
                     </Typography>
                     <Typography>
-                      <strong>Territory:</strong> {branch.territory}
+                      <strong>Territory:</strong> {branch.area.regionId}
                     </Typography>
                     <Typography>
-                      <strong>Zonal:</strong> {branch.zonal}
+                      <strong>Zonal:</strong> {branch.area.name}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Typography>
-                      <strong>Region:</strong> {branch.region}
+                      <strong>Region:</strong> {branch.area.regionId}
                     </Typography>
                     <Typography>
-                      <strong>Area:</strong> {branch.area}
+                      <strong>Area:</strong> {branch.area.name}
                     </Typography>
                     <Typography>
-                      <strong>Cluster:</strong> {branch.cluster}
+                      <strong>Cluster:</strong> {branch.bucket.name}
                     </Typography>
                     <Typography>
-                      <strong>City Classification:</strong> {branch.cityClassification}
+                      <strong>City Classification:</strong> {branch.district.name}
                     </Typography>
                     <Typography>
-                      <strong>State:</strong> {branch.state}
+                      <strong>State:</strong> {branch.state.name}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -297,7 +368,7 @@ const BranchListing = () => {
           ))}
         </div>
       )}
-      {viewMode === 'table' && <BranchListingTableView branchData={branchData} />}
+      {viewMode === 'table' && <BranchListingTableView branchData={branchListData || []} />}
       {viewMode !== 'table' && (
         <div className='flex items-center justify-end mt-6'>
           <FormControl size='small' sx={{ minWidth: 70 }}>
@@ -319,7 +390,7 @@ const BranchListing = () => {
             shape='rounded'
             showFirstButton
             showLastButton
-            count={paginationState?.display_numbers_count}
+            count={Math.ceil(branchListTotal / paginationState.limit)}
             page={paginationState?.page}
             onChange={handlePageChange}
           />

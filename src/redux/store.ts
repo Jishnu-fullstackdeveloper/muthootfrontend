@@ -7,7 +7,7 @@ import approvalMatrixReducer from './approvalMatrixSlice'
 import manualRequestReducer from './manualRecruitmentRequestSlice'
 import UserRoleReducer from './userRoleSlice'
 import BucketManagementReducer from './BucketManagementSlice'
-
+import branchManagementReducer from './BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
 
 export const makeStore = () =>
@@ -20,6 +20,7 @@ export const makeStore = () =>
       manualRequestReducer,
       BucketManagementReducer,
       UserRoleReducer,
+      branchManagementReducer,
       vacancyManagementReducer
     }
   })

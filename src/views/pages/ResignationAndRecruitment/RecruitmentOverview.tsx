@@ -155,10 +155,7 @@ const RecruitmentRequestOverview = () => {
     </Button>
   )
 
-  const NewRequestWithPermission = withPermission(
-    NewRequestButton,
-    'recruitmentManagement'
-  )({
+  const NewRequestWithPermission = withPermission(NewRequestButton)({
     individualPermission: 'recruitment_create'
   })
 
@@ -168,7 +165,7 @@ const RecruitmentRequestOverview = () => {
 
   // const userRoleId = getRoleId()
 
-  const safeGetData = (source: any): any[] => (source?.options && Array.isArray(source.options) ? source.options : [])
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
 
   const approvers = useMemo(() => {
     const data = safeGetData(fetchResignationOverviewListData)
@@ -481,7 +478,7 @@ const RecruitmentRequestOverview = () => {
                   }}
                   className='transition transform hover:-translate-y-1'
                   onClick={() => {
-                    const displayName = approver.designation?.replace(/\s+/g, '-') // Replace spaces with dashes
+                    const displayName = approver.designationName?.replace(/\s+/g, '-') // Replace spaces with dashes
 
                     router.push(`/recruitment-management/request-listing?filter=${displayName}`)
                   }}
@@ -506,7 +503,7 @@ const RecruitmentRequestOverview = () => {
 
                   {/* Designation Name */}
                   <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
-                    {approver.designation}
+                    {approver.designationName}
                   </Typography>
 
                   {/* Bubble Position Availability */}
@@ -537,12 +534,12 @@ const RecruitmentRequestOverview = () => {
 
                   {/* Request Type */}
                   <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Request Type:</strong> {approver.origin}
+                    {/* <strong>Request Type:</strong> {approver.origin} */}
                   </Typography>
 
                   {/* Branch Details */}
                   <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
-                    <strong>Branch:</strong> {approver.Branches}
+                    <strong>Branch:</strong> {approver.branchesName}
                   </Typography>
 
                   {/* Approval Levels */}

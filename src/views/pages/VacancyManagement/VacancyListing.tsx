@@ -107,8 +107,8 @@ const VacancyListingPage = () => {
 
   const [paginationState, setPaginationState] = useState({
     page: 1,
-    limit: 6,
-    display_numbers_count: 5
+    limit: 10,
+    display_numbers_count: 10
   })
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -582,7 +582,7 @@ const VacancyListingPage = () => {
                     <Box className='text-sm text-gray-700'>
                       <Box className='grid grid-cols-2 gap-y-2'>
                         <p>
-                          <strong>Employee Category:</strong> {vacancy.employeeCategoryType}
+                          <strong>Category Type:</strong> {vacancy.employeeCategoryType}
                         </p>
 
                         <p>
@@ -592,10 +592,10 @@ const VacancyListingPage = () => {
                           <strong>Band:</strong> {vacancy.bandName}
                         </p>
                         <p>
-                          <strong>Branch:</strong> {vacancy.branchesName}
+                          <strong>Business Unit:</strong> {vacancy.businessUnitName}
                         </p>
                         <p>
-                          <strong>Business Unit:</strong> {vacancy.businessUnitName}
+                          <strong>Branch:</strong> {vacancy.branchesName}
                         </p>
                         <p>
                           <strong>Department:</strong> {vacancy.departmentName}
@@ -730,7 +730,7 @@ const VacancyListingPage = () => {
             </Box>
           ))
         ) : (
-          <VacancyListingTableView vacancies={vacancies} count={totalCount} />
+          <VacancyListingTableView />
         )}
       </div>
 

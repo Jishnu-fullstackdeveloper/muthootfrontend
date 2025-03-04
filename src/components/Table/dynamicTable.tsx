@@ -100,7 +100,7 @@ const DynamicTable = ({
 
   const table = useReactTable({
     columns,
-    data: data,
+    data: data || [],
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,

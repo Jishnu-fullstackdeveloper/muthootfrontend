@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, Typography, TableCell, IconButton } from '@mui/material'
+import { Box, Card, Typography, IconButton } from '@mui/material'
 import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors'
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
@@ -74,7 +74,8 @@ const ApprovalManagement = () => {
         const approvalDueDate = new Date(row.original.approvalDueDate)
         const isOverdue = approvalDueDate < currentDate
 
-        return <TableCell style={{ color: isOverdue ? 'red' : 'inherit' }}>{row.original.approvalDueDate}</TableCell>
+        // Return plain content instead of wrapping in TableCell
+        return <span style={{ color: isOverdue ? 'red' : 'inherit' }}>{row.original.approvalDueDate}</span>
       }
     },
     {
@@ -84,17 +85,18 @@ const ApprovalManagement = () => {
         const status = row.original.status
         const color = statusColors[status.charAt(0).toUpperCase() + status.slice(1)] || 'inherit'
 
-        return <TableCell style={{ color }}>{status}</TableCell>
+        // Return plain content instead of wrapping in TableCell
+        return <span style={{ color }}>{status}</span>
       }
     },
     {
       header: 'Actions',
       meta: { className: 'sticky right-0' },
-      cell: (info: any) => (
+      cell: () => (
         <div>
           <IconButton aria-label='view' sx={{ fontSize: 18 }}>
             <VisibilityIcon />
-            {info}
+            {/* Removed {info} since it’s an object and not meant to be rendered */}
           </IconButton>
           <IconButton aria-label='edit' sx={{ fontSize: 18 }}>
             <EditIcon />
@@ -105,7 +107,7 @@ const ApprovalManagement = () => {
   ]
 
   return (
-    <div className='min-h-screen'>
+    <>
       <Box className='grid grid-cols-1 md:grid-cols-3 gap-4 p-4'>
         {approvals.map(approval => (
           <Card
@@ -139,7 +141,7 @@ const ApprovalManagement = () => {
       <Box className='p-4'>
         <DynamicTable columns={columns} data={approvalData} />
       </Box>
-    </div>
+    </>
   )
 }
 

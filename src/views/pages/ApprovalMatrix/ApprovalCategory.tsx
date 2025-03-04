@@ -196,11 +196,7 @@ const ApprovalCategory = () => {
           }}
         >
           <Typography variant='h4'>Approval Categories</Typography>
-          <Button
-            variant='contained'
-            //onClick={() => router.push(`/approval-matrix/add/new-approval?categoryId=${searchParams.get('id')}`)}
-            onClick={() => router.push(`/approval-matrix/add/new-approval`)}
-          >
+          <Button variant='contained' onClick={() => router.push(`/approval-matrix/add/new-approval`)}>
             <AddIcon sx={{ mr: 1, width: 17 }} /> New Approval
           </Button>
         </Card>
@@ -211,7 +207,6 @@ const ApprovalCategory = () => {
       ) : (
         <DynamicTable
           columns={columns}
-          //data={approvalCategories || []}
           data={sampleApprovalCategories}
           pagination={{
             pageIndex: paginationState.pageIndex,

@@ -97,7 +97,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const isUpdateMode = Boolean(searchParams.get('id'))
-  const { options } = useAppSelector(state => state.approvalMatrixReducer)
+
+  useAppSelector(state => state.approvalMatrixReducer)
 
   const ApprovalMatrixFormik = useFormik({
     initialValues: {
@@ -147,6 +148,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     }
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchOptions = async (_id: number, p0: string) => {
     try {
       const tableId = searchParams.get('id') || ''
@@ -372,8 +374,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                       updatedSections[index].designationType = value
                       ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
                     }}
-                    options={positionLevelOptions}
-                    //options={Array.isArray(options) ? options : []}
+                    options={positionLevelOptions} //options={Array.isArray(options) ? options : []}
                     getOptionLabel={option => option.name || ''}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     renderInput={params => (
@@ -481,7 +482,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                         ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
                       }}
                       options={positionLevelOptions}
-                      //options={Array.isArray(options) ? options : []}
                       getOptionLabel={option => option.name || ''}
                       isOptionEqualToValue={(option, value) => option.id === value?.id}
                       renderInput={params => (

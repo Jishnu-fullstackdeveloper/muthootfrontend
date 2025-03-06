@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
 import {
   Box,
@@ -20,6 +22,7 @@ import {
 } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement, fetchEmployees, fetchUserRole } from '@/redux/userManagementSlice'
@@ -33,16 +36,20 @@ interface FilterState {
 const UserListing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10
   })
+
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+
   const [tempFilters, setTempFilters] = useState<FilterState>({
     active: false,
     inactive: false,
     roles: []
   })
+
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     active: false,
     inactive: false,
@@ -51,15 +58,18 @@ const UserListing = () => {
 
   const router = useRouter()
   const dispatch = useAppDispatch()
+
   const { userManagementData, isUserManagementLoading, employeeData } = useAppSelector(
     (state: any) => state.UserManagementReducer
   )
+
   const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm)
     }, 500)
+
     return () => clearTimeout(timer)
   }, [searchTerm])
 
@@ -68,6 +78,7 @@ const UserListing = () => {
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize
     }
+
     if (debouncedSearch) userParams.search = debouncedSearch
     if (appliedFilters.active && !appliedFilters.inactive) userParams.status = 'Active'
     else if (!appliedFilters.active && appliedFilters.inactive) userParams.status = 'Inactive'
@@ -220,6 +231,7 @@ const UserListing = () => {
 
   const handleFilterClear = () => {
     const clearedFilters = { active: false, inactive: false, roles: [] }
+
     setTempFilters(clearedFilters)
     setAppliedFilters(clearedFilters)
     setIsFilterOpen(false)
@@ -260,6 +272,7 @@ const UserListing = () => {
 
     let filteredUsers = users.map(user => {
       const matchingEmployee = employees.find(emp => emp.employeeCode === user.employeeCode)
+
       return {
         ...user,
         id: user.id,
@@ -400,7 +413,9 @@ const UserListing = () => {
         sx={{ '& .MuiDrawer-paper': { width: 300, padding: 5 } }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant='h5'sx={{ padding: '5px' }}>Filter Users</Typography>
+          <Typography variant='h5' sx={{ padding: '5px' }}>
+            Filter Users
+          </Typography>
           <IconButton onClick={handleFilterToggle}>
             <ClearIcon />
           </IconButton>

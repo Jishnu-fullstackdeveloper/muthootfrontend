@@ -35,6 +35,8 @@ import {
   decodeToken,
   getAccessToken,
 
+  getCurrentPermissions,
+
   // getRefreshToken,
   Logout
 
@@ -56,6 +58,9 @@ const BadgeContentSpan = styled('span')({
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
+
+  const currentPermissions = getCurrentPermissions()
+  
   const access_token = getAccessToken()
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
 
@@ -63,6 +68,10 @@ const UserDropdown = () => {
   // const decodedToken = decodeToken(access_token)
 
   const loginStates = useAppSelector((state: any) => state.loginReducer)
+
+  // console.log({ role:currentPermissions[0]?.role }, "currentPermissions role..........");
+
+
 
   const {
     // newAccessTokenApiData,
@@ -77,6 +86,8 @@ const UserDropdown = () => {
 
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
+
+  
 
   // Hooks
   const router = useRouter()
@@ -233,6 +244,9 @@ const UserDropdown = () => {
                         {decodedAccessToken?.given_name + ' ' + decodedAccessToken?.family_name || 'John Doe'}
                       </Typography>
                       <Typography variant='caption'>{decodedAccessToken?.email || ' admin@vuexy.com'}</Typography>
+                   
+                    <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography>
+                  
                     </div>
                   </div>
                   <Divider className='mlb-1' />

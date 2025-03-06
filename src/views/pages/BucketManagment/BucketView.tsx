@@ -156,7 +156,7 @@ const BucketView: React.FC<Props> = ({ id }) => {
           <ul>
             {decodedPositionCategories.map((category, index) => (
               <li key={index}>
-                <strong>{category.name}:</strong> {category.count}
+                <strong>{category.designationName}:</strong> {category.count} : {category.grade}
               </li>
             ))}
           </ul>

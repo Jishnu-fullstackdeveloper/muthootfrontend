@@ -4,9 +4,9 @@ RUN apk add --no-cache g++ make py3-pip libc6-compat
 WORKDIR /app
 COPY package*.json ./
 EXPOSE 3000
+COPY . .
 RUN npm install --force # Install all dependencies for development
 RUN npm install tsx --force
-COPY . .
 # Development stage
 FROM base as dev
 ENV NODE_ENV=development

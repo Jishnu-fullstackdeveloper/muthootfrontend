@@ -16,12 +16,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          tags: ${{ env.FULL_IMAGE_NAME }}
-          push: false  # We’re not pushing to a registry, just building locally
+        run: |
+          docker build -t $FULL_IMAGE_NAME -f Dockerfile .
 
       - name: Save Docker Image to Tarball
         run: |

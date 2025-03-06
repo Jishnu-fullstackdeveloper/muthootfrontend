@@ -177,6 +177,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
           // Invoke the function with individualPermission as item.read
           return MenuItemWithPermission({
             individualPermission: item.read || ''
+
             // fallback: <div>Unauthorized</div>,
             // buttonDisable: true
           })

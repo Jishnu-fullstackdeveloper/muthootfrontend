@@ -1,14 +1,16 @@
 'use client'
+
 import React, { useState, useEffect } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FormControl, TextField, Checkbox, FormControlLabel, Box } from '@mui/material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { addNewUserRole, updateUserRole, resetAddUserRoleStatus } from '@/redux/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
-import { console } from 'node:inspector/promises'
-import { Console } from 'node:console'
 
 const permissions = [
   { module: 'Home Dashboard', actions: ['read'] },
@@ -40,6 +42,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       const messages = Array.isArray(addUserRoleFailureMessage)
         ? addUserRoleFailureMessage
         : [addUserRoleFailureMessage || 'Failed to save the role. Please try again.']
+
       setApiErrors(messages)
     } else {
       setApiErrors([]) // Clear errors on success or reset
@@ -63,6 +66,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   // Initial permissions for edit mode
   const initialPermissions: { name: string }[] =
     mode === 'edit' ? JSON.parse(searchParams.get('permissions') || '[]') : []
+
   const permissionNames = initialPermissions.map(perm => perm.name)
 
   const roleFormik = useFormik({
@@ -83,11 +87,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           'General Settings': 'general',
           'Home Dashboard': 'home'
         }
+
         const moduleShortName = moduleMap[p.module] || p.module.replace(/\s+/g, '').toLowerCase()
+
         const selectedActions =
-          mode === 'edit'
-            ? p.actions.filter(action => permissionNames.includes(`${moduleShortName}_${action}`))
-            : []
+          mode === 'edit' ? p.actions.filter(action => permissionNames.includes(`${moduleShortName}_${action}`)) : []
+
         return { module: p.module, selectedActions }
       })
     },
@@ -97,7 +102,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     onSubmit: async values => {
       setApiErrors([]) // Clear previous errors on new submission
 
-      
       const selectedPermissions = values.permissions.flatMap(perm => {
         const moduleMap: { [key: string]: string } = {
           'User Management': 'user',
@@ -112,7 +116,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           'General Settings': 'general',
           'Home Dashboard': 'home'
         }
+
         const moduleShortName = moduleMap[perm.module] || perm.module.replace(/\s+/g, '').toLowerCase()
+
         return perm.selectedActions.map(action => `${moduleShortName}_${action}`)
       })
 
@@ -139,13 +145,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             ? error.message
             : [error.message]
           : ['An unexpected error occurred while saving. Please try again.']
+
         setApiErrors(errorMessages)
-      
       }
-    
     }
-    })
- 
+  })
+
   const handleCancel = () => {
     dispatch(resetAddUserRoleStatus())
     router.back()
@@ -169,16 +174,19 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     } else {
       currentPermissions.push({ module, selectedActions })
     }
+
     roleFormik.setFieldValue('permissions', currentPermissions)
   }
 
   const handleSelectAllPermissions = (module: string, allActions: string[], checked: boolean) => {
     roleFormik.setFieldValue(
       'permissions',
-      roleFormik.values.permissions.filter(p => p.module !== module).concat({
-        module,
-        selectedActions: checked ? allActions : []
-      })
+      roleFormik.values.permissions
+        .filter(p => p.module !== module)
+        .concat({
+          module,
+          selectedActions: checked ? allActions : []
+        })
     )
   }
 
@@ -195,6 +203,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const handleSelectAllRead = (checked: boolean) => {
     const updatedPermissions = permissions.map(perm => {
       const existingPerm = roleFormik.values.permissions.find(p => p.module === perm.module)
+
       return {
         module: perm.module,
         selectedActions: checked
@@ -204,6 +213,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           : existingPerm?.selectedActions.filter(a => a !== 'read') || []
       }
     })
+
     roleFormik.setFieldValue('permissions', updatedPermissions)
   }
 

@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 
 export const fetchUserRole = createAsyncThunk(
@@ -6,6 +7,7 @@ export const fetchUserRole = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/users/roles', { params })
+
       return response
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -13,15 +15,16 @@ export const fetchUserRole = createAsyncThunk(
   }
 )
 
-
 export const addNewUserRole = createAsyncThunk<any, any>(
   'userManagement/addNewUserRole',
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/users/roles', params)
+
       return response.data
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to add role'
+
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode || 500
@@ -30,24 +33,28 @@ export const addNewUserRole = createAsyncThunk<any, any>(
   }
 )
 
-export const updateUserRole = createAsyncThunk<any, { id: string; params: { roleName: string; newPermissionNames: string[] } }>(
-  'userManagement/updateUserRole',
-  async ({ id, params }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.patch(`/users/roles/permissions`, {
-        roleName: params.roleName,
-        newPermissionNames: params.newPermissionNames
-      })
-      return response.data
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update role'
-      return rejectWithValue({
-        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
-        statusCode: error.response?.data?.statusCode || 500
-      })
-    }
+export const updateUserRole = createAsyncThunk<
+  any,
+  { id: string; params: { roleName: string; newPermissionNames: string[] } }
+>('userManagement/updateUserRole', async ({ id, params }, { rejectWithValue }) => {
+  try {
+    id
+
+    const response = await AxiosLib.patch(`/users/roles/permissions`, {
+      roleName: params.roleName,
+      newPermissionNames: params.newPermissionNames
+    })
+
+    return response.data
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to update role'
+
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
   }
-)
+})
 
 export const UserRoleSlice = createSlice({
   name: 'UserRole',

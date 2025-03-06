@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 
 export const fetchUserManagement = createAsyncThunk(
@@ -6,6 +7,7 @@ export const fetchUserManagement = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/users', { params })
+
       return response
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -18,6 +20,7 @@ export const fetchEmployees = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/employee', { params })
+
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data.data)
@@ -30,6 +33,7 @@ export const fetchUserRole = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/users/roles', { params })
+
       return response
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -42,9 +46,11 @@ export const addNewUser = createAsyncThunk<any, any>(
   async (params: object, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post('/users', params)
+
       return response.data
     } catch (error: any) {
       const errorMessage = error.response?.data?.message
+
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode
@@ -53,19 +59,21 @@ export const addNewUser = createAsyncThunk<any, any>(
   }
 )
 
-
-
 export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleName: string[] } }>(
   'userManagement/updateUser',
   async ({ id, params }, { rejectWithValue }) => {
     try {
+      id
+
       const response = await AxiosLib.patch(`/users/role`, {
         email: params.email,
         newRoleName: params.newRoleName
       })
+
       return response.data
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to update role'
+
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode || 500
@@ -155,6 +163,7 @@ export const UserManagementSlice = createSlice({
       state.userRoleFailure = true
       state.userRoleFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
     })
+
     // Fetch Employee Management List
     builder.addCase(fetchEmployees.pending, state => {
       state.isEmployeeLoading = true

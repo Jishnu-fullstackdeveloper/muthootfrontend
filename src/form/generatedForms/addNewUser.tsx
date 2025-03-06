@@ -95,7 +95,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
       if (mode === 'edit' && id) {
         const editParams = {
           email: values.email,
-          newRoleName: sanitizedRole // Send sanitized role as a string
+          newRoleName: [sanitizedRole] // Send sanitized role as a string
         }
 
         try {

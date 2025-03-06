@@ -26,14 +26,19 @@ import SettingsIcon from '@mui/icons-material/Settings'
 
 import AddIcon from '@mui/icons-material/Add'
 
+// Redux Imports
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  fetchResignationOverviewList,
+  fetchSettingsConfig,
+  updateSettingsConfig
+} from '@/redux/RecruitmentResignationSlice'
+
 import withPermission from '@/hocs/withPermission'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
 
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchResignationOverviewList } from '@/redux/RecruitmentResignationSlice'
-
 import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
 
 // const approvers = [
@@ -114,13 +119,20 @@ import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
 
 const RecruitmentRequestOverview = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
+  const { fetchResignationOverviewListData, fetchSettingsConfigData } = useAppSelector(
+    state => state.recruitmentResignationReducer
+  )
+
   const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
   const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
-  const dispatch = useAppDispatch()
-  const { fetchResignationOverviewListData } = useAppSelector(state => state.recruitmentResignationReducer)
+  const settingsConfigData = safeGetData(fetchSettingsConfigData)
 
   // const [approvers, setApprovers] = useState([])
   const handleXFactorDialogOpen = () => {
@@ -132,7 +144,26 @@ const RecruitmentRequestOverview = () => {
   }
 
   const handleSaveXFactor = (newXFactor: number) => {
-    setXFactorValue(newXFactor)
+    // Find the x-factor setting to get its id
+    const xFactorSetting = settingsConfigData.find((item: any) => item.name === 'x-factor')
+
+    if (xFactorSetting && xFactorSetting.id) {
+      dispatch(
+        updateSettingsConfig({
+          id: xFactorSetting.id.toString(),
+          data: { name: 'x-factor', value: newXFactor.toString() }
+        })
+      )
+        .unwrap()
+        .then(() => {
+          setXFactorValue(newXFactor)
+        })
+        .catch(error => {
+          console.error('Error updating settings config:', error)
+        })
+    } else {
+      console.error('X-factor setting not found. Please fetch settings first.')
+    }
   }
 
   const handlePageChange = (event: any, value: any) => {
@@ -164,8 +195,6 @@ const RecruitmentRequestOverview = () => {
   // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
 
   // const userRoleId = getRoleId()
-
-  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
 
   const approvers = useMemo(() => {
     const data = safeGetData(fetchResignationOverviewListData)
@@ -245,6 +274,22 @@ const RecruitmentRequestOverview = () => {
       setAcceptAllDialogOpen(false)
     }
   }, [acceptAllConfirmed])
+
+  useEffect(() => {
+    // Fetch settings config on component mount to initialize xFactorValue
+    dispatch(fetchSettingsConfig({ page: 1, limit: 10, search: 'x-factor' }))
+      .unwrap()
+      .then(response => {
+        const xFactorSetting = response.find((item: any) => item.name === 'x-factor')
+
+        if (xFactorSetting) {
+          setXFactorValue(parseInt(xFactorSetting.value, 10) || 5) // Default to 5 if value is invalid
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching settings config:', error)
+      })
+  }, [dispatch])
 
   const progressBar = approvers?.map(approver => {
     const daysRemaining = approver?.daysSinceCreated
@@ -540,6 +585,12 @@ const RecruitmentRequestOverview = () => {
                   {/* Branch Details */}
                   <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
                     <strong>Branch:</strong> {approver.branchesName}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
+                    <strong>Business Unit Name:</strong> {approver.businessUnitName}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
+                    <strong>Department Name:</strong> {approver.departmentName}
                   </Typography>
 
                   {/* Approval Levels */}

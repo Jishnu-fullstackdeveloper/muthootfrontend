@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useState, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -17,165 +18,69 @@ import {
   Typography,
   Tooltip
 } from '@mui/material'
-
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-
-// import AssessmentIcon from '@mui/icons-material/Assessment'
 import GridViewIcon from '@mui/icons-material/GridView'
-
-// import ViewListIcon from '@mui/icons-material/ViewList'
 import TableChartIcon from '@mui/icons-material/TableChart'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import CustomTextField from '@/@core/components/mui/TextField'
 import BranchListingTableView from './BranchListingTableView'
 import { getBranchList } from '@/redux/BranchManagementSlice'
-
-type Props = {}
-
-interface Branch {
-  id: string
-  name: string
-  branchCode: string
-  turnoverCode: string
-  bucketName: string
-  branchStatus: string
-  areaId: string
-  districtId: string
-  stateId: string
-  createdAt: string
-  updatedAt: string
-  bucket: {
-    id: string
-    name: string
-    positionCategories: {
-      designationName: string
-      count: number
-      grade: string
-    }[]
-    turnoverCode: string
-    notes: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  area: {
-    id: string
-    name: string
-    regionId: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  district: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  state: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-}
-
+import type { RootState } from '@/redux/store'
+import type { Branch, BranchManagementState } from '@/types/branch'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface BranchListResponse {
-  status: string
-  message: string
-  totalCount: number
-  data: Branch[]
-  page: number
-  limit: number
-}
+import { BranchListResponse } from '@/types/branch'
 
-interface BranchManagementState {
-  branchListData: Branch[] | null // Allow null to handle initial state or errors
-  branchListLoading: boolean
-  branchListSuccess: boolean
-  branchListTotal: number
-  branchListFailure: boolean
-  branchListFailureMessage: string
-}
-
-const BranchListing = ({}: Props) => {
+const BranchListing = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
   const [viewMode, setViewMode] = useState('grid')
-  const [selectedTabs, setSelectedTabs] = useState<Record<string, number>>({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, display_numbers_count: 5 })
 
-  console.log(dispatch, selectedTabs)
+  // Memoize branch tabs for performance, removing unused `selectedTabs`
+  // const branchTabs = useMemo(() => {
+  //   return (branchListData || []).reduce((acc, branch) => ({ ...acc, [branch.id]: 0 }), {} as Record<string, number>)
+  // }, [branchListData])
 
   // Use optional chaining and provide defaults to handle undefined state
-  const branchManagementState = useAppSelector(state => state.branchManagementReducer) as
-    | BranchManagementState
-    | undefined
-
   const {
-    branchListData = [], // Default to empty array if undefined
-    branchListLoading = false, // Default to false if undefined
-    branchListTotal = 0, // Default to 0 if undefined
-    branchListFailure = false, // Default to false if undefined
-    branchListFailureMessage = '' // Default to empty string if undefined
-  } = branchManagementState || {}
-
-  const [paginationState, setPaginationState] = useState({
-    page: 1,
-    limit: 10,
-    display_numbers_count: 5
-  })
+    branchListData = [],
+    branchListLoading = false,
+    branchListTotal,
+    branchListFailure = false,
+    branchListFailureMessage = ''
+  } = useAppSelector((state: RootState) => state.branchManagementReducer) as BranchManagementState
 
   useEffect(() => {
     dispatch(
-      getBranchList({
-        search: searchQuery,
-        page: paginationState.page,
-        limit: paginationState.limit,
-        branchStatus: 'ACTIVE' // Example: filter for active branches, adjust as needed
-      })
+      getBranchList({ search: searchQuery, page: pagination.page, limit: pagination.limit }) // branchStatus: 'ACTIVE'
     )
-  }, [dispatch, searchQuery, paginationState.page, paginationState.limit])
+  }, [dispatch, searchQuery, pagination.page, pagination.limit])
 
-  useEffect(() => {
-    const initialTabsState = (branchListData || []).reduce(
-      (acc, branch) => {
-        acc[branch.id] = 0 // Default to the 'Details' tab
-
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    setSelectedTabs(initialTabsState)
-  }, [branchListData])
-
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPaginationState({ ...paginationState, page: value })
-  }
-
-  const handleChangeLimit = (value: any) => {
-    setPaginationState({ ...paginationState, limit: value })
+  // Consolidated pagination handler
+  const handlePaginationChange = (key: 'page' | 'limit', value: number) => {
+    setPagination(prev => ({
+      ...prev,
+      [key]: value,
+      page: key === 'limit' ? 1 : prev.page // Reset page when limit changes
+    }))
   }
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value)
-    setPaginationState({ ...paginationState, page: 1 }) // Reset to first page on search
+    handlePaginationChange('page', 1) // Reset to first page on search
   }
 
-  if (branchListLoading) {
-    return <div>Loading branches...</div>
-  }
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => handlePaginationChange('page', value)
+  const handleChangeLimit = (value: number) => handlePaginationChange('limit', value)
 
-  if (branchListFailure) {
-    return <div>Error: {branchListFailureMessage}</div>
-  }
+  const handleBranchClick = (branch: Branch) => router.push(`/branch-management/view/employees-details?id=${branch.id}`)
+
+  if (branchListLoading) return <div>Loading branches...</div>
+  if (branchListFailure) return <div>Error: {branchListFailureMessage}</div>
 
   return (
     <div className=''>
@@ -256,7 +161,7 @@ const BranchListing = ({}: Props) => {
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
           {(branchListData || []).map(branch => (
             <Box
-              onClick={() => router.push(`/branch-management/view/employees-details?id=${branch.id}`)}
+              onClick={() => handleBranchClick(branch)}
               key={branch.id}
               className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
                 viewMode !== 'grid' && 'p-6'
@@ -374,24 +279,25 @@ const BranchListing = ({}: Props) => {
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
-              value={paginationState?.limit}
-              onChange={e => handleChangeLimit(e.target.value)}
+              value={pagination.limit}
+              onChange={e => handleChangeLimit(Number(e.target.value))}
               label='Limit per page'
             >
-              {[10, 25, 50, 100].map(option => (
+              {[5, 10, 25, 50, 100].map(option => (
                 <MenuItem key={option} value={option}>
                   {option}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+          {branchListTotal}
           <Pagination
             color='primary'
             shape='rounded'
             showFirstButton
             showLastButton
-            count={Math.ceil(branchListTotal / paginationState.limit)}
-            page={paginationState?.page}
+            count={Math.ceil(branchListTotal / pagination.limit)}
+            page={pagination.page}
             onChange={handlePageChange}
           />
         </div>

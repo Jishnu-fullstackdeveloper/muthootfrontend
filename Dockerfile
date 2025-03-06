@@ -15,7 +15,7 @@ RUN apk add --no-cache libc6-compat
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* /app
 # COPY pkg/cqt-shared-1.0.0.tgz /app/pkg/
-RUN npm ci
+RUN npm install --force
 
 # Rebuild the source code only when needed
 FROM base AS builder

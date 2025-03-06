@@ -212,6 +212,42 @@ export const fetchDistrict = createAsyncThunk<any, FetchParams>(
   }
 )
 
+// New thunk for fetchSettingsConfig
+export const fetchSettingsConfig = createAsyncThunk<any, FetchParams>(
+  'recruitmentResignation/fetchSettingsConfig',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const url = constructUrlWithParams('/shared-services/settings-config', params)
+      const response = await AxiosLib.get(url)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// New interface for updateSettingsConfig payload
+interface UpdateSettingsConfigPayload {
+  name: string
+  value: string
+}
+
+// New thunk for updateSettingsConfig
+export const updateSettingsConfig = createAsyncThunk<any, { id: string; data: UpdateSettingsConfigPayload }>(
+  'recruitmentResignation/updateSettingsConfig',
+  async ({ id, data }: { id: string; data: UpdateSettingsConfigPayload }, { rejectWithValue }) => {
+    try {
+      const url = `/shared-services/settings-config/${id}`
+      const response = await AxiosLib.put(url, data)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 interface RecruitmentRequestPayload {
   districtName: string
   stateName: string
@@ -350,6 +386,18 @@ export const recruitmentResignationSlice = createSlice({
     fetchDistrictFailure: false,
     fetchDistrictFailureMessage: '',
 
+    fetchSettingsConfigLoading: false,
+    fetchSettingsConfigSuccess: false,
+    fetchSettingsConfigData: [],
+    fetchSettingsConfigFailure: false,
+    fetchSettingsConfigFailureMessage: '',
+
+    updateSettingsConfigLoading: false, // New state for updateSettingsConfig
+    updateSettingsConfigSuccess: false,
+    updateSettingsConfigData: null,
+    updateSettingsConfigFailure: false,
+    updateSettingsConfigFailureMessage: '',
+
     submitRecruitmentRequestLoading: false,
     submitRecruitmentRequestSuccess: false,
     submitRecruitmentRequestData: null,
@@ -441,6 +489,19 @@ export const recruitmentResignationSlice = createSlice({
       state.fetchDistrictFailure = false
     },
 
+    fetchSettingsConfigDismiss: state => {
+      state.fetchSettingsConfigLoading = false
+      state.fetchSettingsConfigSuccess = false
+      state.fetchSettingsConfigFailure = false
+    },
+
+    updateSettingsConfigDismiss: state => {
+      // New dismiss action for updateSettingsConfig
+      state.updateSettingsConfigLoading = false
+      state.updateSettingsConfigSuccess = false
+      state.updateSettingsConfigFailure = false
+    },
+
     submitRecruitmentRequestDismiss: state => {
       state.submitRecruitmentRequestLoading = false
       state.submitRecruitmentRequestSuccess = false
@@ -467,6 +528,8 @@ export const recruitmentResignationSlice = createSlice({
     handleAsyncThunkStates(builder, fetchBranch, 'fetchBranch')
     handleAsyncThunkStates(builder, fetchState, 'fetchState')
     handleAsyncThunkStates(builder, fetchDistrict, 'fetchDistrict')
+    handleAsyncThunkStates(builder, fetchSettingsConfig, 'fetchSettingsConfig')
+    handleAsyncThunkStates(builder, updateSettingsConfig, 'updateSettingsConfig') // New thunk for settings config update
     handleAsyncThunkStates(builder, submitRecruitmentRequest, 'submitRecruitmentRequest')
     handleAsyncThunkStates(builder, approveRecruitment, 'approveRecruitment')
   }
@@ -486,6 +549,8 @@ export const {
   fetchBranchDismiss,
   fetchStateDismiss,
   fetchDistrictDismiss,
+  fetchSettingsConfigDismiss,
+  updateSettingsConfigDismiss, // New action for updateSettingsConfig
   submitRecruitmentRequestDismiss,
   approveRecruitmentDismiss
 } = recruitmentResignationSlice.actions

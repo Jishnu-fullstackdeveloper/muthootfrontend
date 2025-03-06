@@ -1,60 +1,65 @@
 'use client'
-import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { FormControl, TextField, Autocomplete, Grid } from '@mui/material';
-import DynamicButton from '@/components/Button/dynamicButton';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/userManagementSlice';
-import { fetchUserRole } from '@/redux/userRoleSlice';
+import React, { useEffect, useState } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
+import { FormControl, TextField, Autocomplete, Grid } from '@mui/material'
+
+import DynamicButton from '@/components/Button/dynamicButton'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/userManagementSlice'
+import { fetchUserRole } from '@/redux/userRoleSlice'
 
 type Props = {
-  mode: 'add' | 'edit';
-  id?: string;
-};
+  mode: 'add' | 'edit'
+  id?: string
+}
 
 const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
-  const dispatch = useAppDispatch();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   const { employeeData, isEmployeeLoading, isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage } =
-    useAppSelector((state: any) => state.UserManagementReducer || {});
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {});
+    useAppSelector((state: any) => state.UserManagementReducer || {})
 
-  const [apiErrors, setApiErrors] = useState<string[]>([]);
+  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {})
+
+  const [apiErrors, setApiErrors] = useState<string[]>([])
 
   useEffect(() => {
-    dispatch(fetchEmployees({}));
-    dispatch(fetchUserRole({ page: 1, limit: 100 }));
-  }, [dispatch]);
+    dispatch(fetchEmployees({}))
+    dispatch(fetchUserRole({ page: 1, limit: 100 }))
+  }, [dispatch])
 
   useEffect(() => {
     if (addUserFailure && addUserFailureMessage) {
-      const messages = Array.isArray(addUserFailureMessage) ? addUserFailureMessage : [addUserFailureMessage];
-      setApiErrors(messages);
+      const messages = Array.isArray(addUserFailureMessage) ? addUserFailureMessage : [addUserFailureMessage]
+
+      setApiErrors(messages)
     } else {
-      setApiErrors([]);
+      setApiErrors([])
     }
-  }, [addUserFailure, addUserFailureMessage]);
+  }, [addUserFailure, addUserFailureMessage])
 
   useEffect(() => {
     if (addUserSuccess) {
-      router.push('/user-management');
+      router.push('/user-management')
     }
-  }, [addUserSuccess, router]);
+  }, [addUserSuccess, router])
 
   useEffect(() => {
     return () => {
-      dispatch(resetAddUserStatus());
-    };
-  }, [dispatch]);
+      dispatch(resetAddUserStatus())
+    }
+  }, [dispatch])
 
   // Sanitize role to only allow letters, numbers, spaces, and hyphens
   const sanitizeRole = (role: string) => {
-    return role.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-  };
+    return role.replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+  }
 
   const userFormik = useFormik({
     initialValues: {
@@ -64,7 +69,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
       lastName: mode === 'edit' ? searchParams.get('lastName') || '' : '',
       email: mode === 'edit' ? searchParams.get('email') || '' : '',
       tempPassword: '',
-      role: mode === 'edit' ? sanitizeRole(searchParams.get('role') || '') : '',
+      role: mode === 'edit' ? sanitizeRole(searchParams.get('role') || '') : ''
     },
     validationSchema: Yup.object().shape({
       employeeCode: Yup.string().required('Employee Code is required'),
@@ -78,26 +83,25 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
           .matches(
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
             'Password must contain at least one uppercase, one lowercase, one number, and one special character'
-          ),
+          )
       }),
       role: Yup.string()
         .required('Role is required')
-        .matches(
-          /^[a-zA-Z0-9\s-]+$/,
-          'Role name can only contain letters, numbers, spaces, and hyphens'
-        ),
+        .matches(/^[a-zA-Z0-9\s-]+$/, 'Role name can only contain letters, numbers, spaces, and hyphens')
     }),
-    onSubmit: async (values) => {
-      const sanitizedRole = sanitizeRole(values.role); // Ensure role is sanitized before submission
+    onSubmit: async values => {
+      const sanitizedRole = sanitizeRole(values.role) // Ensure role is sanitized before submission
+
       if (mode === 'edit' && id) {
         const editParams = {
           email: values.email,
-          newRoleName: sanitizedRole, // Send sanitized role as a string
-        };
+          newRoleName: sanitizedRole // Send sanitized role as a string
+        }
+
         try {
-          await dispatch(updateUser({ id, params: editParams })).unwrap();
+          await dispatch(updateUser({ id, params: editParams })).unwrap()
         } catch (error: any) {
-          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred']);
+          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
         }
       } else {
         const addParams = {
@@ -106,21 +110,22 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
           lastName: `${values.middleName} ${values.lastName}`.trim(),
           email: values.email,
           tempPassword: values.tempPassword,
-          role: sanitizedRole,
-        };
+          role: sanitizedRole
+        }
+
         try {
-          await dispatch(addNewUser(addParams)).unwrap();
+          await dispatch(addNewUser(addParams)).unwrap()
         } catch (error: any) {
-          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred']);
+          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
         }
       }
-    },
-  });
+    }
+  })
 
   const handleCancel = () => {
-    dispatch(resetAddUserStatus());
-    router.back();
-  };
+    dispatch(resetAddUserStatus())
+    router.back()
+  }
 
   const employeeOptions = (employeeData || []).map((employee: any) => ({
     label: `${employee.employeeCode}`,
@@ -128,13 +133,13 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
     firstName: employee.firstName || '',
     middleName: employee.middleName || '',
     lastName: employee.lastName || '',
-    email: employee.officeEmailAddress || employee.email || '',
-  }));
+    email: employee.officeEmailAddress || employee.email || ''
+  }))
 
   const roleOptions = (userRoleData?.data || []).map((role: any) => ({
     label: role.name,
-    value: role.name,
-  }));
+    value: role.name
+  }))
 
   const handleEmployeeChange = (event: any, newValue: any) => {
     if (newValue) {
@@ -144,8 +149,8 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
         firstName: newValue.firstName,
         middleName: newValue.middleName,
         lastName: newValue.lastName,
-        email: newValue.email,
-      });
+        email: newValue.email
+      })
     } else {
       userFormik.setValues({
         ...userFormik.values,
@@ -153,40 +158,42 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
         firstName: '',
         middleName: '',
         lastName: '',
-        email: '',
-      });
+        email: ''
+      })
     }
-  };
+  }
 
   return (
-    <form onSubmit={userFormik.handleSubmit} className="p-6 bg-white shadow-md rounded">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{mode === 'edit' ? 'Edit User Role' : 'Add New User'}</h1>
+    <form onSubmit={userFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
+      <h1 className='text-2xl font-bold text-gray-800 mb-4'>{mode === 'edit' ? 'Edit User Role' : 'Add New User'}</h1>
 
       {apiErrors.length > 0 && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+        <div className='mb-4 p-4 bg-red-50 border border-red-200 rounded'>
           {apiErrors.map((error, index) => (
-            <div key={index} className="text-red-600">• {error}</div>
+            <div key={index} className='text-red-600'>
+              • {error}
+            </div>
           ))}
         </div>
       )}
 
-      <fieldset className="border border-gray-300 rounded p-4 mb-6">
-        <legend className="text-lg font-semibold text-gray-700">User Details</legend>
+      <fieldset className='border border-gray-300 rounded p-4 mb-6'>
+        <legend className='text-lg font-semibold text-gray-700'>User Details</legend>
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin='normal'>
               <Autocomplete
                 options={employeeOptions}
-                getOptionLabel={(option) => option.label}
+                getOptionLabel={option => option.label}
                 loading={isEmployeeLoading}
-                value={employeeOptions.find((option) => option.value === userFormik.values.employeeCode) || null}
+                value={employeeOptions.find(option => option.value === userFormik.values.employeeCode) || null}
                 onChange={handleEmployeeChange}
                 disabled={mode === 'edit'} // Disable in edit mode
-                renderInput={(params) => (
+                renderInput={params => (
                   <TextField
                     {...params}
-                    label="Employee Code *"
+                    label='Employee Code *'
                     error={userFormik.touched.employeeCode && !!userFormik.errors.employeeCode}
                     helperText={userFormik.touched.employeeCode && userFormik.errors.employeeCode}
                   />
@@ -196,20 +203,21 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
           </Grid>
 
           <Grid item xs={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin='normal'>
               <Autocomplete
                 options={roleOptions}
-                getOptionLabel={(option) => option.label}
+                getOptionLabel={option => option.label}
                 loading={isUserRoleLoading}
-                value={roleOptions.find((option) => option.value === userFormik.values.role) || null}
+                value={roleOptions.find(option => option.value === userFormik.values.role) || null}
                 onChange={(event, newValue) => {
-                  const sanitizedRole = newValue ? sanitizeRole(newValue.value) : '';
-                  userFormik.setFieldValue('role', sanitizedRole);
+                  const sanitizedRole = newValue ? sanitizeRole(newValue.value) : ''
+
+                  userFormik.setFieldValue('role', sanitizedRole)
                 }}
-                renderInput={(params) => (
+                renderInput={params => (
                   <TextField
                     {...params}
-                    label="Role *"
+                    label='Role *'
                     error={userFormik.touched.role && !!userFormik.errors.role}
                     helperText={userFormik.touched.role && userFormik.errors.role}
                   />
@@ -221,55 +229,55 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin='normal'>
               <TextField
-                label="First Name *"
-                name="firstName"
+                label='First Name *'
+                name='firstName'
                 value={userFormik.values.firstName}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
                 error={userFormik.touched.firstName && !!userFormik.errors.firstName}
                 helperText={userFormik.touched.firstName && userFormik.errors.firstName}
-                disabled={mode === 'edit'}
+                disabled
               />
             </FormControl>
           </Grid>
 
           <Grid item xs={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin='normal'>
               <TextField
-                label="Last Name *"
-                name="lastName"
+                label='Last Name *'
+                name='lastName'
                 value={`${userFormik.values.middleName} ${userFormik.values.lastName}`.trim()}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
                 error={userFormik.touched.lastName && !!userFormik.errors.lastName}
                 helperText={userFormik.touched.lastName && userFormik.errors.lastName}
-                disabled={mode === 'edit'}
+                disabled
               />
             </FormControl>
           </Grid>
         </Grid>
 
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth margin='normal'>
           <TextField
-            label="Email *"
-            name="email"
+            label='Email *'
+            name='email'
             value={userFormik.values.email}
             onChange={userFormik.handleChange}
             onBlur={userFormik.handleBlur}
             error={userFormik.touched.email && !!userFormik.errors.email}
             helperText={userFormik.touched.email && userFormik.errors.email}
-            disabled={mode === 'edit'}
+            disabled
           />
         </FormControl>
 
         {mode === 'add' && (
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin='normal'>
             <TextField
-              label="Temporary Password *"
-              name="tempPassword"
-              type="password"
+              label='Temporary Password *'
+              name='tempPassword'
+              type='password'
               value={userFormik.values.tempPassword}
               onChange={userFormik.handleChange}
               onBlur={userFormik.handleBlur}
@@ -280,11 +288,11 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
         )}
       </fieldset>
 
-      <div className="flex justify-end space-x-4">
+      <div className='flex justify-end space-x-4'>
         <DynamicButton
-          type="button"
-          variant="contained"
-          className="bg-gray-500 text-white hover:bg-gray-700"
+          type='button'
+          variant='contained'
+          className='bg-gray-500 text-white hover:bg-gray-700'
           onClick={handleCancel}
           disabled={isAddUserLoading}
         >
@@ -292,16 +300,16 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
         </DynamicButton>
 
         <DynamicButton
-          type="submit"
-          variant="contained"
-          className="bg-blue-500 text-white hover:bg-blue-700"
+          type='submit'
+          variant='contained'
+          className='bg-blue-500 text-white hover:bg-blue-700'
           disabled={isAddUserLoading}
         >
           {isAddUserLoading ? 'Saving...' : mode === 'edit' ? 'Update Role' : 'Add User'}
         </DynamicButton>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default AddOrEditUser;
+export default AddOrEditUser

@@ -19,7 +19,11 @@ import {
   FormGroup,
   Chip,
   Pagination,
-  Divider
+  Divider,
+  Select,
+  FormControl,
+  InputLabel,
+  MenuItem
 } from '@mui/material'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -30,7 +34,7 @@ interface FetchParams {
   limit: number
   page: number
   search?: string
-  permissionName?: string
+  permissionName?: string[]
 }
 
 const UserRolesAndPermisstionList = () => {
@@ -45,6 +49,22 @@ const UserRolesAndPermisstionList = () => {
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
   const [page, setPage] = useState(1)
   const [perPage] = useState(10)
+
+  const [paginationState, setPaginationState] = useState({
+    page: 1,
+    limit: 10
+
+    // display_numbers_count: 5
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown> | any, value: number) => {
+    setPage(value)
+    setPaginationState(prev => ({ ...prev, page: value }))
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState(prev => ({ ...prev, limit: value }))
+  }
 
   const permissionsList = [
     'user_create',
@@ -86,6 +106,7 @@ const UserRolesAndPermisstionList = () => {
     'general_delete'
   ]
 
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchText(searchText)
@@ -94,6 +115,7 @@ const UserRolesAndPermisstionList = () => {
     return () => clearTimeout(timer)
   }, [searchText])
 
+  // Fetch user roles when filters, page, or search changes
   useEffect(() => {
     const params: FetchParams = {
       limit: perPage,
@@ -104,12 +126,14 @@ const UserRolesAndPermisstionList = () => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
 
     if (activePermissions.length > 0) {
-      params.permissionName = activePermissions.join(',')
+      params.permissionName = activePermissions // Array of selected permissions
     }
 
+    console.log('Fetching roles with params:', params) // Debug
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, dispatch, perPage])
 
+  // Filter roles on the frontend (ensure all selected permissions are present)
   const filteredRoles = useMemo(() => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
 
@@ -117,13 +141,20 @@ const UserRolesAndPermisstionList = () => {
       return userRoleData?.data || []
     }
 
-    return (userRoleData?.data || []).filter(role => {
+    const roles = userRoleData?.data || []
+
+    const filtered = roles.filter(role => {
       const rolePermissions = role.permissions || []
 
       return activePermissions.every(permission => rolePermissions.includes(permission))
     })
+
+    console.log('Filtered roles:', filtered) // Debug
+
+    return filtered
   }, [userRoleData?.data, appliedPermissionFilters])
 
+  // Event handlers
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value)
   }
@@ -187,10 +218,7 @@ const UserRolesAndPermisstionList = () => {
     setTempPermissionFilters(prev => ({ ...prev, [permission]: false }))
   }
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value)
-  }
-
+  // Initialize filters
   useEffect(() => {
     const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
 
@@ -230,7 +258,7 @@ const UserRolesAndPermisstionList = () => {
               </Button>
             </Box>
             <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />} size='medium'>
-              Add User
+              Add Role
             </Button>
           </Box>
 
@@ -325,7 +353,7 @@ const UserRolesAndPermisstionList = () => {
                             maxWidth: 'calc(100% - 100px)'
                           }}
                         >
-                          {item.name}
+                          {item.name.toUpperCase()}
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <IconButton
@@ -352,18 +380,37 @@ const UserRolesAndPermisstionList = () => {
               <Typography sx={{ width: '100%', textAlign: 'center', py: 4 }}>No roles found</Typography>
             )}
           </Grid>
-
           {userRoleData?.meta?.totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <Pagination
-                count={userRoleData.meta.totalPages}
-                page={page}
-                onChange={handlePageChange}
-                color='primary'
-                showFirstButton
-                showLastButton
-              />
-            </Box>
+            <div className='flex items-center justify-end mt-6'>
+              <FormControl size='small' sx={{ minWidth: 70 }}>
+                <InputLabel>Count</InputLabel>
+                <Select
+                  value={paginationState?.limit}
+                  onChange={e => handleChangeLimit(e.target.value)}
+                  label='Limit per page'
+                >
+                  {[10, 25, 50, 100].map(option => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Box sx={{ display: 'flex' }}>
+                <Box sx={{ display: 'flex' }}>
+                  <Pagination
+                    color='primary'
+                    shape='rounded'
+                    showFirstButton
+                    showLastButton
+                    count={userRoleData.meta.totalPages} //pagination numbers display count
+                    page={paginationState?.page} //current page
+                    onChange={handlePageChange} //changing page function
+                  />
+                </Box>
+              </Box>
+            </div>
           )}
         </>
       )}

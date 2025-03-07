@@ -9,7 +9,6 @@ import {
   Chip,
   FormControl,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -17,17 +16,13 @@ import {
   Tabs,
   Tooltip,
   Typography,
-  Alert
+  Alert,
+  InputAdornment
 } from '@mui/material'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-
-import type { TextFieldProps } from '@mui/material/TextField'
-
-import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
-//import ViewListIcon from '@mui/icons-material/ViewList'
+import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
-
 import { RestartAlt } from '@mui/icons-material'
 
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -38,28 +33,29 @@ import {
   removeVacancyManagementFiltersFromCookie,
   setVacancyManagementFiltersToCookie
 } from '@/utils/functions'
-
 import VacancyListingTableView from './VacancyTableView'
-
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-
-//import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
-//import { vacancyList } from '@/utils/sampleData/VacancyListingData'
+import type {
+  ViewMode,
+  VacancyFilters,
+  PaginationState,
+  Vacancy,
+  DebouncedInputProps,
+  SelectedTabs
+} from '@/types/vacancy'
 
 const VacancyListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-
   const { vacancies, totalCount, currentPage, limit, error } = useAppSelector(state => state.vacancyManagementReducer)
 
   console.log(totalCount, limit, currentPage)
 
-  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [viewMode, setViewMode] = useState('grid')
-  const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [addMoreFilters, setAddMoreFilters] = useState(false)
 
-  const [selectedFilters, setSelectedFilters] = useState({
+  const [selectedFilters, setSelectedFilters] = useState<VacancyFilters>({
     location: [],
     department: [],
     employmentType: [],
@@ -69,7 +65,7 @@ const VacancyListingPage = () => {
     jobRole: ''
   })
 
-  const [appliedFilters, setAppliedFilters] = useState({
+  const [appliedFilters, setAppliedFilters] = useState<VacancyFilters>({
     location: [],
     department: [],
     employmentType: [],
@@ -79,113 +75,66 @@ const VacancyListingPage = () => {
     jobRole: ''
   })
 
-  const FiltersFromCookie = getVacancyManagementFiltersFromCookie()
-
-  useEffect(() => {
-    setVacancyManagementFiltersToCookie({
-      selectedFilters,
-      appliedFilters
-    })
-  }, [selectedFilters, appliedFilters])
-
-  const handleTabChange = (vacancyId: any, newValue: number) => {
-    setSelectedTabs(prev => ({
-      ...prev,
-      [vacancyId]: newValue // Update the tab index for the specific vacancy
-    }))
-  }
-
-  useEffect(() => {
-    if (FiltersFromCookie?.selectedFilters) {
-      setSelectedFilters(FiltersFromCookie?.selectedFilters)
-    }
-
-    if (FiltersFromCookie?.appliedFilters) {
-      setAppliedFilters(FiltersFromCookie?.appliedFilters)
-    }
-  }, [])
-
-  const [paginationState, setPaginationState] = useState({
+  const [paginationState, setPaginationState] = useState<PaginationState>({
     page: 1,
     limit: 10,
     display_numbers_count: 10
   })
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPaginationState({ ...paginationState, page: value })
-  }
+  const [selectedTabs, setSelectedTabs] = useState<SelectedTabs>({})
 
-  const handleChangeLimit = (value: any) => {
-    setPaginationState({ ...paginationState, limit: value })
-  }
+  const FiltersFromCookie = getVacancyManagementFiltersFromCookie()
 
-  const [selectedTabs, setSelectedTabs] = useState<{ [key: string]: number }>({})
-
-  // Update selectedTabs when vacancies data is fetched to ensure Details tab (index 0) is selected by default
   useEffect(() => {
-    if (vacancies && vacancies.length > 0) {
-      const updatedTabs = vacancies.reduce(
-        (acc, vacancy) => {
-          acc[vacancy.id] = 0 // Set the default tab to 'Details' (index 0) for each vacancy
+    setVacancyManagementFiltersToCookie({ selectedFilters, appliedFilters })
+  }, [selectedFilters, appliedFilters])
 
-          return acc
-        },
-        {} as { [key: string]: number }
-      )
+  useEffect(() => {
+    const cookieFilters = FiltersFromCookie
 
-      setSelectedTabs(updatedTabs)
+    if (cookieFilters?.selectedFilters) setSelectedFilters(cookieFilters.selectedFilters)
+    if (cookieFilters?.appliedFilters) setAppliedFilters(cookieFilters.appliedFilters)
+  }, [])
+
+  useEffect(() => {
+    if (vacancies?.length) {
+      setSelectedTabs(vacancies.reduce((acc, vacancy: Vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
     }
   }, [vacancies])
 
-  const DebouncedInput = ({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    ...props
-  }: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-  } & Omit<TextFieldProps, 'onChange'>) => {
-    // States
+  useEffect(() => {
+    dispatch(fetchVacancies({ page: paginationState.page, limit: paginationState.limit }))
+  }, [dispatch, paginationState.page, paginationState.limit])
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) =>
+    setPaginationState(prev => ({ ...prev, page: value }))
+
+  const handleChangeLimit = (value: any) => setPaginationState(prev => ({ ...prev, limit: value }))
+
+  const handleTabChange = (vacancyId: any, newValue: number) =>
+    setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
+
+  const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }: DebouncedInputProps) => {
     const [value, setValue] = useState(initialValue)
 
+    useEffect(() => setValue(initialValue), [initialValue])
     useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
-
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange(value)
-      }, debounce)
+      const timeout = setTimeout(() => onChange(value), debounce)
 
       return () => clearTimeout(timeout)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value])
 
     return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   }
 
-  const CheckAllFiltersEmpty = (filters: any): boolean => {
-    return Object.entries(filters).every(([key, value]) => {
-      if (Array.isArray(value)) {
-        // For arrays, check if empty or salaryRange specifically equals [0, 0]
-        return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
-      }
-
-      if (typeof value === 'string') {
-        // For strings, check if empty
-        return value.trim() === ''
-      }
-
-      if (typeof value === 'object' && value !== null) {
-        // For objects, check if they are empty
-        return Object.keys(value).length === 0
-      }
-
-      return !value // Handles numbers, null, undefined, etc.
-    })
-  }
+  const CheckAllFiltersEmpty = (filters: VacancyFilters): boolean =>
+    Object.entries(filters).every(([key, value]) =>
+      Array.isArray(value)
+        ? key === 'salaryRange'
+          ? value[0] === 0 && value[1] === 0
+          : !value.length
+        : !value?.trim?.()
+    )
 
   const handleResetFilters = () => {
     setSelectedFilters({
@@ -200,72 +149,77 @@ const VacancyListingPage = () => {
     removeVacancyManagementFiltersFromCookie()
   }
 
-  // Function to remove a specific value from any filter array
-  // Function to remove a value dynamically from a filter array
-  const removeSelectedFilterItem = (category: any, value: string) => {
-    setSelectedFilters((prev: any) => {
-      if (category === 'jobRole') {
-        setSelectedFilters({ ...selectedFilters, jobRole: '' })
-      } else if (Array.isArray(prev[category])) {
-        return {
-          ...prev,
-          [category]: prev[category].filter((item: string) => item !== value)
-        }
-      }
+  const removeSelectedFilterItem = (category: keyof VacancyFilters, value: string) =>
+    setSelectedFilters(prev => ({
+      ...prev,
+      [category]: category === 'jobRole' ? '' : (prev[category] as string[]).filter(item => item !== value)
+    }))
 
-      return prev
-    })
-  }
-
-  const toggleFilter = (filterType: any, filterValue: any) => {
-    setAppliedFilters((prev: any) => {
+  const toggleFilter = (filterType: keyof VacancyFilters, filterValue: any) =>
+    setAppliedFilters(prev => {
       if (filterType === 'salaryRange') {
-        // Toggle salary range: set to [0, 0] if already applied
         return {
           ...prev,
           salaryRange:
-            prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
-              ? [0, 0] // Reset to default
-              : filterValue
-        }
-      } else if (filterType === 'jobRole') {
-        return {
-          ...prev,
-          jobRole: prev.jobRole === filterValue ? '' : filterValue // Reset if matched, otherwise set new value
-        }
-      } else {
-        // Toggle for other filters
-        return {
-          ...prev,
-          [filterType]: prev[filterType]?.includes(filterValue)
-            ? prev[filterType].filter((item: any) => item !== filterValue) // Remove filter value
-            : [...(prev[filterType] || []), filterValue] // Add filter value
+            prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1] ? [0, 0] : filterValue
         }
       }
+
+      if (filterType === 'jobRole') {
+        return { ...prev, jobRole: prev.jobRole === filterValue ? '' : filterValue }
+      }
+
+      return {
+        ...prev,
+        [filterType]: prev[filterType]?.includes(filterValue)
+          ? (prev[filterType] as string[]).filter(item => item !== filterValue)
+          : [...((prev[filterType] as string[]) || []), filterValue]
+      }
     })
+
+  const renderFilterChips = (category: keyof VacancyFilters) => {
+    switch (category) {
+      case 'location':
+      case 'department':
+      case 'employmentType':
+      case 'experience':
+      case 'skills':
+        return selectedFilters[category].map((val: string) => (
+          <Chip
+            key={val}
+            label={val}
+            variant='outlined'
+            color={appliedFilters[category].includes(val) ? 'primary' : 'default'}
+            onClick={() => toggleFilter(category, val)}
+            onDelete={() => removeSelectedFilterItem(category, val)}
+          />
+        ))
+      case 'salaryRange':
+        return selectedFilters.salaryRange[0] !== 0 || selectedFilters.salaryRange[1] !== 0 ? (
+          <Chip
+            key='salary-range'
+            label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
+            variant='outlined'
+            color={appliedFilters.salaryRange[0] !== 0 || appliedFilters.salaryRange[1] !== 0 ? 'primary' : 'default'}
+            onClick={() => toggleFilter('salaryRange', selectedFilters.salaryRange)}
+            onDelete={() => setSelectedFilters({ ...selectedFilters, salaryRange: [0, 0] })}
+          />
+        ) : null
+      case 'jobRole':
+        return selectedFilters.jobRole ? (
+          <Chip
+            key='job-role'
+            label={selectedFilters.jobRole}
+            variant='outlined'
+            color={appliedFilters.jobRole === selectedFilters.jobRole ? 'primary' : 'default'}
+            onClick={() => toggleFilter('jobRole', selectedFilters.jobRole)}
+            onDelete={() => removeSelectedFilterItem('jobRole', '')}
+          />
+        ) : null
+      default:
+        return null
+    }
   }
-
-  // const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  // const [vacancyIdToDelete, setVacancyIdToDelete] = useState<string | number | null>(null)
-
-  // const handleDeleteClick = (id: string | number) => {
-  //   setVacancyIdToDelete(id)
-  //   setDeleteModalOpen(true)
-  // }
-
-  // const handleDeleteConfirm = (id?: string | number) => {
-  //   if (id) {
-  //     // Perform the delete operation here
-  //     console.log('Deleting vacancy with ID:', id)
-  //     // After deletion, you might want to refresh the data or remove the item from the list
-  //   }
-  //   setDeleteModalOpen(false)
-  // }
-
-  // Fetch vacancies when page or limit changes
-  useEffect(() => {
-    dispatch(fetchVacancies({ page: paginationState.page, limit: paginationState.limit }))
-  }, [dispatch, paginationState.page, paginationState.limit])
 
   return (
     <div className=''>
@@ -304,22 +258,21 @@ const VacancyListingPage = () => {
                 )
               }}
             />
-
             <Box sx={{ mt: 5 }}>
               <DynamicButton
                 label='Add more filters'
                 variant='tonal'
                 icon={<i className='tabler-plus' />}
                 position='start'
-                children='Add more filters'
                 onClick={() => setAddMoreFilters(true)}
+                children='Add more filters'
               />
             </Box>
             <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
               <DynamicButton
                 label='Reset Filters'
                 variant='outlined'
-                icon={<RestartAlt />} // Proper reset icon from MUI
+                icon={<RestartAlt />}
                 position='start'
                 onClick={handleResetFilters}
                 children='Reset Filters'
@@ -327,7 +280,6 @@ const VacancyListingPage = () => {
               />
             </Box>
           </div>
-
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
             <DynamicButton
               label='New Vacancy'
@@ -340,16 +292,13 @@ const VacancyListingPage = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: 2, // Spacing between icons
+                gap: 2,
                 alignItems: 'center',
-                justifyContent: 'center',
                 padding: '1px',
                 backgroundColor: '#f5f5f5',
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': {
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-                }
+                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
               }}
             >
               <Tooltip title='Grid View'>
@@ -357,11 +306,6 @@ const VacancyListingPage = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              {/* <Tooltip title='List View'>
-                <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
-                  <ViewListIcon />
-                </IconButton>
-              </Tooltip> */}
               <Tooltip title='Table View'>
                 <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
                   <TableChartIcon />
@@ -370,87 +314,22 @@ const VacancyListingPage = () => {
             </Box>
           </Box>
         </div>
-        {/* Reset Filters */}
         <Box>
-          <Stack direction='row' spacing={1} ml={5}>
-            {!CheckAllFiltersEmpty(selectedFilters) && (
+          {!CheckAllFiltersEmpty(selectedFilters) && (
+            <Stack direction='row' spacing={1} ml={5}>
               <Typography component='h3' color='black'>
                 Filters
               </Typography>
-            )}
-          </Stack>
+            </Stack>
+          )}
           <Stack direction='row' spacing={1} ml={5}>
-            <Box
-              sx={{
-                overflow: 'hidden',
-                maxWidth: '100%',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1,
-                p: 1
-              }}
-            >
-              {/* Map Experience Chips */}
-              {selectedFilters.experience.map(exp => (
-                <Chip
-                  key={exp}
-                  label={exp}
-                  variant='outlined'
-                  color={appliedFilters.experience.includes(exp) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('experience', exp)}
-                  onDelete={() => removeSelectedFilterItem('experience', exp)}
-                />
-              ))}
-
-              {/* Map Education Chips */}
-              {selectedFilters.location.map(loc => (
-                <Chip
-                  key={loc}
-                  label={loc}
-                  variant='outlined'
-                  color={appliedFilters.location.includes(loc) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('location', loc)}
-                  onDelete={() => removeSelectedFilterItem('location', loc)}
-                />
-              ))}
-
-              {/* Map Job Type Chips */}
-              {selectedFilters.department.map(dept => (
-                <Chip
-                  key={dept}
-                  label={dept}
-                  variant='outlined'
-                  color={appliedFilters.department.includes(dept) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('department', dept)}
-                  onDelete={() => removeSelectedFilterItem('department', dept)}
-                />
-              ))}
-
-              {/* Map Skills Chips */}
-              {selectedFilters.employmentType.map(emp_type => (
-                <Chip
-                  key={emp_type}
-                  label={emp_type}
-                  variant='outlined'
-                  color={appliedFilters.employmentType.includes(emp_type) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('employmentType', emp_type)}
-                  onDelete={() => removeSelectedFilterItem('employmentType', emp_type)}
-                />
-              ))}
-
-              {selectedFilters.skills.map(skill => (
-                <Chip
-                  key={skill}
-                  label={skill}
-                  variant='outlined'
-                  color={appliedFilters.skills.includes(skill) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('skills', skill)}
-                  onDelete={() => removeSelectedFilterItem('skills', skill)}
-                />
-              ))}
-
-              {/* Handle Salary Range */}
-              {selectedFilters?.salaryRange[0] !== 0 || selectedFilters?.salaryRange[1] !== 0 ? (
+            <Box sx={{ overflow: 'hidden', maxWidth: '100%', display: 'flex', flexWrap: 'wrap', gap: 1, p: 1 }}>
+              {renderFilterChips('experience')}
+              {renderFilterChips('location')}
+              {renderFilterChips('department')}
+              {renderFilterChips('employmentType')}
+              {renderFilterChips('skills')}
+              {(selectedFilters.salaryRange[0] !== 0 || selectedFilters.salaryRange[1] !== 0) && (
                 <Chip
                   key='salary-range'
                   label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
@@ -460,23 +339,17 @@ const VacancyListingPage = () => {
                       ? 'primary'
                       : 'default'
                   }
-                  onClick={() => toggleFilter('salaryRange', selectedFilters?.salaryRange)}
-                  onDelete={() => {
-                    setSelectedFilters({
-                      ...selectedFilters,
-                      salaryRange: [0, 0]
-                    })
-                  }}
+                  onClick={() => toggleFilter('salaryRange', selectedFilters.salaryRange)}
+                  onDelete={() => setSelectedFilters({ ...selectedFilters, salaryRange: [0, 0] })}
                 />
-              ) : null}
-
-              {selectedFilters?.jobRole && (
+              )}
+              {selectedFilters.jobRole && (
                 <Chip
                   key='job-role'
-                  label={selectedFilters?.jobRole}
+                  label={selectedFilters.jobRole}
                   variant='outlined'
-                  color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
+                  color={appliedFilters.jobRole === selectedFilters.jobRole ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('jobRole', selectedFilters.jobRole)}
                   onDelete={() => removeSelectedFilterItem('jobRole', '')}
                 />
               )}
@@ -485,7 +358,6 @@ const VacancyListingPage = () => {
         </Box>
       </Card>
 
-      {/* Error Message Display */}
       {error && (
         <Box sx={{ mb: 4, mx: 6 }}>
           <Alert severity='error' variant='filled'>
@@ -496,49 +368,23 @@ const VacancyListingPage = () => {
 
       <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
-          vacancies?.map(vacancy => (
+          vacancies?.map((vacancy: Vacancy) => (
             <Box
               onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
               key={vacancy.id}
-              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1`}
-              sx={{
-                cursor: 'pointer',
-                minHeight: '150px'
-              }}
+              className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
+              sx={{ cursor: 'pointer', minHeight: '150px' }}
             >
-              {/* Header Section with Action Buttons */}
               <Box className='pt-3 pl-4 pb-3 pr-2 flex justify-between items-center'>
-                <div className='flex items-center'>
-                  <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
-                    {vacancy.designationName}
-                  </Typography>
-                </div>
+                <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
+                  {vacancy.designationName}
+                </Typography>
                 <div className='flex space-x-2'>
-                  <Stack sx={{ marginTop: 2 }}>
-                    {/* <Chip
-                      label={vacancy.gradeName}
-                      color={
-                        vacancy.gradeName === 'Open'
-                          ? 'success'
-                          : vacancy.gradeName === 'Closed'
-                            ? 'default'
-                            : 'warning'
-                      }
-                      size='small'
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '0.85rem', // Slightly increased font size
-                        textTransform: 'uppercase'
-                      }}
-                    /> */}
-                  </Stack>
                   <Tooltip title='Edit Vacancy' placement='top'>
                     <IconButton
-                      sx={{
-                        ':hover': { color: 'primary.main' }
-                      }}
+                      sx={{ ':hover': { color: 'primary.main' } }}
                       onClick={e => {
-                        e.stopPropagation() // Prevent card click
+                        e.stopPropagation()
                         router.push(`/vacancy-management/edit/${vacancy.id}`)
                       }}
                     >
@@ -546,161 +392,64 @@ const VacancyListingPage = () => {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title='Delete Vacancy' placement='top'>
-                    <IconButton
-                      sx={{
-                        ':hover': { color: 'error.main' }
-                      }}
-                      onClick={e => {
-                        e.stopPropagation() // Prevent card click
-                        //handleDeleteClick(vacancy.id)
-                        // Add delete logic here
-                      }}
-                    >
+                    <IconButton sx={{ ':hover': { color: 'error.main' } }} onClick={e => e.stopPropagation()}>
                       <i className='tabler-trash' />
                     </IconButton>
                   </Tooltip>
                 </div>
               </Box>
-
-              {/* Tabbed Details Section */}
               <Box className='p-4 border-t'>
                 <Tabs
-                  value={selectedTabs[vacancy.id] || 0} // Get the selected tab for the current vacancy
+                  value={selectedTabs[vacancy.id] || 0}
                   onClick={e => e.stopPropagation()}
-                  onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)} // Pass vacancy ID to handleTabChange
+                  onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)}
                   aria-label='vacancy details'
                 >
-                  {/* Tab Labels */}
                   <Tab label='Details' />
                   <Tab label='More details' />
-                  {/* <Tab label='Contact' /> */}
                 </Tabs>
-
-                {/* Tab Content */}
                 <Box className='mt-4'>
                   {selectedTabs[vacancy.id] === 0 && (
-                    <Box className='text-sm text-gray-700'>
-                      <Box className='grid grid-cols-2 gap-y-2'>
-                        <p>
-                          <strong>Category Type:</strong> {vacancy.employeeCategoryType}
-                        </p>
-
-                        <p>
-                          <strong>Grade:</strong> {vacancy.gradeName}
-                        </p>
-                        <p>
-                          <strong>Band:</strong> {vacancy.bandName}
-                        </p>
-                        <p>
-                          <strong>Business Unit:</strong> {vacancy.businessUnitName}
-                        </p>
-                        <p>
-                          <strong>Branch:</strong> {vacancy.branchesName}
-                        </p>
-                        <p>
-                          <strong>Department:</strong> {vacancy.departmentName}
-                        </p>
-
-                        <Chip
-                          variant='tonal'
-                          label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
-                          color='success'
-                          size='medium'
-                          sx={{
-                            fontWeight: 'bold',
-                            fontSize: '0.85rem', // Slightly increased font size
-                            textTransform: 'uppercase',
-                            width: 200
-                          }}
-                        />
-                        <Chip
-                          variant='tonal'
-                          label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
-                          color='error'
-                          size='medium'
-                          sx={{
-                            fontWeight: 'bold',
-                            fontSize: '0.85rem', // Slightly increased font size
-                            textTransform: 'uppercase',
-                            width: 190
-                          }}
-                        />
-
-                        {/* <p>
-                          <strong>State:</strong> {vacancy.stateName}
-                        </p>
-
-                        <p>
-                          <strong>City:</strong> {vacancy.districtName}
-                        </p>
-                        <p>
-                          <strong>Region:</strong> {vacancy.regionName}
-                        </p>
-                        <p>
-                          <strong>Zone:</strong> {vacancy.zoneName}
-                        </p>
-                        <p>
-                          <strong>Area:</strong> {vacancy.areaName}
-                        </p>
-                        <p>
-                          <strong>Branch:</strong> {vacancy.branchesName}
-                        </p> */}
-
-                        {/* <p>
-                          <strong>Positions:</strong> {vacancy.vacancyPositions}
-                        </p> */}
-                      </Box>
-                      {/* <Box
-                        className='mt-2 shadow-md ring-white flex flex-col items-center p-4'
-                        sx={{ borderRadius: 2 }}
-                      >
-                        <ul className=' space-y-2'>
-                          <li className='text-success'>
-                            <strong>State:</strong> {vacancy.stateName}
-                          </li>
-                          <li className='text-warning'>
-                            <strong>Zone:</strong> {vacancy.zoneName}
-                          </li>
-                          <li className='text-primary'>
-                            <strong>Region:</strong> {vacancy.regionName}
-                          </li>
-                          <li className='text-error'>
-                            <strong>Area:</strong> {vacancy.areaName}
-                          </li>
-                        </ul>
-                      </Box> */}
-                    </Box>
-                  )}
-                  {selectedTabs[vacancy.id] === 1 && (
-                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
-                      {/* <Chip
+                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
+                      <p>
+                        <strong>Category Type:</strong> {vacancy.employeeCategoryType}
+                      </p>
+                      <p>
+                        <strong>Grade:</strong> {vacancy.gradeName}
+                      </p>
+                      <p>
+                        <strong>Band:</strong> {vacancy.bandName}
+                      </p>
+                      <p>
+                        <strong>Business Unit:</strong> {vacancy.businessUnitName}
+                      </p>
+                      <p>
+                        <strong>Branch:</strong> {vacancy.branchesName}
+                      </p>
+                      <p>
+                        <strong>Department:</strong> {vacancy.departmentName}
+                      </p>
+                      <Chip
                         variant='tonal'
                         label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
-                        color='secondary'
+                        color='success'
                         size='medium'
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem', // Slightly increased font size
-                          textTransform: 'uppercase',
-                          width: 200
-                        }}
+                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 200 }}
                       />
                       <Chip
                         variant='tonal'
                         label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
                         color='error'
                         size='medium'
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '0.85rem', // Slightly increased font size
-                          textTransform: 'uppercase',
-                          width: 190
-                        }}
-                      /> */}
+                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 190 }}
+                      />
+                    </Box>
+                  )}
+                  {selectedTabs[vacancy.id] === 1 && (
+                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
                       <p>
                         <strong>State:</strong> {vacancy.stateName}
                       </p>
-
                       <p>
                         <strong>City:</strong> {vacancy.districtName}
                       </p>
@@ -713,18 +462,8 @@ const VacancyListingPage = () => {
                       <p>
                         <strong>Area:</strong> {vacancy.areaName}
                       </p>
-                      {/* <p>
-                        <strong>Branch:</strong> {vacancy.branchesName}
-                      </p> */}
                     </Box>
                   )}
-                  {/* {selectedTabs[vacancy.id] === 2 && (
-                    <Box className='space-y-2 text-sm text-gray-700'>
-                      <p>
-                        <strong>Contact Person:</strong> {vacancy.contactPerson}
-                      </p>
-                    </Box>
-                  )} */}
                 </Box>
               </Box>
             </Box>
@@ -736,7 +475,6 @@ const VacancyListingPage = () => {
 
       {viewMode !== 'table' && (
         <div className='flex items-center justify-end mt-6'>
-          {/* Right-aligned Pagination */}
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
@@ -751,25 +489,17 @@ const VacancyListingPage = () => {
               ))}
             </Select>
           </FormControl>
-          <div>
-            <Pagination
-              color='primary'
-              shape='rounded'
-              showFirstButton
-              showLastButton
-              count={paginationState?.display_numbers_count} //pagination numbers display count
-              page={paginationState?.page} //current page
-              onChange={handlePageChange} //changing page function
-            />
-          </div>
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={paginationState?.display_numbers_count}
+            page={paginationState?.page}
+            onChange={handlePageChange}
+          />
         </div>
       )}
-      {/* <ConfirmModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        id={vacancyIdToDelete}
-      /> */}
     </div>
   )
 }

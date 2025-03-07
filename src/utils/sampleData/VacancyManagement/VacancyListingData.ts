@@ -9,7 +9,7 @@ export const vacancyList = [
     grade: 'A',
     band: 'Band3',
     noOfFilledPositions: 3,
-    noOfApplicants: 60,
+    noOfApplicants: 73,
     shortlisted: 30,
     city: 'New York',
     experience: 3,

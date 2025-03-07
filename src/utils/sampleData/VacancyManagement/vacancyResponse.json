@@ -1,0 +1,42 @@
+{
+    "status": "Success",
+    "message": "Vacancy fetched successfully",
+    "data": [
+        {
+            "id": "6d36d251-5b7e-47a1-bc8c-4e9df202bfd7",
+            "deletedBy": null,
+            "districtName": "THRISSUR",
+            "stateName": "KERALA",
+            "zoneName": "KERALA NORTH",
+            "regionName": "KOZHIKODE & KANNUR",
+            "areaName": "KOZHIKODE-3",
+            "branchesName": "Muthoot Fincorp Private Limited",
+            "businessUnitName": "BRANCH BUSINESS",
+            "employeeCategoryType": "Branch",
+            "departmentName": "BRANCH BUSINESS",
+            "designationName": "BUSINESS DEVELOPMENT EXECUTIVE",
+            "gradeName": "DEPUTY MANAGER",
+            "bandName": "JM2- (60)",
+            "metaData": {
+                "areaId": "f3b2c69e-9e4e-4906-a53a-6a864caf1c70",
+                "bandId": "a69d589b-6ac9-489e-9dee-c4cf43dda0ac",
+                "zoneId": "d2ca5b67-677d-4a3d-84b0-4a2c7b8c6164",
+                "gradeId": "d0438b6d-048f-483d-8313-b65367c03f7e",
+                "stateId": "5c9ee015-c81a-46db-a06b-a018f229fea3",
+                "branchId": "2328ffdd-32ea-43fa-8048-bcf87c2eb7e3",
+                "regionId": "8f154788-51ce-4943-8394-154d817781f3",
+                "districtId": "62fb8197-1d5f-4a7b-9e71-cd1edf92a094",
+                "departmentId": "93eaa69c-bb0b-4e6a-87f7-4dec88feb994",
+                "designationId": "973d68b6-4f38-451c-b07c-e8c3e51d763b",
+                "businessUnitId": "5d2320af-de17-4033-87bf-c1bbcf7c1b01",
+                "employeeCategoryId": "315a2634-ea2a-4478-8a84-84da8a9a622a"
+            },
+            "createdAt": "2025-02-27T09:25:02.625Z",
+            "updatedAt": "2025-02-27T09:25:11.718Z",
+            "deletedAt": null
+        }
+    ],
+    "totalCount": 6,
+    "currentPage": 1,
+    "limit": 10
+}

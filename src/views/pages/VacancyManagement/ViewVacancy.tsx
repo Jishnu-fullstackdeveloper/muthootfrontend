@@ -23,56 +23,10 @@ import {
 import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
 
 import CandidateListingTableView from './VacancyCandidateTable'
-
-type Props = {
-  mode: any
-  id: any
-}
+import { viewVacancy } from '@/utils/sampleData/VacancyManagement/ViewVacancyData'
+import type { Props } from '@/types/vacancy'
 
 const JobVacancyView: React.FC<Props> = () => {
-  const vacancy = {
-    title: 'Software Engineer',
-    jobType: 'Full-Time',
-    jobDescription:
-      'We are providing services for reviews, follows, likes for our clients social media pages as part of their company development. We seek employees for the same as part-time jobs, work-at-home options. Remunerations are calculated based on the counting of reviews, follows, or likes which you provide on the given links. Interested candidates can apply.',
-    roleSummary:
-      'Proven hands-on experience in leadership and full-stack development within a corporate setting. Candidates should demonstrate strong decision-making and communication skills, with proven expertise in technical design and agile project delivery.',
-    roleDetails: [
-      { label: 'Company Name', value: 'ABC Ltd' },
-      { label: 'Reporting To', value: 'John Doe' },
-      { label: 'Function/Department', value: 'Research & Development' },
-      { label: 'Written By', value: 'HR Department' }
-    ],
-    keySkillsAttributes: [
-      { label: 'Factor/Category', value: 'Technical Expertise' },
-      { label: 'Competencies', value: 'Java, Spring Boot, API Integration' },
-      { label: 'Definitions', value: 'Java development, Backend design' },
-      { label: 'Behavioral Attributes', value: 'Adaptability, Problem-solving' }
-    ],
-    numberOfOpenings: 5,
-    branch: 'Head Office',
-    grade: 'A',
-    city: 'Bangalore',
-    stateRegion: 'Karnataka',
-    country: 'India',
-    zone: 'Bellari',
-    educationalQualification: "Bachelor's Degree in Computer Science or related field",
-    experience: 3,
-    skills: ['JavaScript', 'React', 'Node.js', 'TypeScript'],
-    salaryDetails: '₹8,00,000 - ₹12,00,000 per annum',
-    startDate: '2024-01-01',
-    endDate: '2024-01-31',
-    contactPerson: 'John Doe',
-    applicationStatus: 'Open',
-    documentsRequired: ['Resume', 'Cover Letter', 'Portfolio'],
-    interviewRounds: 3,
-    interviewDetails: ['Technical Round', 'Managerial Round', 'HR Round'],
-    approvals: 'Approved by HR and Technical Manager',
-    noOfFilledPositions: 3,
-    noOfApplicants: 40,
-    shortlisted: 21
-  }
-
   const router = useRouter()
   const jobDetailRef = useRef<HTMLDivElement>(null)
   const candidateListRef = useRef<HTMLDivElement>(null)
@@ -107,10 +61,10 @@ const JobVacancyView: React.FC<Props> = () => {
                 <Box className='flex flex-row justify-between'>
                   <Box className='flex flex-row space-x-2 space-y-2'>
                     <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
-                      {vacancy?.title}
+                      {viewVacancy?.title}
                     </Typography>
                     <Typography variant='h5' color='text.secondary'>
-                      Grade: {vacancy?.grade}
+                      Grade: {viewVacancy?.grade}
                     </Typography>
                   </Box>
                   {/* <Box>
@@ -125,30 +79,34 @@ const JobVacancyView: React.FC<Props> = () => {
                   sx={{ margin: 'auto', borderRadius: 1 }}
                 >
                   <Typography variant='subtitle1' color='text.secondary'>
-                    {vacancy?.jobType}
+                    {viewVacancy?.jobType}
                   </Typography>
                   <Typography variant='subtitle1' color='text.secondary'>
-                    Experience: {vacancy?.experience}
+                    Experience: {viewVacancy?.experience}
                   </Typography>
                   <Typography variant='subtitle1' color='text.secondary'>
-                    Branch: {vacancy?.branch}
+                    Branch: {viewVacancy?.branch}
                   </Typography>
                   <Typography variant='subtitle1' color='text.secondary'>
-                    City: {vacancy?.city}
+                    City: {viewVacancy?.city}
                   </Typography>
                 </Paper>
                 <Paper className='mt-4 space-x-2' elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
                   <List className='grid grid-cols-2 md:grid-cols-4 gap-2'>
                     <ListItemText
-                      primary={<span className='text-green-500'>No. of openings: {vacancy?.numberOfOpenings}</span>}
+                      primary={<span className='text-green-500'>No. of openings: {viewVacancy?.numberOfOpenings}</span>}
                     />
-                    <ListItemText primary={<span className='text-blue-500'>Applied: {vacancy?.noOfApplicants}</span>} />
+                    <ListItemText
+                      primary={<span className='text-blue-500'>Applied: {viewVacancy?.noOfApplicants}</span>}
+                    />
                     <ListItemText
                       primary={
-                        <span className='text-yellow-500'>Filled Positions: {vacancy?.noOfFilledPositions}</span>
+                        <span className='text-yellow-500'>Filled Positions: {viewVacancy?.noOfFilledPositions}</span>
                       }
                     />
-                    <ListItemText primary={<span className='text-red-500'>Shortlisted: {vacancy?.shortlisted}</span>} />
+                    <ListItemText
+                      primary={<span className='text-red-500'>Shortlisted: {viewVacancy?.shortlisted}</span>}
+                    />
                   </List>
                 </Paper>
                 <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
@@ -160,18 +118,19 @@ const JobVacancyView: React.FC<Props> = () => {
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <DateRange fontSize='small' color='action' /> <strong>Start Date:</strong>{' '}
-                          {vacancy?.startDate}
+                          {viewVacancy?.startDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <DateRange fontSize='small' color='action' /> <strong>End Date:</strong> {vacancy?.endDate}
+                          <DateRange fontSize='small' color='action' /> <strong>End Date:</strong>{' '}
+                          {viewVacancy?.endDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <Person fontSize='small' color='action' /> <strong>Contact Person:</strong>{' '}
-                          {vacancy?.contactPerson}
+                          {viewVacancy?.contactPerson}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -194,20 +153,20 @@ const JobVacancyView: React.FC<Props> = () => {
                   Job Description
                 </Typography>
                 <Typography variant='body1' color='text.secondary'>
-                  {vacancy?.jobDescription}
+                  {viewVacancy?.jobDescription}
                 </Typography>
                 <Typography mt={2} variant='h6' fontWeight='bold' gutterBottom>
                   Role Summary
                 </Typography>
                 <Typography variant='body1' color='text.secondary'>
-                  {vacancy?.roleSummary}
+                  {viewVacancy?.roleSummary}
                 </Typography>
                 <Grid container spacing={2} mt={2}>
                   <Grid item xs={6}>
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Role Details
                     </Typography>
-                    {vacancy.roleDetails.map((detail, index) => (
+                    {viewVacancy.roleDetails.map((detail, index) => (
                       <Typography key={index} variant='body1' color='text.secondary'>
                         <strong>{detail.label}:</strong> {detail.value}
                       </Typography>
@@ -217,7 +176,7 @@ const JobVacancyView: React.FC<Props> = () => {
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Key Skills & Attributes
                     </Typography>
-                    {vacancy.keySkillsAttributes.map((skill, index) => (
+                    {viewVacancy.keySkillsAttributes.map((skill, index) => (
                       <Typography key={index} variant='body1' color='text.secondary'>
                         <strong>{skill.label}:</strong> {skill.value}
                       </Typography>
@@ -232,23 +191,23 @@ const JobVacancyView: React.FC<Props> = () => {
                     <Grid container spacing={3}>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>Branch:</strong> {vacancy?.branch}
+                          <LocationOn fontSize='small' color='action' /> <strong>Branch:</strong> {viewVacancy?.branch}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>City:</strong> {vacancy?.city}
+                          <LocationOn fontSize='small' color='action' /> <strong>City:</strong> {viewVacancy?.city}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <LocationOn fontSize='small' color='action' /> <strong>State/Region:</strong>{' '}
-                          {vacancy?.stateRegion}
+                          {viewVacancy?.stateRegion}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>Zone:</strong> {vacancy?.zone}
+                          <LocationOn fontSize='small' color='action' /> <strong>Zone:</strong> {viewVacancy?.zone}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -261,17 +220,17 @@ const JobVacancyView: React.FC<Props> = () => {
                         Qualification Needed
                       </Typography>
                       <Typography variant='body1'>
-                        <strong>Education:</strong> {vacancy?.educationalQualification}
+                        <strong>Education:</strong> {viewVacancy?.educationalQualification}
                       </Typography>
                       <Typography variant='body1'>
-                        <strong>Experience:</strong> {vacancy?.experience} years
+                        <strong>Experience:</strong> {viewVacancy?.experience} years
                       </Typography>
                       <Box mt={2}>
                         <Typography variant='body1' fontWeight='bold'>
                           Skills Needed:
                         </Typography>
                         <Stack direction='row' spacing={1} mt={1}>
-                          {vacancy?.skills.map((skill, index) => (
+                          {viewVacancy?.skills.map((skill, index) => (
                             <Chip
                               key={index}
                               label={skill}
@@ -290,7 +249,7 @@ const JobVacancyView: React.FC<Props> = () => {
                         Salary Details
                       </Typography>
                       <Typography variant='body1' color='text.secondary'>
-                        {vacancy?.salaryDetails}
+                        {viewVacancy?.salaryDetails}
                       </Typography>
                     </Box>
                   </Grid>
@@ -300,7 +259,7 @@ const JobVacancyView: React.FC<Props> = () => {
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Documents Required
                     </Typography>
-                    {vacancy?.documentsRequired?.map((doc, index) => (
+                    {viewVacancy?.documentsRequired?.map((doc, index) => (
                       <ListItem key={index} disableGutters>
                         <ListItemText primary={`• ${doc}`} />
                       </ListItem>
@@ -313,9 +272,9 @@ const JobVacancyView: React.FC<Props> = () => {
                       Interview Process
                     </Typography>
                     <Typography variant='body1'>
-                      <strong>Number of Rounds:</strong> {vacancy?.interviewRounds}
+                      <strong>Number of Rounds:</strong> {viewVacancy?.interviewRounds}
                     </Typography>
-                    {vacancy?.interviewDetails.map((round, index) => (
+                    {viewVacancy?.interviewDetails.map((round, index) => (
                       <ListItem key={index} disableGutters>
                         <CheckCircle fontSize='small' color='success' sx={{ mr: 1 }} />
                         <ListItemText primary={round} />
@@ -328,7 +287,7 @@ const JobVacancyView: React.FC<Props> = () => {
                     Approvals
                   </Typography>
                   <Typography variant='body1' color='text.secondary'>
-                    {vacancy?.approvals}
+                    {viewVacancy?.approvals}
                   </Typography>
                 </Box>
               </Box>

@@ -3,193 +3,18 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
 
-// Define interfaces for the branch data
-interface Branch {
-  id: string
-  name: string
-  branchCode: string
-  turnoverCode: string
-  bucketName: string
-  branchStatus: string
-  areaId: string
-  districtId: string
-  stateId: string
-  createdAt: string
-  updatedAt: string
-  bucket: {
-    id: string
-    name: string
-    positionCategories: {
-      designationName: string
-      count: number
-      grade: string
-    }[]
-    turnoverCode: string
-    notes: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  area: {
-    id: string
-    name: string
-    regionId: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  district: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  state: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-}
-
-interface BranchDetailsResponse {
-  status: string
-  message: string
-  data: Branch
-}
-
-interface BranchListResponse {
-  status: string
-  message: string
-  totalCount: number
-  data: Branch[]
-  page: number
-  limit: number
-}
-
-// Define interfaces for the employee data
-interface Employee {
-  id: string
-  employeeCode: string
-  title: string
-  firstName: string
-  middleName: string
-  lastName: string
-  officeEmailAddress: string
-  personalEmailAddress: string
-  mobileNumber: string
-  businessUnitId: string
-  resignedEmployeeId: string | null
-  departmentId: string
-  gradeId: string
-  bandId: string
-  designationId: string
-  employeeDetails: {
-    position: string
-    experience: string
-  }
-  companyStructure: {
-    structure: string
-  }
-  managementHierarchy: {
-    hierarchy: string
-  }
-  payrollDetails: {
-    tax: string
-    salary: string
-  }
-  address: {
-    city: string
-    street: string
-    country: string
-  }
-  emergencyContact: {
-    name: string
-    contact: string
-    relation: string
-  }
-  experienceDetails: {
-    previousCompany: string
-    yearsOfExperience: number
-  }
-  personalDetails: {
-    dob: string
-    nationality: string
-  }
-  createdAt: string
-  updatedAt: string
-  deletedAt: string | null
-  band: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  businessUnit: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  grade: {
-    id: string
-    name: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  designation: {
-    id: string
-    name: string
-    departmentId: string
-    type: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-  department: {
-    id: string
-    name: string
-    employeeCategoryTypeId: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
-}
-
-interface EmployeeListResponse {
-  status: string
-  message: string
-  totalCount: number
-  data: Employee[]
-  page: number
-  limit: number
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface BranchManagementState {
-  branchListLoading: false
-  branchListSuccess: false
-  branchListData: Branch[]
-  branchListTotal: number
-  branchListFailure: false
-  branchListFailureMessage: string
-  branchDetailsLoading: false
-  branchDetailsSuccess: false
-  branchDetailsData: Branch | null
-  branchDetailsFailure: false
-  branchDetailsFailureMessage: string
-  employeeListLoading: false
-  employeeListSuccess: false
-  employeeListData: Employee[] | null
-  employeeListTotal: number
-  employeeListFailure: false
-  employeeListFailureMessage: string
-}
+import type {
+  BranchListResponse,
+  BranchDetailsResponse,
+  EmployeeListResponse,
+  BranchManagementState,
+  AreaListResponse,
+  ResignedEmployeesResponse,
+  BranchReportResponse,
+  VacancyReportResponse,
+  BubblePositionResponse,
+  VacancyResponse
+} from '@/types/branch'
 
 // Thunk for fetching branch list
 export const getBranchList = createAsyncThunk<
@@ -206,7 +31,7 @@ export const getBranchList = createAsyncThunk<
       }
     })
 
-    return response.data.data
+    return response.data
   } catch (error: any) {
     return rejectWithValue(error.response.data)
   }
@@ -219,7 +44,7 @@ export const getBranchDetails = createAsyncThunk<BranchDetailsResponse, { id: st
     try {
       const response = await AxiosLib.get(`/branch/${id}`)
 
-      return response.data.data
+      return response.data
     } catch (error: any) {
       return rejectWithValue(error.response.data)
     }
@@ -245,13 +70,126 @@ export const getEmployeeDetailsWithBranchId = createAsyncThunk<
   }
 })
 
+// Thunk for fetching area list
+export const fetchArea = createAsyncThunk<
+  AreaListResponse,
+  { search?: string; page: number; limit: number; regionId?: string }
+>('branchManagement/fetchArea', async ({ search, page, limit, regionId }, { rejectWithValue }) => {
+  try {
+    const params: { page: number; limit: number; search?: string; regionId?: string } = { page, limit }
+
+    if (search) params.search = search
+    if (regionId) params.regionId = regionId
+
+    const response = await AxiosLib.get(`/area`, { params })
+
+    // Format the response to match AreaListResponse
+    return {
+      status: response.data.status,
+      message: response.data.message,
+      totalCount: response.data.totalCount,
+      data: response.data.data,
+      currentPage: response.data.currentPage,
+      limit: response.data.limit
+    }
+  } catch (error: any) {
+    return rejectWithValue(error.response.data)
+  }
+})
+
+// Thunk for fetching resigned employees
+export const fetchResignedEmployees = createAsyncThunk<
+  ResignedEmployeesResponse,
+  { id: string; date: string; page: number; limit: number }
+>('branchManagement/fetchResignedEmployees', async ({ id, date, page, limit }, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.get(`/resigned-employees/${id}`, {
+      params: {
+        date,
+        page,
+        limit
+      }
+    })
+
+    return response.data
+  } catch (error: any) {
+    return rejectWithValue(error.response.data)
+  }
+})
+
+// Thunk for fetching branch report
+export const fetchBranchReport = createAsyncThunk<BranchReportResponse, { filterKey: string; filterValue: string }>(
+  'branchManagement/fetchBranchReport',
+  async ({ filterKey, filterValue }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`/branch/report-branch`, {
+        params: {
+          filterKey,
+          filterValue
+        }
+      })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// Thunk for fetching vacancy report
+export const fetchVacancyReport = createAsyncThunk<VacancyReportResponse, { filterKey: string; filterValue: string }>(
+  'branchManagement/fetchVacancyReport',
+  async ({ filterKey, filterValue }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`/vacancy/vacancy-report`, {
+        params: {
+          filterKey,
+          filterValue
+        }
+      })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// Thunk for fetching bubble positions
+export const fetchBubblePositions = createAsyncThunk<BubblePositionResponse, { branchId: string }>(
+  'branchManagement/fetchBubblePositions',
+  async ({ branchId }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`/bubble-position/${branchId}`)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// Thunk for fetching vacancies
+export const fetchVacancies = createAsyncThunk<VacancyResponse, { branchId: string }>(
+  'branchManagement/fetchVacancies',
+  async ({ branchId }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`/vacancy/${branchId}`)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 // Create the slice
 export const branchManagementSlice = createSlice({
   name: 'branchManagement',
   initialState: {
     branchListLoading: false,
     branchListSuccess: false,
-    branchListData: [],
+    branchListData: null,
     branchListTotal: 0,
     branchListFailure: false,
     branchListFailureMessage: '',
@@ -265,20 +203,53 @@ export const branchManagementSlice = createSlice({
     employeeListData: null,
     employeeListTotal: 0,
     employeeListFailure: false,
-    employeeListFailureMessage: ''
-  },
+    employeeListFailureMessage: '',
+    fetchAreaLoading: false,
+    fetchAreaSuccess: false,
+    fetchAreaData: null,
+    fetchAreaTotal: 0,
+    fetchAreaFailure: false,
+    fetchAreaFailureMessage: '',
+    resignedEmployeesLoading: false,
+    resignedEmployeesSuccess: false,
+    resignedEmployeesData: null,
+    resignedEmployeesTotal: 0,
+    resignedEmployeesFailure: false,
+    resignedEmployeesFailureMessage: '',
+    fetchBranchReportLoading: false,
+    fetchBranchReportSuccess: false,
+    fetchBranchReportData: null,
+    fetchBranchReportFailure: false,
+    fetchBranchReportFailureMessage: '',
+    fetchVacancyReportLoading: false,
+    fetchVacancyReportSuccess: false,
+    fetchVacancyReportData: null,
+    fetchVacancyReportFailure: false,
+    fetchVacancyReportFailureMessage: '',
+    fetchBubblePositionsLoading: false,
+    fetchBubblePositionsSuccess: false,
+    fetchBubblePositionsData: null,
+    fetchBubblePositionsFailure: false,
+    fetchBubblePositionsFailureMessage: '',
+    fetchVacanciesLoading: false,
+    fetchVacanciesSuccess: false,
+    fetchVacanciesData: null,
+    fetchVacanciesFailure: false,
+    fetchVacanciesFailureMessage: ''
+  } as BranchManagementState,
   reducers: {
     // Define any additional reducers if needed
   },
   extraReducers: builder => {
-    // Use the helper function for the getBranchList thunk
     handleAsyncThunkStates(builder, getBranchList, 'branchList')
-
-    // Use the helper function for the getBranchDetails thunk
     handleAsyncThunkStates(builder, getBranchDetails, 'branchDetails')
-
-    // Use the helper function for the getEmployeeDetailsWithBranchId thunk
     handleAsyncThunkStates(builder, getEmployeeDetailsWithBranchId, 'employeeList')
+    handleAsyncThunkStates(builder, fetchArea, 'fetchArea')
+    handleAsyncThunkStates(builder, fetchResignedEmployees, 'resignedEmployees')
+    handleAsyncThunkStates(builder, fetchBranchReport, 'fetchBranchReport')
+    handleAsyncThunkStates(builder, fetchVacancyReport, 'fetchVacancyReport')
+    handleAsyncThunkStates(builder, fetchBubblePositions, 'fetchBubblePositions')
+    handleAsyncThunkStates(builder, fetchVacancies, 'fetchVacancies')
   }
 })
 

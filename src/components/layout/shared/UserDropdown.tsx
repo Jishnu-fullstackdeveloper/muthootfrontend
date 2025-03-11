@@ -34,7 +34,6 @@ import { changePasswordApi, signOutApi } from '@/redux/loginSlice'
 import {
   decodeToken,
   getAccessToken,
-
   getCurrentPermissions,
 
   // getRefreshToken,
@@ -60,7 +59,7 @@ const UserDropdown = () => {
   const [open, setOpen] = useState(false)
 
   const currentPermissions = getCurrentPermissions()
-  
+
   const access_token = getAccessToken()
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
 
@@ -70,8 +69,6 @@ const UserDropdown = () => {
   const loginStates = useAppSelector((state: any) => state.loginReducer)
 
   // console.log({ role:currentPermissions[0]?.role }, "currentPermissions role..........");
-
-
 
   const {
     // newAccessTokenApiData,
@@ -86,8 +83,6 @@ const UserDropdown = () => {
 
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
-
-  
 
   // Hooks
   const router = useRouter()
@@ -244,9 +239,8 @@ const UserDropdown = () => {
                         {decodedAccessToken?.given_name + ' ' + decodedAccessToken?.family_name || 'John Doe'}
                       </Typography>
                       <Typography variant='caption'>{decodedAccessToken?.email || ' admin@vuexy.com'}</Typography>
-                   
-                    <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography>
-                  
+
+                      <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
@@ -254,16 +248,18 @@ const UserDropdown = () => {
                     <i className='tabler-user text-[22px]' />
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>
-                  <MenuItem
-                    className='mli-2 gap-3' //  onClick={e => handleDropdownClose(e, '/account/change-password')}
-                    onClick={e => {
-                      handleDropdownClose(e)
-                      handleChangePassword()
-                    }}
-                  >
-                    <i className='tabler-key text-[22px]' />
-                    <Typography color='text.primary'>Change Password</Typography>
-                  </MenuItem>
+                  {decodedAccessToken?.source === 'NON_AD_USER' && (
+                    <MenuItem
+                      className='mli-2 gap-3'
+                      onClick={e => {
+                        handleDropdownClose(e)
+                        handleChangePassword()
+                      }}
+                    >
+                      <i className='tabler-key text-[22px]' />
+                      <Typography color='text.primary'>Change Password</Typography>
+                    </MenuItem>
+                  )}
 
                   <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-settings text-[22px]' />

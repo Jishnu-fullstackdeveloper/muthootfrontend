@@ -5,6 +5,7 @@ export interface ViewBranchProps {
 }
 
 export interface Branch {
+  map: any
   id: string
   name: string
   branchCode: string
@@ -16,6 +17,7 @@ export interface Branch {
   stateId: string
   createdAt: string
   updatedAt: string
+  data: any
   bucket: {
     id: string
     name: string
@@ -61,6 +63,7 @@ export interface BranchDetailsResponse {
 }
 
 export interface BranchListResponse {
+  [x: string]: any
   status: string
   message: string
   totalCount: number
@@ -167,12 +170,34 @@ export interface BranchManagementState {
   branchDetailsFailure: boolean
   branchDetailsFailureMessage: string
   employeeListData: EmployeeListResponse | null // Updated to store the full API response
-  branchListData: Branch[] | null // Allow null to handle initial state or errors
+  branchListData: BranchListResponse | null // Allow null to handle initial state or errors
   branchListLoading: boolean
   branchListSuccess: boolean
   branchListTotal: number
   branchListFailure: boolean
   branchListFailureMessage: string
+  resignedEmployeesData: any
+  resignedEmployeesTotal: any
+  fetchBranchReportLoading: boolean
+  fetchBranchReportSuccess: boolean
+  fetchBranchReportData: BranchReportResponse | null
+  fetchBranchReportFailure: boolean
+  fetchBranchReportFailureMessage: string
+  fetchVacancyReportLoading: boolean
+  fetchVacancyReportSuccess: boolean
+  fetchVacancyReportData: VacancyReportResponse | null
+  fetchVacancyReportFailure: boolean
+  fetchVacancyReportFailureMessage: string
+  fetchBubblePositionsLoading: boolean
+  fetchBubblePositionsSuccess: boolean
+  fetchBubblePositionsData: BubblePositionResponse | null
+  fetchBubblePositionsFailure: boolean
+  fetchBubblePositionsFailureMessage: string
+  fetchVacanciesLoading: boolean
+  fetchVacanciesSuccess: boolean
+  fetchVacanciesData: VacancyResponse | null
+  fetchVacanciesFailure: boolean
+  fetchVacanciesFailureMessage: string
 }
 
 export interface EmployeeDetails {
@@ -273,4 +298,115 @@ export interface EmployeeListResponse {
   data: EmployeeDetails[]
   page: number
   limit: number
+}
+
+export interface Area {
+  id: string
+  name: string
+  regionId: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  deletedBy: string | null
+  region: {
+    id: string
+    name: string
+    zoneId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+    deletedBy: string | null
+    zone: {
+      id: string
+      name: string
+      createdAt: string
+      updatedAt: string
+      deletedAt: string | null
+      deletedBy: string | null
+    }
+  }
+}
+
+export interface AreaListResponse {
+  status: string
+  message: string
+  totalCount: number
+  data: Area[]
+  currentPage: number
+  limit: string
+}
+
+export interface ResignedEmployeesResponse {
+  status: string
+  message: string
+  data: Array<{
+    id: string
+    deletedBy: string | null
+    employeeCode: string
+    dateOfResignation: string
+    noticePeriod: string
+    relievingDateAsPerNotice: string
+    notes: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+    firstName: string
+    departmentName: string
+  }>
+  totalCount: number
+  page: number
+  limit: number
+}
+
+export interface BubblePosition {
+  designationName: string
+  count: number
+}
+
+export interface BranchReportData {
+  branchId: string
+  employeeCount: number
+  bubblePositions: BubblePosition[]
+}
+
+export interface BranchReportResponse {
+  status: string
+  message: string
+  data: BranchReportData
+}
+
+export interface VacancyReportData {
+  branchId: string
+  vacancyCount: number
+}
+
+export interface VacancyReportResponse {
+  status: string
+  message: string
+  data: VacancyReportData
+}
+
+export interface BubblePositionItem {
+  branchId?: string
+  designations?: string
+  count?: number
+}
+
+export interface BubblePositionResponse {
+  status: string
+  message: string
+  data: BubblePositionItem[]
+}
+
+export interface VacancyItem {
+  branchId?: string
+  designations?: string
+  count?: number
+}
+
+export interface VacancyResponse {
+  status: string
+  message: string
+  data: VacancyItem[]
+  totalCount: number
 }

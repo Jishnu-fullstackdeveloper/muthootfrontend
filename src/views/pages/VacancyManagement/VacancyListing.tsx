@@ -16,7 +16,6 @@ import {
   Tabs,
   Tooltip,
   Typography,
-  Alert,
   InputAdornment
 } from '@mui/material'
 import Pagination from '@mui/material/Pagination'
@@ -358,11 +357,19 @@ const VacancyListingPage = () => {
         </Box>
       </Card>
 
-      {error && (
+      {/* {error && (
         <Box sx={{ mb: 4, mx: 6 }}>
           <Alert severity='error' variant='filled'>
             <Typography>{error}</Typography>
           </Alert>
+        </Box>
+      )} */}
+
+      {error && (
+        <Box sx={{ mb: 4, mx: 6 }}>
+          <Typography variant='h6' color='error'>
+            Error: {error}
+          </Typography>
         </Box>
       )}
 

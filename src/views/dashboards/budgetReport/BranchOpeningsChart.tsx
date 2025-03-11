@@ -7,7 +7,8 @@ import dynamic from 'next/dynamic'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import Chip from '@mui/material/Chip'
+
+// import Chip from '@mui/material/Chip'
 import { useColorScheme, useTheme, alpha } from '@mui/material/styles'
 
 // Third-party Imports
@@ -19,10 +20,12 @@ import { rgbaToHex } from '@/utils/rgbaToHex'
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
-// Sample data for a single selected branch's openings and shortlisted candidates
-const series = [{ data: [30, 20] }] // Example data: [Openings, Shortlisted]
+// Props interface
+interface BranchOpeningsChartProps {
+  vacancyCount: number
+}
 
-const BranchOpeningsChart = () => {
+const BranchOpeningsChart = ({ vacancyCount }: BranchOpeningsChartProps) => {
   // Hooks
   const theme = useTheme()
   const { mode } = useColorScheme()
@@ -31,6 +34,9 @@ const BranchOpeningsChart = () => {
 
   // Vars
   const primaryColorWithOpacity = rgbaToHex(`rgb(${theme.palette.primary.mainChannel} / 0.16)`)
+
+  // Dynamic series based on vacancyCount
+  const series = [{ data: [vacancyCount] }]
 
   const options: ApexOptions = {
     chart: {
@@ -75,7 +81,7 @@ const BranchOpeningsChart = () => {
       }
     },
     xaxis: {
-      categories: ['O', 'S'], // Updated categories for single branch
+      categories: ['V'], // Updated categories for single branch
       axisTicks: { show: true },
       axisBorder: { show: true },
       tickPlacement: 'on',
@@ -127,12 +133,12 @@ const BranchOpeningsChart = () => {
       <CardContent className='flex justify-between gap-2'>
         <div className='flex flex-col justify-between'>
           <div className='flex flex-col gap-y-2'>
-            <Typography variant='h5'>Branch Openings & Shortlisted</Typography>
+            <Typography variant='h5'>Vacancies</Typography>
             {/* <Typography>Performance for Selected Branch</Typography> */}
           </div>
           <div className='flex flex-col gap-y-2 items-start'>
-            <Typography variant='h3'>Total: 50</Typography> {/* Example total count for the selected branch */}
-            <Chip variant='tonal' size='small' color='success' label='+12.8%' />
+            <Typography variant='h3'>Total: {vacancyCount}</Typography> {/* Dynamic total count */}
+            {/* <Chip variant='tonal' size='small' color='success' label='+12.8%' /> */}
           </div>
         </div>
         <AppReactApexCharts type='bar' width={170} height={195} series={series} options={options} />

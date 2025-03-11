@@ -61,12 +61,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         permission: 'approvalManagement',
         read: 'approval_read'
       },
-      {
-        path: '/candidate-management',
-        label: 'Candidate Management',
-        iconClass: 'tabler-user-exclamation',
-        permission: 'candidateManagement'
-      },
+
+      // {
+      //   path: '/candidate-management',
+      //   label: 'Candidate Management',
+      //   iconClass: 'tabler-user-exclamation',
+      //   permission: 'candidateManagement'
+      // },
+
       {
         path: '/jd-management',
         label: 'JD Management',

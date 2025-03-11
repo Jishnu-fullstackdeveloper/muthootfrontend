@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import WarningIcon from '@mui/icons-material/Warning'
 
-import AssessmentIcon from '@mui/icons-material/Assessment'
+// import AssessmentIcon from '@mui/icons-material/Assessment'
 
 import SettingsIcon from '@mui/icons-material/Settings'
 
@@ -335,14 +335,14 @@ const RecruitmentRequestOverview = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
             {NewRequestWithPermission}
-            <Button
+            {/* <Button
               variant='contained'
               color='primary'
               startIcon={<AssessmentIcon />}
               onClick={() => router.push('/recruitment-management/resignation-report')}
             >
               Reports Dashboard
-            </Button>
+            </Button> */}
 
             <Button variant='contained' color='primary' startIcon={<SettingsIcon />} onClick={handleXFactorDialogOpen}>
               Set Data Transform Days
@@ -387,7 +387,7 @@ const RecruitmentRequestOverview = () => {
                 {approvers?.map((approver, index) => (
                   <Box key={approver.id} sx={{ marginBottom: 2, pb: 4 }}>
                     <Typography variant='body1' sx={{ color: '#555' }}>
-                      {approver.designation} - {approver.requestCount} Requests
+                      {approver.designationName} - {approver.requestCount} Requests
                     </Typography>
                     <LinearProgress
                       variant='determinate'
@@ -404,7 +404,7 @@ const RecruitmentRequestOverview = () => {
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
+                        {/* <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} /> */}
                         <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
                           {approver.warning}
                         </Typography>

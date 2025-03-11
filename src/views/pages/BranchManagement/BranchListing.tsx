@@ -16,8 +16,10 @@ import {
   MenuItem,
   Select,
   Typography,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -47,7 +49,7 @@ const BranchListing = () => {
 
   // Use optional chaining and provide defaults to handle undefined state
   const {
-    branchListData = [],
+    branchListData,
     branchListLoading = false,
     branchListTotal,
     branchListFailure = false,
@@ -114,7 +116,7 @@ const BranchListing = () => {
           </div>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
-            {/* <Button
+            <Button
               className='mr-2'
               variant='contained'
               color='primary'
@@ -122,7 +124,7 @@ const BranchListing = () => {
               onClick={() => router.push('/branch-management/budget-report')}
             >
               Branch Report Dashboard
-            </Button> */}
+            </Button>
             <Box
               sx={{
                 display: 'flex',
@@ -159,7 +161,7 @@ const BranchListing = () => {
 
       {(viewMode === 'grid' || viewMode === 'list') && (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
-          {(branchListData || []).map(branch => (
+          {(branchListData?.data || [])?.map(branch => (
             <Box
               onClick={() => handleBranchClick(branch)}
               key={branch.id}
@@ -273,7 +275,7 @@ const BranchListing = () => {
           ))}
         </div>
       )}
-      {viewMode === 'table' && <BranchListingTableView branchData={branchListData || []} />}
+      {viewMode === 'table' && <BranchListingTableView branchData={branchListData?.data || []} />}
       {viewMode !== 'table' && (
         <div className='flex items-center justify-end mt-6'>
           <FormControl size='small' sx={{ minWidth: 70 }}>

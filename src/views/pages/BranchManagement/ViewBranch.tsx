@@ -5,30 +5,26 @@ import React, { useState, useEffect, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import {
-  Box,
-  Card,
-  Typography,
-  Divider,
-  Tab,
-  Tabs,
-  Grid,
-  Button,
-  Chip,
-  ListItem,
-  List,
-  ListItemText
-} from '@mui/material'
+import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { getBranchDetails, getEmployeeDetailsWithBranchId } from '@/redux/BranchManagementSlice'
+import {
+  getBranchDetails,
+  getEmployeeDetailsWithBranchId,
+  fetchBubblePositions,
+  fetchVacancies
+} from '@/redux/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
 import DynamicTable from '@/components/Table/dynamicTable'
 import type { ViewBranchProps, BranchManagementState, EmployeeDetails } from '@/types/branch'
 import { EmployeeListResponse } from '@/types/branch'
+
+import BubblePositionsOverview from '@/views/branch/components/BubblePositionsOverview'
+import BucketManagementOverview from '@/views/branch/components/BucketManagementOverview'
+import VacancyManagementOverview from '@/views/branch/components/VacancyManagementOverview'
 
 const tabMapping: { [key: string]: number } = {
   'employees-details': 0,
@@ -49,33 +45,29 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     branchDetailsLoading,
     branchDetailsFailure,
     branchDetailsFailureMessage,
-    employeeListData
+    employeeListData,
+    fetchBubblePositionsData,
+    fetchBubblePositionsLoading,
+    fetchBubblePositionsFailure,
+    fetchBubblePositionsFailureMessage,
+    fetchVacanciesData,
+    fetchVacanciesLoading,
+    fetchVacanciesFailure,
+    fetchVacanciesFailureMessage
   } = useAppSelector((state: RootState) => state.branchManagementReducer) as BranchManagementState
 
   // Data
   const bubblePositionData = useMemo(
-    () => [
-      {
-        position: 'Branch Manager',
-        actualCount: 2,
-        requiredCount: 1,
-        employees: [
-          { name: 'John Doe', employeeCode: 'EMP001', joiningDate: '2023-01-15' },
-          { name: 'Jane Smith', employeeCode: 'EMP002', joiningDate: '2023-02-01' }
-        ]
-      },
-      {
-        position: 'Sales Executive',
-        actualCount: 3,
-        requiredCount: 2,
-        employees: [
-          { name: 'Mike Johnson', employeeCode: 'EMP003', joiningDate: '2023-03-10' },
-          { name: 'Sarah Williams', employeeCode: 'EMP004', joiningDate: '2023-03-15' },
-          { name: 'Robert Brown', employeeCode: 'EMP005', joiningDate: '2023-04-01' }
-        ]
-      }
-    ],
-    []
+    () =>
+      fetchBubblePositionsData?.data
+        ?.filter(item => item.designations) // Filter out the branchId item
+        .map(item => ({
+          position: item.designations,
+          actualCount: item.count,
+          requiredCount: 0, // Placeholder, adjust if requiredCount is available in the future
+          employees: [] // Placeholder, adjust if employee data is available
+        })) || [],
+    [fetchBubblePositionsData]
   )
 
   const employeeData: EmployeeDetails[] = employeeListData?.data || []
@@ -179,12 +171,14 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     dispatch(
       getEmployeeDetailsWithBranchId({ branchId: id, page: pagination.pageIndex + 1, limit: pagination.pageSize })
     )
+    dispatch(fetchBubblePositions({ branchId: id }))
+    dispatch(fetchVacancies({ branchId: id }))
   }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
 
   if (branchDetailsLoading) return <div>Loading branch details...</div>
   if (branchDetailsFailure) return <div>Error: {branchDetailsFailureMessage}</div>
 
-  const branchData = branchDetailsData || {
+  const branchData = branchDetailsData?.data || {
     id: '',
     name: '',
     branchCode: '',
@@ -300,151 +294,21 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             />
           ))}
         {activeTab === 1 && (
-          <Box>
-            <Typography variant='h6' sx={{ mb: 3 }}>
-              Bubble Positions Overview
-            </Typography>
-            {bubblePositionData.map((position, index) => (
-              <Card key={index} sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant='h6' color='primary'>
-                        {position.position}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, backgroundColor: '#e3f2fd', p: '8px 16px', borderRadius: 8 }}>
-                        <Typography>
-                          <strong>Required:</strong> {position.requiredCount}
-                        </Typography>
-                        <Typography>
-                          <strong>Actual:</strong> {position.actualCount}
-                        </Typography>
-                        <Typography color='error'>
-                          <strong>Excess:</strong> {position.actualCount - position.requiredCount}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='subtitle2' sx={{ mb: 2 }}>
-                      Assigned Employees:
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {position.employees.map((employee, empIndex) => (
-                        <Grid key={empIndex} item xs={12} md={4}>
-                          <Card sx={{ p: 2, backgroundColor: '#ffffff' }}>
-                            <Typography variant='subtitle1'>{employee.name}</Typography>
-                            <Typography variant='body2' color='textSecondary'>
-                              Employee ID: {employee.employeeCode}
-                            </Typography>
-                            <Typography variant='body2' color='textSecondary'>
-                              Joining Date: {employee.joiningDate}
-                            </Typography>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Card>
-            ))}
-          </Box>
+          <BubblePositionsOverview
+            bubblePositionData={bubblePositionData}
+            loading={fetchBubblePositionsLoading}
+            failure={fetchBubblePositionsFailure}
+            failureMessage={fetchBubblePositionsFailureMessage}
+          />
         )}
-        {activeTab === 2 && (
-          <Box>
-            <Typography variant='h6' sx={{ mb: 3, fontWeight: 'bold', color: '#2e7d32' }}>
-              Bucket Management Overview
-            </Typography>
-            <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa', borderRadius: 2, boxShadow: 1 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant='body1' sx={{ fontWeight: '500', color: '#333' }}>
-                  <strong>Bucket Name:</strong> {branchData?.bucket?.name || 'N/A'}
-                </Typography>
-                <Typography variant='body1' sx={{ fontWeight: '500', color: '#333' }}>
-                  <strong>Total Position Categories:</strong>{' '}
-                  {branchData.bucket?.positionCategories.reduce((sum, category) => sum + category.count, 0) || 0}
-                </Typography>
-
-                {/* Position Categories List */}
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant='subtitle1' sx={{ fontWeight: '600', mb: 1, color: '#1976d2' }}>
-                    Position Categories
-                  </Typography>
-                  <List
-                    sx={{ p: 0, backgroundColor: '#fff', borderRadius: 1, boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
-                  >
-                    {branchData.bucket?.positionCategories.map((category, index) => (
-                      <ListItem
-                        key={index}
-                        sx={{
-                          borderBottom:
-                            index < (branchData.bucket?.positionCategories.length || 0) - 1 ? '1px solid #eee' : 'none',
-                          py: 1.5,
-                          '&:hover': { backgroundColor: '#f5f5f5', transition: 'background-color 0.3s ease' }
-                        }}
-                      >
-                        <Box
-                          sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}
-                        >
-                          <ListItemText
-                            primary={
-                              <Typography variant='body2' sx={{ fontWeight: '500', color: '#444' }}>
-                                {category.designationName}
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography variant='caption' sx={{ color: '#666' }}>
-                                Grade: {category.grade}
-                              </Typography>
-                            }
-                          />
-                          <Chip
-                            label={category.count}
-                            color='primary'
-                            size='small'
-                            sx={{
-                              backgroundColor: '#1976d2',
-                              color: '#fff',
-                              fontWeight: '600',
-                              borderRadius: 1,
-                              height: 24,
-                              '&:hover': { backgroundColor: '#1565c0' }
-                            }}
-                          />
-                        </Box>
-                      </ListItem>
-                    ))}
-                  </List>
-                  {(!branchData.bucket?.positionCategories || branchData.bucket.positionCategories.length === 0) && (
-                    <Typography variant='body2' sx={{ textAlign: 'center', color: '#777', p: 2 }}>
-                      No position categories available.
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </Card>
-          </Box>
-        )}
+        {activeTab === 2 && <BucketManagementOverview branchData={branchData} />}
         {activeTab === 3 && (
-          <Box>
-            <Typography variant='h6' sx={{ mb: 3 }}>
-              Vacancy Management Overview
-            </Typography>
-            <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa' }}>
-              <Typography variant='body1'>
-                <strong>Position:</strong> Sales Executive
-              </Typography>
-              <Typography variant='body1'>
-                <strong>Vacancies:</strong> 2
-              </Typography>
-              <Typography variant='body1'>
-                <strong>Applications Received:</strong> 5
-              </Typography>
-              <Typography variant='body1' color='error'>
-                <strong>Open Vacancies:</strong> {2 - 5}
-              </Typography>
-            </Card>
-          </Box>
+          <VacancyManagementOverview
+            vacanciesData={fetchVacanciesData?.data || []}
+            loading={fetchVacanciesLoading}
+            failure={fetchVacanciesFailure}
+            failureMessage={fetchVacanciesFailureMessage}
+          />
         )}
       </Card>
     </Box>

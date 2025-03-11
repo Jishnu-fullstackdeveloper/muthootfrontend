@@ -1,72 +1,189 @@
 'use client'
 
 // MUI Imports
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
 
-// import Chip from '@mui/material/Chip'
-import { Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Tooltip } from '@mui/material'
+// import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import { Box, Grid, IconButton } from '@mui/material'
 
 // Style Imports
 import { Clear } from '@mui/icons-material'
-
 import CalendarToday from '@mui/icons-material/CalendarToday'
 
-import tableStyles from '@core/styles/table.module.css'
+import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
+
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
-import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
-
-import custom_theme_settings from '@/utils/custom_theme_settings.json'
+import DynamicTable from '@/components/Table/dynamicTable'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchResignedEmployees } from '@/redux/BranchManagementSlice'
 
 // Data Type for the Resignation List Report
 type ResignationDataType = {
+  id: string
   employeeName: string
   department: string
   resignationDate: string
   reason: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  deletedBy: string | null
+  employeeCode: string
+  noticePeriod: string
+  relievingDateAsPerNotice: string
+  notes: string
+  dateOfResignation: string
+  firstName: string
+  departmentName: string
 }
 
-// Sample Data for Resignation List Report
-const data: ResignationDataType[] = [
-  { employeeName: 'John Doe', department: 'IT', resignationDate: '2023-10-01', reason: 'Personal Reasons' },
-  { employeeName: 'Jane Smith', department: 'HR', resignationDate: '2023-09-15', reason: 'Career Change' },
-  { employeeName: 'Alice Johnson', department: 'Marketing', resignationDate: '2023-08-20', reason: 'Relocation' },
-  { employeeName: 'Bob Brown', department: 'Finance', resignationDate: '2023-07-30', reason: 'Health Issues' },
-  {
-    employeeName: 'Charlie Davis',
-    department: 'Operations',
-    resignationDate: '2023-06-25',
-    reason: 'Pursuing Education'
-  }
-]
+const ResignationsListReport = ({ id }: { id: string }) => {
+  // const router = useRouter()
+  const dispatch = useAppDispatch()
+  const { resignedEmployeesData } = useAppSelector(state => state.branchManagementReducer) //resignedEmployeesTotal
 
-const ResignationsListReport = () => {
-  const router = useRouter()
-
-  const [paginationState, setPaginationState] = useState({
+  const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
-    display_numbers_count: 5
+    limit: 10
   })
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPaginationState({ ...paginationState, page: value })
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    new Date(new Date().setMonth(new Date().getMonth() - 1)), // Default: one month ago
+    new Date() // Default: today
+  ])
+
+  const [errorMessage, setErrorMessage] = useState<string>('')
+
+  const columnHelper = createColumnHelper<ResignationDataType>()
+
+  // Define columns for DynamicTable
+  const columns = useMemo<ColumnDef<ResignationDataType, any>[]>(
+    () => [
+      columnHelper.accessor('employeeName', {
+        header: 'Employee Name',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            <div className='flex flex-col'>
+              <Typography color='text.primary' className='font-medium'>
+                {row.original.firstName}
+              </Typography>
+            </div>
+          </div>
+        )
+      }),
+      columnHelper.accessor('departmentName', {
+        header: 'Department',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            <div className='flex flex-col'>
+              <Typography color='text.primary' className='font-medium'>
+                {row.original.departmentName}
+              </Typography>
+            </div>
+          </div>
+        )
+      }),
+      columnHelper.accessor('dateOfResignation', {
+        header: 'Resignation Date',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            <div className='flex flex-col'>
+              <Typography color='text.primary' className='font-medium'>
+                {row.original.dateOfResignation}
+              </Typography>
+            </div>
+          </div>
+        )
+      }),
+      columnHelper.accessor('notes', {
+        header: 'Reason',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            <div className='flex flex-col'>
+              <Typography color='text.primary' className='font-medium'>
+                {row.original.notes}
+              </Typography>
+            </div>
+          </div>
+        )
+      })
+
+      // columnHelper.accessor('id', {
+      //   header: 'Action',
+      //   cell: ({ row }) => (
+      //     <div className='flex items-center'>
+      //       <Tooltip title='Click here to view the details of this resignation.' placement='top'>
+      //         <IconButton onClick={() => onViewDetails(row.original.employeeName)}>
+      //           <i className='tabler-eye text-textSecondary'></i>
+      //         </IconButton>
+      //       </Tooltip>
+      //     </div>
+      //   ),
+      //   enableSorting: false
+      // })
+    ],
+    []
+  )
+
+  // Fetch resigned employees when pagination, date range, or id changes
+  useEffect(() => {
+    const [startDate, endDate] = dateRange
+    const start = startDate ? startDate.toISOString().split('T')[0] : ''
+    const end = endDate ? endDate.toISOString().split('T')[0] : ''
+
+    if (id && (start || end)) {
+      dispatch(fetchResignedEmployees({ id, date: `${start},${end}`, page: pagination.page, limit: pagination.limit }))
+    }
+  }, [dispatch, id, dateRange, pagination.page, pagination.limit])
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, page: newPage }))
+    console.log('Page:', newPage)
+    console.log('Limit:', pagination.limit)
   }
 
-  const handleChangeLimit = (value: any) => {
-    setPaginationState({ ...paginationState, limit: value })
+  const handleRowsPerPageChange = (newLimit: number) => {
+    setPagination({ page: 1, limit: newLimit })
+    console.log('Page:', 1)
+    console.log('Limit:', newLimit)
   }
 
-  // Function to handle View Details action
-  const onViewDetails = (employeeName: string) => {
-    router.push(`/resignation-management/view/${employeeName}`)
+  const handlePageCountChange = (newPageCount: number) => {
+    console.log('Page Count:', newPageCount)
+  }
+
+  // const onViewDetails = (employeeName: string) => {
+  //   router.push(`/resignation-management/view/${employeeName}`)
+  // }
+
+  // Handle date range change with future date validation
+  const handleDateChange = (date: [Date | null, Date | null] | null) => {
+    if (!date) return
+
+    const [start, end] = date
+
+    console.log(start)
+    const today = new Date()
+
+    today.setHours(0, 0, 0, 0)
+
+    if (end && end > today) {
+      setErrorMessage('Future dates are not allowed.')
+
+      return
+    }
+
+    setDateRange(date)
+    setErrorMessage('') // Clear error message if valid
+    console.log('Selected date range:', date)
   }
 
   return (
@@ -75,46 +192,31 @@ const ResignationsListReport = () => {
         title='Resignations List Report'
         subheader='A detailed report of employee resignations'
         action={
-          <Grid container spacing={2} alignItems='center' justifyContent='flex-end'>
-            {/* Autocomplete for Employee Name */}
-            <Grid item xs={12} sm={4} md={5}>
-              <DynamicAutocomplete
-                sx={{
-                  width: '100%',
-                  '& .MuiInputBase-input': {
-                    height: '15px',
-                    padding: '12px'
-                  }
-                }}
-                label='Employee Name'
-                value=''
-                options={data.map(item => ({ name: item.employeeName }))}
-              />
-            </Grid>
-
+          <Grid container alignItems='center'>
             {/* Date Range Picker */}
             <Grid item xs={12} sm={4} md={5}>
               <AppReactDatepicker
                 selectsRange={true}
-                onChange={(date: [Date | null, Date | null] | null) => {
-                  console.log(date)
-                }}
+                startDate={dateRange[0]}
+                endDate={dateRange[1]}
+                onChange={handleDateChange}
                 dateFormat='dd-MMMM-yyyy'
-                placeholderText='Filter by date'
+                placeholderText='Filter by date range'
                 customInput={
                   <CustomTextField
-                    name='date_ticket'
-                    id='date_ticket'
+                    name='date_range'
+                    id='date_range'
                     sx={{
                       '& .MuiInputBase-input': {
                         height: '30px',
+                        width: '50px',
                         padding: '12px'
                       }
                     }}
                     InputProps={{
                       endAdornment: (
                         <>
-                          <IconButton size='small' onClick={() => {}}>
+                          <IconButton size='small' onClick={() => setDateRange([null, null])}>
                             <Clear />
                           </IconButton>
                           <IconButton size='small'>
@@ -129,77 +231,46 @@ const ResignationsListReport = () => {
             </Grid>
 
             {/* Apply Filters Button */}
-            <Grid item xs={12} sm={4} md={2}>
+            {/* <Grid item xs={12} sm={4} md={2}>
               <Button variant='contained' style={{ height: 45 }}>
                 Apply Filters
               </Button>
-            </Grid>
+            </Grid> */}
           </Grid>
         }
       />
 
-      <Box
-        className='table-container'
-        sx={{
-          overflowY: 'auto',
-          maxHeight: '400px',
-          '&::-webkit-scrollbar': {
-            width: '8px',
-            backgroundColor: '#f0f0f0'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
-            borderRadius: '4px'
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
-          }
-        }}
-      >
-        <table className={tableStyles.table}>
-          <thead className='uppercase'>
-            <tr className='border-be'>
-              <th className='leading-6 plb-4 pis-6 pli-2'>Employee Name</th>
-              <th className='leading-6 plb-4 pli-2'>Department</th>
-              <th className='leading-6 plb-4 pli-2'>Resignation Date</th>
-              <th className='leading-6 plb-4 pli-2'>Reason</th>
-              <th className='leading-6 plb-4 pli-2'>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, index) => (
-              <tr key={index} className='border-0'>
-                <td className='pis-6 pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.employeeName}</Typography>
-                </td>
-                <td className='pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.department}</Typography>
-                </td>
-                <td className='pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.resignationDate}</Typography>
-                </td>
-                <td className='pli-2 plb-3'>
-                  <Typography color='text.primary'>{row.reason}</Typography>
-                </td>
-                <td className='pli-2 plb-3'>
-                  <Tooltip title='Click here to view the details of this resignation.' placement='top'>
-                    <IconButton onClick={() => onViewDetails(row.employeeName)}>
-                      <i className='tabler-eye text-textSecondary'></i>
-                    </IconButton>
-                  </Tooltip>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Box>
-      <div className='flex items-center justify-end mt-6 pt-5 pb-5 border'>
-        {/* Right-aligned Pagination */}
+      {/* Display error message if future date is selected */}
+      {errorMessage && (
+        <Typography color='error' sx={{ mx: 6, mt: 2 }}>
+          {errorMessage}
+        </Typography>
+      )}
+
+      {resignedEmployeesData?.data && resignedEmployeesData.data.length > 0 ? (
+        <DynamicTable
+          columns={columns}
+          data={resignedEmployeesData.data || []}
+          totalCount={resignedEmployeesData.totalCount || 0}
+          pagination={{ pageIndex: pagination.page - 1, pageSize: pagination.limit }}
+          onPageChange={(newPage: number) => handlePageChange(newPage + 1)}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onPageCountChange={handlePageCountChange}
+        />
+      ) : (
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant='h6' color='text.secondary'>
+            There is no resigned Employees
+          </Typography>
+        </Box>
+      )}
+
+      {/* <div className='flex items-center justify-end mt-6 pt-5 pb-5 border'>
         <FormControl size='small' sx={{ minWidth: 70 }}>
           <InputLabel>Count</InputLabel>
           <Select
-            value={paginationState?.limit}
-            onChange={e => handleChangeLimit(e.target.value)}
+            value={pagination.limit}
+            onChange={e => handleRowsPerPageChange(Number(e.target.value))}
             label='Limit per page'
           >
             {[10, 25, 50, 100].map(option => (
@@ -215,12 +286,12 @@ const ResignationsListReport = () => {
             shape='rounded'
             showFirstButton
             showLastButton
-            count={paginationState?.display_numbers_count} //pagination numbers display count
-            page={paginationState?.page} //current page
-            onChange={handlePageChange} //changing page function
+            count={Math.ceil((resignedEmployeesTotal || 0) / pagination.limit) || 1}
+            page={pagination.page}
+            onChange={(event, value) => handlePageChange(value)}
           />
         </div>
-      </div>
+      </div> */}
     </Card>
   )
 }

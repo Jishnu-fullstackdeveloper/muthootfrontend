@@ -18,32 +18,29 @@ const VacancyListingTableView = () => {
 
   const columnHelper = createColumnHelper<any>()
 
-  // Pagination state aligned with API (page starts at 1, not 0)
+  // Pagination state (0-based for table, 1-based for API)
   const [pagination, setPagination] = useState({
-    page: 1, // Changed from pageIndex to page, starting at 1 to match API
-    limit: 5 // Changed from pageSize to limit
+    pageIndex: 0, // Changed to 0-based index for table compatibility
+    pageSize: 5
   })
 
   // Fetch vacancies when pagination changes
   useEffect(() => {
-    dispatch(fetchVacancies({ page: pagination.page, limit: pagination.limit }))
-  }, [dispatch, pagination.page, pagination.limit])
+    dispatch(fetchVacancies({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+  }, [dispatch, pagination.pageIndex, pagination.pageSize])
 
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => {
-      const updatedPagination = { ...prev, page: newPage }
-
-      console.log('Page:', updatedPagination.page)
-      console.log('Limit:', updatedPagination.limit)
-
-      return updatedPagination
-    })
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: newPage
+    }))
   }
 
-  const handleRowsPerPageChange = (newLimit: number) => {
-    setPagination({ page: 1, limit: newLimit }) // Reset to page 1 when limit changes
-    console.log('Page:', 1)
-    console.log('Limit:', newLimit)
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPagination({
+      pageIndex: 0, // Reset to first page when rows per page changes
+      pageSize: newPageSize
+    })
   }
 
   const handlePageCountChange = (newPageCount: number) => {
@@ -52,7 +49,8 @@ const VacancyListingTableView = () => {
 
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
-      columnHelper.accessor('title', {
+      columnHelper.accessor('designationName', {
+        // Match the actual data key
         header: 'DESIGNATION',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -64,7 +62,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('jobType', {
+      columnHelper.accessor('employeeCategoryType', {
+        // Match the actual data key
         header: 'EMPLOYEE CATEGORY',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -76,7 +75,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('branch', {
+      columnHelper.accessor('branchesName', {
+        // Match the actual data key
         header: 'BRANCH',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -88,7 +88,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('grade', {
+      columnHelper.accessor('gradeName', {
+        // Match the actual data key
         header: 'GRADE',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -100,7 +101,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('band', {
+      columnHelper.accessor('bandName', {
+        // Match the actual data key
         header: 'BAND',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -112,7 +114,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('businessUnit', {
+      columnHelper.accessor('businessUnitName', {
+        // Match the actual data key
         header: 'BUSINESS UNIT',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -124,7 +127,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('city', {
+      columnHelper.accessor('districtName', {
+        // Match the actual data key
         header: 'CITY',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -136,7 +140,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('startDate', {
+      columnHelper.accessor('createdAt', {
+        // Match the actual data key
         header: 'START DATE',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -152,7 +157,8 @@ const VacancyListingTableView = () => {
           </div>
         )
       }),
-      columnHelper.accessor('endDate', {
+      columnHelper.accessor('updatedAt', {
+        // Match the actual data key
         header: 'END DATE',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
@@ -191,22 +197,14 @@ const VacancyListingTableView = () => {
     [columnHelper, router]
   )
 
-  // const tableData = useMemo(
-  //   () => ({
-  //     data: vacancies || [],
-  //     count: totalCount || 0 // Use totalCount from Redux store
-  //   }),
-  //   [vacancies, totalCount]
-  // )
-
   return (
     <div>
       <DynamicTable
         columns={columns}
-        data={vacancies}
+        data={vacancies || []}
         totalCount={totalCount}
-        pagination={{ pageIndex: pagination.page - 1, pageSize: pagination.limit }} // Adjust page to 0-based for table
-        onPageChange={(newPage: number) => handlePageChange(newPage + 1)} // Convert back to 1-based for API
+        pagination={pagination} // Pass 0-based pagination directly
+        onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         onPageCountChange={handlePageCountChange}
       />

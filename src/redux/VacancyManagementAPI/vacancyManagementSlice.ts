@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
+import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls'
 
 // Define the Vacancy type based on the API response
 interface Vacancy {
@@ -47,7 +48,7 @@ export const fetchVacancies = createAsyncThunk(
   'appMuthoot/fetchVacancies',
   async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/vacancy', {
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, {
         params: { page, limit }
       })
 

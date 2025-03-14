@@ -176,14 +176,25 @@ const DynamicTable = ({
   // Rest of the component (Table, Drawer, etc.) remains unchanged
   return (
     <>
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          right: 0,
+          zIndex: 1, // Ensure it stays above the table
+          display: 'flex',
+          justifyContent: 'flex-end',
+          p: 2,
+          backgroundColor: 'inherit' // Match the background of the table container
+        }}
+      >
+        <Tooltip title='Filter Columns'>
+          <IconButton onClick={() => setOpenColumnDrawer(true)}>
+            <FilterListIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
       <TableContainer component={Paper}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Tooltip title='Filter Columns'>
-            <IconButton onClick={() => setOpenColumnDrawer(true)}>
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
         <Table size={dense ? 'small' : 'medium'}>
           <TableHead>
             <TableRow>

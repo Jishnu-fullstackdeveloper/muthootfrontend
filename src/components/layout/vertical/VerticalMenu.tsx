@@ -97,13 +97,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         permission: 'branchManagement',
         read: 'branch_read'
       },
-      {
-        path: '/bucket-management',
-        label: 'Bucket Management',
-        iconClass: 'tabler-apps',
-        permission: 'bucketManagement',
-        read: 'bucket_read'
-      },
+      // {
+      //   path: '/bucket-management',
+      //   label: 'Bucket Management',
+      //   iconClass: 'tabler-apps',
+      //   permission: 'bucketManagement',
+      //   read: 'bucket_read'
+      // },
       {
         path: '/approval-matrix',
         label: 'Approval Matrix',

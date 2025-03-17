@@ -16,7 +16,7 @@ import {
   getEmployeeDetailsWithBranchId,
   fetchBubblePositions,
   fetchVacancies
-} from '@/redux/BranchManagementSlice'
+} from '@/redux/BranchManagement/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
 import DynamicTable from '@/components/Table/dynamicTable'
 import type { ViewBranchProps, BranchManagementState, EmployeeDetails } from '@/types/branch'

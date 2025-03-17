@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
+import { API_ENDPOINTS } from '../ApiUrls/branch'
 
 import type {
   BranchListResponse,
@@ -22,7 +23,7 @@ export const getBranchList = createAsyncThunk<
   { search: string; page: number; limit: number; branchStatus?: string }
 >('branchManagement/getBranchList', async ({ search, page, limit, branchStatus }, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.get(`/branch`, {
+    const response = await AxiosLib.get(API_ENDPOINTS.getBranchListUrl, {
       params: {
         search,
         page,
@@ -42,7 +43,7 @@ export const getBranchDetails = createAsyncThunk<BranchDetailsResponse, { id: st
   'branchManagement/getBranchDetails',
   async ({ id }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/branch/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.getBranchDetailsUrl(id))
 
       return response.data
     } catch (error: any) {
@@ -57,7 +58,7 @@ export const getEmployeeDetailsWithBranchId = createAsyncThunk<
   { branchId: string; page: number; limit: number }
 >('branchManagement/getEmployeeDetailsWithBranchId', async ({ branchId, page, limit }, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.get(`/employee-branch/employee/${branchId}`, {
+    const response = await AxiosLib.get(API_ENDPOINTS.getEmployeeDetailsWithBranchIdUrl(branchId), {
       params: {
         page,
         limit
@@ -81,7 +82,7 @@ export const fetchArea = createAsyncThunk<
     if (search) params.search = search
     if (regionId) params.regionId = regionId
 
-    const response = await AxiosLib.get(`/area`, { params })
+    const response = await AxiosLib.get(API_ENDPOINTS.fetchArea, { params })
 
     // Format the response to match AreaListResponse
     return {
@@ -103,7 +104,7 @@ export const fetchResignedEmployees = createAsyncThunk<
   { id: string; date: string; page: number; limit: number }
 >('branchManagement/fetchResignedEmployees', async ({ id, date, page, limit }, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.get(`/resigned-employees/${id}`, {
+    const response = await AxiosLib.get(API_ENDPOINTS.fetchResignedEmployeesUrl(id), {
       params: {
         date,
         page,
@@ -122,7 +123,7 @@ export const fetchBranchReport = createAsyncThunk<BranchReportResponse, { filter
   'branchManagement/fetchBranchReport',
   async ({ filterKey, filterValue }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/branch/report-branch`, {
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchBranchReportUrl, {
         params: {
           filterKey,
           filterValue
@@ -141,7 +142,7 @@ export const fetchVacancyReport = createAsyncThunk<VacancyReportResponse, { filt
   'branchManagement/fetchVacancyReport',
   async ({ filterKey, filterValue }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/vacancy/vacancy-report`, {
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchVacancyReportUrl, {
         params: {
           filterKey,
           filterValue
@@ -160,7 +161,7 @@ export const fetchBubblePositions = createAsyncThunk<BubblePositionResponse, { b
   'branchManagement/fetchBubblePositions',
   async ({ branchId }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/bubble-position/${branchId}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchBubblePositionsUrl(branchId))
 
       return response.data
     } catch (error: any) {
@@ -174,7 +175,7 @@ export const fetchVacancies = createAsyncThunk<VacancyResponse, { branchId: stri
   'branchManagement/fetchVacancies',
   async ({ branchId }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/vacancy/${branchId}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchVacanciesUrl(branchId))
 
       return response.data
     } catch (error: any) {

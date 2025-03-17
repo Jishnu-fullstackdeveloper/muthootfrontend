@@ -9,7 +9,7 @@ import * as Yup from 'yup'
 import { FormControl, TextField, Checkbox, FormControlLabel, Box } from '@mui/material'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addNewUserRole, updateUserRole, resetAddUserRoleStatus } from '@/redux/userRoleSlice'
+import { addNewUserRole, updateUserRole, resetAddUserRoleStatus } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 
 const permissions = [
@@ -67,34 +67,40 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const initialPermissions: { name: string }[] =
     mode === 'edit' ? JSON.parse(searchParams.get('permissions') || '[]') : []
 
+  // Ensure 'Home Dashboard' permission is included by default
+  const defaultPermissions = [{ module: 'Home Dashboard', selectedActions: ['read'] }]
+
   const permissionNames = initialPermissions.map(perm => perm.name)
 
   const roleFormik = useFormik({
     initialValues: {
       roleName: mode === 'edit' ? searchParams.get('name') || '' : '',
       description: mode === 'edit' ? searchParams.get('description') || '' : '',
-      permissions: permissions.map(p => {
-        const moduleMap: { [key: string]: string } = {
-          'User Management': 'user',
-          'User Roles': 'role',
-          'Approval Management': 'approval',
-          'JD Management': 'jd',
-          'Vaccancy Management': 'vacancy',
-          'Recruitment Management': 'recruitment',
-          'Branch Management': 'branch',
-          'Bucket Management': 'bucket',
-          'Approval Matrix': 'approvalmatrix',
-          'General Settings': 'general',
-          'Home Dashboard': 'home'
-        }
+      permissions: [
+        ...defaultPermissions,
+        ...permissions.map(p => {
+          const moduleMap: { [key: string]: string } = {
+            'User Management': 'user',
+            'User Roles': 'role',
+            'Approval Management': 'approval',
+            'JD Management': 'jd',
+            'Vaccancy Management': 'vacancy',
+            'Recruitment Management': 'recruitment',
+            'Branch Management': 'branch',
+            'Bucket Management': 'bucket',
+            'Approval Matrix': 'approvalmatrix',
+            'General Settings': 'general',
+            'Home Dashboard': 'home'
+          }
 
-        const moduleShortName = moduleMap[p.module] || p.module.replace(/\s+/g, '').toLowerCase()
+          const moduleShortName = moduleMap[p.module] || p.module.replace(/\s+/g, '').toLowerCase()
 
-        const selectedActions =
-          mode === 'edit' ? p.actions.filter(action => permissionNames.includes(`${moduleShortName}_${action}`)) : []
+          const selectedActions =
+            mode === 'edit' ? p.actions.filter(action => permissionNames.includes(`${moduleShortName}_${action}`)) : []
 
-        return { module: p.module, selectedActions }
-      })
+          return { module: p.module, selectedActions }
+        })
+      ]
     },
     validationSchema: Yup.object().shape({
       roleName: Yup.string().required('Role Name is required')

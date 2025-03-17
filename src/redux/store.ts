@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 
 import loginReducer from './loginSlice'
-import UserManagementReducer from './userManagementSlice'
+import UserManagementReducer from './UserManagment/userManagementSlice'
 import recruitmentResignationReducer from './RecruitmentResignationSlice'
 import approvalMatrixReducer from './approvalMatrixSlice'
 import manualRequestReducer from './manualRecruitmentRequestSlice'
-import UserRoleReducer from './userRoleSlice'
+import UserRoleReducer from './UserRoles/userRoleSlice'
 import BucketManagementReducer from './BucketManagementSlice'
 import branchManagementReducer from './BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'

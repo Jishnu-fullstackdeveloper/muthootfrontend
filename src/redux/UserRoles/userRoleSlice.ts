@@ -1,12 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
+import { API_ENDPOINTS } from '../ApiUrls/userRoles'
 
 export const fetchUserRole = createAsyncThunk(
   'userManagement/fetchUserRole',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/users/roles', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getUserRolesUrl, { params })
 
       return response
     } catch (error: any) {
@@ -14,6 +15,8 @@ export const fetchUserRole = createAsyncThunk(
     }
   }
 )
+
+
 
 export const addNewUserRole = createAsyncThunk<any, any>(
   'userManagement/addNewUserRole',
@@ -40,7 +43,7 @@ export const updateUserRole = createAsyncThunk<
   try {
     id
 
-    const response = await AxiosLib.patch(`/users/roles/permissions`, {
+    const response = await AxiosLib.patch(API_ENDPOINTS.patchUserRoleUrl, {
       roleName: params.roleName,
       newPermissionNames: params.newPermissionNames
     })
@@ -59,7 +62,7 @@ export const updateUserRole = createAsyncThunk<
 export const UserRoleSlice = createSlice({
   name: 'UserRole',
   initialState: {
-    userRoleData: [],
+    userRoleData: null,
     isUserRoleLoading: false,
     userRoleSuccess: false,
     userRoleFailure: false,

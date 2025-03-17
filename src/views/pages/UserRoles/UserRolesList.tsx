@@ -28,7 +28,7 @@ import {
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
-import { fetchUserRole } from '@/redux/userRoleSlice'
+import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 interface FetchParams {
   limit: number
@@ -48,23 +48,7 @@ const UserRolesAndPermisstionList = () => {
   const [tempPermissionFilters, setTempPermissionFilters] = useState({})
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
   const [page, setPage] = useState(1)
-  const [perPage] = useState(10)
-
-  const [paginationState, setPaginationState] = useState({
-    page: 1,
-    limit: 10
-
-    // display_numbers_count: 5
-  })
-
-  const handlePageChange = (event: React.ChangeEvent<unknown> | any, value: number) => {
-    setPage(value)
-    setPaginationState(prev => ({ ...prev, page: value }))
-  }
-
-  const handleChangeLimit = (value: any) => {
-    setPaginationState(prev => ({ ...prev, limit: value }))
-  }
+  const [limit, setLimit] = useState(10)
 
   const permissionsList = [
     'user_create',
@@ -108,60 +92,43 @@ const UserRolesAndPermisstionList = () => {
 
   // Debounce search input
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchText(searchText)
-    }, 500)
+    const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
 
     return () => clearTimeout(timer)
   }, [searchText])
 
-  // Fetch user roles when filters, page, or search changes
+  // Fetch user roles
   useEffect(() => {
     const params: FetchParams = {
-      limit: perPage,
-      page: page,
+      limit,
+      page,
       ...(debouncedSearchText && { search: debouncedSearchText })
     }
 
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
 
     if (activePermissions.length > 0) {
-      params.permissionName = activePermissions // Array of selected permissions
+      params.permissionName = activePermissions
     }
 
-    console.log('Fetching roles with params:', params) // Debug
     dispatch(fetchUserRole(params))
-  }, [debouncedSearchText, appliedPermissionFilters, page, dispatch, perPage])
+  }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
 
-  // Filter roles on the frontend (ensure all selected permissions are present)
+  // Filter roles
   const filteredRoles = useMemo(() => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
 
-    if (activePermissions.length === 0) {
-      return userRoleData?.data || []
-    }
+    if (activePermissions.length === 0) return userRoleData?.data || []
 
-    const roles = userRoleData?.data || []
-
-    const filtered = roles.filter(role => {
-      const rolePermissions = role.permissions || []
-
-      return activePermissions.every(permission => rolePermissions.includes(permission))
-    })
-
-    console.log('Filtered roles:', filtered) // Debug
-
-    return filtered
+    return (userRoleData?.data || []).filter(role =>
+      activePermissions.every(permission => (role.permissions || []).includes(permission))
+    )
   }, [userRoleData?.data, appliedPermissionFilters])
 
   // Event handlers
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value)
-  }
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
 
-  const handleAddUser = () => {
-    router.push('/user-role/add/add-role')
-  }
+  // const handleAddUser = () => router.push('/user-role/add/add-role')
 
   const handleEdit = (item: any) => {
     const query = new URLSearchParams({
@@ -170,21 +137,13 @@ const UserRolesAndPermisstionList = () => {
       permissions: JSON.stringify(item.permissions || [])
     }).toString()
 
-    const formattedRoleName = item.name.replace(/\s+/g, '-')
-
-    router.push(`/user-role/edit/${formattedRoleName}?${query}`)
+    router.push(`/user-role/edit/${item.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleView = (role: any) => {
-    const query = new URLSearchParams({
-      name: role.name,
-      description: role.description,
-      permissions: JSON.stringify(role.permissions)
-    }).toString()
+    const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
 
-    const formattedRoleName = role.name.replace(/\s+/g, '-')
-
-    router.push(`/user-role/view/${formattedRoleName}?${query}`)
+    router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleFilterOpen = () => {
@@ -192,9 +151,7 @@ const UserRolesAndPermisstionList = () => {
     setOpenFilterDrawer(true)
   }
 
-  const handleFilterClose = () => {
-    setOpenFilterDrawer(false)
-  }
+  const handleFilterClose = () => setOpenFilterDrawer(false)
 
   const handleFilterApply = () => {
     setAppliedPermissionFilters(tempPermissionFilters)
@@ -218,6 +175,9 @@ const UserRolesAndPermisstionList = () => {
     setTempPermissionFilters(prev => ({ ...prev, [permission]: false }))
   }
 
+  const handlePageChange = (event: any, value: number) => setPage(value)
+  const handleChangeLimit = (value: any) => setLimit(value)
+
   // Initialize filters
   useEffect(() => {
     const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
@@ -233,7 +193,6 @@ const UserRolesAndPermisstionList = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <DynamicTextField
-                id='searchId'
                 label='Search Roles'
                 variant='outlined'
                 onChange={handleSearch}
@@ -242,26 +201,20 @@ const UserRolesAndPermisstionList = () => {
                 size='small'
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
+                    <InputAdornment position='end'>
                       <i className='tabler-search text-xxl' />
                     </InputAdornment>
                   )
                 }}
               />
-              <Button
-                variant='outlined'
-                onClick={handleFilterOpen}
-                startIcon={<i className='tabler-filter' />}
-                size='medium'
-              >
+              <Button variant='outlined' onClick={handleFilterOpen} startIcon={<i className='tabler-filter' />}>
                 Filter
               </Button>
             </Box>
-            <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />} size='medium'>
+            {/* <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />}>
               Add Role
-            </Button>
+            </Button> */}
           </Box>
-
           {Object.keys(appliedPermissionFilters).some(key => appliedPermissionFilters[key]) && (
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {Object.keys(appliedPermissionFilters)
@@ -322,55 +275,21 @@ const UserRolesAndPermisstionList = () => {
                 <Grid item xs={12} sm={6} md={4} key={item.id}>
                   <Card
                     onClick={() => handleView(item)}
-                    sx={{
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                      cursor: 'pointer',
-                      border: '1px solid #ddd',
-                      position: 'relative'
-                    }}
-                    className='transition transform hover:-translate-y-1'
+                    sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: 'pointer', border: '1px solid #ddd' }}
                   >
                     <CardContent>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px',
-                          paddingBottom: '20px'
-                        }}
-                      >
-                        <Typography
-                          variant='h6'
-                          sx={{
-                            fontWeight: 'bold',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '1.2rem',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: 'calc(100% - 100px)'
-                          }}
-                        >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant='h6' sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
                           {item.name.toUpperCase()}
                         </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <IconButton
-                            sx={{
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': { backgroundColor: 'transparent' }
-                            }}
-                            onClick={(e: any) => {
-                              e.stopPropagation()
-                              handleEdit(item)
-                            }}
-                          >
-                            <i className='tabler-edit' />
-                          </IconButton>
-                        </Box>
+                        <IconButton
+                          onClick={(e: any) => {
+                            e.stopPropagation()
+                            handleEdit(item)
+                          }}
+                        >
+                          <i className='tabler-edit' />
+                        </IconButton>
                       </Box>
                     </CardContent>
                   </Card>
@@ -381,14 +300,10 @@ const UserRolesAndPermisstionList = () => {
             )}
           </Grid>
           {userRoleData?.meta?.totalPages > 1 && (
-            <div className='flex items-center justify-end mt-6'>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
               <FormControl size='small' sx={{ minWidth: 70 }}>
                 <InputLabel>Count</InputLabel>
-                <Select
-                  value={paginationState?.limit}
-                  onChange={e => handleChangeLimit(e.target.value)}
-                  label='Limit per page'
-                >
+                <Select value={limit} onChange={e => handleChangeLimit(e.target.value)} label='Count'>
                   {[10, 25, 50, 100].map(option => (
                     <MenuItem key={option} value={option}>
                       {option}
@@ -396,21 +311,16 @@ const UserRolesAndPermisstionList = () => {
                   ))}
                 </Select>
               </FormControl>
-
-              <Box sx={{ display: 'flex' }}>
-                <Box sx={{ display: 'flex' }}>
-                  <Pagination
-                    color='primary'
-                    shape='rounded'
-                    showFirstButton
-                    showLastButton
-                    count={userRoleData.meta.totalPages} //pagination numbers display count
-                    page={paginationState?.page} //current page
-                    onChange={handlePageChange} //changing page function
-                  />
-                </Box>
-              </Box>
-            </div>
+              <Pagination
+                color='primary'
+                shape='rounded'
+                showFirstButton
+                showLastButton
+                count={userRoleData.meta.totalPages}
+                page={page}
+                onChange={handlePageChange}
+              />
+            </Box>
           )}
         </>
       )}

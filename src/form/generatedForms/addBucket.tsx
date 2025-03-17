@@ -28,18 +28,6 @@ type Props = {
   id: any
 }
 
-// interface DataItem {
-//   id: number
-//   turnover: number
-//   code: string
-// }
-
-// interface Designation {
-//   name: string
-//   count: number
-//   grade: string
-// }
-
 const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1, grade: '' }])
   const [modalData, setModalData] = useState(null)
@@ -59,7 +47,7 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   }, [])
 
   const handleRadioChange = (turnoverCode: string) => {
-    setSelectedTurnoverCode(turnoverCode) // Update state with selected turnover code
+    setSelectedTurnoverCode(turnoverCode) 
     console.log('Selected Turnover Code:', turnoverCode)
   }
 
@@ -74,8 +62,6 @@ const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
   const {
     turnoverListData,
     fetchBucketDetailsData,
-
-    // isFetchBucketDetailsLoading,
     fetchBucketDetailsSuccess,
     updateBucketListSuccess,
     designationData,

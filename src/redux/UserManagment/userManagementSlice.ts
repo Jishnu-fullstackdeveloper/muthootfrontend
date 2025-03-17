@@ -1,12 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
+import { API_ENDPOINTS } from '../ApiUrls/userManagement'
 
 export const fetchUserManagement = createAsyncThunk(
   'userManagement/fetchUserManagement',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/users', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getUsersUrl, { params })
 
       return response
     } catch (error: any) {

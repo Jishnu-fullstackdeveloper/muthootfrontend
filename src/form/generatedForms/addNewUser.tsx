@@ -9,8 +9,8 @@ import { FormControl, TextField, Autocomplete, Grid } from '@mui/material'
 
 import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/userManagementSlice'
-import { fetchUserRole } from '@/redux/userRoleSlice'
+import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
+import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 type Props = {
   mode: 'add' | 'edit'
@@ -64,27 +64,20 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
   const userFormik = useFormik({
     initialValues: {
       employeeCode: mode === 'edit' ? searchParams.get('employeeCode') || '' : '',
+      adUserId: mode === 'edit' ? searchParams.get('adUserId') || '' : '',
       firstName: mode === 'edit' ? searchParams.get('firstName') || '' : '',
       middleName: mode === 'edit' ? searchParams.get('middleName') || '' : '',
       lastName: mode === 'edit' ? searchParams.get('lastName') || '' : '',
       email: mode === 'edit' ? searchParams.get('email') || '' : '',
-      tempPassword: '',
       role: mode === 'edit' ? sanitizeRole(searchParams.get('role') || '') : ''
     },
     validationSchema: Yup.object().shape({
       employeeCode: Yup.string().required('Employee Code is required'),
+      adUserId: Yup.string().required('ad User Id is required'),
       firstName: Yup.string().required('First Name is required'),
       lastName: Yup.string().required('Last Name is required'),
       email: Yup.string().email('Invalid email').required('Email is required'),
-      ...(mode === 'add' && {
-        tempPassword: Yup.string()
-          .required('Temporary password is required')
-          .min(8, 'Password must be at least 8 characters')
-          .matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-            'Password must contain at least one uppercase, one lowercase, one number, and one special character'
-          )
-      }),
+
       role: Yup.string()
         .required('Role is required')
         .matches(/^[a-zA-Z0-9\s-]+$/, 'Role name can only contain letters, numbers, spaces, and hyphens')
@@ -106,10 +99,11 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
       } else {
         const addParams = {
           employeeCode: values.employeeCode,
+          adUserId: values.adUserId,
           firstName: values.firstName,
           lastName: `${values.middleName} ${values.lastName}`.trim(),
           email: values.email,
-          tempPassword: values.tempPassword,
+
           role: sanitizedRole
         }
 
@@ -130,6 +124,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
   const employeeOptions = (employeeData || []).map((employee: any) => ({
     label: `${employee.employeeCode}`,
     value: employee.employeeCode,
+    // adUserId:employee.adUserId,
     firstName: employee.firstName || '',
     middleName: employee.middleName || '',
     lastName: employee.lastName || '',
@@ -146,6 +141,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
       userFormik.setValues({
         ...userFormik.values,
         employeeCode: newValue.value,
+        adUserId: newValue.adUserId,
         firstName: newValue.firstName,
         middleName: newValue.middleName,
         lastName: newValue.lastName,
@@ -155,6 +151,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
       userFormik.setValues({
         ...userFormik.values,
         employeeCode: '',
+        adUserId: '',
         firstName: '',
         middleName: '',
         lastName: '',
@@ -226,7 +223,20 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
             </FormControl>
           </Grid>
         </Grid>
-
+        <Grid item xs={6}>
+            <FormControl fullWidth margin='normal'>
+              <TextField
+                label='adUserId*'
+                name='adUserId'
+                value={userFormik.values.adUserId}
+                onChange={userFormik.handleChange}
+                onBlur={userFormik.handleBlur}
+                error={userFormik.touched.adUserId && !!userFormik.errors.adUserId}
+                helperText={userFormik.touched.adUserId && userFormik.errors.adUserId}
+                disabled
+              />
+            </FormControl>
+          </Grid>
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <FormControl fullWidth margin='normal'>
@@ -259,33 +269,25 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
           </Grid>
         </Grid>
 
-        <FormControl fullWidth margin='normal'>
-          <TextField
-            label='Email *'
-            name='email'
-            value={userFormik.values.email}
-            onChange={userFormik.handleChange}
-            onBlur={userFormik.handleBlur}
-            error={userFormik.touched.email && !!userFormik.errors.email}
-            helperText={userFormik.touched.email && userFormik.errors.email}
-            disabled
-          />
-        </FormControl>
+        
+         
+          <Grid item xs={6}>
+            <FormControl fullWidth margin='normal'>
+              <TextField
+                label='Email *'
+                name='email'
+                value={userFormik.values.email}
+                onChange={userFormik.handleChange}
+                onBlur={userFormik.handleBlur}
+                error={userFormik.touched.email && !!userFormik.errors.email}
+                helperText={userFormik.touched.email && userFormik.errors.email}
+                disabled
+              />
+            </FormControl>
+          </Grid>
 
-        {mode === 'add' && (
-          <FormControl fullWidth margin='normal'>
-            <TextField
-              label='Temporary Password *'
-              name='tempPassword'
-              type='password'
-              value={userFormik.values.tempPassword}
-              onChange={userFormik.handleChange}
-              onBlur={userFormik.handleBlur}
-              error={userFormik.touched.tempPassword && !!userFormik.errors.tempPassword}
-              helperText={userFormik.touched.tempPassword && userFormik.errors.tempPassword}
-            />
-          </FormControl>
-        )}
+         
+
       </fieldset>
 
       <div className='flex justify-end space-x-4'>

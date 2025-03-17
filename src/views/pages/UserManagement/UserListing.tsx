@@ -1,9 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import Typography from '@mui/material/Typography'
 import {
   Box,
@@ -20,367 +18,251 @@ import {
   TextField,
   Divider
 } from '@mui/material'
-import { createColumnHelper } from '@tanstack/react-table'
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
-
+import { createColumnHelper } from '@tanstack/react-table'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUserManagement, fetchEmployees, fetchUserRole } from '@/redux/userManagementSlice'
+import { fetchUserManagement, fetchEmployees, fetchUserRole } from '@/redux/UserManagment/userManagementSlice'
 
 interface FilterState {
   active: boolean
   inactive: boolean
+  adUser: boolean
+  nonAdUser: boolean
   roles: string[]
 }
 
 const UserListing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10
-  })
-
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-
-  const [tempFilters, setTempFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<FilterState>({
     active: false,
     inactive: false,
-    roles: []
-  })
-
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
-    active: false,
-    inactive: false,
+    adUser: false,
+    nonAdUser: false,
     roles: []
   })
 
   const router = useRouter()
   const dispatch = useAppDispatch()
-
   const { userManagementData, isUserManagementLoading, employeeData } = useAppSelector(
-    (state: any) => state.UserManagementReducer
+    state => state.UserManagementReducer
   )
-
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
+  const { userRoleData, isUserRoleLoading } = useAppSelector(state => state.UserRoleReducer)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-    }, 500)
-
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500)
     return () => clearTimeout(timer)
   }, [searchTerm])
 
   useEffect(() => {
-    const userParams: any = {
+    const params: any = {
       page: pagination.pageIndex + 1,
-      limit: pagination.pageSize
+      limit: pagination.pageSize,
     }
 
-    if (debouncedSearch) userParams.search = debouncedSearch
-    if (appliedFilters.active && !appliedFilters.inactive) userParams.status = 'Active'
-    else if (!appliedFilters.active && appliedFilters.inactive) userParams.status = 'Inactive'
-    if (appliedFilters.roles.length > 0) userParams.roles = appliedFilters.roles.join(',')
+    if (debouncedSearch) params.search = debouncedSearch
+
+    
+    const statusFilters = []
+    if (filters.active) statusFilters.push('Active')
+    if (filters.inactive) statusFilters.push('Inactive')
+    if (statusFilters.length > 0) params.status = statusFilters.join(',')
+
+    
+    const sourceFilters = []
+    if (filters.adUser) sourceFilters.push('AD')
+    if (filters.nonAdUser) sourceFilters.push('Non-AD')
+    if (sourceFilters.length > 0) params.source = sourceFilters.join(',')
+
+    
+    if (filters.roles.length > 0) params.roles = filters.roles.join(',')
 
     dispatch(fetchEmployees({}))
-    dispatch(fetchUserManagement(userParams))
+    dispatch(fetchUserManagement(params))
     dispatch(fetchUserRole({ limit: 1000 }))
-  }, [debouncedSearch, appliedFilters, pagination, dispatch])
+  }, [debouncedSearch, filters, pagination, dispatch])
 
   const columnHelper = createColumnHelper<any>()
-
   const columns = useMemo(
     () => [
       columnHelper.accessor('serialNo', {
         header: 'No',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.index + 1}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.index + 1}</Typography>,
       }),
       columnHelper.accessor('employeeCode', {
         header: 'Employee Code',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.employeeCode || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.employeeCode || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('firstName', {
         header: 'First Name',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.firstName || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.firstName || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('lastName', {
         header: 'Last Name',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.lastName || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.lastName || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('roles', {
         header: 'Role',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
+          <Typography>
             {Array.isArray(row.original.roles) && row.original.roles.length > 0
               ? row.original.roles[0]
               : row.original.role || 'No Role'}
           </Typography>
-        )
+        ),
       }),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => (
-          <Typography
-            color={row.original.status?.toLowerCase().trim() === 'active' ? 'success.main' : 'error.main'}
-            className='font-medium'
-          >
+          <Typography color={row.original.status?.toLowerCase() === 'active' ? 'success.main' : 'error.main'}>
             {row.original.status || 'N/A'}
           </Typography>
-        )
+        ),
       }),
-      columnHelper.accessor('action', {
-        header: 'Action',
-        cell: ({ row }) => (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton
-              onClick={(e: any) => {
-                e.stopPropagation()
-                handleEdit(row.original.id, row.original)
-              }}
-            >
-              <i className='tabler-edit' />
-            </IconButton>
-          </Box>
-        )
+      // columnHelper.accessor('action', {
+      //   header: 'Action',
+      //   cell: ({ row }) => (
+      //     <IconButton onClick={() => handleEdit(row.original.id, row.original)}>
+      //       <i className="tabler-edit" />
+      //     </IconButton>
+      //   ),
+      // }),
+      columnHelper.accessor('source', {
+        header: 'Source',
+        cell: ({ row }) => <Typography>{row.original.source || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('mobileNumber', {
         header: 'Mobile Number',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.mobileNumber || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.mobileNumber || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('email', {
         header: 'Email',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.email || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.email || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('band', {
         header: 'Band',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.band || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.band || 'N/A'}</Typography>,
       }),
       columnHelper.accessor('grade', {
         header: 'Grade',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.grade || 'N/A'}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.grade || 'N/A'}</Typography>,
       }),
-      columnHelper.accessor('designation', {
-        header: 'Designation',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.designation || 'N/A'}
-          </Typography>
-        )
-      })
     ],
     [columnHelper]
   )
 
-  const handleAddUser = () => router.push('/user-management/add/add-new-user')
-
-  const handleEdit = (id: string | number, rowData: any) => {
-    const queryParams = new URLSearchParams({
-      employeeCode: rowData.employeeCode || '',
-      firstName: rowData.firstName || '',
-      lastName: rowData.lastName || '',
-      email: rowData.email || '',
-      role: Array.isArray(rowData.roles) && rowData.roles.length > 0 ? rowData.roles[0] : rowData.role || ''
-    }).toString()
-
-    router.push(`/user-management/edit/${id}?${queryParams}`)
-  }
-
-  const handleFilterToggle = () => {
-    setTempFilters(appliedFilters)
-    setIsFilterOpen(!isFilterOpen)
-  }
-
-  const handleFilterApply = () => {
-    setAppliedFilters({ ...tempFilters })
-    setIsFilterOpen(false)
-  }
-
-  const handleFilterClear = () => {
-    const clearedFilters = { active: false, inactive: false, roles: [] }
-
-    setTempFilters(clearedFilters)
-    setAppliedFilters(clearedFilters)
-    setIsFilterOpen(false)
-  }
-
-  const handleRemoveFilter = (filterType: 'active' | 'inactive' | string) => {
-    setAppliedFilters(prev => {
-      if (filterType === 'active' || filterType === 'inactive') {
-        return { ...prev, [filterType]: false }
-      } else {
-        return {
-          ...prev,
-          roles: prev.roles.filter(role => role !== filterType)
-        }
-      }
-    })
-  }
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)
-  const handleClearSearch = () => setSearchTerm('')
-
-  const handleFilterChange = (filterType: 'active' | 'inactive' | string, checked: boolean) => {
-    setTempFilters(prev => {
-      if (filterType === 'active' || filterType === 'inactive') {
-        return { ...prev, [filterType]: checked }
-      } else {
-        return {
-          ...prev,
-          roles: checked ? [...prev.roles, filterType] : prev.roles.filter(role => role !== filterType)
-        }
-      }
-    })
-  }
-
   const enrichedUserData = useMemo(() => {
-    const users = userManagementData?.data || []
-    const employees = employeeData?.data || employeeData || []
+    const users = userManagementData || []
+    const employees = employeeData || []
 
-    let filteredUsers = users.map(user => {
-      const matchingEmployee = employees.find(emp => emp.employeeCode === user.employeeCode)
-
+    return users.map(user => {
+      const employee = employees.find(emp => emp.employeeCode === user.employeeCode)
       return {
         ...user,
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        mobileNumber: matchingEmployee?.mobileNumber || user.mobileNumber || 'N/A',
-        employeeCode: user.employeeCode,
+        mobileNumber: employee?.mobileNumber || user.mobileNumber || 'N/A',
+        band: employee?.employeeDetails?.band || 'N/A',
+        grade: employee?.employeeDetails?.grade || 'N/A',
         roles: user.roles || (user.role ? [user.role] : []),
-        band: matchingEmployee?.employeeDetails?.band || 'N/A',
-        grade: matchingEmployee?.employeeDetails?.grade || 'N/A',
-        designation: matchingEmployee?.employeeDetails?.designation || 'N/A',
-        status: user.status || 'N/A'
       }
     })
+  }, [userManagementData, employeeData])
+  const availableRoles = useMemo(() => userRoleData?.data?.map(role => role.name) || [], [userRoleData])
+  const totalCount = userManagementData?.length || 0
 
-    if (appliedFilters.roles.length > 0) {
-      filteredUsers = filteredUsers.filter(user => user.roles.some(role => appliedFilters.roles.includes(role)))
-    }
+  // const handleEdit = (id: string | number, rowData: any) => {
+  //   const params = new URLSearchParams({
+  //     employeeCode: rowData.employeeCode || '',
+  //     firstName: rowData.firstName || '',
+  //     lastName: rowData.lastName || '',
+  //     email: rowData.email || '',
+  //     role: rowData.roles?.[0] || rowData.role || '',
+  //   }).toString()
+  //   router.push(`/user-management/edit/${id}?${params}`)
+  // }
 
-    if (appliedFilters.active && !appliedFilters.inactive) {
-      filteredUsers = filteredUsers.filter(user => user.status.toLowerCase().trim() === 'active')
-    } else if (!appliedFilters.active && appliedFilters.inactive) {
-      filteredUsers = filteredUsers.filter(user => user.status.toLowerCase().trim() === 'inactive')
-    }
+  const handleFilterChange = (type: keyof FilterState | string, checked: boolean) => {
+    setFilters(prev => {
+      const newFilters = { ...prev }
+      if (type === 'active' || type === 'inactive' || type === 'adUser' || type === 'nonAdUser') {
+        newFilters[type] = checked
+      } else {
+        newFilters.roles = checked ? [...prev.roles, type] : prev.roles.filter(r => r !== type)
+      }
+      return newFilters
+    })
+  }
 
-    return filteredUsers
-  }, [userManagementData, employeeData, appliedFilters])
+  const handleRemoveFilter = (type: keyof FilterState | string) => {
+    handleFilterChange(type, false)
+  }
 
-  const totalCount = useMemo(() => {
-    return userManagementData?.totalCount || 0
-  }, [userManagementData])
+  const handleClearFilters = () => {
+    setFilters({ active: false, inactive: false, adUser: false, nonAdUser: false, roles: [] })
+    setIsFilterOpen(false) 
+  }
 
-  const availableRoles = useMemo(() => {
-    return userRoleData?.data?.map(role => role.name) || []
-  }, [userRoleData])
+  const handleApplyFilters = () => {
+    setIsFilterOpen(false) 
+  }
 
   return (
-    <div style={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex' }}>
       <Box sx={{ flexGrow: 1 }}>
         <Card sx={{ mb: 4 }}>
           <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <Box className='flex-1 min-w-[200px]'>
-                  <TextField
-                    fullWidth
-                    size='small'
-                    placeholder='Search users...'
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    InputProps={{
-                      startAdornment: <SearchIcon className='mr-2 text-gray-400' />,
-                      endAdornment: searchTerm && (
-                        <IconButton size='small' onClick={handleClearSearch}>
-                          <ClearIcon />
-                        </IconButton>
-                      )
-                    }}
-                  />
-                </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  size="small"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'grey.400' }} />,
+                    endAdornment: searchTerm && (
+                      <IconButton size="small" onClick={() => setSearchTerm('')}>
+                        <ClearIcon />
+                      </IconButton>
+                    ),
+                  }}
+                />
                 <Button
-                  variant='outlined'
-                  onClick={handleFilterToggle}
-                  startIcon={<i className='tabler-filter' />}
-                  size='medium'
+                  variant="outlined"
+                  onClick={() => setIsFilterOpen(true)}
+                  startIcon={<i className="tabler-filter" />}
                 >
                   Filter
                 </Button>
               </Box>
-              <Button
-                variant='contained'
-                onClick={handleAddUser}
-                startIcon={<i className='tabler-plus' />}
-                size='medium'
+              {/* <Button
+                variant="contained"
+                onClick={() => router.push('/user-management/add/add-new-user')}
+                startIcon={<i className="tabler-plus" />}
               >
                 Add User
-              </Button>
+              </Button> */}
             </Box>
-
-            {(appliedFilters.active || appliedFilters.inactive || appliedFilters.roles.length > 0) && (
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                {appliedFilters.active && (
-                  <Chip
-                    label='Active Users'
-                    onDelete={() => handleRemoveFilter('active')}
-                    size='small'
-                    color='primary'
-                  />
+            {(filters.active || filters.inactive || filters.adUser || filters.nonAdUser || filters.roles.length > 0) && (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {filters.active && (
+                  <Chip label="Active Users" onDelete={() => handleRemoveFilter('active')} color="primary" />
                 )}
-                {appliedFilters.inactive && (
-                  <Chip
-                    label='Inactive Users'
-                    onDelete={() => handleRemoveFilter('inactive')}
-                    size='small'
-                    color='primary'
-                  />
+                {filters.inactive && (
+                  <Chip label="Inactive Users" onDelete={() => handleRemoveFilter('inactive')} color="primary" />
                 )}
-                {appliedFilters.roles.map(role => (
-                  <Chip
-                    key={role}
-                    label={role}
-                    onDelete={() => handleRemoveFilter(role)}
-                    size='small'
-                    color='primary'
-                  />
+                {filters.adUser && (
+                  <Chip label="AD Users" onDelete={() => handleRemoveFilter('adUser')} color="primary" />
+                )}
+                {filters.nonAdUser && (
+                  <Chip label="Non-AD Users" onDelete={() => handleRemoveFilter('nonAdUser')} color="primary" />
+                )}
+                {filters.roles.map(role => (
+                  <Chip key={role} label={role} onDelete={() => handleRemoveFilter(role)} color="primary" />
                 ))}
-                <Button size='small' color='error' onClick={handleFilterClear}>
+                <Button size="small" color="error" onClick={handleClearFilters}>
                   Clear All
                 </Button>
               </Box>
@@ -398,47 +280,46 @@ const UserListing = () => {
               data={enrichedUserData}
               pagination={pagination}
               totalCount={totalCount}
-              onPageChange={(newPage: number) => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
-              onRowsPerPageChange={(newPageSize: number) => setPagination({ pageIndex: 0, pageSize: newPageSize })}
+              onPageChange={newPage => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
+              onRowsPerPageChange={newPageSize => setPagination({ pageIndex: 0, pageSize: newPageSize })}
             />
           )}
         </Card>
       </Box>
 
-      {/* Right Side Filter Panel */}
-      <Drawer
-        anchor='right'
-        open={isFilterOpen}
-        onClose={handleFilterToggle}
-        sx={{ '& .MuiDrawer-paper': { width: 300, padding: 5 } }}
-      >
+      <Drawer anchor="right" open={isFilterOpen} onClose={() => setIsFilterOpen(false)} sx={{ '& .MuiDrawer-paper': { width: 300, p: 3 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant='h5' sx={{ padding: '5px' }}>
-            Filter Users
-          </Typography>
-          <IconButton onClick={handleFilterToggle}>
+          <Typography variant="h5">Filter Users</Typography>
+          <IconButton onClick={() => setIsFilterOpen(false)}>
             <ClearIcon />
           </IconButton>
         </Box>
         <Divider sx={{ mb: 2 }} />
         <FormGroup>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Status
+          </Typography>
           <FormControlLabel
-            control={
-              <Checkbox checked={tempFilters.active} onChange={e => handleFilterChange('active', e.target.checked)} />
-            }
-            label='Active Users'
+            control={<Checkbox checked={filters.active} onChange={e => handleFilterChange('active', e.target.checked)} />}
+            label="Active Users"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                checked={tempFilters.inactive}
-                onChange={e => handleFilterChange('inactive', e.target.checked)}
-              />
-            }
-            label='Inactive Users'
+            control={<Checkbox checked={filters.inactive} onChange={e => handleFilterChange('inactive', e.target.checked)} />}
+            label="Inactive Users"
           />
-
-          <Typography variant='h5' sx={{ padding: '10px' }}>
+          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+            Source
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <FormControlLabel
+            control={<Checkbox checked={filters.adUser} onChange={e => handleFilterChange('adUser', e.target.checked)} />}
+            label="AD Users"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={filters.nonAdUser} onChange={e => handleFilterChange('nonAdUser', e.target.checked)} />}
+            label="Non-AD Users"
+          />
+          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
             Roles
           </Typography>
           <Divider sx={{ mb: 2 }} />
@@ -448,27 +329,22 @@ const UserListing = () => {
             availableRoles.map(role => (
               <FormControlLabel
                 key={role}
-                control={
-                  <Checkbox
-                    checked={tempFilters.roles.includes(role)}
-                    onChange={e => handleFilterChange(role, e.target.checked)}
-                  />
-                }
+                control={<Checkbox checked={filters.roles.includes(role)} onChange={e => handleFilterChange(role, e.target.checked)} />}
                 label={role}
               />
             ))
           )}
         </FormGroup>
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-          <Button fullWidth variant='outlined' color='error' onClick={handleFilterClear}>
+          <Button fullWidth variant="outlined" color="error" onClick={handleClearFilters}>
             Clear
           </Button>
-          <Button fullWidth variant='contained' onClick={handleFilterApply}>
+          <Button fullWidth variant="contained" onClick={handleApplyFilters}>
             Apply
           </Button>
         </Box>
       </Drawer>
-    </div>
+    </Box>
   )
 }
 

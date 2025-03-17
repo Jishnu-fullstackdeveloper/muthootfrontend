@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -16,12 +16,9 @@ import AxiosLib from '@/lib/AxiosLib'
 
 const Login2Redirect = () => {
   const router = useRouter()
-  let currentUrl
 
-  if (typeof window !== 'undefined') {
-    currentUrl = window?.location?.href
-  }
-
+  // Extract URL parameters once at the top level
+  const currentUrl = typeof window !== 'undefined' ? window?.location?.href : ''
   const urlParams = new URLSearchParams(currentUrl?.split('?')[1])
   const code = urlParams.get('code')
   const issuer = urlParams.get('iss')
@@ -30,15 +27,31 @@ const Login2Redirect = () => {
   const dispatch = useDispatch<Dispatch>()
   const { secondLoginData }: any = useSelector((state: RootState) => state.loginReducer)
 
+  // Use useRef to track if the API has been dispatched
+  const hasDispatchedRef = useRef(false)
+
   useEffect(() => {
+    // Prevent multiple dispatches
+    if (hasDispatchedRef.current) return
+
+    // Ensure parameters are available before dispatching
+    if (!code || !issuer || !stateFetched) {
+      toast.error('Login failed: Missing required parameters.', {
+        closeOnClick: true
+      })
+      return
+    }
+
     const params = {
       code,
       issuer,
       state: stateFetched
     }
 
+    // Dispatch the API call
     dispatch<any>(fetchLoginToken(params))
-  }, [])
+    hasDispatchedRef.current = true // Mark as dispatched
+  }, [dispatch]) // Only depend on dispatch
 
   useEffect(() => {
     const handleLogin = () => {
@@ -52,7 +65,6 @@ const Login2Redirect = () => {
         toast.error('Login failed: No access token received.', {
           closeOnClick: true
         })
-
         return
       }
 
@@ -64,7 +76,6 @@ const Login2Redirect = () => {
           toast.error('Login failed: Invalid token format.', {
             closeOnClick: true
           })
-
           return
         }
 

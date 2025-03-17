@@ -28,7 +28,7 @@ import TableChartIcon from '@mui/icons-material/TableChart'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import CustomTextField from '@/@core/components/mui/TextField'
 import BranchListingTableView from './BranchListingTableView'
-import { getBranchList } from '@/redux/BranchManagementSlice'
+import { getBranchList } from '@/redux/BranchManagement/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
 import type { Branch, BranchManagementState } from '@/types/branch'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

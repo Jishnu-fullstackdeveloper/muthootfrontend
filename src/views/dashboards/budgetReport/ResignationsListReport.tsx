@@ -23,7 +23,7 @@ import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import CustomTextField from '@/@core/components/mui/TextField'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchResignedEmployees } from '@/redux/BranchManagementSlice'
+import { fetchResignedEmployees } from '@/redux/BranchManagement/BranchManagementSlice'
 
 // Data Type for the Resignation List Report
 type ResignationDataType = {

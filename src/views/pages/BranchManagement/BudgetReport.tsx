@@ -24,7 +24,12 @@ import ResignationsListReport from '@/views/dashboards/budgetReport/Resignations
 
 // Redux Imports
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchArea, getBranchList, fetchBranchReport, fetchVacancyReport } from '@/redux/BranchManagementSlice'
+import {
+  fetchArea,
+  getBranchList,
+  fetchBranchReport,
+  fetchVacancyReport
+} from '@/redux/BranchManagement/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
 import type { BranchManagementState } from '@/types/branch'
 

@@ -154,8 +154,12 @@ const UserListing = () => {
     [columnHelper]
   )
 
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
   const enrichedUserData = useMemo(() => {
-    const users = userManagementData || []
+
+    
+    const users = safeGetData(userManagementData) || []
     const employees = employeeData || []
 
     return users.map(user => {

@@ -1,18 +1,16 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { FormControl, TextField, Checkbox, FormControlLabel, Box, Typography } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { addNewUserRole, updateUserRole, resetAddUserRoleStatus, fetchUserRole } from '@/redux/UserRoles/userRoleSlice';
+import DynamicButton from '@/components/Button/dynamicButton';
 
-import { useRouter, useSearchParams } from 'next/navigation'
-
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import { FormControl, TextField, Checkbox, FormControlLabel, Box } from '@mui/material'
-
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addNewUserRole, updateUserRole, resetAddUserRoleStatus } from '@/redux/UserRoles/userRoleSlice'
-import DynamicButton from '@/components/Button/dynamicButton'
-
-const permissions = [
+// Default permissions list
+const defaultPermissionsList = [
   { module: 'Home Dashboard', actions: ['read'] },
   { module: 'User Management', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'User Roles', actions: ['read', 'update', 'delete', 'create'] },
@@ -23,91 +21,112 @@ const permissions = [
   { module: 'Branch Management', actions: ['read'] },
   { module: 'Bucket Management', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'Approval Matrix', actions: ['read', 'update', 'delete', 'create'] },
-  { module: 'General Settings', actions: ['read', 'update', 'delete', 'create'] }
-]
+  { module: 'General Settings', actions: ['read', 'update', 'delete', 'create'] },
+];
 
 const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mode, id }) => {
-  const [apiErrors, setApiErrors] = useState<string[]>([])
-  const dispatch = useAppDispatch()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const { isAddUserRoleLoading, addUserRoleSuccess, addUserRoleFailure, addUserRoleFailureMessage } = useAppSelector(
-    (state: any) => state.UserRoleReducer
-  )
+  const { 
+    isAddUserRoleLoading, 
+    addUserRoleSuccess, 
+    addUserRoleFailure, 
+    addUserRoleFailureMessage,
+    userRoleData,
+    isUserRoleLoading,
+  } = useAppSelector((state: any) => state.UserRoleReducer);
+
+  // Fetch role data when in edit mode
+  const roleIdFromParams = searchParams.get('id') || id || '';
+  useEffect(() => {
+    if (mode === 'edit' && roleIdFromParams) {
+      const existingRole = userRoleData?.data?.find((role: any) => role.id === roleIdFromParams);
+      if (!existingRole) {
+        dispatch(fetchUserRole({ id: roleIdFromParams }));
+      }
+    }
+  }, [mode, roleIdFromParams, dispatch, userRoleData]);
 
   // Update apiErrors when there's a failure
   useEffect(() => {
     if (addUserRoleFailure && addUserRoleFailureMessage) {
       const messages = Array.isArray(addUserRoleFailureMessage)
         ? addUserRoleFailureMessage
-        : [addUserRoleFailureMessage || 'Failed to save the role. Please try again.']
-
-      setApiErrors(messages)
+        : [addUserRoleFailureMessage || 'Failed to save the role. Please try again.'];
+      setApiErrors(messages);
     } else {
-      setApiErrors([]) // Clear errors on success or reset
+      setApiErrors([]);
     }
-  }, [addUserRoleFailure, addUserRoleFailureMessage])
+  }, [addUserRoleFailure, addUserRoleFailureMessage]);
 
   // Redirect on success
   useEffect(() => {
     if (addUserRoleSuccess) {
-      router.push('/user-role')
+      router.push('/user-role');
     }
-  }, [addUserRoleSuccess, router])
+  }, [addUserRoleSuccess, router]);
 
   // Cleanup Redux state on unmount
   useEffect(() => {
     return () => {
-      dispatch(resetAddUserRoleStatus())
-    }
-  }, [dispatch])
+      dispatch(resetAddUserRoleStatus());
+    };
+  }, [dispatch]);
 
-  // Initial permissions for edit mode
-  const initialPermissions: { name: string }[] =
-    mode === 'edit' ? JSON.parse(searchParams.get('permissions') || '[]') : []
+  // Find the role from userRoleData if in edit mode
+  const matchedRole = mode === 'edit' && userRoleData?.data
+    ? userRoleData.data.find((role: any) => role.id === roleIdFromParams)
+    : null;
 
-  // Ensure 'Home Dashboard' permission is included by default
-  const defaultPermissions = [{ module: 'Home Dashboard', selectedActions: ['read'] }]
-
-  const permissionNames = initialPermissions.map(perm => perm.name)
+  // Initial values based on fetched data or defaults
+  const roleNameFromParams = searchParams.get('name') || '';
+  const initialRoleName = mode === 'edit' && matchedRole ? matchedRole.name : roleNameFromParams;
+  const initialDescription = mode === 'edit' && matchedRole ? matchedRole.description || '' : '';
+  const initialPermissions = mode === 'edit' && matchedRole && matchedRole.permissions
+    ? defaultPermissionsList.map(p => {
+        const selectedActions = p.module === 'Home Dashboard'
+          ? ['read'] // Force "read" for Home Dashboard
+          : matchedRole.permissions
+              .filter((perm: any) => {
+                const moduleMap: { [key: string]: string } = {
+                  'User Management': 'user',
+                  'User Roles': 'role',
+                  'Approval Management': 'approval',
+                  'JD Management': 'jd',
+                  'Vaccancy Management': 'vacancy',
+                  'Recruitment Management': 'recruitment',
+                  'Branch Management': 'branch',
+                  'Bucket Management': 'bucket',
+                  'Approval Matrix': 'approvalmatrix',
+                  'General Settings': 'general',
+                  'Home Dashboard': 'home',
+                };
+                const moduleShortName = moduleMap[p.module] || p.module.replace(/\s+/g, '').toLowerCase();
+                return perm.name.startsWith(`${moduleShortName}_`);
+              })
+              .map((perm: any) => perm.name.split('_')[1]);
+        return { module: p.module, selectedActions };
+      })
+    : defaultPermissionsList.map(p => ({
+        module: p.module,
+        selectedActions: p.module === 'Home Dashboard' ? ['read'] : [],
+      }));
 
   const roleFormik = useFormik({
     initialValues: {
-      roleName: mode === 'edit' ? searchParams.get('name') || '' : '',
-      description: mode === 'edit' ? searchParams.get('description') || '' : '',
-      permissions: [
-        ...defaultPermissions,
-        ...permissions.map(p => {
-          const moduleMap: { [key: string]: string } = {
-            'User Management': 'user',
-            'User Roles': 'role',
-            'Approval Management': 'approval',
-            'JD Management': 'jd',
-            'Vaccancy Management': 'vacancy',
-            'Recruitment Management': 'recruitment',
-            'Branch Management': 'branch',
-            'Bucket Management': 'bucket',
-            'Approval Matrix': 'approvalmatrix',
-            'General Settings': 'general',
-            'Home Dashboard': 'home'
-          }
-
-          const moduleShortName = moduleMap[p.module] || p.module.replace(/\s+/g, '').toLowerCase()
-
-          const selectedActions =
-            mode === 'edit' ? p.actions.filter(action => permissionNames.includes(`${moduleShortName}_${action}`)) : []
-
-          return { module: p.module, selectedActions }
-        })
-      ]
+      roleName: initialRoleName,
+      description: initialDescription,
+      permissions: initialPermissions,
     },
+    enableReinitialize: true, // Reinitialize form when initial values change (e.g., after fetch)
     validationSchema: Yup.object().shape({
-      roleName: Yup.string().required('Role Name is required')
+      roleName: Yup.string().required('Role Name is required'),
     }),
     onSubmit: async values => {
-      setApiErrors([]) // Clear previous errors on new submission
-
+      setApiErrors([]);
       const selectedPermissions = values.permissions.flatMap(perm => {
         const moduleMap: { [key: string]: string } = {
           'User Management': 'user',
@@ -120,107 +139,126 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           'Bucket Management': 'bucket',
           'Approval Matrix': 'approvalmatrix',
           'General Settings': 'general',
-          'Home Dashboard': 'home'
-        }
-
-        const moduleShortName = moduleMap[perm.module] || perm.module.replace(/\s+/g, '').toLowerCase()
-
-        return perm.selectedActions.map(action => `${moduleShortName}_${action}`)
-      })
+          'Home Dashboard': 'home',
+        };
+        const moduleShortName = moduleMap[perm.module] || perm.module.replace(/\s+/g, '').toLowerCase();
+        return perm.selectedActions.map(action => `${moduleShortName}_${action}`);
+      });
 
       try {
-        if (mode === 'edit' && id) {
+        if (mode === 'edit' && roleIdFromParams) {
           await dispatch(
             updateUserRole({
-              id,
-              params: { roleName: values.roleName, newPermissionNames: selectedPermissions }
+              id: roleIdFromParams,
+              params: { roleName: values.roleName, newPermissionNames: selectedPermissions },
             })
-          ).unwrap()
+          ).unwrap();
         } else {
           await dispatch(
             addNewUserRole({
               name: values.roleName,
               description: values.description,
-              selectedPermissions
+              selectedPermissions,
             })
-          ).unwrap()
+          ).unwrap();
         }
       } catch (error: any) {
         const errorMessages = error.message
           ? Array.isArray(error.message)
             ? error.message
             : [error.message]
-          : ['An unexpected error occurred while saving. Please try again.']
-
-        setApiErrors(errorMessages)
+          : ['An unexpected error occurred while saving. Please try again.'];
+        setApiErrors(errorMessages);
       }
-    }
-  })
+    },
+  });
 
   const handleCancel = () => {
-    dispatch(resetAddUserRoleStatus())
-    router.back()
-  }
+    dispatch(resetAddUserRoleStatus());
+    router.back();
+  };
 
   const handlePermissionChange = (module: string, action: string, checked: boolean) => {
-    const currentPermissions = [...roleFormik.values.permissions]
-    const moduleIndex = currentPermissions.findIndex(p => p.module === module)
-    let selectedActions = moduleIndex >= 0 ? [...currentPermissions[moduleIndex].selectedActions] : []
+    // Prevent changes to "Home Dashboard" permissions
+    if (module === 'Home Dashboard') return;
+
+    const currentPermissions = [...roleFormik.values.permissions];
+    const moduleIndex = currentPermissions.findIndex(p => p.module === module);
+    let selectedActions = moduleIndex >= 0 ? [...currentPermissions[moduleIndex].selectedActions] : [];
 
     if (checked) {
-      if (action !== 'read' && !selectedActions.includes('read')) selectedActions.push('read')
-      if (!selectedActions.includes(action)) selectedActions.push(action)
+      if (action !== 'read' && !selectedActions.includes('read')) selectedActions.push('read');
+      if (!selectedActions.includes(action)) selectedActions.push(action);
     } else {
-      selectedActions = selectedActions.filter(a => a !== action)
-      if (action === 'read') selectedActions = []
+      if (action === 'read') {
+        selectedActions = []; // Remove all actions if "read" is unchecked
+      } else {
+        selectedActions = selectedActions.filter(a => a !== action);
+      }
     }
 
     if (moduleIndex >= 0) {
-      currentPermissions[moduleIndex] = { module, selectedActions }
+      currentPermissions[moduleIndex] = { module, selectedActions };
     } else {
-      currentPermissions.push({ module, selectedActions })
+      currentPermissions.push({ module, selectedActions });
     }
 
-    roleFormik.setFieldValue('permissions', currentPermissions)
-  }
+    roleFormik.setFieldValue('permissions', currentPermissions);
+  };
 
   const handleSelectAllPermissions = (module: string, allActions: string[], checked: boolean) => {
+    // Prevent changes to "Home Dashboard" permissions
+    if (module === 'Home Dashboard') return;
+
     roleFormik.setFieldValue(
       'permissions',
       roleFormik.values.permissions
         .filter(p => p.module !== module)
         .concat({
           module,
-          selectedActions: checked ? allActions : []
+          selectedActions: checked ? allActions : [],
         })
-    )
-  }
+    );
+  };
 
   const handleSelectAllModules = (checked: boolean) => {
     roleFormik.setFieldValue(
       'permissions',
-      permissions.map(perm => ({
+      defaultPermissionsList.map(perm => ({
         module: perm.module,
-        selectedActions: checked ? perm.actions : []
+        selectedActions: perm.module === 'Home Dashboard' ? ['read'] : checked ? perm.actions : [],
       }))
-    )
-  }
+    );
+  };
 
   const handleSelectAllRead = (checked: boolean) => {
-    const updatedPermissions = permissions.map(perm => {
-      const existingPerm = roleFormik.values.permissions.find(p => p.module === perm.module)
+    const updatedPermissions = defaultPermissionsList.map(perm => {
+      const existingPerm = roleFormik.values.permissions.find(p => p.module === perm.module);
+      const currentActions = existingPerm?.selectedActions || [];
 
-      return {
-        module: perm.module,
-        selectedActions: checked
-          ? existingPerm?.selectedActions.includes('read')
-            ? existingPerm.selectedActions
-            : ['read']
-          : existingPerm?.selectedActions.filter(a => a !== 'read') || []
+      if (perm.module === 'Home Dashboard') {
+        return { module: perm.module, selectedActions: ['read'] }; // Always "read" for Home Dashboard
       }
-    })
 
-    roleFormik.setFieldValue('permissions', updatedPermissions)
+      if (checked) {
+        // Add "read" if not present, preserve other permissions
+        return {
+          module: perm.module,
+          selectedActions: currentActions.includes('read') ? currentActions : [...currentActions, 'read'],
+        };
+      } else {
+        // Remove "read" and all other permissions if "read" is unchecked
+        return {
+          module: perm.module,
+          selectedActions: [],
+        };
+      }
+    });
+    roleFormik.setFieldValue('permissions', updatedPermissions);
+  };
+
+  if (mode === 'edit' && isUserRoleLoading) {
+    return <Typography>Loading role data...</Typography>;
   }
 
   return (
@@ -232,9 +270,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <p className='text-red-600 font-semibold'>Error Saving Role:</p>
           <ul className='list-disc pl-5'>
             {apiErrors.map((error, index) => (
-              <li key={index} className='text-red-600'>
-                {error}
-              </li>
+              <li key={index} className='text-red-600'>{error}</li>
             ))}
           </ul>
         </div>
@@ -250,9 +286,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             value={roleFormik.values.roleName}
             onChange={roleFormik.handleChange}
             onBlur={roleFormik.handleBlur}
-            error={!!roleFormik.errors.roleName && roleFormik.touched.roleName}
-            helperText={roleFormik.touched.roleName && roleFormik.errors.roleName}
-            disabled={mode === 'edit'}
+            error={Boolean(roleFormik.errors.roleName && roleFormik.touched.roleName)}
+            helperText={roleFormik.touched.roleName ? roleFormik.errors.roleName : ''}
+            disabled={mode === 'edit'} // Disable if editing to preserve original name
             InputProps={{ readOnly: mode === 'edit' }}
           />
         </FormControl>
@@ -264,8 +300,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             value={roleFormik.values.description}
             onChange={roleFormik.handleChange}
             onBlur={roleFormik.handleBlur}
-            disabled={mode === 'edit'}
-            InputProps={{ readOnly: mode === 'edit' }}
+            disabled // Always disabled as per your latest code
           />
         </FormControl>
       </fieldset>
@@ -277,7 +312,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             control={
               <Checkbox
                 checked={roleFormik.values.permissions.every(p =>
-                  permissions
+                  defaultPermissionsList
                     .find(perm => perm.module === p.module)
                     ?.actions.every(action => p.selectedActions.includes(action))
                 )}
@@ -289,7 +324,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <FormControlLabel
             control={
               <Checkbox
-                checked={permissions.every(perm =>
+                checked={defaultPermissionsList.every(perm =>
                   roleFormik.values.permissions.some(
                     p => p.module === perm.module && p.selectedActions.includes('read')
                   )
@@ -301,7 +336,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           />
         </div>
         <div className='grid grid-cols-2 gap-4'>
-          {permissions.map(permission => (
+          {defaultPermissionsList.map(permission => (
             <div key={permission.module} className='mb-5'>
               <div className='flex items-center mb-2'>
                 <FormControlLabel
@@ -315,32 +350,41 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                       onChange={e =>
                         handleSelectAllPermissions(permission.module, permission.actions, e.target.checked)
                       }
+                      disabled={permission.module === 'Home Dashboard'} // Disable for Home Dashboard
                     />
                   }
                   label={permission.module}
                 />
               </div>
               <Box pl={6}>
-                {permission.actions.map(action => (
-                  <FormControlLabel
-                    key={action}
-                    control={
-                      <Checkbox
-                        checked={roleFormik.values.permissions.some(
-                          p => p.module === permission.module && p.selectedActions.includes(action)
-                        )}
-                        onChange={e => handlePermissionChange(permission.module, action, e.target.checked)}
-                        disabled={
-                          action !== 'read' &&
-                          !roleFormik.values.permissions.some(
-                            p => p.module === permission.module && p.selectedActions.includes('read')
-                          )
-                        }
-                      />
-                    }
-                    label={action}
-                  />
-                ))}
+                {permission.actions.map(action => {
+                  const hasOtherPermissions = roleFormik.values.permissions
+                    .find(p => p.module === permission.module)
+                    ?.selectedActions.some(a => a !== 'read' && permission.actions.includes(a));
+
+                  return (
+                    <FormControlLabel
+                      key={action}
+                      control={
+                        <Checkbox
+                          checked={roleFormik.values.permissions.some(
+                            p => p.module === permission.module && p.selectedActions.includes(action)
+                          )}
+                          onChange={e => handlePermissionChange(permission.module, action, e.target.checked)}
+                          disabled={
+                            permission.module === 'Home Dashboard' || // Disable for Home Dashboard
+                            (action === 'read' && hasOtherPermissions) || // Disable "read" if other permissions are selected
+                            (action !== 'read' &&
+                              !roleFormik.values.permissions.some(
+                                p => p.module === permission.module && p.selectedActions.includes('read')
+                              ))
+                          }
+                        />
+                      }
+                      label={action}
+                    />
+                  );
+                })}
               </Box>
             </div>
           ))}
@@ -356,7 +400,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         </DynamicButton>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default AddOrEditUserRole
+export default AddOrEditUserRole;

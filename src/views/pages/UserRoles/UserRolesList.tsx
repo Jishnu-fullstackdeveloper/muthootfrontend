@@ -130,14 +130,12 @@ const UserRolesAndPermisstionList = () => {
 
   // const handleAddUser = () => router.push('/user-role/add/add-role')
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (role: any) => {
     const query = new URLSearchParams({
-      name: item.name,
-      description: item.description || '',
-      permissions: JSON.stringify(item.permissions || [])
+      id: role.id, name: role.name
     }).toString()
 
-    router.push(`/user-role/edit/${item.name.replace(/\s+/g, '-')}?${query}`)
+    router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleView = (role: any) => {

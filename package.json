@@ -103,6 +103,7 @@
     "postcss": "8.4.35",
     "postcss-styled-syntax": "0.6.4",
     "prettier": "3.2.5",
+    "pretty": "^2.0.0",
     "redux-mock-store": "^1.5.5",
     "sonarqube-scanner": "^4.2.6",
     "stylelint": "16.2.1",

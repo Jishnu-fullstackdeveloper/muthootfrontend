@@ -17,11 +17,11 @@ import {
   Select,
   Typography,
   Tooltip,
-  Button
+  Button,
+  Stack
 } from '@mui/material'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import Pagination from '@mui/material/Pagination'
-import Stack from '@mui/material/Stack'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 
@@ -41,11 +41,6 @@ const BranchListing = () => {
   const [viewMode, setViewMode] = useState('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [pagination, setPagination] = useState({ page: 1, limit: 10, display_numbers_count: 5 })
-
-  // Memoize branch tabs for performance, removing unused `selectedTabs`
-  // const branchTabs = useMemo(() => {
-  //   return (branchListData || []).reduce((acc, branch) => ({ ...acc, [branch.id]: 0 }), {} as Record<string, number>)
-  // }, [branchListData])
 
   // Use optional chaining and provide defaults to handle undefined state
   const {
@@ -81,11 +76,11 @@ const BranchListing = () => {
 
   const handleBranchClick = (branch: Branch) => router.push(`/branch-management/view/employees-details?id=${branch.id}`)
 
-  if (branchListLoading) return <div>Loading branches...</div>
-  if (branchListFailure) return <div>Error: {branchListFailureMessage}</div>
+  if (branchListLoading) return <Box>Loading branches...</Box>
+  if (branchListFailure) return <Box>Error: {branchListFailureMessage}</Box>
 
   return (
-    <div className=''>
+    <Box>
       <Card
         sx={{
           mb: 4,
@@ -97,12 +92,33 @@ const BranchListing = () => {
           paddingBottom: 2
         }}
       >
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
-          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-start', md: 'flex-start' },
+            p: 6,
+            borderBottom: 1,
+            borderColor: 'divider',
+            gap: 4,
+            overflowX: 'auto'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: { xs: '100%', sm: 'auto' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: 4,
+              flexWrap: 'wrap'
+            }}
+          >
             <CustomTextField
               label='Search Branch'
               placeholder='Search by Branch Name or Code...'
-              className='is-full sm:is-[400px]'
+              sx={{ width: { xs: '100%', sm: '400px' } }}
               value={searchQuery}
               onChange={handleSearch}
               InputProps={{
@@ -113,15 +129,15 @@ const BranchListing = () => {
                 )
               }}
             />
-          </div>
+          </Box>
 
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+          <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mt: { xs: 4, md: 0 } }}>
             <Button
-              className='mr-2'
               variant='contained'
               color='primary'
               startIcon={<AssessmentIcon />}
               onClick={() => router.push('/branch-management/budget-report')}
+              sx={{ mr: 2 }}
             >
               Branch Report Dashboard
             </Button>
@@ -144,11 +160,6 @@ const BranchListing = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              {/* <Tooltip title='List View'>
-                <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
-                  <ViewListIcon />
-                </IconButton>
-              </Tooltip> */}
               <Tooltip title='Table View'>
                 <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
                   <TableChartIcon />
@@ -156,33 +167,48 @@ const BranchListing = () => {
               </Tooltip>
             </Box>
           </Box>
-        </div>
+        </Box>
       </Card>
 
       {(viewMode === 'grid' || viewMode === 'list') && (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}>
-          {(branchListData?.data || [])?.map(branch => (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr' },
+            gap: 6,
+            ...(viewMode !== 'grid' && { '& > * + *': { mt: 6 } }) // Space between items in list view
+          }}
+        >
+          {(branchListData?.data || []).map(branch => (
             <Box
               onClick={() => handleBranchClick(branch)}
               key={branch.id}
-              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 ${
-                viewMode !== 'grid' && 'p-6'
-              }`}
               sx={{
+                bgcolor: 'white',
+                borderRadius: 2,
+                boxShadow: 3,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  boxShadow: 6,
+                  transform: 'translateY(-4px)'
+                },
                 cursor: 'pointer',
-                minHeight: viewMode !== 'grid' ? '150px' : 'auto'
+                minHeight: viewMode !== 'grid' ? '150px' : 'auto',
+                p: viewMode !== 'grid' ? 6 : 0
               }}
             >
               {viewMode === 'grid' ? (
                 <>
-                  <Box className='pt-4 pl-4 pb-3 flex justify-between items-center'>
-                    <div className='flex items-center'>
-                      <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
+                  <Box
+                    sx={{ pt: 4, pl: 4, pb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography variant='h5' sx={{ mt: 2, fontWeight: 'bold' }} gutterBottom>
                         {branch.name}
                       </Typography>
-                    </div>
-                    <div className='flex space-x-2 mr-10'>
-                      <Stack sx={{ marginTop: 2 }}>
+                    </Box>
+                    <Box sx={{ display: 'flex', mr: 10 }}>
+                      <Stack sx={{ mt: 2 }}>
                         <Chip
                           label={branch.branchStatus}
                           color={
@@ -200,72 +226,93 @@ const BranchListing = () => {
                           }}
                         />
                       </Stack>
-                    </div>
-                  </Box>
-                  <Box className='p-4 border-t flex justify-between'>
-                    <Box className='space-y-2 text-sm text-gray-700'>
-                      <p>
-                        <strong>Branch Code:</strong> {branch.branchCode}
-                      </p>
-                      <p>
-                        <strong>Territory:</strong> {branch.area.regionId}{' '}
-                        {/* Using area.regionId as a proxy for territory */}
-                      </p>
-                      <p>
-                        <strong>Zonal:</strong> {branch.area.name} {/* Using area.name as a proxy for zonal */}
-                      </p>
-                      <p>
-                        <strong>Region:</strong> {branch.area.regionId}{' '}
-                        {/* Using area.regionId as a proxy for region */}
-                      </p>
                     </Box>
-                    <Box className='space-y-2 text-sm text-gray-700'>
-                      <p>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 4,
+                      borderTop: 1,
+                      borderColor: 'divider',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        color: 'text.secondary',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <Typography variant='body2'>
+                        <strong>Branch Code:</strong> {branch.branchCode}
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>Territory:</strong> {branch.area.regionId}
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>Zonal:</strong> {branch.area.name}
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>Region:</strong> {branch.area.regionId}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        color: 'text.secondary',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <Typography variant='body2'>
                         <strong>Area:</strong> {branch.area.name}
-                      </p>
-                      <p>
-                        <strong>Cluster:</strong> {branch.bucket?.name} {/* Using bucket.name as a proxy for cluster */}
-                      </p>
-                      <p>
-                        <strong>City Classification:</strong> {branch.district?.name}{' '}
-                        {/* Using district.name as a proxy for city classification */}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>Cluster:</strong> {branch.bucket?.name}
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>City Classification:</strong> {branch.district?.name}
+                      </Typography>
+                      <Typography variant='body2'>
                         <strong>State:</strong> {branch.state?.name}
-                      </p>
+                      </Typography>
                     </Box>
                   </Box>
                 </>
               ) : (
                 <Grid container spacing={4}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant='h5' fontWeight='bold'>
+                    <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
                       {branch.name}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Branch Code:</strong> {branch.branchCode}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Territory:</strong> {branch.area.regionId}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Zonal:</strong> {branch.area.name}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Region:</strong> {branch.area.regionId}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Area:</strong> {branch.area.name}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>Cluster:</strong> {branch.bucket.name}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>City Classification:</strong> {branch.district.name}
                     </Typography>
-                    <Typography>
+                    <Typography variant='body2'>
                       <strong>State:</strong> {branch.state.name}
                     </Typography>
                   </Grid>
@@ -273,11 +320,11 @@ const BranchListing = () => {
               )}
             </Box>
           ))}
-        </div>
+        </Box>
       )}
       {viewMode === 'table' && <BranchListingTableView branchData={branchListData?.data || []} />}
       {viewMode !== 'table' && (
-        <div className='flex items-center justify-end mt-6'>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
@@ -292,7 +339,7 @@ const BranchListing = () => {
               ))}
             </Select>
           </FormControl>
-          {branchListTotal}
+          <Typography>{branchListTotal}</Typography>
           <Pagination
             color='primary'
             shape='rounded'
@@ -302,9 +349,9 @@ const BranchListing = () => {
             page={pagination.page}
             onChange={handlePageChange}
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   )
 }
 

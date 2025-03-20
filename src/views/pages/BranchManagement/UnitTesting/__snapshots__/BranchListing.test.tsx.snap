@@ -1,0 +1,506 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BranchListing Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class=""
+  >
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-11nuu3-MuiPaper-root-MuiCard-root"
+    >
+      <div
+        class="flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis"
+      >
+        <div
+          class="flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap"
+        >
+          <div
+            class="MuiFormControl-root MuiTextField-root is-full sm:is-[400px] css-19qxo3c-MuiFormControl-root-MuiTextField-root"
+          >
+            <label
+              class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-sizeSmall MuiInputLabel-filled MuiFormLabel-colorPrimary MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-sizeSmall MuiInputLabel-filled css-11qvwfa-MuiFormLabel-root-MuiInputLabel-root"
+              data-shrink="true"
+              for=":r10:"
+              id=":r10:-label"
+            >
+              Search Branch
+            </label>
+            <div
+              class="MuiInputBase-root MuiFilledInput-root MuiFilledInput-underline MuiInputBase-colorPrimary MuiInputBase-formControl MuiInputBase-sizeSmall MuiInputBase-adornedEnd css-1bl45wc-MuiInputBase-root-MuiFilledInput-root"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input MuiFilledInput-input MuiInputBase-inputSizeSmall MuiInputBase-inputAdornedEnd css-1u9li0h-MuiInputBase-input-MuiFilledInput-input"
+                id=":r10:"
+                placeholder="Search by Branch Name or Code..."
+                type="text"
+                value=""
+              />
+              <div
+                class="MuiInputAdornment-root MuiInputAdornment-positionEnd MuiInputAdornment-filled MuiInputAdornment-sizeSmall css-18sbowq-MuiInputAdornment-root"
+              >
+                <i
+                  class="tabler-search text-xxl"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex gap-4 justify-start MuiBox-root css-17t6wrv"
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary mr-2 css-sghohy-MuiButtonBase-root-MuiButton-root"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1d6wzja-MuiButton-startIcon"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+                data-testid="AssessmentIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"
+                />
+              </svg>
+            </span>
+            Branch Report Dashboard
+            <span
+              class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+            />
+          </button>
+          <div
+            class="MuiBox-root css-tmco9g"
+          >
+            <button
+              aria-label="Grid View"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorPrimary MuiIconButton-sizeMedium css-1kuq5xv-MuiButtonBase-root-MuiIconButton-root"
+              data-mui-internal-clone-element="true"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+                data-testid="GridViewIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M3 3v8h8V3zm6 6H5V5h4zm-6 4v8h8v-8zm6 6H5v-4h4zm4-16v8h8V3zm6 6h-4V5h4zm-6 4v8h8v-8zm6 6h-4v-4h4z"
+                  fill-rule="evenodd"
+                />
+              </svg>
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+            <button
+              aria-label="Table View"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorSecondary MuiIconButton-sizeMedium css-1gws2xf-MuiButtonBase-root-MuiIconButton-root"
+              data-mui-internal-clone-element="true"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+                data-testid="TableChartIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M10 10.02h5V21h-5zM17 21h3c1.1 0 2-.9 2-2v-9h-5zm3-18H5c-1.1 0-2 .9-2 2v3h19V5c0-1.1-.9-2-2-2M3 19c0 1.1.9 2 2 2h3V10H3z"
+                />
+              </svg>
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
+      <div
+        class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 false MuiBox-root css-1ky3fm9"
+      >
+        <div
+          class="pt-4 pl-4 pb-3 flex justify-between items-center MuiBox-root css-0"
+        >
+          <div
+            class="flex items-center"
+          >
+            <h5
+              class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-1we2p3-MuiTypography-root"
+            >
+              Branch 1
+            </h5>
+          </div>
+          <div
+            class="flex space-x-2 mr-10"
+          >
+            <div
+              class="MuiStack-root css-1h2yvsj-MuiStack-root"
+            >
+              <div
+                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorSuccess MuiChip-filledSuccess css-ktgwp-MuiChip-root"
+              >
+                <span
+                  class="MuiChip-label MuiChip-labelSmall css-wjsjww-MuiChip-label"
+                >
+                  ACTIVE
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="p-4 border-t flex justify-between MuiBox-root css-0"
+        >
+          <div
+            class="space-y-2 text-sm text-gray-700 MuiBox-root css-0"
+          >
+            <p>
+              <strong>
+                Branch Code:
+              </strong>
+               B001
+            </p>
+            <p>
+              <strong>
+                Territory:
+              </strong>
+               R1 
+            </p>
+            <p>
+              <strong>
+                Zonal:
+              </strong>
+               Area 1 
+            </p>
+            <p>
+              <strong>
+                Region:
+              </strong>
+               R1 
+            </p>
+          </div>
+          <div
+            class="space-y-2 text-sm text-gray-700 MuiBox-root css-0"
+          >
+            <p>
+              <strong>
+                Area:
+              </strong>
+               Area 1
+            </p>
+            <p>
+              <strong>
+                Cluster:
+              </strong>
+               Bucket 1 
+            </p>
+            <p>
+              <strong>
+                City Classification:
+              </strong>
+               District 1 
+            </p>
+            <p>
+              <strong>
+                State:
+              </strong>
+               State 1
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 false MuiBox-root css-1ky3fm9"
+      >
+        <div
+          class="pt-4 pl-4 pb-3 flex justify-between items-center MuiBox-root css-0"
+        >
+          <div
+            class="flex items-center"
+          >
+            <h5
+              class="MuiTypography-root MuiTypography-h5 MuiTypography-gutterBottom css-1we2p3-MuiTypography-root"
+            >
+              Branch 2
+            </h5>
+          </div>
+          <div
+            class="flex space-x-2 mr-10"
+          >
+            <div
+              class="MuiStack-root css-1h2yvsj-MuiStack-root"
+            >
+              <div
+                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-996sev-MuiChip-root"
+              >
+                <span
+                  class="MuiChip-label MuiChip-labelSmall css-wjsjww-MuiChip-label"
+                >
+                  INACTIVE
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="p-4 border-t flex justify-between MuiBox-root css-0"
+        >
+          <div
+            class="space-y-2 text-sm text-gray-700 MuiBox-root css-0"
+          >
+            <p>
+              <strong>
+                Branch Code:
+              </strong>
+               B002
+            </p>
+            <p>
+              <strong>
+                Territory:
+              </strong>
+               R2 
+            </p>
+            <p>
+              <strong>
+                Zonal:
+              </strong>
+               Area 2 
+            </p>
+            <p>
+              <strong>
+                Region:
+              </strong>
+               R2 
+            </p>
+          </div>
+          <div
+            class="space-y-2 text-sm text-gray-700 MuiBox-root css-0"
+          >
+            <p>
+              <strong>
+                Area:
+              </strong>
+               Area 2
+            </p>
+            <p>
+              <strong>
+                Cluster:
+              </strong>
+               Bucket 2 
+            </p>
+            <p>
+              <strong>
+                City Classification:
+              </strong>
+               District 2 
+            </p>
+            <p>
+              <strong>
+                State:
+              </strong>
+               State 2
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex items-center justify-end mt-6"
+    >
+      <div
+        class="MuiFormControl-root css-1qn1dhn-MuiFormControl-root"
+      >
+        <label
+          class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-sizeSmall MuiInputLabel-outlined MuiFormLabel-colorPrimary MuiFormLabel-filled MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-sizeSmall MuiInputLabel-outlined css-1jy569b-MuiFormLabel-root-MuiInputLabel-root"
+          data-shrink="true"
+        >
+          Count
+        </label>
+        <div
+          class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-formControl MuiInputBase-sizeSmall css-1yk1gt9-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root"
+        >
+          <div
+            aria-controls=":r13:"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            class="MuiSelect-select MuiSelect-outlined MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-jedpe8-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input"
+            role="combobox"
+            tabindex="0"
+          >
+            10
+          </div>
+          <input
+            aria-hidden="true"
+            aria-invalid="false"
+            class="MuiSelect-nativeInput css-yf8vq0-MuiSelect-nativeInput"
+            tabindex="-1"
+            value="10"
+          />
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiSelect-icon MuiSelect-iconOutlined css-hfutr2-MuiSvgIcon-root-MuiSelect-icon"
+            data-testid="ArrowDropDownIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M7 10l5 5 5-5z"
+            />
+          </svg>
+          <fieldset
+            aria-hidden="true"
+            class="MuiOutlinedInput-notchedOutline css-1d3z3hw-MuiOutlinedInput-notchedOutline"
+          >
+            <legend
+              class="css-14lo706"
+            >
+              <span>
+                Limit per page
+              </span>
+            </legend>
+          </fieldset>
+        </div>
+      </div>
+      20
+      <nav
+        aria-label="pagination navigation"
+        class="MuiPagination-root MuiPagination-text css-1oj2twp-MuiPagination-root"
+      >
+        <ul
+          class="MuiPagination-ul css-wjh20t-MuiPagination-ul"
+        >
+          <li>
+            <button
+              aria-label="Go to first page"
+              class="MuiButtonBase-root Mui-disabled MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary Mui-disabled MuiPaginationItem-firstLast css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiPaginationItem-icon css-g2z002-MuiSvgIcon-root-MuiPaginationItem-icon"
+                data-testid="FirstPageIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M18.41 16.59L13.82 12l4.59-4.59L17 6l-6 6 6 6zM6 6h2v12H6z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button
+              aria-label="Go to previous page"
+              class="MuiButtonBase-root Mui-disabled MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary Mui-disabled MuiPaginationItem-previousNext css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiPaginationItem-icon css-g2z002-MuiSvgIcon-root-MuiPaginationItem-icon"
+                data-testid="NavigateBeforeIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button
+              aria-current="true"
+              aria-label="page 1"
+              class="MuiButtonBase-root MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary Mui-selected MuiPaginationItem-page css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              tabindex="0"
+              type="button"
+            >
+              1
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+          </li>
+          <li>
+            <button
+              aria-label="Go to page 2"
+              class="MuiButtonBase-root MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary MuiPaginationItem-page css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              tabindex="0"
+              type="button"
+            >
+              2
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+          </li>
+          <li>
+            <button
+              aria-label="Go to next page"
+              class="MuiButtonBase-root MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary MuiPaginationItem-previousNext css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiPaginationItem-icon css-g2z002-MuiSvgIcon-root-MuiPaginationItem-icon"
+                data-testid="NavigateNextIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                />
+              </svg>
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+          </li>
+          <li>
+            <button
+              aria-label="Go to last page"
+              class="MuiButtonBase-root MuiPaginationItem-root MuiPaginationItem-sizeMedium MuiPaginationItem-text MuiPaginationItem-rounded MuiPaginationItem-colorPrimary MuiPaginationItem-textPrimary MuiPaginationItem-firstLast css-1pi9rcw-MuiButtonBase-root-MuiPaginationItem-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiPaginationItem-icon css-g2z002-MuiSvgIcon-root-MuiPaginationItem-icon"
+                data-testid="LastPageIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z"
+                />
+              </svg>
+              <span
+                class="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+              />
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</DocumentFragment>
+`;

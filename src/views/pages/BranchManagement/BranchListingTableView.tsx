@@ -94,26 +94,18 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
       columnHelper.accessor('name', {
         header: 'BRANCH NAME',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.name}
+          </Typography>
         )
       }),
 
       columnHelper.accessor('branchCode', {
         header: 'BRANCH CODE',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.branchCode}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.branchCode}
+          </Typography>
         )
       }),
 
@@ -121,13 +113,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'territory', // Use a custom ID to match the expected header name
         header: 'TERRITORY',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.area.regionId}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.area.regionId}
+          </Typography>
         )
       }),
 
@@ -135,13 +123,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'zonal', // Use a custom ID to match the expected header name
         header: 'ZONAL',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.area.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.area.name}
+          </Typography>
         )
       }),
 
@@ -149,13 +133,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'region', // Use a custom ID to match the expected header name
         header: 'REGION',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.area.regionId}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.area.regionId}
+          </Typography>
         )
       }),
 
@@ -163,13 +143,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'area', // Use a custom ID to match the expected header name
         header: 'AREA',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.area.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.area.name}
+          </Typography>
         )
       }),
 
@@ -177,13 +153,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'cluster', // Use a custom ID to match the expected header name
         header: 'CLUSTER',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.bucket.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.bucket?.name}
+          </Typography>
         )
       }),
 
@@ -191,13 +163,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'cityClassification', // Use a custom ID to match the expected header name
         header: 'CITY CLASSIFICATION',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.district.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.district.name}
+          </Typography>
         )
       }),
 
@@ -205,13 +173,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'state', // Use a custom ID to match the expected header name
         header: 'STATE',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.state.name}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.state.name}
+          </Typography>
         )
       }),
 
@@ -219,13 +183,9 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         id: 'status', // Use a custom ID to match the expected header name
         header: 'STATUS',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.branchStatus}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.branchStatus}
+          </Typography>
         )
       }),
 

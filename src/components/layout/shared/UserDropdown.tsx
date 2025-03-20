@@ -62,6 +62,7 @@ const UserDropdown = () => {
 
   const access_token = getAccessToken()
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
+  const firstLetter = decodedAccessToken?.given_name?.charAt(0) || 'U'
 
   // const refresh_token = getRefreshToken()
   // const decodedToken = decodeToken(access_token)
@@ -207,12 +208,18 @@ const UserDropdown = () => {
         className='mis-2'
       >
         <Avatar
-          ref={anchorRef}
-          alt='John Doe'
-          src='/images/avatars/1.png'
+          alt={decodedAccessToken?.given_name || 'Unknown User'}
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
-        />
+        >
+          {firstLetter}
+        </Avatar>
+        {/* <Avatar
+          ref={anchorRef}
+          alt='John Doe'
+          onClick={handleDropdownOpen}
+          className='cursor-pointer bs-[38px] is-[38px]'
+        /> */}
       </Badge>
       <Popper
         open={open}
@@ -233,7 +240,7 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={decodedAccessToken?.given_name || 'Unknown User'}>{firstLetter}</Avatar>
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
                         {decodedAccessToken?.given_name + ' ' + decodedAccessToken?.family_name || 'John Doe'}

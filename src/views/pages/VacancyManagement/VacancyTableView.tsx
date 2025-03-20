@@ -53,125 +53,89 @@ const VacancyListingTableView = () => {
         // Match the actual data key
         header: 'DESIGNATION',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.designationName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.designationName}
+          </Typography>
         )
       }),
       columnHelper.accessor('employeeCategoryType', {
         // Match the actual data key
         header: 'EMPLOYEE CATEGORY',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.employeeCategoryType}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.employeeCategoryType}
+          </Typography>
         )
       }),
       columnHelper.accessor('branchesName', {
         // Match the actual data key
         header: 'BRANCH',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.branchesName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.branchesName}
+          </Typography>
         )
       }),
       columnHelper.accessor('gradeName', {
         // Match the actual data key
         header: 'GRADE',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.gradeName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.gradeName}
+          </Typography>
         )
       }),
       columnHelper.accessor('bandName', {
         // Match the actual data key
         header: 'BAND',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.bandName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.bandName}
+          </Typography>
         )
       }),
       columnHelper.accessor('businessUnitName', {
         // Match the actual data key
         header: 'BUSINESS UNIT',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.businessUnitName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.businessUnitName}
+          </Typography>
         )
       }),
       columnHelper.accessor('districtName', {
         // Match the actual data key
         header: 'CITY',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.districtName}
-              </Typography>
-            </div>
-          </div>
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.districtName}
+          </Typography>
         )
       }),
       columnHelper.accessor('createdAt', {
         // Match the actual data key
         header: 'START DATE',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Chip
-                variant='tonal'
-                label={`${row.original.createdAt}`}
-                color='success'
-                size='medium'
-                sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 103 }}
-              />
-            </div>
-          </div>
+          <Chip
+            variant='tonal'
+            label={`${row.original.createdAt}`}
+            color='success'
+            size='medium'
+            sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 103 }}
+          />
         )
       }),
       columnHelper.accessor('updatedAt', {
         // Match the actual data key
         header: 'END DATE',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Chip
-                variant='tonal'
-                label={`${row.original.updatedAt}`}
-                color='error'
-                size='medium'
-                sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 105 }}
-              />
-            </div>
-          </div>
+          <Chip
+            variant='tonal'
+            label={`${row.original.updatedAt}`}
+            color='error'
+            size='medium'
+            sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 105 }}
+          />
         )
       }),
       columnHelper.accessor('action', {

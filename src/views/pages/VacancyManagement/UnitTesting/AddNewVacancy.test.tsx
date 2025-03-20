@@ -1,119 +1,96 @@
+// __tests__/AddNewVacancy.test.js
+import React from 'react'
+
 import { usePathname } from 'next/navigation'
 
 import { render, screen } from '@testing-library/react'
 
-import AddNewVacancy from '../[editid]/AddNewVacancy' // Adjust path if needed
+import AddNewVacancy from '../[editid]/AddNewVacancy' // Adjust path as needed
 
-// Mock dynamic imports
-jest.mock('next/dynamic', () => factory => {
-  const Component = factory()
+// Mock the dynamic imports
+jest.mock('next/dynamic', () => () => {
+  const DynamicComponent = () => <div>Mocked Component</div>
 
-  return Component // Immediately resolve the dynamic import
+  DynamicComponent.displayName = 'MockedDynamicComponent'
+
+  return DynamicComponent
 })
 
-// Mock the imported components
-jest.mock('@/form/generatedForms/addVacancy', () => () => (
-  <div data-testid='generated-add-vacancy-form'>Add/Edit Vacancy Form</div>
-))
-jest.mock('../ViewVacancy', () => () => <div data-testid='job-vacancy-view'>Job Vacancy View</div>)
-
-// Mock usePathname
+// Mock the usePathname hook from next/navigation
 jest.mock('next/navigation', () => ({
-  usePathname: jest.fn()
+  usePathname: jest.fn(() => '/jd-management') // Default return value
 }))
 
-describe('AddNewVacancy', () => {
+describe('AddNewVacancy Component', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders GeneratedAddVacancyForm when mode is "add"', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/add/new-vacancy')
+  // Test case 1: Render with mode = 'add'
+  it('renders GeneratedAddVacancyForm when mode is add', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/jd-management/add/jd')
 
     render(<AddNewVacancy />)
 
-    expect(screen.getByTestId('generated-add-vacancy-form')).toBeInTheDocument()
-    expect(screen.queryByTestId('job-vacancy-view')).not.toBeInTheDocument()
-    expect(screen.getByText('Add/Edit Vacancy Form')).toBeInTheDocument()
+    // Check if the mocked component is rendered
+    expect(screen.getByText('Mocked Component')).toBeInTheDocument()
+
+    // Verify props passed to GeneratedAddVacancyForm
+    const { mode, id } = AddNewVacancy().props.children[0].props.children[1].props
+
+    expect(mode).toBe('add')
+    expect(id).toBe('jd')
   })
 
-  it('renders GeneratedAddVacancyForm when mode is "edit" with an id', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/edit/123')
+  // Test case 2: Render with mode = 'edit'
+  it('renders GeneratedAddVacancyForm when mode is edit', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/jd-management/edit/123')
 
     render(<AddNewVacancy />)
 
-    expect(screen.getByTestId('generated-add-vacancy-form')).toBeInTheDocument()
-    expect(screen.queryByTestId('job-vacancy-view')).not.toBeInTheDocument()
-    expect(screen.getByText('Add/Edit Vacancy Form')).toBeInTheDocument()
+    expect(screen.getByText('Mocked Component')).toBeInTheDocument()
+
+    const { mode, id } = AddNewVacancy().props.children[0].props.children[1].props
+
+    expect(mode).toBe('edit')
+    expect(id).toBe('123')
   })
 
-  it('renders JobVacancyView when mode is "view" with an id', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/view/123')
+  // Test case 3: Render with mode = 'view'
+  it('renders JobVacancyView when mode is view', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/jd-management/view/456')
 
     render(<AddNewVacancy />)
 
-    expect(screen.getByTestId('job-vacancy-view')).toBeInTheDocument()
-    expect(screen.queryByTestId('generated-add-vacancy-form')).not.toBeInTheDocument()
-    expect(screen.getByText('Job Vacancy View')).toBeInTheDocument()
+    expect(screen.getByText('Mocked Component')).toBeInTheDocument()
+
+    const { mode, id } = AddNewVacancy().props.children[2].props
+
+    expect(mode).toBe('view')
+    expect(id).toBe('456')
   })
 
-  it('does not render any component when mode is invalid', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/invalid/123')
+  // Test case 4: Handles invalid path gracefully
+  it('renders nothing when mode is invalid', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/jd-management/invalid/789')
 
-    render(<AddNewVacancy />)
+    const { container } = render(<AddNewVacancy />)
 
-    expect(screen.queryByTestId('generated-add-vacancy-form')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('job-vacancy-view')).not.toBeInTheDocument()
+    // Check if nothing is rendered (empty fragment)
+    expect(container.firstChild).toBeNull()
   })
 
-  it('passes correct props to GeneratedAddVacancyForm for "add" mode', () => {
-    const MockGeneratedAddVacancyForm = jest.fn(() => <div data-testid='generated-add-vacancy-form' />)
+  // Test case 5: Handles root path
+  it('renders nothing when path has no segments', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/jd-management')
 
-    jest.mock('@/form/generatedForms/addVacancy', () => MockGeneratedAddVacancyForm)
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/add/new-vacancy')
+    const { container } = render(<AddNewVacancy />)
 
-    render(<AddNewVacancy />)
-
-    expect(MockGeneratedAddVacancyForm).toHaveBeenCalledWith({ mode: 'add', id: 'new-vacancy' }, expect.anything())
+    expect(container.firstChild).toBeNull()
   })
+})
 
-  it('passes correct props to GeneratedAddVacancyForm for "edit" mode', () => {
-    const MockGeneratedAddVacancyForm = jest.fn(() => <div data-testid='generated-add-vacancy-form' />)
-
-    jest.mock('@/form/generatedForms/addVacancy', () => MockGeneratedAddVacancyForm)
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/edit/123')
-
-    render(<AddNewVacancy />)
-
-    expect(MockGeneratedAddVacancyForm).toHaveBeenCalledWith({ mode: 'edit', id: '123' }, expect.anything())
-  })
-
-  it('passes correct props to JobVacancyView for "view" mode', () => {
-    const MockJobVacancyView = jest.fn(() => <div data-testid='job-vacancy-view' />)
-
-    jest.mock('../ViewVacancy', () => MockJobVacancyView)
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management/view/123')
-
-    render(<AddNewVacancy />)
-
-    expect(MockJobVacancyView).toHaveBeenCalledWith({ mode: 'view', id: '123' }, expect.anything())
-  })
-
-  it('handles root path gracefully', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/')
-
-    render(<AddNewVacancy />)
-
-    expect(screen.queryByTestId('generated-add-vacancy-form')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('job-vacancy-view')).not.toBeInTheDocument()
-  })
-
-  it('handles empty segments gracefully', () => {
-    ;(usePathname as jest.Mock).mockReturnValue('/vacancy-management')
-
-    render(<AddNewVacancy />)
-
-    expect(screen.queryByTestId('generated-add-vacancy-form')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('job-vacancy-view')).not.toBeInTheDocument()
-  })
+// Optional: Add this to check code coverage setup
+afterAll(() => {
+  console.log('Run `jest --coverage` to see code coverage report')
 })

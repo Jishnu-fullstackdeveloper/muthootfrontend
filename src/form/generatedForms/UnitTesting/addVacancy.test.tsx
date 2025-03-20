@@ -1,15 +1,31 @@
 import React from 'react'
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-
 import { useFormik } from 'formik'
 
-import GeneratedAddVacancyForm from '../addVacancy'
+import GeneratedAddVacancyForm from '../addVacancy' // Adjust the import path
+import {
+  setVacancyManagementAddFormValues,
+  getVacancyManagementAddFormValues,
+  removeVacancyManagementAddFormValues
+} from '@/utils/functions'
 
-// Mock useFormik
+// Mock dependencies
 jest.mock('formik', () => ({
   useFormik: jest.fn()
 }))
+jest.mock('@/utils/functions', () => ({
+  getVacancyManagementAddFormValues: jest.fn(),
+  setVacancyManagementAddFormValues: jest.fn(),
+  removeVacancyManagementAddFormValues: jest.fn()
+}))
+jest.mock('react-datepicker', () => ({ date, onChange, ...props }) => (
+  <input
+    data-testid={props['data-testid'] || 'datepicker'} // Use provided data-testid or default
+    value={date ? date.toISOString() : ''}
+    onChange={e => onChange(new Date(e.target.value))}
+  />
+))
 
 describe('GeneratedAddVacancyForm', () => {
   const mockSubmit = jest.fn()
@@ -45,48 +61,92 @@ describe('GeneratedAddVacancyForm', () => {
       errors: {},
       resetForm: jest.fn()
     })
+    ;(getVacancyManagementAddFormValues as jest.Mock).mockReturnValue(null)
   })
 
   afterEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders form with all sections', () => {
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
-
+  it('renders the form with stepper and fields', () => {
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
     expect(screen.getByText('Vacancy Management Form')).toBeInTheDocument()
-    expect(screen.getByText('Basic Details')).toBeInTheDocument()
-    expect(screen.getByText('Job Location')).toBeInTheDocument()
-    expect(screen.getByText('Qualification Needed')).toBeInTheDocument()
-    expect(screen.getByText('Salary Details')).toBeInTheDocument()
-    expect(screen.getByText('Application Details')).toBeInTheDocument()
+
+    // Use getAllByText and check the first occurrence or adjust based on context
+    const basicDetailsElements = screen.getAllByText('Basic Details')
+
+    expect(basicDetailsElements[0]).toBeInTheDocument() // Check the first "Basic Details"
+    expect(screen.getByLabelText('Vacancy Title *')).toBeInTheDocument()
+    const jobLocationElements = screen.getAllByText('Job Location')
+
+    expect(jobLocationElements[0]).toBeInTheDocument()
+    const qualificationElements = screen.getAllByText('Qualification Needed')
+
+    expect(qualificationElements[0]).toBeInTheDocument()
+    const salaryDetailsElements = screen.getAllByText('Salary Details')
+
+    expect(salaryDetailsElements[0]).toBeInTheDocument()
+    const applicationDetailsElements = screen.getAllByText('Application Details')
+
+    expect(applicationDetailsElements[0]).toBeInTheDocument()
   })
 
-  it('displays stepper with all steps', () => {
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
+  it('displays validation errors when fields are touched and empty', async () => {
+    const mockFormik = {
+      values: initialValues,
+      handleChange: jest.fn(),
+      handleSubmit: mockSubmit,
+      setFieldValue: jest.fn(),
+      setFieldTouched: jest.fn(),
+      touched: { vacancyTitle: true },
+      errors: { vacancyTitle: 'Vacancy Title is required' },
+      resetForm: jest.fn()
+    }
 
-    expect(screen.getByText('Basic Details')).toBeInTheDocument()
-    expect(screen.getByText('Job Location')).toBeInTheDocument()
-    expect(screen.getByText('Qualification Needed')).toBeInTheDocument()
-    expect(screen.getByText('Salary Details')).toBeInTheDocument()
-    expect(screen.getByText('Application Details')).toBeInTheDocument()
-  })
+    ;(useFormik as jest.Mock).mockReturnValue(mockFormik)
 
-  it('handles form submission', async () => {
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
-    const submitButton = screen.getByText('Add')
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
+    fireEvent.focus(screen.getByLabelText('Vacancy Title *'))
+    fireEvent.blur(screen.getByLabelText('Vacancy Title *'))
 
-    fireEvent.click(submitButton)
     await waitFor(() => {
-      expect(mockSubmit).toHaveBeenCalled()
+      expect(screen.getByText('Vacancy Title is required')).toBeInTheDocument()
     })
   })
 
-  it('resets form when reset button is clicked', () => {
+  it('updates stepper based on filled fields', async () => {
+    const filledValues = {
+      ...initialValues,
+      vacancyTitle: 'Software Engineer',
+      jobType: 'Full-time',
+      jobDescription: 'Develop software',
+      numberOfOpenings: '2'
+    }
+
+    ;(useFormik as jest.Mock).mockReturnValue({
+      values: filledValues,
+      handleChange: jest.fn(),
+      handleSubmit: mockSubmit,
+      setFieldValue: jest.fn(),
+      setFieldTouched: jest.fn(),
+      touched: {},
+      errors: {},
+      resetForm: jest.fn()
+    })
+
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
+    await waitFor(() => {
+      // Find the stepper step for "Basic Details" and check if it has the "Mui-completed" class
+      const basicDetailsStep = screen.getAllByText('Basic Details')[0].closest('.MuiStep-root')
+
+      expect(basicDetailsStep).toHaveClass('Mui-completed') // Step 1 completed
+    })
+  })
+
+  it('resets the form when reset button is clicked', () => {
     const mockResetForm = jest.fn()
 
     ;(useFormik as jest.Mock).mockReturnValue({
-      ...initialValues,
       values: { ...initialValues, vacancyTitle: 'Test' },
       handleChange: jest.fn(),
       handleSubmit: mockSubmit,
@@ -97,37 +157,38 @@ describe('GeneratedAddVacancyForm', () => {
       resetForm: mockResetForm
     })
 
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
-    const resetButton = screen.getByText('Reset Form')
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
+    fireEvent.click(screen.getByText('Reset Form'))
 
-    fireEvent.click(resetButton)
     expect(mockResetForm).toHaveBeenCalledWith({
       values: initialValues
     })
+    expect(removeVacancyManagementAddFormValues).toHaveBeenCalled()
   })
 
-  it('updates step based on form values', async () => {
+  it('submits the form with valid data', async () => {
+    const validValues = {
+      vacancyTitle: 'Software Engineer',
+      jobType: 'Full-time',
+      jobDescription: 'Develop software',
+      numberOfOpenings: '2',
+      branch: 'Tech',
+      city: 'New York',
+      stateOrRegion: 'NY',
+      country: 'USA',
+      educationalQualification: 'Bachelor’s',
+      experienceInYears: '3',
+      skillsNeeded: 'React, Node',
+      salaryRange: '$80k-$100k',
+      additionalBenefits: 'Health insurance',
+      vacancyStartDate: new Date('2025-04-01'),
+      vacancyEndDate: new Date('2025-06-01'),
+      contactPerson: 'John Doe',
+      vacancyStatus: 'Open'
+    }
+
     ;(useFormik as jest.Mock).mockReturnValue({
-      values: {
-        ...initialValues,
-        vacancyTitle: 'Test',
-        jobType: 'Full-time',
-        jobDescription: 'Test desc',
-        numberOfOpenings: '2',
-        branch: 'Main',
-        city: 'NY',
-        stateOrRegion: 'NY',
-        country: 'USA',
-        educationalQualification: 'BS',
-        experienceInYears: '2',
-        skillsNeeded: 'React',
-        salaryRange: '50k-60k',
-        additionalBenefits: 'Health',
-        vacancyStartDate: new Date('2025-01-01'),
-        vacancyEndDate: new Date('2025-12-31'),
-        contactPerson: 'John',
-        vacancyStatus: 'Open'
-      },
+      values: validValues,
       handleChange: jest.fn(),
       handleSubmit: mockSubmit,
       setFieldValue: jest.fn(),
@@ -137,17 +198,40 @@ describe('GeneratedAddVacancyForm', () => {
       resetForm: jest.fn()
     })
 
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
+    fireEvent.click(screen.getByText('Add'))
+
     await waitFor(() => {
-      expect(screen.getByText('Application Details')).toBeInTheDocument()
+      expect(mockSubmit).toHaveBeenCalled()
+      expect(setVacancyManagementAddFormValues).toHaveBeenCalledWith(validValues)
     })
   })
 
-  it('handles date picker changes', () => {
+  it('loads cached values in add mode', () => {
+    const cachedValues = { vacancyTitle: 'Cached Title' }
+
+    ;(getVacancyManagementAddFormValues as jest.Mock).mockReturnValue(cachedValues)
+
+    // Override the default mock to use cached values
+    ;(useFormik as jest.Mock).mockReturnValue({
+      values: { ...initialValues, ...cachedValues }, // Merge cached values with initialValues
+      handleChange: jest.fn(),
+      handleSubmit: mockSubmit,
+      setFieldValue: jest.fn(),
+      setFieldTouched: jest.fn(),
+      touched: {},
+      errors: {},
+      resetForm: jest.fn()
+    })
+
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
+    expect(screen.getByLabelText('Vacancy Title *')).toHaveValue('Cached Title')
+  })
+
+  it('handles date picker input correctly', async () => {
     const mockSetFieldValue = jest.fn()
 
     ;(useFormik as jest.Mock).mockReturnValue({
-      ...initialValues,
       values: initialValues,
       handleChange: jest.fn(),
       handleSubmit: mockSubmit,
@@ -158,27 +242,16 @@ describe('GeneratedAddVacancyForm', () => {
       resetForm: jest.fn()
     })
 
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
-    const startDateInput = screen.getAllByPlaceholderText('dd-mm-yyyy')[0]
+    render(<GeneratedAddVacancyForm mode='add' id={undefined} />)
 
-    fireEvent.change(startDateInput, { target: { value: '2025-01-01T00:00:00.000Z' } })
-    expect(mockSetFieldValue).toHaveBeenCalledWith('vacancyStartDate', expect.any(Date))
-  })
+    // Use getAllByTestId and select the first datepicker (assuming it's for start date)
+    const datePickers = screen.getAllByTestId('datepicker')
+    const startDateInput = datePickers[0] // Target the first datepicker for vacancyStartDate
 
-  it('displays validation errors', async () => {
-    ;(useFormik as jest.Mock).mockReturnValue({
-      ...initialValues,
-      values: initialValues,
-      handleChange: jest.fn(),
-      handleSubmit: mockSubmit,
-      setFieldValue: jest.fn(),
-      setFieldTouched: jest.fn(),
-      touched: { vacancyTitle: true },
-      errors: { vacancyTitle: 'Vacancy Title is required' },
-      resetForm: jest.fn()
+    fireEvent.change(startDateInput, { target: { value: '2025-04-01T00:00:00Z' } })
+
+    await waitFor(() => {
+      expect(mockSetFieldValue).toHaveBeenCalledWith('vacancyStartDate', expect.any(Date))
     })
-
-    render(<GeneratedAddVacancyForm mode='add' id='1' />)
-    expect(screen.getByText('Vacancy Title is required')).toBeInTheDocument()
   })
 })

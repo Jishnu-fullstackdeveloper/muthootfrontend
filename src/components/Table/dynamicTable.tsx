@@ -21,12 +21,12 @@ import {
   Checkbox,
   IconButton,
   Typography,
-  Tooltip
+  Tooltip,
+  Card
 } from '@mui/material'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 
 const DynamicTable = ({
@@ -36,7 +36,8 @@ const DynamicTable = ({
   pagination,
   onPageChange,
   onRowsPerPageChange,
-  onPageCountChange // Added
+  onPageCountChange, // Added
+  tableName // New prop for table name
 }: any) => {
   const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 7)) // Start with first 5 columns
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
@@ -175,7 +176,7 @@ const DynamicTable = ({
 
   // Rest of the component (Table, Drawer, etc.) remains unchanged
   return (
-    <>
+    <Card>
       <Box
         sx={{
           position: 'sticky',
@@ -183,14 +184,26 @@ const DynamicTable = ({
           right: 0,
           zIndex: 1, // Ensure it stays above the table
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: tableName ? 'space-between' : 'flex-end', // Conditional justification
+          alignItems: 'center', // Added to vertically center the content
           p: 2,
           backgroundColor: 'inherit' // Match the background of the table container
         }}
       >
+        {/* Table Name on the left, only if provided */}
+        {tableName && (
+          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+            {tableName}
+          </Typography>
+        )}
+
+        {/* Filter Icon on the right */}
         <Tooltip title='Filter Columns'>
           <IconButton onClick={() => setOpenColumnDrawer(true)}>
-            <FilterListIcon />
+            <FilterListIcon className='size-4' />
+            <Typography variant='subtitle2' sx={{ fontSize: 15, ml: 1 }}>
+              Filter
+            </Typography>
           </IconButton>
         </Tooltip>
       </Box>
@@ -216,7 +229,7 @@ const DynamicTable = ({
                           <ArrowDropUpIcon sx={{ color: '#1976d2' }} />
                         )
                       ) : (
-                        <UnfoldMoreIcon sx={{ color: 'gray' }} />
+                        <i className='tabler-arrows-up-down size-3' />
                       )}
                     </div>
                   </TableCell>
@@ -238,7 +251,7 @@ const DynamicTable = ({
           <TableFooter>
             <TableRow>
               <TableCell colSpan={columns.length + 1}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Switch checked={dense} onChange={e => setDense(e.target.checked)} />}
                     label='Dense padding'
@@ -294,7 +307,7 @@ const DynamicTable = ({
           </Grid>
         </Box>
       </Drawer>
-    </>
+    </Card>
   )
 }
 

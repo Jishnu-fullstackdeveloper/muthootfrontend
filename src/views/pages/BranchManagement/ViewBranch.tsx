@@ -28,9 +28,9 @@ import VacancyManagementOverview from '@/views/branch/components/VacancyManageme
 
 const tabMapping: { [key: string]: number } = {
   'employees-details': 0,
-  'bubble-positions': 1,
-  'bucket-management': 2,
-  'vacancy-management': 3
+  // 'bubble-positions': 1,
+  'budget-management': 1,
+  'vacancy-management': 2
 }
 
 const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
@@ -161,7 +161,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   // Tab change handler
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
-    const paths = ['employees-details', 'bubble-positions', 'bucket-management', 'vacancy-management']
+    const paths = ['employees-details', 'budget-management', 'vacancy-management']
 
     router.push(`${paths[newValue]}?id=${id}`)
   }
@@ -272,8 +272,8 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
       <Card sx={{ p: 4 }}>
         <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
           <Tab label='Employees Details' />
-          <Tab label='Bubble Position' />
-          <Tab label='Bucket Management' />
+          {/* <Tab label='Bubble Position' /> */}
+          <Tab label='Budget Management' />
           <Tab label='Vacancy Management' />
         </Tabs>
         <Divider sx={{ my: 3 }} />
@@ -293,16 +293,16 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               onRowsPerPageChange={handleRowsPerPageChange}
             />
           ))}
-        {activeTab === 1 && (
+        {/* {activeTab === 1 && (
           <BubblePositionsOverview
             bubblePositionData={bubblePositionData}
             loading={fetchBubblePositionsLoading}
             failure={fetchBubblePositionsFailure}
             failureMessage={fetchBubblePositionsFailureMessage}
           />
-        )}
-        {activeTab === 2 && <BucketManagementOverview branchData={branchData} />}
-        {activeTab === 3 && (
+        )} */}
+        {activeTab === 1 && <BucketManagementOverview branchData={branchData} />}
+        {activeTab === 2 && (
           <VacancyManagementOverview
             vacanciesData={fetchVacanciesData?.data || []}
             loading={fetchVacanciesLoading}

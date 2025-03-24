@@ -28,19 +28,16 @@ import { jwtDecode } from 'jwt-decode'
 
 import { useSettings } from '@core/hooks/useSettings'
 import type { AppDispatch } from '@/redux/store'
-import { changePasswordApi, signOutApi } from '@/redux/loginSlice'
+import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
 
-// fetchNewAccessToken // LoginDataDismiss These Two needed for future case
 import {
   decodeToken,
   getAccessToken,
   getCurrentPermissions,
-
-  // getRefreshToken,
-  Logout
-
-  // setAccessToken,
-  // setRefreshToken
+  getRefreshToken,
+  Logout,
+  setAccessToken,
+  setRefreshToken
 } from '@/utils/functions'
 import { useAppSelector } from '@/lib/hooks'
 
@@ -64,18 +61,18 @@ const UserDropdown = () => {
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
   const firstLetter = decodedAccessToken?.given_name?.charAt(0) || 'U'
 
-  // const refresh_token = getRefreshToken()
-  // const decodedToken = decodeToken(access_token)
+  const refresh_token = getRefreshToken()
+  const decodedToken = decodeToken(access_token)
 
   const loginStates = useAppSelector((state: any) => state.loginReducer)
 
   // console.log({ role:currentPermissions[0]?.role }, "currentPermissions role..........");
 
   const {
-    // newAccessTokenApiData,
-    // newAccessTokenApiSuccess,
-    // newAccessTokenApiFailure,
-    // newAccessTokenApiFailureMessage,
+    newAccessTokenApiData,
+    newAccessTokenApiSuccess,
+    newAccessTokenApiFailure,
+    newAccessTokenApiFailureMessage,
     changePasswordData
 
     // changePasswordFailure,
@@ -153,36 +150,35 @@ const UserDropdown = () => {
     }
   }, [])
 
-  // /** Author : Siyad-M
   //  functionality: Fetching new access token to avoid unauthorization issue*/
-  // useEffect(() => {
-  //   if (newAccessTokenApiSuccess && newAccessTokenApiData?.access_token) {
-  //     setAccessToken(newAccessTokenApiData.access_token)
-  //     if (newAccessTokenApiData?.refresh_token) {
-  //       setRefreshToken(newAccessTokenApiData?.refresh_token)
-  //     }
-  //   }
+  useEffect(() => {
+    if (newAccessTokenApiSuccess && newAccessTokenApiData?.data?.access_token) {
+      setAccessToken(newAccessTokenApiData?.data?.access_token)
+      if (newAccessTokenApiData?.data?.refresh_token) {
+        setRefreshToken(newAccessTokenApiData?.data?.refresh_token)
+      }
+    }
 
-  //   if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
-  //     // handleUserLogout()
-  //     dispatch(LoginDataDismiss())
-  //   }
-  // }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
+    if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
+      handleUserLogout()
+      dispatch(LoginDataDismiss())
+    }
+  }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
 
-  // // to call this api in every 2 minitues
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     if (access_token && refresh_token) {
-  //       const decodedToken: any = jwtDecode(access_token)
-  //       const params: any = {
-  //         realm: decodedToken?.realm,
-  //         refreshtoken: refresh_token
-  //       }
-  //       dispatch(fetchNewAccessToken(params))
-  //     }
-  //   }, 300000)
-  //   return () => clearInterval(intervalId)
-  // }, [])
+  // to call this api in every 15 minitues
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (access_token && refresh_token) {
+        const decodedToken: any = jwtDecode(access_token)
+        const params: any = {
+          realm: decodedToken?.realm,
+          refreshtoken: refresh_token
+        }
+        dispatch(fetchNewAccessToken(params))
+      }
+    }, 900000)
+    return () => clearInterval(intervalId)
+  }, [])
 
   useEffect(() => {
     if (changePasswordData) {

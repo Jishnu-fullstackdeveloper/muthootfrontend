@@ -94,7 +94,7 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
   'appLogin/fetchNewAccessToken',
   async (params: any, { rejectWithValue }) => {
     try {
-      const api = `/auth/user/refreshToken/${params?.realm}`
+      const api = `/auth/user/refresh-token`
 
       AxiosLib.defaults.headers.common['refreshtoken'] = `${params.refreshtoken}`
       const response = await AxiosLib.get(api)

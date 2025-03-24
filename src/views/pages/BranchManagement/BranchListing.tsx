@@ -85,11 +85,9 @@ const BranchListing = () => {
         sx={{
           mb: 4,
           position: 'sticky',
-          top: 70,
+          top: 40,
           zIndex: 10,
-          backgroundColor: 'white',
-          height: 'auto',
-          paddingBottom: 2
+          backgroundColor: 'white'
         }}
       >
         <Box
@@ -98,7 +96,7 @@ const BranchListing = () => {
             justifyContent: 'space-between',
             flexDirection: { xs: 'column', md: 'row' },
             alignItems: { xs: 'flex-start', md: 'flex-start' },
-            p: 6,
+            p: 4,
             borderBottom: 1,
             borderColor: 'divider',
             gap: 4,
@@ -221,7 +219,7 @@ const BranchListing = () => {
                           size='small'
                           sx={{
                             fontWeight: 'bold',
-                            fontSize: '0.85rem',
+                            // fontSize: '0.85rem',
                             textTransform: 'uppercase'
                           }}
                         />
@@ -242,8 +240,8 @@ const BranchListing = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1,
-                        color: 'text.secondary',
-                        fontSize: '0.875rem'
+                        color: 'text.secondary'
+                        // fontSize: '0.575rem'
                       }}
                     >
                       <Typography variant='body2'>
@@ -264,8 +262,8 @@ const BranchListing = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1,
-                        color: 'text.secondary',
-                        fontSize: '0.875rem'
+                        color: 'text.secondary'
+                        // fontSize: '0.275rem'
                       }}
                     >
                       <Typography variant='body2'>

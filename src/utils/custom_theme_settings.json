@@ -20,7 +20,7 @@
         "width": {
           "xs_phones": 30,
           "sm_tablets": 40,
-          "md_desktops": 50
+          "md_desktops": 40
         },
         "height": "auto"
       },

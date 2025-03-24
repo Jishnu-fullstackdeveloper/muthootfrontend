@@ -83,13 +83,23 @@ const ThemeProvider = (props: Props) => {
       fontWeight: 500,
       lineHeight: 1.4
     },
+    h4: {
+      fontSize: '1.25rem', // Adjusted for branch name in BranchListing
+      fontWeight: 500,
+      lineHeight: 1.2
+    },
+    h5: {
+      fontSize: '1.25rem', // Adjusted for branch name in BranchListing
+      fontWeight: 500,
+      lineHeight: 1.2
+    },
     body1: {
-      fontSize: '0.77rem',
+      fontSize: '0.67rem',
       fontWeight: 400,
       lineHeight: 1.5
     },
     body2: {
-      fontSize: '.5rem',
+      fontSize: '0.75rem', // Adjusted for better readability in BranchListing (previously 0.5rem)
       fontWeight: 400,
       lineHeight: 1.5
     },
@@ -106,20 +116,20 @@ const ThemeProvider = (props: Props) => {
     MuiMenuItem: {
       styleOverrides: {
         root: {
-          fontSize: '1.5rem',
+          fontSize: '0.7rem',
           padding: '8px 16px',
           lineHeight: 1.5
         }
       }
     },
-    // Override MuiTypography to ensure typography aligns with defined settings
-    MuiTypography: {
-      styleOverrides: {
-        root: {
-          fontSize: '.95rem'
-        }
-      }
-    },
+    // Removed MuiTypography override to allow typographySettings to take effect
+    // MuiTypography: {
+    //   styleOverrides: {
+    //     root: {
+    //       fontSize: '.95rem',
+    //     },
+    //   },
+    // },
     // Override MuiButton to ensure buttons have consistent typography
     MuiButton: {
       styleOverrides: {
@@ -133,12 +143,12 @@ const ThemeProvider = (props: Props) => {
     MuiTableHead: {
       styleOverrides: {
         root: {
-          backgroundColor: currentMode === 'dark' ? '#2d3748' : '#f5f5f5', // Background color for table header
+          backgroundColor: currentMode === 'dark' ? '#2d3748' : '#f5f5f5',
           '& .MuiTableCell-head': {
-            fontSize: '0.75rem', // Font size for table header cells
-            fontWeight: 600, // Bold text for headers
-            color: currentMode === 'dark' ? '#e2e8f0' : '#374151', // Text color based on mode
-            padding: '12px', // Adjust padding for header cells
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            color: currentMode === 'dark' ? '#e2e8f0' : '#374151',
+            padding: '12px',
             lineHeight: 1.4
           }
         }
@@ -150,25 +160,41 @@ const ThemeProvider = (props: Props) => {
         root: {
           '& .MuiTableRow-root': {
             '&:hover': {
-              backgroundColor: currentMode === 'dark' ? '#4a5568' : '#f9fafb' // Hover effect for rows
+              backgroundColor: currentMode === 'dark' ? '#4a5568' : '#f9fafb'
             }
           },
           '& .MuiTableCell-root': {
-            // Target all TableCell components within TableBody
-            fontSize: '0.57rem', // Font size for table body cells (matches body1)
-            fontWeight: 400, // Regular weight for body cells
-            color: currentMode === 'dark' ? '#d1d5db' : '#4b5563', // Text color based on mode
-            padding: '10px', // Adjust padding for body cells
+            fontSize: '0.63rem',
+            fontWeight: 400,
+            color: currentMode === 'dark' ? '#d1d5db' : '#4b5563',
+            padding: '10px',
             lineHeight: 1.5,
-            whiteSpace: 'nowrap', // Ensure nowrap is applied here to avoid conflict with sx
+            whiteSpace: 'nowrap',
             '& > *': {
-              // Ensure nested elements (e.g., from flexRender) inherit styles
               fontSize: 'inherit',
               fontWeight: 'inherit',
               color: 'inherit',
               lineHeight: 'inherit'
             }
           }
+        }
+      }
+    },
+    // Override MuiBox to set a default font size for all Box components
+    MuiBox: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem' // Set default font size to 14px (0.875rem) for Box itself
+          // Removed '& > * { fontSize: 'inherit' }' to allow Typography to use its own font sizes
+        }
+      }
+    },
+    // Optional: Override MuiGrid to ensure it doesn't interfere with nested Typography
+    MuiGrid: {
+      styleOverrides: {
+        root: {
+          // No font size override here, as Grid is primarily a layout component
+          // We can add styles if needed, but it's not necessary for font size adjustments
         }
       }
     }

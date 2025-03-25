@@ -48,11 +48,7 @@ const EmployeeTable = () => {
     () => [
       columnHelper.accessor('employeeCode', {
         header: 'EMPLOYEE CODE',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.employeeCode}
-          </Typography>
-        )
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCode}</Typography>
       }),
       columnHelper.accessor('title', {
         header: 'TITLE',
@@ -227,7 +223,7 @@ const EmployeeTable = () => {
   )
 
   return (
-    <div>
+    <Box>
       <DynamicTable
         columns={columns}
         data={tableData.data}
@@ -243,7 +239,7 @@ const EmployeeTable = () => {
         onConfirm={handleDeleteConfirm}
         id={employeeIdToDelete}
       />
-    </div>
+    </Box>
   )
 }
 

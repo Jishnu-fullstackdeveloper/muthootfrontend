@@ -241,8 +241,8 @@ const VacancyListingPage = () => {
           paddingBottom: 2
         }}
       >
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
-          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
+        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
+          <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <DebouncedInput
               label='Search Vacancy'
               value=''
@@ -278,8 +278,8 @@ const VacancyListingPage = () => {
                 disabled={CheckAllFiltersEmpty(selectedFilters)}
               />
             </Box>
-          </div>
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
+          </Box>
+          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 5 }}>
             <DynamicButton
               label='New Vacancy'
               variant='contained'
@@ -291,28 +291,39 @@ const VacancyListingPage = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: 2,
+                gap: 0.5, // Reduced gap
                 alignItems: 'center',
-                padding: '1px',
+                padding: '2px', // Slightly larger than 0.5px but still compact
                 backgroundColor: '#f5f5f5',
-                borderRadius: '8px',
+                borderRadius: '6px', // Slightly smaller radius
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
+                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' },
+                width: 'fit-content' // Adjusts to content size
               }}
             >
               <Tooltip title='Grid View'>
-                <IconButton color={viewMode === 'grid' ? 'primary' : 'secondary'} onClick={() => setViewMode('grid')}>
-                  <GridViewIcon />
+                <IconButton
+                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('grid')}
+                  size='small' // Smaller IconButton
+                  sx={{ p: 0.5 }} // Reduced padding
+                >
+                  <GridViewIcon fontSize='small' /> {/* Smaller icon */}
                 </IconButton>
               </Tooltip>
               <Tooltip title='Table View'>
-                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
-                  <TableChartIcon />
+                <IconButton
+                  color={viewMode === 'table' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('table')}
+                  size='small' // Smaller IconButton
+                  sx={{ p: 0.5 }} // Reduced padding
+                >
+                  <TableChartIcon fontSize='small' /> {/* Smaller icon */}
                 </IconButton>
               </Tooltip>
             </Box>
           </Box>
-        </div>
+        </Box>
         <Box>
           {!CheckAllFiltersEmpty(selectedFilters) && (
             <Stack direction='row' spacing={1} ml={5}>
@@ -373,7 +384,7 @@ const VacancyListingPage = () => {
         </Box>
       )}
 
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
+      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
           vacancies?.map((vacancy: Vacancy) => (
             <Box
@@ -382,14 +393,14 @@ const VacancyListingPage = () => {
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}
             >
-              <Box className='pt-3 pl-4 pb-3 pr-2 flex justify-between items-center'>
-                <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom>
+              <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
+                <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
                   {vacancy.designationName}
                 </Typography>
-                <div className='flex space-x-2'>
+                <Box className='flex'>
                   <Tooltip title='Edit Vacancy' placement='top'>
                     <IconButton
-                      sx={{ ':hover': { color: 'primary.main' } }}
+                      sx={{ ':hover': { color: 'primary.main' }, fontSize: '1.2rem' }}
                       onClick={e => {
                         e.stopPropagation()
                         router.push(`/vacancy-management/edit/${vacancy.id}`)
@@ -399,76 +410,79 @@ const VacancyListingPage = () => {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title='Delete Vacancy' placement='top'>
-                    <IconButton sx={{ ':hover': { color: 'error.main' } }} onClick={e => e.stopPropagation()}>
+                    <IconButton
+                      sx={{ ':hover': { color: 'error.main' }, fontSize: '1.2rem' }}
+                      onClick={e => e.stopPropagation()}
+                    >
                       <i className='tabler-trash' />
                     </IconButton>
                   </Tooltip>
-                </div>
+                </Box>
               </Box>
-              <Box className='p-4 border-t'>
+              <Box className='p-2 border-t'>
                 <Tabs
                   value={selectedTabs[vacancy.id] || 0}
                   onClick={e => e.stopPropagation()}
                   onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)}
                   aria-label='vacancy details'
                 >
-                  <Tab label='Details' />
-                  <Tab label='More details' />
+                  <Tab label='Details' sx={{ fontSize: '11px' }} />
+                  <Tab label='More details' sx={{ fontSize: '11px' }} />
                 </Tabs>
                 <Box className='mt-4'>
                   {selectedTabs[vacancy.id] === 0 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <p>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Category Type:</strong> {vacancy.employeeCategoryType}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Grade:</strong> {vacancy.gradeName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Band:</strong> {vacancy.bandName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Business Unit:</strong> {vacancy.businessUnitName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Branch:</strong> {vacancy.branchesName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Department:</strong> {vacancy.departmentName}
-                      </p>
+                      </Typography>
                       <Chip
                         variant='tonal'
                         label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
                         color='success'
-                        size='medium'
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 200 }}
+                        size='small'
+                        sx={{ fontWeight: 'bold', fontSize: '8px', textTransform: 'uppercase', width: 125 }}
                       />
                       <Chip
                         variant='tonal'
                         label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
                         color='error'
-                        size='medium'
-                        sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 190 }}
+                        size='small'
+                        sx={{ fontWeight: 'bold', fontSize: '8px', textTransform: 'uppercase', width: 125 }}
                       />
                     </Box>
                   )}
                   {selectedTabs[vacancy.id] === 1 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
-                      <p>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>State:</strong> {vacancy.stateName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>City:</strong> {vacancy.districtName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Region:</strong> {vacancy.regionName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Zone:</strong> {vacancy.zoneName}
-                      </p>
-                      <p>
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
                         <strong>Area:</strong> {vacancy.areaName}
-                      </p>
+                      </Typography>
                     </Box>
                   )}
                 </Box>
@@ -478,10 +492,10 @@ const VacancyListingPage = () => {
         ) : (
           <VacancyListingTableView />
         )}
-      </div>
+      </Box>
 
       {viewMode !== 'table' && (
-        <div className='flex items-center justify-end mt-6'>
+        <Box className='flex items-center justify-end mt-6'>
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
@@ -505,7 +519,7 @@ const VacancyListingPage = () => {
             page={paginationState?.page}
             onChange={handlePageChange}
           />
-        </div>
+        </Box>
       )}
     </div>
   )

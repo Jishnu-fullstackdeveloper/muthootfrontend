@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { IconButton, Tooltip, Typography, Chip, Button } from '@mui/material'
+import { IconButton, Tooltip, Typography, Chip, Button, Box } from '@mui/material'
 
 import type { ColumnDef } from '@tanstack/react-table'
 
@@ -126,7 +126,7 @@ const CandidateListingTableView = () => {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (
-          <div className='flex items-center'>
+          <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton onClick={() => router.push(`/candidate/view/${row.original.id}`)}>
                 <i className='tabler-eye text-textSecondary'></i>
@@ -155,7 +155,7 @@ const CandidateListingTableView = () => {
                 Reject <i className='ml-1 tabler-circle-minus'></i>
               </Button>
             </Tooltip>
-          </div>
+          </Box>
         ),
         enableSorting: false
       })
@@ -166,7 +166,7 @@ const CandidateListingTableView = () => {
   // Removed the sample data from here as it’s now imported from candidatesData.ts
 
   return (
-    <div>
+    <Box>
       <DynamicTable
         columns={columns}
         data={candidatesData}
@@ -181,7 +181,7 @@ const CandidateListingTableView = () => {
         onConfirm={handleDeleteConfirm}
         id={candidateIdToDelete}
       />
-    </div>
+    </Box>
   )
 }
 

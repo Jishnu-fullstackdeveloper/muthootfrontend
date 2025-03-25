@@ -14,7 +14,8 @@ import {
   TableFooter,
   TablePagination,
   FormControlLabel,
-  Switch,
+
+  //Switch,
   Box,
   Drawer,
   Grid,
@@ -41,7 +42,8 @@ const DynamicTable = ({
 }: any) => {
   const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 7)) // Start with first 5 columns
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
-  const [dense, setDense] = useState(false)
+
+  //const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [openColumnDrawer, setOpenColumnDrawer] = useState(false)
 
@@ -200,15 +202,16 @@ const DynamicTable = ({
         {/* Filter Icon on the right */}
         <Tooltip title='Filter Columns'>
           <IconButton onClick={() => setOpenColumnDrawer(true)}>
-            <FilterListIcon className='size-4' />
-            <Typography variant='subtitle2' sx={{ fontSize: 15, ml: 1 }}>
+            <Typography variant='subtitle2' sx={{ fontSize: 15, mr: 1 }}>
               Filter
             </Typography>
+            <FilterListIcon className='size-4' />
           </IconButton>
         </Tooltip>
       </Box>
       <TableContainer component={Paper}>
-        <Table size={dense ? 'small' : 'medium'}>
+        <Table>
+          {/* size={dense ? 'small' : 'medium'} */}
           <TableHead>
             <TableRow>
               {table.getHeaderGroups()[0].headers.map(header => {
@@ -252,10 +255,10 @@ const DynamicTable = ({
             <TableRow>
               <TableCell colSpan={columns.length + 1}>
                 <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
-                  <FormControlLabel
+                  {/* <FormControlLabel
                     control={<Switch checked={dense} onChange={e => setDense(e.target.checked)} />}
                     label='Dense padding'
-                  />
+                  /> */}
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     count={totalCount || 0}

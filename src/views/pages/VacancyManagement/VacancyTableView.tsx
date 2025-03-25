@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { IconButton, Tooltip, Typography, Chip } from '@mui/material'
+import { IconButton, Tooltip, Typography, Chip, Box } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -142,7 +142,7 @@ const VacancyListingTableView = () => {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (
-          <div className='flex items-center'>
+          <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton onClick={() => router.push(`/vacancy-management/view/${row.original.id}`)}>
                 <i className='tabler-eye text-textSecondary'></i>
@@ -153,7 +153,7 @@ const VacancyListingTableView = () => {
                 <i className='tabler-edit text-[22px] text-textSecondary' />
               </IconButton>
             </Tooltip>
-          </div>
+          </Box>
         ),
         enableSorting: false
       })
@@ -162,7 +162,7 @@ const VacancyListingTableView = () => {
   )
 
   return (
-    <div>
+    <Box>
       <DynamicTable
         columns={columns}
         data={vacancies || []}
@@ -172,7 +172,7 @@ const VacancyListingTableView = () => {
         onRowsPerPageChange={handleRowsPerPageChange}
         onPageCountChange={handlePageCountChange}
       />
-    </div>
+    </Box>
   )
 }
 

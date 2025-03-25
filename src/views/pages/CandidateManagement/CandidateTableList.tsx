@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { IconButton, Tooltip, Typography, Chip, Button } from '@mui/material'
+import { IconButton, Tooltip, Typography, Chip, Button, Box } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -133,7 +133,7 @@ const CandidateTableList = () => {
           }
 
           return (
-            <div className='flex items-center'>
+            <Box className='flex items-center'>
               <Tooltip title='View' placement='top'>
                 <IconButton onClick={() => router.push(`candidate-management/view/${row.original.id}`)}>
                   <i className='tabler-eye text-textSecondary'></i>
@@ -153,7 +153,7 @@ const CandidateTableList = () => {
               >
                 {buttonLabel} <i className={`ml-1 tabler-${buttonLabel === 'Shortlist' ? 'check' : 'circle-minus'}`} />
               </Button>
-            </div>
+            </Box>
           )
         },
         enableSorting: false
@@ -171,7 +171,7 @@ const CandidateTableList = () => {
   )
 
   return (
-    <div>
+    <Box>
       <DynamicTable
         columns={columns}
         data={tableData.data}
@@ -186,7 +186,7 @@ const CandidateTableList = () => {
         onConfirm={handleDeleteConfirm}
         id={candidateIdToDelete}
       />
-    </div>
+    </Box>
   )
 }
 

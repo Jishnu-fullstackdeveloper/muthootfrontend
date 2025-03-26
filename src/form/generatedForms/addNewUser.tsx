@@ -1,300 +1,320 @@
-'use client'
-import React, { useEffect, useState } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
 
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import { FormControl, TextField, Autocomplete, Grid } from '@mui/material'
 
-import DynamicButton from '@/components/Button/dynamicButton'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
-import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation'; // Use useParams instead of useSearchParams
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { FormControl, TextField, Autocomplete, Grid } from '@mui/material';
+import DynamicButton from '@/components/Button/dynamicButton';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice';
+import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice';
 
 type Props = {
-  mode: 'add' | 'edit'
-  id?: string
-}
+  mode: 'add' | 'edit';
+};
 
-const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
-  const dispatch = useAppDispatch()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+const AddOrEditUser: React.FC<Props> = ({ mode }) => {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const params = useParams(); // Get the id from the route
 
-  const { employeeData, isEmployeeLoading, isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage } =
-    useAppSelector((state: any) => state.UserManagementReducer || {})
+  const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage , userManagementData} =
+  useAppSelector((state: any) => state.UserManagementReducer || {});
 
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {})
+const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {});
 
-  const [apiErrors, setApiErrors] = useState<string[]>([])
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
+
+  const userId = mode === 'edit' ? (params.id as string) : null; // Extract id from route params
 
   useEffect(() => {
-    dispatch(fetchEmployees({}))
-    dispatch(fetchUserRole({ page: 1, limit: 100 }))
-  }, [dispatch])
+    dispatch(fetchEmployees({}));
+    dispatch(fetchUserRole({ page: 1, limit: 100 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (mode === 'edit' && userId && userManagementData?.data) {
+      const existingUser = userManagementData.data.find((user: any) => user.userId === userId);
+      if (existingUser) {
+        // Populate form with existing user data
+        userFormik.setValues({
+          employeeCode: existingUser.employeeCode || '',
+          userId: existingUser.userId || '',
+          firstName: existingUser.firstName || '',
+          middleName: existingUser.middleName || '',
+          lastName: existingUser.lastName || '',
+          email: existingUser.email || '',
+          designation : existingUser.designation || '',
+          roles: existingUser.roles?.length
+            ? existingUser.roles.map((role: any) => (typeof role === 'string' ? role : role.name))
+            : existingUser.role
+            ? [existingUser.role]
+            : []
+        });
+      } else {
+        // Optionally fetch user data if not in store
+        // dispatch(fetchUserById(userId)); // You'd need to implement this action
+      }
+    }
+  }, [mode, userId, userManagementData]);
 
   useEffect(() => {
     if (addUserFailure && addUserFailureMessage) {
-      const messages = Array.isArray(addUserFailureMessage) ? addUserFailureMessage : [addUserFailureMessage]
-
-      setApiErrors(messages)
+      const messages = Array.isArray(addUserFailureMessage.message)
+        ? addUserFailureMessage.message
+        : [addUserFailureMessage.message || addUserFailureMessage || 'Unknown error'];
+      setApiErrors(messages);
     } else {
-      setApiErrors([])
+      setApiErrors([]);
     }
-  }, [addUserFailure, addUserFailureMessage])
+  }, [addUserFailure, addUserFailureMessage]);
 
   useEffect(() => {
     if (addUserSuccess) {
-      router.push('/user-management')
+      router.push('/user-management');
     }
-  }, [addUserSuccess, router])
+  }, [addUserSuccess, router]);
 
   useEffect(() => {
     return () => {
-      dispatch(resetAddUserStatus())
-    }
-  }, [dispatch])
+      dispatch(resetAddUserStatus());
+    };
+  }, [dispatch]);
 
-  // Sanitize role to only allow letters, numbers, spaces, and hyphens
   const sanitizeRole = (role: string) => {
-    return role.replace(/[^a-zA-Z0-9\s-]/g, '').trim()
-  }
+    return role.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+  };
 
   const userFormik = useFormik({
     initialValues: {
-      employeeCode: mode === 'edit' ? searchParams.get('employeeCode') || '' : '',
-      adUserId: mode === 'edit' ? searchParams.get('adUserId') || '' : '',
-      firstName: mode === 'edit' ? searchParams.get('firstName') || '' : '',
-      middleName: mode === 'edit' ? searchParams.get('middleName') || '' : '',
-      lastName: mode === 'edit' ? searchParams.get('lastName') || '' : '',
-      email: mode === 'edit' ? searchParams.get('email') || '' : '',
-      role: mode === 'edit' ? sanitizeRole(searchParams.get('role') || '') : ''
+      employeeCode: '',
+      userId: '',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      designation:'',
+      roles: []
     },
     validationSchema: Yup.object().shape({
       employeeCode: Yup.string().required('Employee Code is required'),
-      adUserId: Yup.string().required('ad User Id is required'),
+      userId: Yup.string().required('AD User Id is required'),
       firstName: Yup.string().required('First Name is required'),
       lastName: Yup.string().required('Last Name is required'),
       email: Yup.string().email('Invalid email').required('Email is required'),
-
-      role: Yup.string()
-        .required('Role is required')
-        .matches(/^[a-zA-Z0-9\s-]+$/, 'Role name can only contain letters, numbers, spaces, and hyphens')
+      // designation:Yup.string().designation('requesrd').required('dhhdhdh'),
+      roles: Yup.array()
+        .of(
+          Yup.string()
+            .matches(/^[a-zA-Z0-9\s-]+$/, 'Role name can only contain letters, numbers, spaces, and hyphens')
+            .min(1, 'Role name cannot be empty')
+        )
+        .min(1, 'At least one role is required')
     }),
-    onSubmit: async values => {
-      const sanitizedRole = sanitizeRole(values.role) // Ensure role is sanitized before submission
+    onSubmit: async (values) => {
+      const sanitizedRoles = values.roles.map((role) => sanitizeRole(role)).filter((role) => role.length > 0);
 
-      if (mode === 'edit' && id) {
+      if (sanitizedRoles.length === 0) {
+        setApiErrors(['At least one valid role is required']);
+        return;
+      }
+
+      if (mode === 'edit' && userId) {
         const editParams = {
           email: values.email,
-          newRoleName: [sanitizedRole] // Send sanitized role as a string
-        }
-
+          newRoleNames: sanitizedRoles
+        };
+        console.log('Edit Payload:', editParams);
         try {
-          await dispatch(updateUser({ id, params: editParams })).unwrap()
+          await dispatch(updateUser({ id: userId, params: editParams })).unwrap();
         } catch (error: any) {
-          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
+          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred']);
         }
       } else {
         const addParams = {
           employeeCode: values.employeeCode,
-          adUserId: values.adUserId,
+          userId: values.userId,
           firstName: values.firstName,
-          lastName: `${values.middleName} ${values.lastName}`.trim(),
+          lastName: values.lastName,
+          middleName: values.middleName,
           email: values.email,
-
-          role: sanitizedRole
-        }
-
+          designation: values.designation,
+          newRoleNames: sanitizedRoles
+        };
+        console.log('Add Payload:', addParams);
         try {
-          await dispatch(addNewUser(addParams)).unwrap()
+          await dispatch(addNewUser(addParams)).unwrap();
         } catch (error: any) {
-          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
+          setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred']);
         }
       }
     }
-  })
+  });
 
   const handleCancel = () => {
-    dispatch(resetAddUserStatus())
-    router.back()
-  }
-
-  const employeeOptions = (employeeData || []).map((employee: any) => ({
-    label: `${employee.employeeCode}`,
-    value: employee.employeeCode,
-    // adUserId:employee.adUserId,
-    firstName: employee.firstName || '',
-    middleName: employee.middleName || '',
-    lastName: employee.lastName || '',
-    email: employee.officeEmailAddress || employee.email || ''
-  }))
+    dispatch(resetAddUserStatus());
+    router.back();
+  };
 
   const roleOptions = (userRoleData?.data || []).map((role: any) => ({
     label: role.name,
     value: role.name
-  }))
-
-  const handleEmployeeChange = (event: any, newValue: any) => {
-    if (newValue) {
-      userFormik.setValues({
-        ...userFormik.values,
-        employeeCode: newValue.value,
-        adUserId: newValue.adUserId,
-        firstName: newValue.firstName,
-        middleName: newValue.middleName,
-        lastName: newValue.lastName,
-        email: newValue.email
-      })
-    } else {
-      userFormik.setValues({
-        ...userFormik.values,
-        employeeCode: '',
-        adUserId: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        email: ''
-      })
-    }
-  }
+  }));
 
   return (
-    <form onSubmit={userFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-      <h1 className='text-2xl font-bold text-gray-800 mb-4'>{mode === 'edit' ? 'Edit User Role' : 'Add New User'}</h1>
+    <form onSubmit={userFormik.handleSubmit} className="p-6 bg-white shadow-md rounded">
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">{mode === 'edit' ? 'Edit User' : 'Add New User'}</h1>
 
       {apiErrors.length > 0 && (
-        <div className='mb-4 p-4 bg-red-50 border border-red-200 rounded'>
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
           {apiErrors.map((error, index) => (
-            <div key={index} className='text-red-600'>
-              • {error}
-            </div>
+            <div key={index} className="text-red-600">• {error}</div>
           ))}
         </div>
       )}
 
-      <fieldset className='border border-gray-300 rounded p-4 mb-6'>
-        <legend className='text-lg font-semibold text-gray-700'>User Details</legend>
+      <fieldset className="border border-gray-300 rounded p-4 mb-6">
+        <legend className="text-lg font-semibold text-gray-700">User Details</legend>
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
-              <Autocomplete
-                options={employeeOptions}
-                getOptionLabel={option => option.label}
-                loading={isEmployeeLoading}
-                value={employeeOptions.find(option => option.value === userFormik.values.employeeCode) || null}
-                onChange={handleEmployeeChange}
-                disabled={mode === 'edit'} // Disable in edit mode
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Employee Code *'
-                    error={userFormik.touched.employeeCode && !!userFormik.errors.employeeCode}
-                    helperText={userFormik.touched.employeeCode && userFormik.errors.employeeCode}
-                  />
-                )}
-              />
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
-              <Autocomplete
-                options={roleOptions}
-                getOptionLabel={option => option.label}
-                loading={isUserRoleLoading}
-                value={roleOptions.find(option => option.value === userFormik.values.role) || null}
-                onChange={(event, newValue) => {
-                  const sanitizedRole = newValue ? sanitizeRole(newValue.value) : ''
-
-                  userFormik.setFieldValue('role', sanitizedRole)
-                }}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Role *'
-                    error={userFormik.touched.role && !!userFormik.errors.role}
-                    helperText={userFormik.touched.role && userFormik.errors.role}
-                  />
-                )}
-              />
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
+            <FormControl fullWidth margin="normal">
               <TextField
-                label='adUserId*'
-                name='adUserId'
-                value={userFormik.values.adUserId}
+                label="Employee Code *"
+                name="employeeCode"
+                value={userFormik.values.employeeCode}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
-                error={userFormik.touched.adUserId && !!userFormik.errors.adUserId}
-                helperText={userFormik.touched.adUserId && userFormik.errors.adUserId}
-                disabled
+                error={userFormik.touched.employeeCode && !!userFormik.errors.employeeCode}
+                helperText={userFormik.touched.employeeCode && userFormik.errors.employeeCode}
+                disabled={mode === 'edit'} // Disable in edit mode if not editable
               />
             </FormControl>
           </Grid>
-        <Grid container spacing={2}>
+
           <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
+            <FormControl fullWidth margin="normal">
               <TextField
-                label='First Name *'
-                name='firstName'
+                label="User ID *"
+                name="userId"
+                value={userFormik.values.userId}
+                onChange={userFormik.handleChange}
+                onBlur={userFormik.handleBlur}
+                error={userFormik.touched.userId && !!userFormik.errors.userId}
+                helperText={userFormik.touched.userId && userFormik.errors.userId}
+                disabled={mode === 'edit'}
+              />
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <TextField
+                label="First Name *"
+                name="firstName"
                 value={userFormik.values.firstName}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
                 error={userFormik.touched.firstName && !!userFormik.errors.firstName}
                 helperText={userFormik.touched.firstName && userFormik.errors.firstName}
-                disabled
+                disabled={mode === 'edit'}
               />
             </FormControl>
           </Grid>
 
           <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
+            <FormControl fullWidth margin="normal">
               <TextField
-                label='Last Name *'
-                name='lastName'
-                value={`${userFormik.values.middleName} ${userFormik.values.lastName}`.trim()}
+                label="Middle Name"
+                name="middleName"
+                value={userFormik.values.middleName}
+                onChange={userFormik.handleChange}
+                onBlur={userFormik.handleBlur}
+                disabled={mode === 'edit'}
+              />
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <TextField
+                label="Last Name *"
+                name="lastName"
+                value={userFormik.values.lastName}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
                 error={userFormik.touched.lastName && !!userFormik.errors.lastName}
                 helperText={userFormik.touched.lastName && userFormik.errors.lastName}
-                disabled
+                disabled={mode === 'edit'}
               />
             </FormControl>
           </Grid>
-        </Grid>
 
-        
-         
           <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
+            <FormControl fullWidth margin="normal">
               <TextField
-                label='Email *'
-                name='email'
+                label="Email *"
+                name="email"
                 value={userFormik.values.email}
                 onChange={userFormik.handleChange}
                 onBlur={userFormik.handleBlur}
                 error={userFormik.touched.email && !!userFormik.errors.email}
                 helperText={userFormik.touched.email && userFormik.errors.email}
-                disabled
+                disabled={mode === 'edit'}
               />
             </FormControl>
           </Grid>
 
-         
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <TextField
+                label="Designation *"
+                name="designation"
+                value={userFormik.values.designation}
+                onChange={userFormik.handleChange}
+                onBlur={userFormik.handleBlur}
+                error={userFormik.touched.designation && !!userFormik.errors.designation}
+                helperText={userFormik.touched.designation && userFormik.errors.designation}
+                disabled={mode === 'edit'}
+              />
+            </FormControl>
+          </Grid>
 
+          <Grid item xs={6}>
+            <FormControl fullWidth margin="normal">
+              <Autocomplete
+                multiple
+                options={roleOptions}
+                getOptionLabel={(option) => option.label}
+                loading={isUserRoleLoading}
+                value={roleOptions.filter((option) => userFormik.values.roles.includes(option.value))}
+                onChange={(event, newValue) => {
+                  const sanitizedRoles = newValue.map((option) => sanitizeRole(option.value));
+                  userFormik.setFieldValue('roles', sanitizedRoles);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Roles *"
+                    error={userFormik.touched.roles && !!userFormik.errors.roles}
+                    helperText={userFormik.touched.roles && userFormik.errors.roles}
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+        </Grid>
       </fieldset>
 
-      <div className='flex justify-end space-x-4'>
+      <div className="flex justify-end space-x-4">
         <DynamicButton
-          type='button'
-          variant='contained'
-          className='bg-gray-500 text-white hover:bg-gray-700'
+          type="button"
+          variant="contained"
+          className="bg-gray-500 text-white hover:bg-gray-700"
           onClick={handleCancel}
           disabled={isAddUserLoading}
         >
@@ -302,16 +322,16 @@ const AddOrEditUser: React.FC<Props> = ({ mode, id }) => {
         </DynamicButton>
 
         <DynamicButton
-          type='submit'
-          variant='contained'
-          className='bg-blue-500 text-white hover:bg-blue-700'
+          type="submit"
+          variant="contained"
+          className="bg-blue-500 text-white hover:bg-blue-700"
           disabled={isAddUserLoading}
         >
-          {isAddUserLoading ? 'Saving...' : mode === 'edit' ? 'Update Role' : 'Add User'}
+          {isAddUserLoading ? 'Saving...' : mode === 'edit' ? 'Update User' : 'Add User'}
         </DynamicButton>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default AddOrEditUser
+export default AddOrEditUser;

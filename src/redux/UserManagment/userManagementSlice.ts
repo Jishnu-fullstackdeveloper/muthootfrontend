@@ -60,28 +60,48 @@ export const addNewUser = createAsyncThunk<any, any>(
   }
 )
 
-export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleName: string[] } }>(
+// export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleName: string[] } }>(
+//   'userManagement/updateUser',
+//   async ({ id, params }, { rejectWithValue }) => {
+//     try {
+//       id
+
+//       const response = await AxiosLib.patch(`/users/role`, {
+//         email: params.email,
+//         newRoleName: params.newRoleName
+//       })
+
+//       return response.data
+//     } catch (error: any) {
+//       const errorMessage = error.response?.data?.message || 'Failed to update role'
+
+//       return rejectWithValue({
+//         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+//         statusCode: error.response?.data?.statusCode || 500
+//       })
+//     }
+//   }
+// )
+
+export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleNames: string[]  } }>(
+  //   'userManagement/updateUser',
   'userManagement/updateUser',
   async ({ id, params }, { rejectWithValue }) => {
     try {
-      id
-
       const response = await AxiosLib.patch(`/users/role`, {
         email: params.email,
-        newRoleName: params.newRoleName
-      })
-
-      return response.data
+        newRoleNames: params.newRoleNames
+      });
+      return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update role'
-
+      const errorMessage = error.response?.data?.message || 'Failed to update role';
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode || 500
-      })
+      });
     }
   }
-)
+);
 
 export const UserManagementSlice = createSlice({
   name: 'UserManagement',

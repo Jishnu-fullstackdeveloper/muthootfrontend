@@ -1,9 +1,8 @@
+
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import {
   Typography,
   IconButton,
@@ -11,7 +10,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
   Button,
   Drawer,
   Checkbox,
@@ -23,12 +21,14 @@ import {
   Select,
   FormControl,
   InputLabel,
-  MenuItem
+  MenuItem,
+  Tooltip
 } from '@mui/material'
-
+import { createColumnHelper } from '@tanstack/react-table'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
+import DynamicTable from '@/components/Table/dynamicTable'
 
 interface FetchParams {
   limit: number
@@ -93,7 +93,6 @@ const UserRolesAndPermisstionList = () => {
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
-
     return () => clearTimeout(timer)
   }, [searchText])
 
@@ -104,45 +103,83 @@ const UserRolesAndPermisstionList = () => {
       page,
       ...(debouncedSearchText && { search: debouncedSearchText })
     }
-
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
-
     if (activePermissions.length > 0) {
       params.permissionName = activePermissions
     }
-
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
 
-  // Filter roles
-  const filteredRoles = useMemo(() => {
-    const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
-
-    if (activePermissions.length === 0) return userRoleData?.data || []
-
-    return (userRoleData?.data || []).filter(role =>
-      activePermissions.every(permission => (role.permissions || []).includes(permission))
-    )
-  }, [userRoleData?.data, appliedPermissionFilters])
-
-  // Event handlers
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
-
-  // const handleAddUser = () => router.push('/user-role/add/add-role')
+  // Initialize filters
+  useEffect(() => {
+    const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
+    setTempPermissionFilters(initialFilters)
+    setAppliedPermissionFilters(initialFilters)
+  }, [])
 
   const handleEdit = (role: any) => {
     const query = new URLSearchParams({
-      id: role.id, name: role.name
+      id: role.id,
+      name: role.name
     }).toString()
-
     router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleView = (role: any) => {
     const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
-
+    console.log(query ,'abcd...............')
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
+
+  const columnHelper = createColumnHelper<any>()
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('serialNo', {
+        header: 'Sl No',
+        cell: ({ row }) => <Typography>{(page - 1) * limit + row.index + 1}</Typography>
+      }),
+      columnHelper.accessor('name', {
+        header: 'Role Name',
+        cell: ({ row }) => <Typography>{row.original.name.toUpperCase() || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('description', {
+        header: 'Description',
+        cell: ({ row }) => {
+          const description = row.original.description || 'N/A'
+          const truncated = description.length > 30 ? description.slice(0, 30) + '  ...' : description
+          return (
+            <Tooltip title={description.length > 30 ? description : ''} arrow>
+              <Typography>{truncated}</Typography>
+            </Tooltip>
+          )
+        }
+      }),
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: ({ row }) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton onClick={() => handleEdit(row.original)} title='Edit' sx={{fontSize:"20px"}}>
+              <i className='tabler-edit' />
+            </IconButton>
+            <IconButton onClick={() => handleView(row.original)} title='View' sx={{fontSize:"20px"}}>
+              <i className='tabler-eye' />
+            </IconButton>
+          </Box>
+        )
+      })
+    ],
+    [page, limit, columnHelper] // Dependencies updated to ensure re-render when page/limit changes
+  )
+
+  const filteredRoles = useMemo(() => {
+    const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+    if (activePermissions.length === 0) return userRoleData?.data || []
+    return (userRoleData?.data || []).filter(role =>
+      activePermissions.every(permission => (role.permissions || []).includes(permission))
+    )
+  }, [userRoleData?.data, appliedPermissionFilters])
+  // Event handlers
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
 
   const handleFilterOpen = () => {
     setTempPermissionFilters(appliedPermissionFilters)
@@ -158,7 +195,6 @@ const UserRolesAndPermisstionList = () => {
 
   const handleFilterClear = () => {
     const clearedFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
-
     setTempPermissionFilters(clearedFilters)
     setAppliedPermissionFilters(clearedFilters)
     handleFilterClose()
@@ -174,15 +210,7 @@ const UserRolesAndPermisstionList = () => {
   }
 
   const handlePageChange = (event: any, value: number) => setPage(value)
-  const handleChangeLimit = (value: any) => setLimit(value)
-
-  // Initialize filters
-  useEffect(() => {
-    const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
-
-    setTempPermissionFilters(initialFilters)
-    setAppliedPermissionFilters(initialFilters)
-  }, [])
+  const handleChangeLimit = (event: any) => setLimit(event.target.value)
 
   return (
     <div>
@@ -205,13 +233,10 @@ const UserRolesAndPermisstionList = () => {
                   )
                 }}
               />
-              <Button variant='outlined' onClick={handleFilterOpen} startIcon={<i className='tabler-filter' />}>
+              {/* <Button variant='outlined' onClick={handleFilterOpen} startIcon={<i className='tabler-filter' />}>
                 Filter
-              </Button>
+              </Button> */}
             </Box>
-            {/* <Button variant='contained' onClick={handleAddUser} startIcon={<i className='tabler-plus' />}>
-              Add Role
-            </Button> */}
           </Box>
           {Object.keys(appliedPermissionFilters).some(key => appliedPermissionFilters[key]) && (
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -267,59 +292,17 @@ const UserRolesAndPermisstionList = () => {
         <Typography>Loading roles...</Typography>
       ) : (
         <>
-          <Grid container spacing={3}>
-            {filteredRoles.length > 0 ? (
-              filteredRoles.map((item: any) => (
-                <Grid item xs={12} sm={6} md={4} key={item.id}>
-                  <Card
-                    onClick={() => handleView(item)}
-                    sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: 'pointer', border: '1px solid #ddd' }}
-                  >
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant='h6' sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-                          {item.name.toUpperCase()}
-                        </Typography>
-                        <IconButton
-                          onClick={(e: any) => {
-                            e.stopPropagation()
-                            handleEdit(item)
-                          }}
-                        >
-                          <i className='tabler-edit' />
-                        </IconButton>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            ) : (
-              <Typography sx={{ width: '100%', textAlign: 'center', py: 4 }}>No roles found</Typography>
-            )}
-          </Grid>
-          {userRoleData?.meta?.totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
-              <FormControl size='small' sx={{ minWidth: 70 }}>
-                <InputLabel>Count</InputLabel>
-                <Select value={limit} onChange={e => handleChangeLimit(e.target.value)} label='Count'>
-                  {[10, 25, 50, 100].map(option => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Pagination
-                color='primary'
-                shape='rounded'
-                showFirstButton
-                showLastButton
-                count={userRoleData.meta.totalPages}
-                page={page}
-                onChange={handlePageChange}
-              />
-            </Box>
-          )}
+          <Card>
+            <DynamicTable
+              columns={columns}
+              data={filteredRoles}
+              pagination={{ pageIndex: page - 1, pageSize: limit }}
+              totalCount={userRoleData?.meta?.totalRecords}
+              onPageChange={newPage => setPage(newPage + 1)}
+              onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
+            />
+          </Card>
+         
         </>
       )}
     </div>
@@ -327,3 +310,4 @@ const UserRolesAndPermisstionList = () => {
 }
 
 export default UserRolesAndPermisstionList
+

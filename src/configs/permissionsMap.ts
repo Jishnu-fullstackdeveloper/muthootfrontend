@@ -13,7 +13,9 @@ export const permissionsMap = {
   ],
   branchManagement: ['branch_read'],
   bucketManagement: ['bucket_create', 'bucket_read', 'bucket_update', 'bucket_delete'],
-  approvalMatrix: ['approvalmatrix_create', 'approvalmatrix_read', 'approvalmatrix_update', 'approvalmatrix_delete']
+  approvalMatrix: ['approvalmatrix_create', 'approvalmatrix_read', 'approvalmatrix_update', 'approvalmatrix_delete'],
+  generalSettings: ['general_create', 'general_read', 'general_update', 'general_delete'],
+  employeeManagement: ['employee_read']
 }
 
 export default permissionsMap

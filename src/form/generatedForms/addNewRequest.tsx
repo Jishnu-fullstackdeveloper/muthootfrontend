@@ -1,4 +1,3 @@
-// src/form/generatedForms/addNewRequest.tsx
 'use client'
 
 // React Imports
@@ -12,7 +11,7 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 
 // MUI Imports
-import { Autocomplete, TextField, FormControl, CircularProgress } from '@mui/material'
+import { Autocomplete, TextField, FormControl, CircularProgress, Box, Typography, FormLabel, Grid } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 // Component Imports
@@ -315,9 +314,9 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
     return (
       <FormControl fullWidth margin='normal' key={field.id}>
-        <label htmlFor={field.id} className='block text-sm font-medium text-gray-700'>
+        <FormLabel htmlFor={field.id} sx={{ fontSize: '0.875rem', fontWeight: 'medium', color: 'text.secondary' }}>
           {field.label} *
-        </label>
+        </FormLabel>
         <StyledAutocomplete
           id={field.id}
           options={field.options}
@@ -330,9 +329,9 @@ const ManualRequestGeneratedForm: React.FC = () => {
           onChange={(_, value) => handleChange(field.id, value ? (value as Option).name : '')}
           loading={isLoading}
           loadingText={
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
               <CircularProgress size={20} />
-            </div>
+            </Box>
           }
           renderInput={params => (
             <TextField
@@ -347,21 +346,46 @@ const ManualRequestGeneratedForm: React.FC = () => {
   }
 
   return (
-    <form onSubmit={requestFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-      <h1 className='text-2xl font-bold text-gray-800 mb-4'>Recruitment Request Form</h1>
+    <Box
+      component='form'
+      onSubmit={requestFormik.handleSubmit}
+      sx={{
+        p: 6,
+        bgcolor: 'background.paper',
+        boxShadow: 3,
+        borderRadius: 1
+      }}
+    >
+      <Typography variant='h5' sx={{ fontWeight: 'bold', color: 'text.primary', mb: 4 }}>
+        Recruitment Request Form
+      </Typography>
 
-      <fieldset className='border border-gray-300 rounded p-4 mb-6'>
-        <legend className='text-lg font-semibold text-gray-700'>Employee Category Details</legend>
-        <div className='grid grid-cols-2 gap-4'>
-          {optionsData.map(field => renderAutocomplete(field, handleEmployeeCategoryChange))}
-        </div>
-      </fieldset>
+      <Box
+        sx={{
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1,
+          p: 4,
+          mb: 6
+        }}
+      >
+        <Typography variant='subtitle1' sx={{ fontWeight: 'medium', color: 'text.primary', mb: 2 }}>
+          Employee Category Details
+        </Typography>
+        <Grid container spacing={4}>
+          {optionsData.map(field => (
+            <Grid item xs={12} sm={6} key={field.id}>
+              {renderAutocomplete(field, handleEmployeeCategoryChange)}
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
 
-      <div className='flex justify-end space-x-4'>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
         <DynamicButton
           type='button'
           variant='contained'
-          className='bg-gray-500 text-white hover:bg-gray-700'
+          sx={{ bgcolor: 'grey.500', color: 'white', '&:hover': { bgcolor: 'grey.700' } }}
           onClick={() => router.push('/recruitment-management')}
         >
           Cancel
@@ -369,17 +393,17 @@ const ManualRequestGeneratedForm: React.FC = () => {
         <DynamicButton
           type='submit'
           variant='contained'
-          className='bg-blue-500 text-white hover:bg-blue-700'
+          sx={{ bgcolor: 'blue.500', color: 'white', '&:hover': { bgcolor: 'blue.700' } }}
           disabled={submitRecruitmentRequestLoading}
         >
           {submitRecruitmentRequestLoading ? 'Submitting...' : 'Submit'}
         </DynamicButton>
-      </div>
+      </Box>
 
       {submitRecruitmentRequestFailure && (
-        <div className='text-red-500 mt-2'>{submitRecruitmentRequestFailureMessage}</div>
+        <Typography sx={{ color: 'error.main', mt: 2 }}>{submitRecruitmentRequestFailureMessage}</Typography>
       )}
-    </form>
+    </Box>
   )
 }
 

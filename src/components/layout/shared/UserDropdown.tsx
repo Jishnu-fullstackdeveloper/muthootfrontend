@@ -160,12 +160,12 @@ const UserDropdown = () => {
     }
 
     if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
-      handleUserLogout()
+      // handleUserLogout()
       dispatch(LoginDataDismiss())
     }
   }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
 
-  // to call this api in every 15 minitues
+  // to call this api in every 30 minutes
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (access_token && refresh_token) {
@@ -176,7 +176,7 @@ const UserDropdown = () => {
         }
         dispatch(fetchNewAccessToken(params))
       }
-    }, 900000)
+    }, 1800000)
     return () => clearInterval(intervalId)
   }, [])
 

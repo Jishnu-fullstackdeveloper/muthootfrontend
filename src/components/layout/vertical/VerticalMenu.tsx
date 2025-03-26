@@ -83,13 +83,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         permission: 'vacancyManagement',
         read: 'vacancy_read'
       },
-      {
-        path: '/recruitment-management/overview',
-        label: 'Recruitment Management',
-        iconClass: 'tabler-user-plus',
-        permission: 'recruitmentManagement',
-        read: 'recruitment_read'
-      },
+      // {
+      //   path: '/recruitment-management/overview',
+      //   label: 'Recruitment Management',
+      //   iconClass: 'tabler-user-plus',
+      //   permission: 'recruitmentManagement',
+      //   read: 'recruitment_read'
+      // },
       {
         path: '/branch-management',
         label: 'Branch Management',
@@ -117,7 +117,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'Employee Management',
         iconClass: 'tabler-settings-check',
         permission: 'employeeManagement',
-        read: 'employeeManagement_read'
+        read: 'employee_read'
       },
       {
         path: '/system-management',

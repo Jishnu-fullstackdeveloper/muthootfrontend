@@ -29,13 +29,16 @@ const ApprovalCategory = () => {
 
   // Handle edit action
   const handleEdit = (rowData: any) => {
+    const designations = [{ id: rowData.id, name: rowData.designation }] // Structure designation as an array of objects
+    const grades = [{ id: rowData.id, name: rowData.grade }] // Structure grade as an array of objects
+
     const queryParams = new URLSearchParams({
       id: rowData.id.toString(),
-      approvalCategory: rowData.name,
-      numberOfLevels: '1', // Assuming 1 level for simplicity; adjust if multi-level
-      designationType: rowData.designationType,
-      designation: rowData.designation,
-      grade: rowData.grade
+      approvalCategory: rowData.approvalCategory,
+      numberOfLevels: rowData.numberOfLevels.toString(),
+      description: rowData.description,
+      designationName: JSON.stringify(designations), // Pass designation as JSON string
+      grade: JSON.stringify(grades) // Pass grade as JSON string
     }).toString()
 
     router.push(`/approval-matrix/edit/edit-approval?${queryParams}`)
@@ -46,6 +49,8 @@ const ApprovalCategory = () => {
       id: 1,
       name: 'Budget Approval',
       description: 'Approval process for budget allocations',
+      approvalCategory: 'Finance',
+      numberOfLevels: 2,
       designationType: 'Branch',
       designation: 'Manager',
       grade: 'Area Manager'
@@ -54,6 +59,8 @@ const ApprovalCategory = () => {
       id: 2,
       name: 'Project Approval',
       description: 'Approval for new project initiations',
+      approvalCategory: 'Operations',
+      numberOfLevels: 3,
       designationType: 'Branch',
       designation: 'Manager',
       grade: 'Area Manager'
@@ -62,6 +69,8 @@ const ApprovalCategory = () => {
       id: 3,
       name: 'Hiring Approval',
       description: 'Approval for new employee hiring',
+      approvalCategory: 'HR',
+      numberOfLevels: 1,
       designationType: 'Corporate',
       designation: 'Manager',
       grade: 'Area Manager'
@@ -70,6 +79,8 @@ const ApprovalCategory = () => {
       id: 4,
       name: 'Expense Approval',
       description: 'Approval for expense reimbursements',
+      approvalCategory: 'Finance',
+      numberOfLevels: 2,
       designationType: 'Region',
       designation: 'Manager',
       grade: 'Area Manager'
@@ -78,6 +89,8 @@ const ApprovalCategory = () => {
       id: 5,
       name: 'Contract Approval',
       description: 'Approval for vendor contracts',
+      approvalCategory: 'Procurement',
+      numberOfLevels: 3,
       designationType: 'Department',
       designation: 'Manager',
       grade: 'Area Manager'
@@ -86,6 +99,8 @@ const ApprovalCategory = () => {
       id: 6,
       name: 'Leave Approval',
       description: 'Approval for employee leave requests',
+      approvalCategory: 'HR',
+      numberOfLevels: 1,
       designationType: 'Zone',
       designation: 'Supervisor',
       grade: 'Jr. Manager'
@@ -107,11 +122,23 @@ const ApprovalCategory = () => {
       cell: info => info.getValue()
     },
     {
-      id: 'designationType',
-      header: 'Position Level',
-      accessorKey: 'designationType',
+      id: 'approvalCategory',
+      header: 'Approval Category',
+      accessorKey: 'approvalCategory',
       cell: info => info.getValue()
     },
+    {
+      id: 'numberOfLevels',
+      header: 'Number of Levels',
+      accessorKey: 'numberOfLevels',
+      cell: info => info.getValue()
+    },
+    // {
+    //   id: 'designationType',
+    //   header: 'Position Level',
+    //   accessorKey: 'designationType',
+    //   cell: info => info.getValue()
+    // },
     {
       id: 'designation',
       header: 'Designation',
@@ -129,7 +156,7 @@ const ApprovalCategory = () => {
       header: 'Actions',
       cell: ({ row }) => (
         <Box>
-          <IconButton
+          {/* <IconButton
             aria-label='view'
             onClick={e => {
               e.stopPropagation()
@@ -137,7 +164,7 @@ const ApprovalCategory = () => {
             }}
           >
             <i className='tabler-eye' />
-          </IconButton>
+          </IconButton> */}
           <IconButton
             aria-label='edit'
             sx={{ fontSize: 18 }}
@@ -214,6 +241,7 @@ const ApprovalCategory = () => {
           }}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          tableName='Approvals Listing'
         />
       )}
     </>

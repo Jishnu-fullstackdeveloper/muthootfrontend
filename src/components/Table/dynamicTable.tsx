@@ -202,8 +202,8 @@ const DynamicTable = ({
         {/* Filter Icon on the right */}
         <Tooltip title='Filter Columns'>
           <IconButton onClick={() => setOpenColumnDrawer(true)}>
-            <Typography variant='subtitle2' sx={{ fontSize: 15, mr: 1 }}>
-              Filter
+            <Typography variant='subtitle2' sx={{ fontSize: 12, mr: 1 }}>
+              More columns
             </Typography>
             <FilterListIcon className='size-4' />
           </IconButton>

@@ -118,6 +118,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         iconClass: 'tabler-settings-check',
         permission: 'employeeManagement',
         read: 'employeeManagement_read'
+      },
+      {
+        path: '/system-management',
+        label: 'System Management',
+        iconClass: 'tabler-settings-check',
+        permission: 'systemManagement',
+        read: 'systemManagement_read'
       }
     ],
     []

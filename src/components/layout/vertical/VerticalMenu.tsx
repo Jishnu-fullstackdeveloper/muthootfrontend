@@ -55,11 +55,11 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       },
       { path: '/user-role', label: 'User Roles', iconClass: 'tabler-key', permission: 'userRoles', read: 'role_read' },
       {
-        path: '/approval-management',
-        label: 'Approval Management',
+        path: '/approvals',
+        label: 'Approvals',
         iconClass: 'tabler-rosette-discount-check',
-        permission: 'approvalManagement',
-        read: 'approval_read'
+        permission: 'approvals',
+        read: 'approvals_read'
       },
 
       // {
@@ -83,6 +83,15 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         permission: 'vacancyManagement',
         read: 'vacancy_read'
       },
+
+      {
+        path: '/budget-management',
+        label: 'Budget Management',
+        iconClass: 'tabler-report-money',
+        permission: 'budgetManagement',
+        read: 'budget_read'
+      },
+
       // {
       //   path: '/recruitment-management/overview',
       //   label: 'Recruitment Management',
@@ -108,14 +117,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       {
         path: '/approval-matrix',
         label: 'Approval Matrix',
-        iconClass: 'tabler-settings-check',
+        iconClass: 'tabler-align-box-bottom-center',
         permission: 'approvalMatrix',
         read: 'approvalmatrix_read'
       },
       {
         path: '/employee-management',
         label: 'Employee Management',
-        iconClass: 'tabler-settings-check',
+        iconClass: 'tabler-users-group',
         permission: 'employeeManagement',
         read: 'employee_read'
       },
@@ -124,7 +133,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'System Management',
         iconClass: 'tabler-settings-check',
         permission: 'systemManagement',
-        read: 'systemManagement_read'
+        read: 'general_create'
       }
     ],
     []

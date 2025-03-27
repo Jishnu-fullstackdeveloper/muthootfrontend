@@ -77,7 +77,7 @@ const VacancyListingPage = () => {
   const [paginationState, setPaginationState] = useState<PaginationState>({
     page: 1,
     limit: 10,
-    display_numbers_count: 10
+    display_numbers_count: 3
   })
 
   const [selectedTabs, setSelectedTabs] = useState<SelectedTabs>({})
@@ -379,7 +379,7 @@ const VacancyListingPage = () => {
       {error && (
         <Box sx={{ mb: 4, mx: 6 }}>
           <Typography variant='h6' color='error'>
-            Error: {error}
+            Error: Data not found
           </Typography>
         </Box>
       )}

@@ -24,32 +24,35 @@ import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice';
 
 const MODULES = [
   'user',
-  'userroles',
-  'approvalmanagement',
+  'role',
+  'approvals',
+  'candidate',
   'jd',
   'vacancy',
-  'recruitment',
+  'budget',
   'branch',
-  'bucket',
   'approvalmatrix',
-  'generalsettings',
+  'general',
   'home',
+  'employee'
+
 ];
 
 const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval'];
 
 const APPLICABLE_PERMISSIONS = {
   user: ['read', 'create', 'update', 'delete'],
-  userroles: ['read', 'create', 'update', 'delete'],
-  approvalmanagement: ['read', 'create', 'update', 'delete'],
+  role: ['read', 'create', 'update', 'delete'],
+  approvals: ['read', 'create', 'update', 'delete'],
+  candidate: ['read'],
   jd: ['read', 'create', 'update', 'delete', 'upload', 'approval'],
-  vacancy: ['read', 'create', 'update', 'delete'],
-  recruitment: ['read', 'create', 'update', 'delete', 'approval'],
+  vacancy: ['read', 'update', ],
+  budget: ['read', 'create', 'approval'],
   branch: ['read'],
-  bucket: ['read', 'create', 'update', 'delete'],
-  approvalmatrix: ['read', 'create', 'update', 'delete'],
-  generalsettings: ['read', 'create', 'update', 'delete'],
+  approvalMatrix: ['read', 'create', 'update', 'delete'],
+  general: ['read', 'create', 'update', 'delete'],
   home: ['read'],
+  employee: ['employee_read'],
 };
 
 const ViewUserRole = () => {
@@ -108,16 +111,19 @@ const ViewUserRole = () => {
   const formatModuleName = module =>
     ({
       user: 'User Management',
-      userroles: 'User Roles',
-      approvalmanagement: 'Approval Management',
+      role: 'User Roles',
+      approvals: 'Approvals',
+      candidate :'Candidate Management',
       jd: 'JD Management',
       vacancy: 'Vacancy Management',
+      budget:'Budget Management',
       recruitment: 'Recruitment Management',
       branch: 'Branch Management',
       bucket: 'Bucket Management',
       approvalmatrix: 'Approval Matrix',
-      generalsettings: 'General Settings',
+      general: 'General Settings',
       home: 'Home Dashboard',
+      employee: 'Employee Management'
     })[module] || module;
 
   const getPermissionDescription = (module, perm) => {
@@ -130,20 +136,20 @@ const ViewUserRole = () => {
 
   return (
     <Box>
-      <Card sx={{ boxShadow: 3, p: 3 }}>
+      <Card sx={{ boxShadow: 3, p: 2 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant='h3' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
+            <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
               {roleName.toUpperCase()}
             </Typography>
-            <IconButton onClick={() => handleEdit(matchedRole)}>
-              <Edit /> {/* Replaced tabler-edit with Material-UI Edit icon */}
+            <IconButton sx={{fontSize:'20px'}}onClick={() => handleEdit(matchedRole)}>
+              <Edit /> 
             </IconButton>
           </Box>
 
           <Divider sx={{ mb: 4 }} />
 
-          <Typography variant='h3' sx={{ fontWeight: 'bold', mb: 2 }}>
+          <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
             Permissions:
           </Typography>
           <TableContainer>
@@ -163,8 +169,8 @@ const ViewUserRole = () => {
                   <TableRow key={module}>
                     <TableCell sx={{ fontSize: '15px' }}>{formatModuleName(module)}</TableCell>
                     {PERMISSION_ORDER.map(perm => {
-                      const hasPermission = groupedPermissions[module].some(p => p.name === `${module}_${perm}`);
-                      const isApplicable = APPLICABLE_PERMISSIONS[module].includes(perm);
+                      const hasPermission = groupedPermissions[module]?.some(p => p.name === `${module}_${perm}`);
+                      const isApplicable = APPLICABLE_PERMISSIONS[module]?.includes(perm);
                       const description = hasPermission ? getPermissionDescription(module, perm) : '';
 
                       return (
@@ -189,16 +195,16 @@ const ViewUserRole = () => {
             </Table>
 
             <Box sx={{ mt: 4 }}>
-              <Typography variant='h4' sx={{ fontWeight: 'bold' }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
                 Description:
               </Typography>
-              <Typography sx={{ backgroundColor: '#f5f5f5', p: 5, borderRadius: 1 }} variant='h6'>
+              <Typography sx={{ backgroundColor: '#f5f5f5', p: 5, borderRadius: 1,fontSize:'10px' }} >
                 {roleDescription}
               </Typography>
             </Box>
           </TableContainer>
         </CardContent>
-        <Box sx={{ mt: 3, ml: 5, mb: 10 }}>
+        <Box sx={{ mt: 3, ml: 5, mb: 2 }}>
           <Button startIcon={<ArrowBack />} variant='outlined' onClick={() => router.back()}>
             Go Back
           </Button>

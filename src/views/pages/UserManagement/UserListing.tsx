@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Button,
@@ -32,6 +34,7 @@ import {
 } from '@mui/icons-material'
 import { grey } from '@mui/material/colors'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
@@ -72,6 +75,7 @@ const UserListing = () => {
   const [limit, setLimit] = useState(10)
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [filterOpen, setFilterOpen] = useState(false)
+
   const [filters, setFilters] = useState({
     active: false,
     inactive: false,
@@ -87,6 +91,7 @@ const UserListing = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+
     return () => clearTimeout(timer)
   }, [searchTerm])
 
@@ -124,6 +129,7 @@ const UserListing = () => {
 
   const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as string[]
+
     setFilters(prev => ({ ...prev, selectedRoles: value }))
     setPage(1) // Reset to first page on role change
   }
@@ -142,6 +148,7 @@ const UserListing = () => {
         selectedRoles: prev.selectedRoles.filter(role => role !== filterName)
       }))
     }
+
     setPage(1) // Reset to first page on filter removal
   }
 
@@ -150,13 +157,16 @@ const UserListing = () => {
   const enrichedUserData = useMemo(() => {
     const users = safeGetData(userManagementData) as User[]
     const roles = safeGetData(userRoleData) as Role[]
+
     const enriched = users.map(user => ({
       ...user,
       roles: (Array.isArray(user.roles) ? user.roles : user.role ? [user.role] : []).map(
         roleName => roles.find(r => r.name.toLowerCase() === (roleName as string).toLowerCase()) || { name: roleName }
       )
     }))
+
     console.log('Enriched User Data:', enriched)
+
     return enriched
   }, [userManagementData, userRoleData])
 
@@ -166,6 +176,7 @@ const UserListing = () => {
   )
 
   const columnHelper = createColumnHelper<User>()
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('serialNo', { header: 'No', cell: ({ row }) => row.index + 1 }),
@@ -174,29 +185,36 @@ const UserListing = () => {
         cell: ({ row }) => row.original.employeeCode || 'N/A'
       }),
       columnHelper.accessor('firstName', { header: 'First Name', cell: ({ row }) => row.original.firstName || 'N/A' }),
-      columnHelper.accessor('middleName', { header: 'Middle Name', cell: ({ row }) => row.original.middleName || 'N/A' }),
+      columnHelper.accessor('middleName', {
+        header: 'Middle Name',
+        cell: ({ row }) => row.original.middleName 
+      }),
       columnHelper.accessor('lastName', { header: 'Last Name', cell: ({ row }) => row.original.lastName || '-' }),
-      
+
       columnHelper.accessor('roles', {
         header: 'Role',
-        cell: ({ row }) => (
+        cell: ({ row }) =>
           Array.isArray(row.original.roles) && row.original.roles.length > 0 ? (
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
               {row.original.roles.map((role, index) => (
                 <li key={index}>
-                  <Typography variant="body2" onClick={() => handleView(role)}  sx={{
-                                      cursor: 'pointer',
-                                      textDecoration: 'underline', color: 'primary.main' 
-                                    }}>
+                  <Typography
+                    variant='body2'
+                    onClick={() => handleView(role)}
+                    sx={{
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      color: 'primary.main'
+                    }}
+                  >
                     {'name' in role ? role.name : role}
                   </Typography>
                 </li>
               ))}
             </ul>
           ) : (
-            <Typography variant="body2">{row.original.role || 'No Role'}</Typography>
+            <Typography variant='body2'>{row.original.role || 'No Role'}</Typography>
           )
-        )
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -218,17 +236,24 @@ const UserListing = () => {
 
   const handleEdit = (id: string) => router.push(`/user-management/edit/${id}`)
 
-  const handleView = (role: Role | { name: string }) => {
-    const roleName = 'name' in role ? role.name : role
-    const matchedRole = safeGetData(userRoleData).find((r: Role) => r.name.toLowerCase() === roleName.toLowerCase())
-    if (matchedRole) {
-      const query = new URLSearchParams({
-        name: matchedRole.name,
-        permissions: JSON.stringify(matchedRole.permissions),
-        description: matchedRole.description
-      }).toString()
-      router.push(`/user-role/view/${matchedRole.name.replace(/\s+/g, '-')}?${query}`)
-    }
+  // const handleView = (role: Role | { name: string }) => {
+  //   const roleName = 'name' in role ? role.name : role
+  //   const matchedRole = safeGetData(userRoleData).find((r: Role) => r.name.toLowerCase() === roleName.toLowerCase())
+  //   if (matchedRole) {
+  //     const query = new URLSearchParams({
+  //       name: matchedRole.name,
+  //       permissions: JSON.stringify(matchedRole.permissions),
+  //       description: matchedRole.description
+  //     }).toString()
+  //     router.push(`/user-role/view/${matchedRole.name.replace(/\s+/g, '-')}?${query}`)
+  //   }
+  // }
+
+  const handleView = (role: any) => {
+    const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
+
+    console.log(query, 'abcd...............')
+    router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const selectedFilters = [
@@ -270,7 +295,7 @@ const UserListing = () => {
                 <GridViewIcon />
               </IconButton>
               <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
-              <TableChartIcon/>
+                <TableChartIcon />
               </IconButton>
             </Box>
           </Box>
@@ -312,7 +337,7 @@ const UserListing = () => {
               label='Inactive'
             />
             {/* Source Section */}
-            <Typography variant='subtitle1'  sx={{ fontWeight: 'bold' }}>
+            <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
               Source
             </Typography>
             <FormControlLabel
@@ -429,7 +454,8 @@ const UserListing = () => {
                                     onClick={() => handleView(role)}
                                     sx={{
                                       cursor: 'pointer',
-                                      textDecoration: 'underline', color: 'primary.main' 
+                                      textDecoration: 'underline',
+                                      color: 'primary.main'
                                     }}
                                   >
                                     {'name' in role ? role.name : 'No Name'}
@@ -448,11 +474,7 @@ const UserListing = () => {
               </Card>
             </Grid>
           ))}
-
-          
         </Grid>
-
-        
       ) : (
         <Card>
           <DynamicTable
@@ -469,9 +491,8 @@ const UserListing = () => {
         </Card>
       )}
 
-      {totalPages > 1 &&  view !== 'table' &&(
-        
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
+      {totalPages > 1 && view !== 'table' && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select

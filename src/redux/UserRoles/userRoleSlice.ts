@@ -72,8 +72,16 @@ export const UserRoleSlice = createSlice({
     isAddRoleLoading: false,
     addUserRoleSuccess: false,
     addUserRoleFailure: false,
-    addUserRoleFailureMessage: ''
+    addUserRoleFailureMessage: '',
+
+    
+    updateNewRoleData: [],
+    isUpdateRoleLoading: false,
+    updateUserRoleSuccess: false,
+    updateUserRoleFailure: false,
+    updateUserRoleFailureMessage: ''
   },
+
   reducers: {
     fetchUserRoleDismiss: state => {
       state.isUserRoleLoading = false
@@ -123,21 +131,21 @@ export const UserRoleSlice = createSlice({
     })
 
     builder.addCase(updateUserRole.pending, state => {
-      state.isAddRoleLoading = true
-      state.addUserRoleSuccess = false
-      state.addUserRoleFailure = false
-      state.addUserRoleFailureMessage = ''
+      state.isUpdateRoleLoading = true
+      state.updateUserRoleSuccess = false
+      state.updateUserRoleFailure = false
+      state.updateUserRoleFailureMessage = ''
     })
     builder.addCase(updateUserRole.fulfilled, state => {
-      state.isAddRoleLoading = false
-      state.addUserRoleSuccess = true
-      state.addUserRoleFailure = false
+      state.isUpdateRoleLoading = false
+      state.updateUserRoleSuccess = true
+      state.updateUserRoleFailure = false
     })
     builder.addCase(updateUserRole.rejected, (state, action: any) => {
-      state.isAddRoleLoading = false
-      state.addUserRoleSuccess = false
-      state.addUserRoleFailure = true
-      state.addUserRoleFailureMessage = action.payload?.message || 'Failed to update role'
+      state.isUpdateRoleLoading = false
+      state.updateUserRoleSuccess = false
+      state.updateUserRoleFailure = true
+      state.updateUserRoleFailureMessage = action.payload?.message || 'Failed to update role'
     })
   }
 })

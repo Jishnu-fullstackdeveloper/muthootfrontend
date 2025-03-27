@@ -66,6 +66,7 @@ const BudgetListing = () => {
 
   const handleApplyFilters = (selectedFilters: Record<string, any>) => {
     console.log(selectedFilters)
+
     // Add logic to handle filters in the future when API is available
   }
 
@@ -86,12 +87,12 @@ const BudgetListing = () => {
     })
   }
 
-  const handlePageCountChange = (newPageCount: number) => {
-    setPaginationState(prev => ({
-      ...prev,
-      display_numbers_count: newPageCount
-    }))
-  }
+  // const handlePageCountChange = (newPageCount: number) => {
+  //   setPaginationState(prev => ({
+  //     ...prev,
+  //     display_numbers_count: newPageCount
+  //   }))
+  // }
 
   const DebouncedInput = ({
     value: initialValue,
@@ -122,11 +123,13 @@ const BudgetListing = () => {
 
   const handleApprove = (id: number) => {
     console.log(`Approved budget with ID: ${id}`)
+
     // Add API call or state update logic here
   }
 
   const handleReject = (id: number) => {
     console.log(`Rejected budget with ID: ${id}`)
+
     // Add API call or state update logic here
   }
 

@@ -1,8 +1,9 @@
-
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import {
   Typography,
   IconButton,
@@ -16,15 +17,12 @@ import {
   FormControlLabel,
   FormGroup,
   Chip,
-  Pagination,
   Divider,
-  Select,
-  FormControl,
-  InputLabel,
-  MenuItem,
+
   Tooltip
 } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
@@ -55,44 +53,56 @@ const UserRolesAndPermisstionList = () => {
     'user_read',
     'user_update',
     'user_delete',
+
     'role_create',
     'role_read',
     'role_update',
     'role_delete',
-    'approval_create',
-    'approval_read',
-    'approval_update',
-    'approval_delete',
+
+    'approvals_create',
+    'approvals_read',
+    'approvals_update',
+    'approvals_delete',
+
     'jd_create',
     'jd_read',
     'jd_update',
     'jd_delete',
+
     'vacancy_create',
     'vacancy_read',
     'vacancy_update',
     'vacancy_delete',
+
     'recruitment_create',
     'recruitment_read',
     'recruitment_update',
     'recruitment_delete',
+
     'branch_read',
-    'bucket_create',
-    'bucket_read',
-    'bucket_update',
-    'bucket_delete',
+
     'approvalmatrix_create',
     'approvalmatrix_read',
     'approvalmatrix_update',
     'approvalmatrix_delete',
+
     'general_create',
     'general_read',
     'general_update',
-    'general_delete'
+    'general_delete',
+
+    'candidate_read',
+
+    'budget_create',
+    'budget_read',
+    'budget_approval',
+    'employee_read'
   ]
 
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
+
     return () => clearTimeout(timer)
   }, [searchText])
 
@@ -103,16 +113,20 @@ const UserRolesAndPermisstionList = () => {
       page,
       ...(debouncedSearchText && { search: debouncedSearchText })
     }
+
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+
     if (activePermissions.length > 0) {
       params.permissionName = activePermissions
     }
+
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
 
   // Initialize filters
   useEffect(() => {
     const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
+
     setTempPermissionFilters(initialFilters)
     setAppliedPermissionFilters(initialFilters)
   }, [])
@@ -122,16 +136,19 @@ const UserRolesAndPermisstionList = () => {
       id: role.id,
       name: role.name
     }).toString()
+
     router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleView = (role: any) => {
     const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
-    console.log(query ,'abcd...............')
+
+    console.log(query, 'abcd...............')
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const columnHelper = createColumnHelper<any>()
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('serialNo', {
@@ -147,6 +164,7 @@ const UserRolesAndPermisstionList = () => {
         cell: ({ row }) => {
           const description = row.original.description || 'N/A'
           const truncated = description.length > 30 ? description.slice(0, 30) + '  ...' : description
+
           return (
             <Tooltip title={description.length > 30 ? description : ''} arrow>
               <Typography>{truncated}</Typography>
@@ -158,10 +176,10 @@ const UserRolesAndPermisstionList = () => {
         header: 'Action',
         cell: ({ row }) => (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={() => handleEdit(row.original)} title='Edit' sx={{fontSize:"20px"}}>
+            <IconButton onClick={() => handleEdit(row.original)} title='Edit' sx={{ fontSize: '20px' }}>
               <i className='tabler-edit' />
             </IconButton>
-            <IconButton onClick={() => handleView(row.original)} title='View' sx={{fontSize:"20px"}}>
+            <IconButton onClick={() => handleView(row.original)} title='View' sx={{ fontSize: '20px' }}>
               <i className='tabler-eye' />
             </IconButton>
           </Box>
@@ -173,18 +191,35 @@ const UserRolesAndPermisstionList = () => {
 
   const filteredRoles = useMemo(() => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+
     if (activePermissions.length === 0) return userRoleData?.data || []
+
     return (userRoleData?.data || []).filter(role =>
       activePermissions.every(permission => (role.permissions || []).includes(permission))
     )
   }, [userRoleData?.data, appliedPermissionFilters])
+
+  useEffect(() => {
+    if (userRoleData?.message) console.log(userRoleData?.message, '..............userRoleData?.message')
+  }, [userRoleData?.message])
+
+  // useEffect(() => {
+  //   if (addUserFailure && addUserFailureMessage) {
+  //     const messages = Array.isArray(addUserFailureMessage.message)
+  //       ? addUserFailureMessage.message
+  //       : [addUserFailureMessage.message || addUserFailureMessage || 'Unknown error'];
+  //     setApiErrors(messages);
+  //   } else {
+  //     setApiErrors([]);
+  //   }
+  // }, [addUserFailure, addUserFailureMessage]);
   // Event handlers
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
 
-  const handleFilterOpen = () => {
-    setTempPermissionFilters(appliedPermissionFilters)
-    setOpenFilterDrawer(true)
-  }
+  // const handleFilterOpen = () => {
+  //   setTempPermissionFilters(appliedPermissionFilters)
+  //   setOpenFilterDrawer(true)
+  // }
 
   const handleFilterClose = () => setOpenFilterDrawer(false)
 
@@ -195,6 +230,7 @@ const UserRolesAndPermisstionList = () => {
 
   const handleFilterClear = () => {
     const clearedFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
+
     setTempPermissionFilters(clearedFilters)
     setAppliedPermissionFilters(clearedFilters)
     handleFilterClose()
@@ -209,8 +245,6 @@ const UserRolesAndPermisstionList = () => {
     setTempPermissionFilters(prev => ({ ...prev, [permission]: false }))
   }
 
-  const handlePageChange = (event: any, value: number) => setPage(value)
-  const handleChangeLimit = (event: any) => setLimit(event.target.value)
 
   return (
     <div>
@@ -302,7 +336,6 @@ const UserRolesAndPermisstionList = () => {
               onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
             />
           </Card>
-         
         </>
       )}
     </div>
@@ -310,4 +343,3 @@ const UserRolesAndPermisstionList = () => {
 }
 
 export default UserRolesAndPermisstionList
-

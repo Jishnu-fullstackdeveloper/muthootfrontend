@@ -59,10 +59,13 @@ const UserDropdown = () => {
 
   const access_token = getAccessToken()
   const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
-  const firstLetter = decodedAccessToken?.given_name?.charAt(0) || 'U'
+  const [firstLetter, setFirstLetter] = useState('U')
+
+  // const firstLetter = decodedAccessToken?.given_name?.charAt(0) || 'U'
 
   const refresh_token = getRefreshToken()
-  const decodedToken = decodeToken(access_token)
+
+  // const decodedToken = decodeToken(access_token)
 
   const loginStates = useAppSelector((state: any) => state.loginReducer)
 
@@ -154,6 +157,7 @@ const UserDropdown = () => {
   useEffect(() => {
     if (newAccessTokenApiSuccess && newAccessTokenApiData?.data?.access_token) {
       setAccessToken(newAccessTokenApiData?.data?.access_token)
+
       if (newAccessTokenApiData?.data?.refresh_token) {
         setRefreshToken(newAccessTokenApiData?.data?.refresh_token)
       }
@@ -170,13 +174,16 @@ const UserDropdown = () => {
     const intervalId = setInterval(() => {
       if (access_token && refresh_token) {
         const decodedToken: any = jwtDecode(access_token)
+
         const params: any = {
           realm: decodedToken?.realm,
           refreshtoken: refresh_token
         }
+
         dispatch(fetchNewAccessToken(params))
       }
     }, 1800000)
+
     return () => clearInterval(intervalId)
   }, [])
 
@@ -194,6 +201,13 @@ const UserDropdown = () => {
     }
   }, [])
 
+  useEffect(() => {
+    // This code runs only on the client
+    const letter = decodedAccessToken?.given_name?.charAt(0) || 'U'
+
+    setFirstLetter(letter)
+  }, [])
+
   return (
     <>
       <Badge
@@ -208,7 +222,7 @@ const UserDropdown = () => {
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
         >
-          {firstLetter}
+          <span>{firstLetter}</span>
         </Avatar>
         {/* <Avatar
           ref={anchorRef}

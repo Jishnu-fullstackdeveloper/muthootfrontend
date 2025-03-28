@@ -11,11 +11,13 @@ export const permissionsMap = {
     'recruitment_delete',
     'recruitment_approval'
   ],
+  approvals: ['approvals_create', 'approvals_read', 'approvals_update', 'approvals_delete'],
   branchManagement: ['branch_read'],
   bucketManagement: ['bucket_create', 'bucket_read', 'bucket_update', 'bucket_delete'],
   approvalMatrix: ['approvalmatrix_create', 'approvalmatrix_read', 'approvalmatrix_update', 'approvalmatrix_delete'],
-  generalSettings: ['general_create', 'general_read', 'general_update', 'general_delete'],
-  employeeManagement: ['employee_read']
+  systemManagement: ['general_create', 'general_read', 'general_update', 'general_delete'],
+  employeeManagement: ['employee_read'],
+  budgetManagement: ['budget_create', 'budget_read', 'budget_approval']
 }
 
 export default permissionsMap

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 
 import type { TextFieldProps } from '@mui/material'
-import { Card, InputAdornment } from '@mui/material'
+import { Box, Card, InputAdornment } from '@mui/material'
 
 import CustomTextField from '@/@core/components/mui/TextField'
 import EmployeeTable from './EmployeeTableList'
@@ -48,8 +48,8 @@ const EmployeeListingPage = () => {
           paddingBottom: 2
         }}
       >
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
-          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
+        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
+          <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
             <DebouncedInput
               value=''
               onChange={() => {}}
@@ -63,8 +63,8 @@ const EmployeeListingPage = () => {
                 )
               }}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
       </Card>
       {/* <Typography variant='h3' sx={{ fontWeight: 'bold' }}>
         Employee List

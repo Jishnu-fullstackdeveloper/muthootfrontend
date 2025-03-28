@@ -1,5 +1,6 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+
+import React, { useState, useMemo, useEffect } from 'react'
 
 import type { ColumnDef, SortingState, RowSelectionState } from '@tanstack/react-table'
 import { useReactTable, flexRender, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
@@ -27,7 +28,31 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
-import CloseIcon from '@mui/icons-material/Close' // Added for close button
+import CloseIcon from '@mui/icons-material/Close'
+
+// New Client-Side TablePagination Component
+const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    return null // Prevent rendering on server
+  }
+
+  return (
+    <TablePagination
+      rowsPerPageOptions={[5, 10, 25]}
+      count={totalCount || 0}
+      rowsPerPage={pagination?.pageSize ?? 10}
+      page={pagination?.pageIndex ?? 0}
+      onPageChange={(_, page) => onPageChange(page)}
+      onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
+    />
+  )
+}
 
 const DynamicTable = ({
   columns: initialColumns,
@@ -45,6 +70,9 @@ const DynamicTable = ({
   //const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [openColumnDrawer, setOpenColumnDrawer] = useState(false)
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Function to extract headers from nested columns
   const extractHeaders = (cols: ColumnDef<any>[]) => {
@@ -199,6 +227,15 @@ const DynamicTable = ({
   // Check if all columns are selected for "Select All" checkbox state
   const allColumnsSelected = Object.values(selectedColumns).every(selected => selected)
 
+  useEffect(() => {
+    setPageIndex(pagination?.pageIndex ?? 0)
+    setPageSize(pagination?.pageSize ?? 10)
+  }, [pagination])
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   return (
     <Card>
       <Box
@@ -223,7 +260,15 @@ const DynamicTable = ({
 
         {/* Filter Icon on the right */}
         <Tooltip title='Filter Columns'>
-          <IconButton onClick={() => setOpenColumnDrawer(true)}>
+          <IconButton
+            onClick={() => setOpenColumnDrawer(true)}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)', // Light gray hover background (customizable)
+                borderRadius: '4px' // Rectangular shape
+              }
+            }}
+          >
             <Typography variant='subtitle2' sx={{ fontSize: 12, mr: 1 }}>
               More columns
             </Typography>
@@ -276,18 +321,13 @@ const DynamicTable = ({
           <TableFooter>
             <TableRow>
               <TableCell colSpan={columns.length + 1}>
-                <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
-                  {/* <FormControlLabel
-                    control={<Switch checked={dense} onChange={e => setDense(e.target.checked)} />}
-                    label='Dense padding'
-                  /> */}
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    count={totalCount || 0}
-                    rowsPerPage={pagination?.pageSize}
-                    page={pagination?.pageIndex}
-                    onPageChange={(_, page) => onPageChange(page)}
-                    onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  {/* Replace TablePagination with ClientSideTablePagination */}
+                  <ClientSideTablePagination
+                    totalCount={totalCount}
+                    pagination={pagination}
+                    onPageChange={onPageChange}
+                    onRowsPerPageChange={onRowsPerPageChange}
                   />
                 </Box>
               </TableCell>
@@ -305,7 +345,8 @@ const DynamicTable = ({
           sx: { backgroundColor: 'transparent' }
         }}
       >
-        <Box sx={{ width: 350, p: 3 }}>
+        <Box sx={{ width: 250, p: 3 }}>
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant='h6'>Select Columns</Typography>
             <Tooltip title='Close'>

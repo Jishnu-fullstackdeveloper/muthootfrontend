@@ -10,8 +10,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import DynamicTable from '@/components/Table/dynamicTable'
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 import { employeesTableData } from '@/utils/sampleData/EmployeeManagement/EmployeeManagementData' // Import the separated data
-import DeleteIcon from '@mui/icons-material/Delete'
 import VisibilityIcon from '@mui/icons-material/Visibility'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 const EmployeeTable = () => {
   const router = useRouter()
@@ -230,7 +230,7 @@ const EmployeeTable = () => {
   )
 
   return (
-    <Box>
+    <>
       <DynamicTable
         columns={columns}
         data={tableData.data}
@@ -246,7 +246,7 @@ const EmployeeTable = () => {
         onConfirm={handleDeleteConfirm}
         id={employeeIdToDelete}
       />
-    </Box>
+    </>
   )
 }
 

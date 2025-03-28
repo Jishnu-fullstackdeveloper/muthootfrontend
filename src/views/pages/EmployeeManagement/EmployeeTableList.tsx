@@ -10,6 +10,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import DynamicTable from '@/components/Table/dynamicTable'
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 import { employeesTableData } from '@/utils/sampleData/EmployeeManagement/EmployeeManagementData' // Import the separated data
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 const EmployeeTable = () => {
   const router = useRouter()
@@ -74,10 +76,14 @@ const EmployeeTable = () => {
         header: 'ACTIONS',
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (
-          <Box className='flex items-center gap-2'>
+          <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
-              <IconButton onClick={() => router.push(`/employee-management/view/${row.original.id}`)}>
-                <i className='tabler-eye text-textSecondary' />
+              <IconButton
+                onClick={() => router.push(`/employee-management/view/${row.original.id}`)}
+                sx={{ fontSize: 18 }}
+              >
+                {/* <i className='tabler-eye text-textSecondary' /> */}
+                <VisibilityIcon />
               </IconButton>
             </Tooltip>
             {/* <Tooltip title='Edit' placement='top'>
@@ -86,8 +92,9 @@ const EmployeeTable = () => {
               </IconButton>
             </Tooltip> */}
             <Tooltip title='Delete' placement='top'>
-              <IconButton onClick={() => handleDeleteClick(row.original.id)}>
-                <i className='tabler-trash text-textSecondary' />
+              <IconButton onClick={() => handleDeleteClick(row.original.id)} sx={{ fontSize: 18 }}>
+                {/* <i className='tabler-trash text-textSecondary' /> */}
+                <DeleteIcon />
               </IconButton>
             </Tooltip>
           </Box>
@@ -223,7 +230,7 @@ const EmployeeTable = () => {
   )
 
   return (
-    <Box>
+    <>
       <DynamicTable
         columns={columns}
         data={tableData.data}
@@ -239,7 +246,7 @@ const EmployeeTable = () => {
         onConfirm={handleDeleteConfirm}
         id={employeeIdToDelete}
       />
-    </Box>
+    </>
   )
 }
 

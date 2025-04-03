@@ -46,13 +46,16 @@ const JobVacancyView: React.FC<Props> = () => {
 
   return (
     <Box>
-      <Paper elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 2 }}>
+      <Paper elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
         <Box mb={4} className='space-y-2'>
           {/* Tabs for Job Title and Job Details */}
-          <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
+              {viewVacancy?.designation}
+            </Typography>
             <Tabs value={tabValue} onChange={handleTabChange} aria-label='job tabs'>
-              <Tab label='Job Title' />
-              <Tab label='Job Details' />
+              <Tab label='Vacancy details' />
+              <Tab label='JD Details' />
             </Tabs>
           </Box>
           <Box>
@@ -60,12 +63,12 @@ const JobVacancyView: React.FC<Props> = () => {
               <Box>
                 <Box className='flex flex-row justify-between'>
                   <Box className='flex flex-row space-x-2 space-y-2'>
-                    <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
-                      {viewVacancy?.title}
-                    </Typography>
-                    <Typography variant='h5' color='text.secondary'>
+                    {/* <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
+                      {viewVacancy?.designation}
+                    </Typography> */}
+                    {/* <Typography variant='h5' color='text.secondary'>
                       Grade: {viewVacancy?.grade}
-                    </Typography>
+                    </Typography> */}
                   </Box>
                   {/* <Box>
                     <Button variant="contained" onClick={scrollToCandidateList}>
@@ -74,24 +77,62 @@ const JobVacancyView: React.FC<Props> = () => {
                   </Box> */}
                 </Box>
                 <Paper
-                  className='grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 p-6 border-primary shadow-lg rounded-sm bg-white'
+                  className='mb-4 mt-2 p-5 border-primary shadow-lg rounded-lg bg-white'
                   elevation={4}
-                  sx={{ margin: 'auto', borderRadius: 1 }}
+                  sx={{ margin: 'auto', borderRadius: 4 }}
                 >
-                  <Typography variant='subtitle1' color='text.secondary'>
-                    {viewVacancy?.jobType}
+                  {/* Heading */}
+                  <Typography variant='h6' color='text.primary' gutterBottom>
+                    Application Details
                   </Typography>
-                  <Typography variant='subtitle1' color='text.secondary'>
-                    Experience: {viewVacancy?.experience}
-                  </Typography>
-                  <Typography variant='subtitle1' color='text.secondary'>
-                    Branch: {viewVacancy?.branch}
-                  </Typography>
-                  <Typography variant='subtitle1' color='text.secondary'>
-                    City: {viewVacancy?.city}
-                  </Typography>
+
+                  {/* Horizontal Divider */}
+                  <Divider sx={{ mb: 3 }} />
+
+                  {/* Grid for Details */}
+                  <Box className='grid grid-cols-2 md:grid-cols-3 gap-2'>
+                    <Typography variant='body2' color='text.secondary'>
+                      Openings: <strong>{viewVacancy?.openings}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Business Role: <strong>{viewVacancy?.businessRole}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Experience:{' '}
+                      <strong>
+                        {viewVacancy?.experienceMin} - {viewVacancy?.experienceMax} years
+                      </strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Campus/Lateral: <strong>{viewVacancy?.campusOrlateral}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Employee Category: <strong>{viewVacancy?.employeeCategory}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Employee Type: <strong>{viewVacancy?.employeeType}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Hiring Manager: <strong>{viewVacancy?.hiringManager}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Company: <strong>{viewVacancy?.company}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Business Unit: <strong>{viewVacancy?.businessUnit}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Department: <strong>{viewVacancy?.department}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Starting Date: <strong>{viewVacancy?.startingDate}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Closing Date: <strong>{viewVacancy?.closingDate}</strong>
+                    </Typography>
+                  </Box>
                 </Paper>
-                <Paper className='mt-4 space-x-2' elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
+                {/* <Paper className='mt-4 space-x-2' elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
                   <List className='grid grid-cols-2 md:grid-cols-4 gap-2'>
                     <ListItemText
                       primary={<span className='text-green-500'>No. of openings: {viewVacancy?.numberOfOpenings}</span>}
@@ -108,23 +149,23 @@ const JobVacancyView: React.FC<Props> = () => {
                       primary={<span className='text-red-500'>Shortlisted: {viewVacancy?.shortlisted}</span>}
                     />
                   </List>
-                </Paper>
-                <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
+                </Paper> */}
+                {/* <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
                   <CardContent>
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
-                      Application Details
+                      Deadline
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <DateRange fontSize='small' color='action' /> <strong>Start Date:</strong>{' '}
-                          {viewVacancy?.startDate}
+                          {viewVacancy?.startingDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <DateRange fontSize='small' color='action' /> <strong>End Date:</strong>{' '}
-                          {viewVacancy?.endDate}
+                          {viewVacancy?.closingDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -140,7 +181,52 @@ const JobVacancyView: React.FC<Props> = () => {
                       </Grid>
                     </Grid>
                   </CardContent>
-                </Card>
+                </Card> */}
+
+                <Paper
+                  className='mb-4 mt-2 p-6 border-primary shadow-lg rounded-lg bg-white'
+                  elevation={4}
+                  sx={{ margin: 'auto', borderRadius: 4 }}
+                >
+                  {/* Heading */}
+                  <Typography variant='h6' color='text.primary' gutterBottom>
+                    Location Details
+                  </Typography>
+
+                  {/* Horizontal Divider */}
+                  <Divider sx={{ mb: 3 }} />
+
+                  {/* Grid for Details */}
+                  <Box className='grid grid-cols-2 md:grid-cols-3 gap-2'>
+                    <Typography variant='body2' color='text.secondary'>
+                      Territory: <strong>{viewVacancy?.territory}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Region: <strong>{viewVacancy?.region}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Area: <strong>{viewVacancy?.area}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Cluster: <strong>{viewVacancy?.cluster}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Branch: <strong>{viewVacancy?.branch}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Branch Code: <strong>{viewVacancy?.branchCode}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      City: <strong>{viewVacancy?.city}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      State: <strong>{viewVacancy?.state}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Origin: <strong>{viewVacancy?.origin}</strong>
+                    </Typography>
+                  </Box>
+                </Paper>
               </Box>
             )}
             {tabValue === 1 && (
@@ -297,21 +383,21 @@ const JobVacancyView: React.FC<Props> = () => {
       </Paper>
 
       {/* Candidate Listing Table Section */}
-      <Paper className='mt-4 p-6' ref={candidateListRef}>
+      {/* <Paper className='mt-4 p-6' ref={candidateListRef}>
         <Typography variant='h4' color='primary' fontWeight='bold'>
           Applied Candidate Table
         </Typography>
         <Box className='mt-2'>
           <CandidateListingTableView />
         </Box>
-      </Paper>
+      </Paper> */}
 
       {/* Back Button */}
-      <Box mb={2} mt={5} display='flex' justifyContent='space-between'>
+      {/* <Box mb={2} mt={5} display='flex' justifyContent='space-between'>
         <Button startIcon={<ArrowBack />} variant='text' onClick={handleBack}>
           Back to Vacancies List
         </Button>
-      </Box>
+      </Box> */}
     </Box>
   )
 }

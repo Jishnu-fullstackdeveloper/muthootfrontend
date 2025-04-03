@@ -33,8 +33,8 @@ import {
   setVacancyManagementFiltersToCookie
 } from '@/utils/functions'
 import VacancyListingTableView from './VacancyTableView'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+// import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+// import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import type {
   ViewMode,
   VacancyFilters,
@@ -44,12 +44,15 @@ import type {
   SelectedTabs
 } from '@/types/vacancy'
 
+import { vacancyList } from '@/utils/sampleData/VacancyManagement/VacancyListingData'
+//import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+
 const VacancyListingPage = () => {
   const router = useRouter()
-  const dispatch = useAppDispatch()
-  const { vacancies, totalCount, currentPage, limit, error } = useAppSelector(state => state.vacancyManagementReducer)
+  // const dispatch = useAppDispatch()
+  // const { vacancies, totalCount, currentPage, limit, error } = useAppSelector(state => state.vacancyManagementReducer)
 
-  console.log(totalCount, limit, currentPage)
+  // console.log(totalCount, limit, currentPage)
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [addMoreFilters, setAddMoreFilters] = useState(false)
@@ -95,15 +98,21 @@ const VacancyListingPage = () => {
     if (cookieFilters?.appliedFilters) setAppliedFilters(cookieFilters.appliedFilters)
   }, [])
 
-  useEffect(() => {
-    if (vacancies?.length) {
-      setSelectedTabs(vacancies.reduce((acc, vacancy: Vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
-    }
-  }, [vacancies])
+  // useEffect(() => {
+  //   if (vacancies?.length) {
+  //     setSelectedTabs(vacancies.reduce((acc, vacancy: Vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
+  //   }
+  // }, [vacancies])
 
   useEffect(() => {
-    dispatch(fetchVacancies({ page: paginationState.page, limit: paginationState.limit }))
-  }, [dispatch, paginationState.page, paginationState.limit])
+    if (vacancyList?.length) {
+      setSelectedTabs(vacancyList.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
+    }
+  }, [vacancyList])
+
+  // useEffect(() => {
+  //   dispatch(fetchVacancies({ page: paginationState.page, limit: paginationState.limit }))
+  // }, [dispatch, paginationState.page, paginationState.limit])
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) =>
     setPaginationState(prev => ({ ...prev, page: value }))
@@ -221,7 +230,7 @@ const VacancyListingPage = () => {
   }
 
   return (
-    <div className=''>
+    <Box className=''>
       <VacancyManagementFilters
         open={addMoreFilters}
         setOpen={setAddMoreFilters}
@@ -244,11 +253,11 @@ const VacancyListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <DebouncedInput
-              label='Search Vacancy'
+              //label='Search Vacancy'
               value=''
               onChange={() => {}}
               placeholder='Search by Job Title or skill...'
-              className='is-full sm:is-[400px]'
+              className='is-full sm:is-[400px] mt-4'
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
@@ -376,17 +385,17 @@ const VacancyListingPage = () => {
         </Box>
       )} */}
 
-      {error && (
+      {/* {error && (
         <Box sx={{ mb: 4, mx: 6 }}>
           <Typography variant='h6' color='error'>
             Error: Data not found
           </Typography>
         </Box>
-      )}
+      )} */}
 
       <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
-          vacancies?.map((vacancy: Vacancy) => (
+          vacancyList?.map(vacancy => (
             <Box
               onClick={() => router.push(`/vacancy-management/view/${vacancy.id}`)}
               key={vacancy.id}
@@ -395,7 +404,7 @@ const VacancyListingPage = () => {
             >
               <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
                 <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
-                  {vacancy.designationName}
+                  {vacancy.designation}
                 </Typography>
                 <Box className='flex'>
                   <Tooltip title='Edit Vacancy' placement='top'>
@@ -428,60 +437,105 @@ const VacancyListingPage = () => {
                 >
                   <Tab label='Details' sx={{ fontSize: '11px' }} />
                   <Tab label='More details' sx={{ fontSize: '11px' }} />
+                  <Tab label='More details2' sx={{ fontSize: '11px' }} />
                 </Tabs>
                 <Box className='mt-4'>
                   {selectedTabs[vacancy.id] === 0 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Category Type:</strong> {vacancy.employeeCategoryType}
+                        <strong>Openings:</strong> {vacancy.openings}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Grade:</strong> {vacancy.gradeName}
+                        <strong>Business Role:</strong> {vacancy.businessRole}
+                      </Typography>
+                      {/* <Typography variant='body2' fontSize='10px'>
+                        <strong>Minimum Experience:</strong> {vacancy.experienceMin}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Band:</strong> {vacancy.bandName}
+                        <strong>Maximum Experience:</strong> {vacancy.experienceMax}
+                      </Typography> */}
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Experience:</strong> {vacancy.experienceMin} - {vacancy.experienceMax} years
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Business Unit:</strong> {vacancy.businessUnitName}
+                        <strong>Campus/Lateral:</strong> {vacancy.campusOrlateral}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Branch:</strong> {vacancy.branchesName}
+                        <strong>Employee Category:</strong> {vacancy.employeeCategory}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Department:</strong> {vacancy.departmentName}
+                        <strong>Employee Type:</strong> {vacancy.employeeType}
                       </Typography>
                       <Chip
                         variant='tonal'
-                        label={`Start Date: ${vacancy.createdAt.split('T')[0]}`}
+                        label={`Start Date: ${vacancy.startingDate.split('T')[0]}`}
                         color='success'
                         size='small'
                         sx={{ fontWeight: 'bold', fontSize: '8px', textTransform: 'uppercase', width: 125 }}
                       />
                       <Chip
                         variant='tonal'
-                        label={`End Date: ${vacancy.updatedAt.split('T')[0]}`}
+                        label={`End Date: ${vacancy.closingDate.split('T')[0]}`}
                         color='error'
                         size='small'
                         sx={{ fontWeight: 'bold', fontSize: '8px', textTransform: 'uppercase', width: 125 }}
                       />
+
+                      {/* <Typography variant='body2' fontSize='10px' color='sucess'>
+                        <strong>Start Date:</strong> {vacancy.startingDate.split('T')[0]}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px' color='error'>
+                        <strong>End Date:</strong> {vacancy.closingDate.split('T')[0]}
+                      </Typography> */}
                     </Box>
                   )}
                   {selectedTabs[vacancy.id] === 1 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
+                      {/* <Typography variant='body2' fontSize='10px'>
+                        <strong>Employee Type:</strong> {vacancy.employeeType}
+                      </Typography> */}
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>State:</strong> {vacancy.stateName}
+                        <strong>Hiring Manager:</strong> {vacancy.hiringManager}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>City:</strong> {vacancy.districtName}
+                        <strong>Company:</strong> {vacancy.company}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Region:</strong> {vacancy.regionName}
+                        <strong>Business Unit:</strong> {vacancy.businessUnit}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Zone:</strong> {vacancy.zoneName}
+                        <strong>Department:</strong> {vacancy.department}
                       </Typography>
                       <Typography variant='body2' fontSize='10px'>
-                        <strong>Area:</strong> {vacancy.areaName}
+                        <strong>Territory:</strong> {vacancy.territory}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Region:</strong> {vacancy.region}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Cluster:</strong> {vacancy.cluster}
+                      </Typography>
+                    </Box>
+                  )}
+                  {selectedTabs[vacancy.id] === 2 && (
+                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-2'>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Area:</strong> {vacancy.area}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Branch:</strong> {vacancy.branch}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Branch code:</strong> {vacancy.branchCode}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>City:</strong> {vacancy.city}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>State:</strong> {vacancy.state}
+                      </Typography>
+                      <Typography variant='body2' fontSize='10px'>
+                        <strong>Origin:</strong> {vacancy.origin}
                       </Typography>
                     </Box>
                   )}
@@ -521,7 +575,7 @@ const VacancyListingPage = () => {
           />
         </Box>
       )}
-    </div>
+    </Box>
   )
 }
 

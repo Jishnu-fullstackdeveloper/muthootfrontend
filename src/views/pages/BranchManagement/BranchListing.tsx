@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 import {
   Box,
   Card,
-  Chip,
+
+  // Chip,
   FormControl,
   Grid,
   IconButton,
@@ -17,8 +18,9 @@ import {
   Select,
   Typography,
   Tooltip,
-  Button,
-  Stack
+  Button
+
+  // Stack
 } from '@mui/material'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import Pagination from '@mui/material/Pagination'
@@ -198,14 +200,14 @@ const BranchListing = () => {
               {viewMode === 'grid' ? (
                 <>
                   <Box
-                    sx={{ pt: 4, pl: 4, pb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    sx={{ pt: 2, pl: 2, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography variant='h5' sx={{ mt: 2, fontWeight: 'bold' }} gutterBottom>
+                      <Typography variant='h6' sx={{ mt: 1, fontWeight: 'bold' }} gutterBottom>
                         {branch.name}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', mr: 10 }}>
+                    {/* <Box sx={{ display: 'flex', mr: 10 }}>
                       <Stack sx={{ mt: 2 }}>
                         <Chip
                           label={branch.branchStatus}
@@ -219,12 +221,13 @@ const BranchListing = () => {
                           size='small'
                           sx={{
                             fontWeight: 'bold',
+
                             // fontSize: '0.85rem',
                             textTransform: 'uppercase'
                           }}
                         />
                       </Stack>
-                    </Box>
+                    </Box> */}
                   </Box>
                   <Box
                     sx={{
@@ -240,80 +243,93 @@ const BranchListing = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1,
-                        color: 'text.secondary'
-                        // fontSize: '0.575rem'
+                        color: 'text.secondary',
+                        fontSize: '0.575rem'
                       }}
                     >
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Branch Code:</strong> {branch.branchCode}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Territory:</strong> {branch.area.regionId}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Zonal:</strong> {branch.area.name}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Region:</strong> {branch.area.regionId}
                       </Typography>
+                      <Typography>
+                        <strong>Area:</strong> {branch.area.name}
+                      </Typography>
+                      <Typography>
+                        <strong>Cluster:</strong> {branch.bucket?.name}
+                      </Typography>
+                      <Typography>
+                        <strong>City Classification:</strong> {branch.district?.name}
+                      </Typography>
+                      <Typography>
+                        <strong>State:</strong> {branch.state?.name}
+                      </Typography>
                     </Box>
-                    <Box
+                    {/* <Box
                       sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1,
                         color: 'text.secondary'
+
                         // fontSize: '0.275rem'
                       }}
                     >
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Area:</strong> {branch.area.name}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>Cluster:</strong> {branch.bucket?.name}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>City Classification:</strong> {branch.district?.name}
                       </Typography>
-                      <Typography variant='body2'>
+                      <Typography>
                         <strong>State:</strong> {branch.state?.name}
                       </Typography>
-                    </Box>
+                    </Box> */}
                   </Box>
                 </>
               ) : (
                 <Grid container spacing={4}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
-                      {branch.name}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Branch Code:</strong> {branch.branchCode}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Territory:</strong> {branch.area.regionId}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Zonal:</strong> {branch.area.name}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant='body2'>
-                      <strong>Region:</strong> {branch.area.regionId}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Area:</strong> {branch.area.name}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Cluster:</strong> {branch.bucket.name}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>City Classification:</strong> {branch.district.name}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>State:</strong> {branch.state.name}
-                    </Typography>
-                  </Grid>
+                  {/* <Grid item xs={12} md={6}> */}
+                  <Typography className='text-[12px]' sx={{ fontWeight: 'bold' }}>
+                    {branch.name}
+                  </Typography>
+                  <Typography>
+                    <strong>Branch Code:</strong> {branch.branchCode}
+                  </Typography>
+                  <Typography>
+                    <strong>Territory:</strong> {branch.area.regionId}
+                  </Typography>
+                  <Typography>
+                    <strong>Zonal:</strong> {branch.area.name}
+                  </Typography>
+                  {/* </Grid> */}
+                  {/* <Grid item xs={12} md={6}> */}
+                  <Typography>
+                    <strong>Region:</strong> {branch.area.regionId}
+                  </Typography>
+                  <Typography>
+                    <strong>Area:</strong> {branch.area.name}
+                  </Typography>
+                  <Typography>
+                    <strong>Cluster:</strong> {branch.bucket.name}
+                  </Typography>
+                  <Typography>
+                    <strong>City Classification:</strong> {branch.district.name}
+                  </Typography>
+                  <Typography>
+                    <strong>State:</strong> {branch.state.name}
+                  </Typography>
+                  {/* </Grid> */}
                 </Grid>
               )}
             </Box>

@@ -9,6 +9,7 @@ import UserRoleReducer from './UserRoles/userRoleSlice'
 import BucketManagementReducer from './BucketManagementSlice'
 import branchManagementReducer from './BranchManagement/BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
+import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -21,7 +22,8 @@ export const makeStore = () =>
       BucketManagementReducer,
       UserRoleReducer,
       branchManagementReducer,
-      vacancyManagementReducer
+      vacancyManagementReducer,
+      budgetManagementReducer
     }
   })
 

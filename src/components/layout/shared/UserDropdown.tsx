@@ -51,6 +51,13 @@ const BadgeContentSpan = styled('span')({
   boxShadow: '0 0 0 2px var(--mui-palette-background-paper)'
 })
 
+interface Permission {
+  role: string
+  permissions: string[]
+}
+
+type CurrentPermissions = Permission[]
+
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
@@ -129,6 +136,19 @@ const UserDropdown = () => {
   const pathName = usePathname()
   const guestRoutes = ['login', 'login-Redirect']
   const privateRoute = ![...guestRoutes].some(route => pathName.endsWith(route))
+
+  const fullName =
+    [decodedAccessToken?.given_name, decodedAccessToken?.middle_name, decodedAccessToken?.family_name]
+      .filter(namePart => namePart !== undefined && namePart !== null) // Remove undefined or null values
+      .join(' ') || 'John Doe'
+
+  const getFilteredRoles = (permissions: CurrentPermissions): string => {
+    const filteredRoles = permissions
+      .filter(permission => permission.role !== 'default-roles-hrms')
+      .map(permission => permission.role)
+
+    return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
+  }
 
   useEffect(() => {
     if (!access_token && privateRoute) {
@@ -253,18 +273,27 @@ const UserDropdown = () => {
                     <Avatar alt={decodedAccessToken?.given_name || 'Unknown User'}>{firstLetter}</Avatar>
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        {decodedAccessToken?.given_name + ' ' + decodedAccessToken?.family_name || 'John Doe'}
+                        {fullName}
                       </Typography>
                       <Typography variant='caption'>{decodedAccessToken?.email || ' admin@vuexy.com'}</Typography>
 
-                      <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography>
+                      {/* <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography> */}
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          textTransform: 'capitalize',
+                          whiteSpace: 'pre-line'
+                        }}
+                      >
+                        {getFilteredRoles(currentPermissions)}
+                      </Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  {/* <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-user text-[22px]' />
                     <Typography color='text.primary'>My Profile</Typography>
-                  </MenuItem>
+                  </MenuItem> */}
                   {decodedAccessToken?.source === 'NON_AD_USER' && (
                     <MenuItem
                       className='mli-2 gap-3'
@@ -278,7 +307,7 @@ const UserDropdown = () => {
                     </MenuItem>
                   )}
 
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  {/* <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-settings text-[22px]' />
                     <Typography color='text.primary'>Settings</Typography>
                   </MenuItem>
@@ -289,7 +318,7 @@ const UserDropdown = () => {
                   <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-help-circle text-[22px]' />
                     <Typography color='text.primary'>FAQ</Typography>
-                  </MenuItem>
+                  </MenuItem> */}
                   <div className='flex items-center plb-2 pli-3'>
                     <Button
                       fullWidth

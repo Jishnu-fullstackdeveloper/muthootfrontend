@@ -20,9 +20,9 @@ const Login2Redirect = () => {
   // Extract URL parameters once at the top level
   const currentUrl = typeof window !== 'undefined' ? window?.location?.href : ''
   const urlParams = new URLSearchParams(currentUrl?.split('?')[1])
-  const code = urlParams.get('code')
+  const code = urlParams.get('code') //CR: Code is Not Found in redirect URL
   const issuer = urlParams.get('iss')
-  const stateFetched = urlParams.get('state')
+  const stateFetched = urlParams.get('state') //CR: State Is undefined
 
   const dispatch = useDispatch<Dispatch>()
   const { secondLoginData }: any = useSelector((state: RootState) => state.loginReducer)
@@ -39,6 +39,7 @@ const Login2Redirect = () => {
       toast.error('Login failed: Missing required parameters.', {
         closeOnClick: true
       })
+
       return
     }
 
@@ -65,6 +66,7 @@ const Login2Redirect = () => {
         toast.error('Login failed: No access token received.', {
           closeOnClick: true
         })
+
         return
       }
 
@@ -76,6 +78,7 @@ const Login2Redirect = () => {
           toast.error('Login failed: Invalid token format.', {
             closeOnClick: true
           })
+
           return
         }
 

@@ -28,6 +28,7 @@ import VacancyManagementOverview from '@/views/branch/components/VacancyManageme
 
 const tabMapping: { [key: string]: number } = {
   'employees-details': 0,
+
   // 'bubble-positions': 1,
   'budget-management': 1,
   'vacancy-management': 2
@@ -87,6 +88,14 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
       }),
       columnHelper.accessor('firstName', {
         header: 'First Name',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('middleName', {
+        header: 'Middle Name',
         cell: info => (
           <Typography color='text.primary' className='font-medium'>
             {info.getValue()}
@@ -211,7 +220,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
         <Grid container spacing={2} alignItems='center'>
           <Grid className='flex justify-between' item xs={12}>
             <Typography variant='h5'>Branch Details</Typography>
-            <Button
+            {/* <Button
               className='mr-2'
               variant='contained'
               color='primary'
@@ -219,7 +228,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               onClick={() => router.push('/branch-management/budget-report')}
             >
               Branch Report Dashboard
-            </Button>
+            </Button> */}
           </Grid>
           <Grid className='flex justify-between' item xs={6}>
             {/* Action buttons commented out */}
@@ -291,6 +300,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               pagination={{ pageIndex: pagination.pageIndex, pageSize: pagination.pageSize }}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
+              tableName='Employee List'
             />
           ))}
         {/* {activeTab === 1 && (

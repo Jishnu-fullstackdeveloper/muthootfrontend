@@ -10,7 +10,7 @@ const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ bra
   return (
     <Box>
       <Typography variant='h6' sx={{ mb: 3, fontWeight: 'bold', color: '#2e7d32' }}>
-        Bucket Management Overview
+        Budget Management Overview
       </Typography>
       <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa', borderRadius: 2, boxShadow: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

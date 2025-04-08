@@ -2,18 +2,18 @@
 'use client'
 
 // React Imports
-import { useEffect, useState } from 'react'
 
 // MUI Imports
-import { Box, IconButton, Typography } from '@mui/material'
-import { Chip } from '@mui/material'
+import { useRouter } from 'next/navigation'
+
+import { Box, IconButton, Typography, Chip } from '@mui/material'
 
 // Components and Utils
+import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 
 // Next Imports
-import { useRouter } from 'next/navigation'
 
 // Types
 type BudgetData = {
@@ -112,6 +112,7 @@ const BudgetListingTableView = ({
     }),
     columnHelper.accessor('businessRole', {
       header: 'BUSINESS ROLE',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cell: ({ row, getValue }) => (
         <Typography color='text.primary' sx={{ fontWeight: 'medium' }}>
           {getValue()}

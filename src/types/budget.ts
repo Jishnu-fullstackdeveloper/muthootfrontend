@@ -43,3 +43,36 @@ export interface Budget {
   approvalStatusLevel?: ApprovalStatusStep[]
   additionalDetails?: string
 }
+
+export interface BudgetDepartment {
+  id: string
+  deletedBy: string | null
+  name: string
+  positionCategories: {
+    designationName: string
+    count: number
+  }[]
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  data: any
+  totalCount: number
+}
+
+export interface BudgetDepartmentResponse {
+  status: string
+  message: string
+  totalCount: number
+  data: BudgetDepartment[]
+  page: number
+  limit: number
+}
+
+export interface BudgetManagementState {
+  fetchBudgetDepartmentLoading: boolean
+  fetchBudgetDepartmentSuccess: boolean
+  fetchBudgetDepartmentData: BudgetDepartmentResponse | null
+  fetchBudgetDepartmentTotal: number
+  fetchBudgetDepartmentFailure: boolean
+  fetchBudgetDepartmentFailureMessage: string
+}

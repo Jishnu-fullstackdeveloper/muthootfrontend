@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react'
 
 // Next Imports
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 // MUI Imports
 import {
@@ -22,21 +22,28 @@ import {
   Chip
 } from '@mui/material'
 import { ArrowBack, Business, People, CalendarToday, Work } from '@mui/icons-material'
-import { Budget } from '@/types/budget'
+
+import type { Budget } from '@/types/budget'
 import { BudgetData } from '@/utils/sampleData/BudgetManagement/BudgetDetailsData'
 
 // HOC for Permissions
 import withPermission from '@/hocs/withPermission'
+import Department from './Department'
 
 type Props = {
   mode: string
   id: string
 }
 
-// Mock Budget Data (since no API is available)
-
 const ViewBudget: React.FC<Props> = ({ mode, id }) => {
   const router = useRouter()
+  const pathname = usePathname() // Get the current route
+
+  // Check if the last segment of the path is "department"
+  const isDepartmentRoute = pathname.split('/').pop() === 'department'
+
+  mode
+  id
 
   // Placeholder for future API integration
   // const dispatch = useAppDispatch()
@@ -67,6 +74,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
 
   const handleApprove = async (e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       // const approverId = getApproverId()
       // if (!approverId) throw new Error('No approver ID found')
@@ -86,6 +94,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
 
   const handleReject = async (e: React.MouseEvent) => {
     e.stopPropagation()
+
     try {
       // const approverId = getApproverId()
       // if (!approverId) throw new Error('No approver ID found')
@@ -105,6 +114,12 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
 
   const activeStep = budget?.approvalStatusLevel?.findIndex(step => step.status === 'Pending') ?? 0
 
+  // If the route is /budget-management/view/department, show only the welcome message
+  if (isDepartmentRoute) {
+    return <Department />
+  }
+
+  // Otherwise, render the full page
   return (
     <Paper
       sx={{

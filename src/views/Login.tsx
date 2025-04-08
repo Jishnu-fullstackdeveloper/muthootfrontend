@@ -177,7 +177,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM
   const redirectUrl: any = process.env.NEXT_PUBLIC_LOGIN_REDIRECT_URL
   const keycloakUrl: any = process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL
-  const state: any = process.env.NEXT_PUBLIC_KEYCLOAK_STATE
+  const state: any = process.env.NEXT_PUBLIC_KEYCLOAK_STATE || 'hrms'
 
   // const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
   //   redirectUrl

@@ -21,10 +21,8 @@ const defaultPermissionsList = [
   { module: 'Candidate Management', actions: ['read'] },
   { module: 'JD Management', actions: ['read', 'update', 'delete', 'create', 'upload', 'approval'] },
   { module: 'Vaccancy Management', actions: ['read', 'update'] },
-  { module: 'Budget Management', actions: ['read', 'update', 'approval'] },
+  { module: 'Budget Management', actions: ['read', 'Create', 'approval'] },
   { module: 'Branch Management', actions: ['read'] },
-
-  // { module: 'Bucket Management', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'Approval Matrix', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'General Settings', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'Employee Management', actions: ['read'] }
@@ -159,7 +157,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         const moduleMap: { [key: string]: string } = {
           'User Management': 'user',
           'User Roles': 'role',
-          Approvals: 'approvals',
+         ' Approvals': 'approvals',
           'Candidate Management': 'candidate',
           'JD Management': 'jd',
           'Vaccancy Management': 'vacancy',
@@ -324,7 +322,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             onBlur={roleFormik.handleBlur}
             error={Boolean(roleFormik.errors.roleName && roleFormik.touched.roleName)}
             helperText={roleFormik.touched.roleName ? roleFormik.errors.roleName : ''}
-            disabled={mode === 'edit'} // Disable if editing to preserve original name
+            disabled={mode === 'edit'} 
             InputProps={{ readOnly: mode === 'edit' }}
           />
         </FormControl>

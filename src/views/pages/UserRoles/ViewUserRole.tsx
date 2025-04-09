@@ -1,9 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-
 import { useRouter, useSearchParams } from 'next/navigation'
-
 import {
   Box,
   Card,
@@ -20,8 +18,7 @@ import {
   TableRow,
   Tooltip
 } from '@mui/material'
-import { ArrowBack, Edit } from '@mui/icons-material' // Added Edit icon
-
+import { ArrowBack, Edit } from '@mui/icons-material'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
@@ -68,7 +65,6 @@ const ViewUserRole = () => {
   useEffect(() => {
     if (roleId) {
       const existingRole = userRoleData?.data?.find(role => role.id === roleId)
-
       if (existingRole) {
         setLocalRole(existingRole)
       } else {
@@ -84,12 +80,14 @@ const ViewUserRole = () => {
   const roleDescription = matchedRole?.description || searchParams.get('description') || 'N/A'
   const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]')
 
-  // Group and sort permissions
-  const groupedPermissions = {}
 
+  const nonEditableRoles = ['DEFAULT-ROLE', 'DEFAULT-ROLES-HRMS']
+  const isEditable = !nonEditableRoles.includes(roleName)
+
+  
+  const groupedPermissions = {}
   permissions.forEach(perm => {
     const [moduleName] = perm.name.split('_')
-
     if (MODULES.includes(moduleName)) {
       groupedPermissions[moduleName] = groupedPermissions[moduleName] || []
       groupedPermissions[moduleName].push({ name: perm.name, description: perm.description })
@@ -100,19 +98,18 @@ const ViewUserRole = () => {
     groupedPermissions[module].sort((a, b) => {
       const aIndex = PERMISSION_ORDER.indexOf(a.name.split('_')[1])
       const bIndex = PERMISSION_ORDER.indexOf(b.name.split('_')[1])
-
       return aIndex - bIndex
     })
   })
 
-  const handleEdit = (role: any) => {
-    const query = new URLSearchParams({
-      id: role.id,
-      name: role.name
-    }).toString()
-
-    router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
-  }
+  // const handleEdit = (role: any) => {
+  //   if (!isEditable) return; 
+  //   const query = new URLSearchParams({
+  //     id: role.id,
+  //     name: role.name
+  //   }).toString()
+  //   router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+  // }
 
   const formatModuleName = module =>
     ({
@@ -134,7 +131,6 @@ const ViewUserRole = () => {
 
   const getPermissionDescription = (module, perm) => {
     const permission = permissions.find(p => p.name === `${module}_${perm}`)
-
     return permission?.description || 'No description available'
   }
 
@@ -149,9 +145,14 @@ const ViewUserRole = () => {
             <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
               {roleName.toUpperCase()}
             </Typography>
-            <IconButton sx={{ fontSize: '20px' }} onClick={() => handleEdit(matchedRole)} aria-label='Edit role'>
+            {/* <IconButton
+              sx={{ fontSize: '20px' }}
+              onClick={() => handleEdit(matchedRole)}
+              aria-label='Edit role'
+              disabled={!isEditable} // Disable button for non-editable roles
+            >
               <Edit />
-            </IconButton>
+            </IconButton> */}
           </Box>
 
           <Divider sx={{ mb: 4 }} />

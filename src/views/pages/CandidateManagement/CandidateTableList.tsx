@@ -179,6 +179,7 @@ const CandidateTableList = () => {
         pagination={pagination}
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        tableName='Candidate List'
       />
       <ConfirmModal
         open={deleteModalOpen}

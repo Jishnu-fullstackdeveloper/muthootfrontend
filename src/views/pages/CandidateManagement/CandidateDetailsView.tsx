@@ -61,11 +61,11 @@ const CandidateDetails = () => {
             <Typography variant='h4' sx={{ fontWeight: 'bold' }}>
               {candidate.name}
             </Typography>
-            <Avatar
+            {/* <Avatar
               src={candidate.profilePhoto}
               alt={candidate.name}
               sx={{ width: 150, height: 150, mr: 2, border: '2px solid', borderColor: 'primary.main' }}
-            />
+            /> */}
           </Box>
           <Divider sx={{ mb: 3 }} />
 

@@ -8,14 +8,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTable from '@/components/Table/dynamicTable'
-// import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-// import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import { vacancyList } from '@/utils/sampleData/VacancyManagement/VacancyListingData'
 
 const VacancyListingTableView = () => {
   const router = useRouter()
-  // const dispatch = useAppDispatch()
-  // const { vacancies, totalCount } = useAppSelector(state => state.vacancyManagementReducer)
+  const dispatch = useAppDispatch()
+  const { vacancies, totalCount, loading, error } = useAppSelector(state => state.vacancyManagementReducer)
 
   const columnHelper = createColumnHelper<any>()
 
@@ -26,9 +26,9 @@ const VacancyListingTableView = () => {
   })
 
   // Fetch vacancies when pagination changes
-  // useEffect(() => {
-  //   dispatch(fetchVacancies({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
-  // }, [dispatch, pagination.pageIndex, pagination.pageSize])
+  useEffect(() => {
+    dispatch(fetchVacancies({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+  }, [dispatch, pagination.pageIndex, pagination.pageSize])
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({
@@ -50,12 +50,30 @@ const VacancyListingTableView = () => {
 
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
+      columnHelper.accessor('jobTitle', {
+        // Match the actual data key
+        header: 'JOB TITLE',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.jobTitle}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('designation', {
         // Match the actual data key
         header: 'DESIGNATION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
             {row.original.designation}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('designation', {
+        // Match the actual data key
+        header: 'JOB ROLE',
+        cell: ({ row }) => (
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.jobRole}
           </Typography>
         )
       }),
@@ -77,12 +95,12 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor('campusOrlateral', {
+      columnHelper.accessor('campusOrLateral', {
         // Match the actual data key
         header: 'CAMPUS/LATERAL',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.campusOrlateral}
+            {row.original.campusOrLateral}
           </Typography>
         )
       }),
@@ -292,14 +310,17 @@ const VacancyListingTableView = () => {
     <Box>
       <DynamicTable
         columns={columns}
-        data={vacancyList}
-        //data={vacancies || []}
-        //totalCount={totalCount}
+        //data={vacancyList} // Commented out static data
+        data={vacancies || []} // Use Redux state instead
+        totalCount={totalCount} // Use totalCount from Redux
         pagination={pagination} // Pass 0-based pagination directly
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         onPageCountChange={handlePageCountChange}
+        tableName='Vacancy List'
       />
+      {loading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
+      {error && <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>Error: {error}</Typography>}
     </Box>
   )
 }

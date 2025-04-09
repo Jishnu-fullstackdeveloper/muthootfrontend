@@ -147,9 +147,9 @@ const CandidateListing = () => {
           </div>
         </div>
       </Card>
-      <Typography variant='h3' sx={{ fontWeight: 'bold' }}>
+      {/* <Typography variant='h3' sx={{ fontWeight: 'bold' }}>
         Candidate List
-      </Typography>
+      </Typography> */}
       <CandidateTableList />
     </>
   )

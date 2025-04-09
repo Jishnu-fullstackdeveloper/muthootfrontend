@@ -1,3 +1,4 @@
 export const API_ENDPOINTS = {
-  vacancyListingApi: '/vacancy'
+  vacancyListingApi: `/vacancy`
+  //vacancyListingById: `/vacancy/{id}`
 }

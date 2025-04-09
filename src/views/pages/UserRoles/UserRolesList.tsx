@@ -9,13 +9,7 @@ import {
   Box,
   Card,
   CardContent,
-  Button,
-  Drawer,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  Chip,
-  Divider,
+ 
   Tooltip
 } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -37,52 +31,12 @@ const UserRolesAndPermisstionList = () => {
   const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
   const [searchText, setSearchText] = useState('')
   const [debouncedSearchText, setDebouncedSearchText] = useState('')
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [tempPermissionFilters, setTempPermissionFilters] = useState({})
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
 
-  const permissionsList = [
-    'user_create',
-    'user_read',
-    'user_update',
-    'user_delete',
-    'role_create',
-    'role_read',
-    'role_update',
-    'role_delete',
-    'approvals_create',
-    'approvals_read',
-    'approvals_update',
-    'approvals_delete',
-    'jd_create',
-    'jd_read',
-    'jd_update',
-    'jd_delete',
-    'vacancy_create',
-    'vacancy_read',
-    'vacancy_update',
-    'vacancy_delete',
-    'recruitment_create',
-    'recruitment_read',
-    'recruitment_update',
-    'recruitment_delete',
-    'branch_read',
-    'approvalmatrix_create',
-    'approvalmatrix_read',
-    'approvalmatrix_update',
-    'approvalmatrix_delete',
-    'general_create',
-    'general_read',
-    'general_update',
-    'general_delete',
-    'candidate_read',
-    'budget_create',
-    'budget_read',
-    'budget_approval',
-    'employee_read'
-  ]
+ 
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
@@ -102,11 +56,7 @@ const UserRolesAndPermisstionList = () => {
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
 
-  useEffect(() => {
-    const initialFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
-    setTempPermissionFilters(initialFilters)
-    setAppliedPermissionFilters(initialFilters)
-  }, [])
+
 
   const handleEdit = (role: any) => {
     const query = new URLSearchParams({
@@ -157,7 +107,7 @@ const UserRolesAndPermisstionList = () => {
                 onClick={() => handleEdit(row.original)}
                 title='Edit'
                 sx={{ fontSize: '20px' }}
-                disabled={isEditDisabled} // Disable edit button for specific roles
+                disabled={isEditDisabled} 
               >
                 <i className='tabler-edit' />
               </IconButton>
@@ -188,28 +138,8 @@ const UserRolesAndPermisstionList = () => {
     setSearchText(event.target.value)
   }
 
-  const handleFilterClose = () => setOpenFilterDrawer(false)
+ 
 
-  const handleFilterApply = () => {
-    setAppliedPermissionFilters(tempPermissionFilters)
-    handleFilterClose()
-  }
-
-  const handleFilterClear = () => {
-    const clearedFilters = permissionsList.reduce((acc, perm) => ({ ...acc, [perm]: false }), {})
-    setTempPermissionFilters(clearedFilters)
-    setAppliedPermissionFilters(clearedFilters)
-    handleFilterClose()
-  }
-
-  const handlePermissionChange = (permission: string, checked: boolean) => {
-    setTempPermissionFilters(prev => ({ ...prev, [permission]: checked }))
-  }
-
-  const handleRemoveFilter = (permission: string) => {
-    setAppliedPermissionFilters(prev => ({ ...prev, [permission]: false }))
-    setTempPermissionFilters(prev => ({ ...prev, [permission]: false }))
-  }
 
   return (
     <div>
@@ -239,55 +169,12 @@ const UserRolesAndPermisstionList = () => {
               />
             </Box>
           </Box>
-          {Object.keys(appliedPermissionFilters).some(key => appliedPermissionFilters[key]) && (
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {Object.keys(appliedPermissionFilters)
-                .filter(key => appliedPermissionFilters[key])
-                .map(permission => (
-                  <Chip
-                    key={permission}
-                    label={permission}
-                    onDelete={() => handleRemoveFilter(permission)}
-                    size='small'
-                    color='primary'
-                  />
-                ))}
-              <Button size='small' color='error' onClick={handleFilterClear}>
-                Clear All
-              </Button>
-            </Box>
-          )}
+         
+          
         </CardContent>
       </Card>
 
-      <Drawer anchor='right' open={openFilterDrawer} onClose={handleFilterClose}>
-        <Box sx={{ width: 300, p: 5 }}>
-          <Typography variant='h5'>Filter by Permissions</Typography>
-          <Divider sx={{ mb: 2 }} />
-          <FormGroup>
-            {permissionsList.map(permission => (
-              <FormControlLabel
-                key={permission}
-                control={
-                  <Checkbox
-                    checked={tempPermissionFilters[permission] || false}
-                    onChange={e => handlePermissionChange(permission, e.target.checked)}
-                  />
-                }
-                label={permission}
-              />
-            ))}
-          </FormGroup>
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-            <Button onClick={handleFilterClear} color='error'>
-              Clear
-            </Button>
-            <Button onClick={handleFilterApply} variant='contained'>
-              Apply
-            </Button>
-          </Box>
-        </Box>
-      </Drawer>
+   
 
       {isUserRoleLoading ? (
         <Typography>Loading roles...</Typography>

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+
 import {
   Autocomplete,
   TextField,
@@ -15,6 +16,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicTable from '@/components/Table/dynamicTable'
 
@@ -35,9 +37,8 @@ const DesignationForm = ({ formik }) => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
 
   const handleXFactorClick = () => {
-    // Toggle Accordion visibility
     setAccordionExpanded(prev => !prev)
-    // Reset tempDesignations only when opening the Accordion
+
     if (!accordionExpanded) {
       setTempDesignations([{ name: '', days: '' }])
     }
@@ -72,29 +73,23 @@ const DesignationForm = ({ formik }) => {
   )
 
   const handleSave = () => {
-    // Filter valid designations and update savedDesignations
     const validDesignations = tempDesignations.filter(d => d.name && d.days)
+
     console.log('Saving designations:', validDesignations) // Debug log
     setSavedDesignations([...savedDesignations, ...validDesignations])
 
-    // Update Formik values (optional, depending on your use case)
     formik.setFieldValue('designations', validDesignations)
 
-    // If formik.handleSubmit is defined, call it
     if (formik.handleSubmit) {
       formik.handleSubmit()
-    } else {
-      console.log('formik.handleSubmit not defined') // Debug log
-    }
+    } 
 
-    // Clear the Accordion fields by resetting tempDesignations
     setTempDesignations([{ name: '', days: '' }])
 
-    // Close Accordion
+   
     setAccordionExpanded(false)
   }
 
-  // Check if there are valid designations to enable Save button
   const isSaveDisabled = !tempDesignations.some(d => d.name && d.days) || formik?.isSubmitting
 
   return (
@@ -119,18 +114,21 @@ const DesignationForm = ({ formik }) => {
                 }}
               />
             </Box>
-           
+
             <Button variant='contained' color='primary' onClick={handleXFactorClick}>
-              X Factor 
+              X Factor
             </Button>
-            
           </Box>
 
           {accordionExpanded && (
-            <Accordion className='shadow-none border'  expanded={accordionExpanded} onChange={(event, isExpanded) => setAccordionExpanded(isExpanded)}>
+            <Accordion
+              className='shadow-none border'
+              expanded={accordionExpanded}
+              onChange={(event, isExpanded) => setAccordionExpanded(isExpanded)}
+            >
               <AccordionDetails className='shadow-none'>
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                  <Box sx={{ justifyContent: 'center',alignItems: 'center' }}>
+                  <Box sx={{ justifyContent: 'center', alignItems: 'center' }}>
                     {tempDesignations?.map((designation, index) => (
                       <Box
                         key={index}
@@ -140,8 +138,9 @@ const DesignationForm = ({ formik }) => {
                           marginTop: '16px',
                           alignItems: 'center',
                           width: '100%',
-                          gap: '10px',
-                           // Explicitly remove shadow
+                          gap: '10px'
+
+                        
                         }}
                       >
                         <Box sx={{ width: '300px', boxShadow: 'none' }}>
@@ -153,6 +152,7 @@ const DesignationForm = ({ formik }) => {
                             onChange={(e, value) => {
                               const selectedName = value ? value.name.trim() : ''
                               const newDesignations = [...tempDesignations]
+
                               newDesignations[index].name = selectedName
                               setTempDesignations(newDesignations)
                             }}
@@ -179,6 +179,7 @@ const DesignationForm = ({ formik }) => {
                             onChange={e => {
                               const value = e.target.value
                               const newDesignations = [...tempDesignations]
+
                               newDesignations[index].days = value === '' ? '' : parseInt(value, 10) || 0
                               setTempDesignations(newDesignations)
                             }}
@@ -225,6 +226,7 @@ const DesignationForm = ({ formik }) => {
         </CardContent>
       </Card>
       <DynamicTable
+       tableName = 'Xfactor List'
         columns={columns}
         data={savedDesignations}
         totalCount={savedDesignations.length}

@@ -201,7 +201,10 @@ const ApprovalManagement = () => {
         </Tabs> */}
 
       <Box className='mt-5'>
-        <DynamicTable columns={columns} data={demoApprovalData} />
+        <DynamicTable 
+        columns={columns} 
+        data={demoApprovalData}
+        tableName = 'Approval List' />
       </Box>
     </>
   )

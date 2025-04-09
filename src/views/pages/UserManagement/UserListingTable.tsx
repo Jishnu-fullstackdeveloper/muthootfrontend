@@ -59,10 +59,7 @@ const UserTable = ({
 
   const columns = useMemo(
     () => [
-      // columnHelper.accessor('userId', {
-      //   header: 'Sl No',
-      //   cell: ({ row }) => <Typography>{(page - 1) * limit + row.index + 1}</Typography>
-      // }),
+      
       columnHelper.accessor('employeeCode', {
         header: 'Employee Code',
         cell: ({ row }) => row.original.employeeCode || 'N/A'

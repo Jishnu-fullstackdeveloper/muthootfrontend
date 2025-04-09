@@ -82,7 +82,6 @@ const UserListing = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('Search term debounced:', searchTerm)
       setDebouncedSearch(searchTerm)
       setPage(1)
       setAllUsers([])
@@ -105,14 +104,12 @@ const UserListing = () => {
       ...(debouncedSearch && { search: debouncedSearch }),
       ...(filterValues.length > 0 && { filters: filterValues })
     }
-    console.log('Fetching with params:', params)
     dispatch(fetchUserManagement(params))
     dispatch(fetchUserRole({ limit: 1000, page: 1 }))
   }, [debouncedSearch, filters, page, dispatch, limit])
 
   useEffect(() => {
     if (userManagementData?.data) {
-      console.log('Received data:', userManagementData.data)
       setAllUsers(prev => {
         const newUsers = userManagementData.data.filter(
           (newUser: User) => !prev.some(existingUser => existingUser.userId === newUser.userId)

@@ -29,6 +29,9 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import CloseIcon from '@mui/icons-material/Close'
+import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
+import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined'
+import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
 
 // New Client-Side TablePagination Component
 const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
@@ -64,9 +67,19 @@ const DynamicTable = ({
   onPageCountChange, // Added
   tableName // New prop for table name
 }: any) => {
-  const [columns, setColumns] = useState<ColumnDef<any>[]>(initialColumns.slice(0, 7)) // Start with first 7 columns
-  const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
+  // Load initial column state from localStorage or use first 7 columns as default
+  const [columns, setColumns] = useState<ColumnDef<any>[]>(() => {
+    const savedColumns = localStorage.getItem(`${tableName}_columns`)
+    if (savedColumns) {
+      const headers = JSON.parse(savedColumns)
+      return headers
+        .map(header => initialColumns.find(col => col.header === header))
+        .filter(Boolean) as ColumnDef<any>[]
+    }
+    return initialColumns.slice(0, 7) // Default to first 7 columns
+  })
 
+  const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
   //const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [openColumnDrawer, setOpenColumnDrawer] = useState(false)
@@ -95,11 +108,21 @@ const DynamicTable = ({
     return headers
   }
 
-  // Initialize selectedColumns with first 7 columns selected
+  // Initialize selectedColumns with saved state or first 7 columns selected
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => {
     const allHeaders = extractHeaders(initialColumns)
+    const savedColumns = localStorage.getItem(`${tableName}_columns`)
+    if (savedColumns) {
+      const savedHeaders = JSON.parse(savedColumns)
+      return Object.keys(allHeaders).reduce(
+        (acc, header) => {
+          acc[header] = savedHeaders.includes(header)
+          return acc
+        },
+        {} as Record<string, boolean>
+      )
+    }
     const selectedHeaders = Object.keys(allHeaders).slice(0, 7) // Take the first 7 headers
-
     return Object.keys(allHeaders).reduce(
       (acc, header) => {
         acc[header] = selectedHeaders.includes(header) // True for first 7, false for others
@@ -109,17 +132,28 @@ const DynamicTable = ({
     )
   })
 
-  // const paginatedData = useMemo(() => {
-  //   const start = pagination?.pageIndex * pagination?.pageSize
-  //   const end = start + pagination?.pageSize
+  // New state to maintain the order of headers for the drawer
+  const [headerOrder, setHeaderOrder] = useState<string[]>(() => {
+    const savedColumns = localStorage.getItem(`${tableName}_columns`)
+    if (savedColumns) {
+      return JSON.parse(savedColumns)
+    }
+    return Object.keys(extractHeaders(initialColumns)) // Default to all headers in initial order
+  })
 
-  //   return data?.data?.slice(start, end) || []
-  // }, [data, pagination])
+  // Save columns and header order to localStorage whenever they change
+  useEffect(() => {
+    const headersToSave = columns.map(col => col.header)
+    localStorage.setItem(`${tableName}_columns`, JSON.stringify(headersToSave))
+    setHeaderOrder(prev => {
+      // Merge saved headers with all possible headers, preserving order
+      const allHeaders = Object.keys(extractHeaders(initialColumns))
+      const unseenHeaders = allHeaders.filter(header => !headersToSave.includes(header))
+      return [...headersToSave, ...unseenHeaders]
+    })
+  }, [columns, tableName, initialColumns])
 
-  // Pass pageCount to parent whenever it changes
   const pageCount = useMemo(() => Math.ceil((totalCount || 0) / pagination?.pageSize), [totalCount, pagination])
-
-  //console.log(totalCount, 'dddddddddddddddddddddddddd')
 
   useMemo(() => {
     if (onPageCountChange) {
@@ -151,7 +185,7 @@ const DynamicTable = ({
       }
 
       // Update the columns state based on the updated selectedColumns
-      const newColumns = Object.keys(updatedSelectedColumns)
+      const newColumns = headerOrder // Use headerOrder to maintain order
         .filter(header => updatedSelectedColumns[header])
         .map(header => initialColumns.find(col => col.header === header))
         .filter(col => col !== undefined) as ColumnDef<any>[]
@@ -183,9 +217,12 @@ const DynamicTable = ({
       : initialColumns.slice(0, 7) // Reset to first 7 if unchecked
 
     setColumns(newColumns)
+
+    // Update headerOrder to reflect all headers or first 7 in initial order
+    setHeaderOrder(checked ? Object.keys(allHeaders) : Object.keys(allHeaders))
   }
 
-  // Drag-and-Drop Handlers for the drawer (unchanged)
+  // Drag-and-Drop Handlers for the drawer
   const handleDragStart = (event: React.DragEvent, index: number) => {
     event.dataTransfer.setData('text/plain', index.toString())
   }
@@ -196,21 +233,21 @@ const DynamicTable = ({
 
     if (draggedIndex === index) return
 
-    const headersArray = Object.keys(selectedColumns)
-    const updatedHeaders = [...headersArray]
+    const updatedHeaders = [...headerOrder] // Use headerOrder instead of selectedColumns keys
     const [movedHeader] = updatedHeaders.splice(draggedIndex, 1)
 
     updatedHeaders.splice(index, 0, movedHeader)
 
     const updatedSelectedColumns = updatedHeaders.reduce(
       (acc, header) => {
-        acc[header] = selectedColumns[header]
+        acc[header] = selectedColumns[header] || false // Preserve selection state, default to false if undefined
         return acc
       },
       {} as Record<string, boolean>
     )
 
     setSelectedColumns(updatedSelectedColumns)
+    setHeaderOrder(updatedHeaders) // Update the header order
 
     const newColumns = updatedHeaders
       .filter(header => updatedSelectedColumns[header])
@@ -259,7 +296,7 @@ const DynamicTable = ({
         )}
 
         {/* Filter Icon on the right */}
-        <Tooltip title='Filter Columns'>
+        <Tooltip title='More Columns'>
           <IconButton
             onClick={() => setOpenColumnDrawer(true)}
             sx={{
@@ -269,10 +306,10 @@ const DynamicTable = ({
               }
             }}
           >
-            <Typography variant='subtitle2' sx={{ fontSize: 12, mr: 1 }}>
+            {/* <Typography variant='subtitle2' sx={{ fontSize: 12, mr: 1 }}>
               More columns
-            </Typography>
-            <FilterListIcon className='size-4' />
+            </Typography> */}
+            <DoubleArrowOutlinedIcon className='size-4' />
           </IconButton>
         </Tooltip>
       </Box>
@@ -346,7 +383,6 @@ const DynamicTable = ({
         }}
       >
         <Box sx={{ width: 250, p: 3 }}>
-
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant='h6'>Select Columns</Typography>
             <Tooltip title='Close'>
@@ -365,7 +401,7 @@ const DynamicTable = ({
           </Box>
 
           <Grid container spacing={2}>
-            {Object.keys(selectedColumns).map((header, index) => (
+            {headerOrder.map((header, index) => (
               <Grid
                 item
                 xs={12}

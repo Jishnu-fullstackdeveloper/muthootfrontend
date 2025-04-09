@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -16,11 +18,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
-} from '@mui/material';
-import { ArrowBack, Edit } from '@mui/icons-material'; // Added Edit icon
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice';
+  Tooltip
+} from '@mui/material'
+import { ArrowBack, Edit } from '@mui/icons-material' // Added Edit icon
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 const MODULES = [
   'user',
@@ -35,10 +38,9 @@ const MODULES = [
   'general',
   'home',
   'employee'
+]
 
-];
-
-const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval'];
+const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
 
 const APPLICABLE_PERMISSIONS = {
   user: ['read', 'create', 'update', 'delete'],
@@ -46,77 +48,81 @@ const APPLICABLE_PERMISSIONS = {
   approvals: ['read', 'create', 'update', 'delete'],
   candidate: ['read'],
   jd: ['read', 'create', 'update', 'delete', 'upload', 'approval'],
-  vacancy: ['read', 'update', ],
+  vacancy: ['read', 'update'],
   budget: ['read', 'create', 'approval'],
   branch: ['read'],
   approvalMatrix: ['read', 'create', 'update', 'delete'],
   general: ['read', 'create', 'update', 'delete'],
   home: ['read'],
-  employee: ['employee_read'],
-};
+  employee: ['employee_read']
+}
 
 const ViewUserRole = () => {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { userRoleData, isUserRoleLoading } = useAppSelector(state => state.UserRoleReducer);
-  const roleId = searchParams.get('id');
-  const [localRole, setLocalRole] = useState(null);
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const dispatch = useAppDispatch()
+  const { userRoleData, isUserRoleLoading } = useAppSelector(state => state.UserRoleReducer)
+  const roleId = searchParams.get('id')
+  const [localRole, setLocalRole] = useState(null)
 
   useEffect(() => {
     if (roleId) {
-      const existingRole = userRoleData?.data?.find(role => role.id === roleId);
+      const existingRole = userRoleData?.data?.find(role => role.id === roleId)
+
       if (existingRole) {
-        setLocalRole(existingRole);
+        setLocalRole(existingRole)
       } else {
         dispatch(fetchUserRole({ id: roleId })).then(response => {
-          setLocalRole(response.payload);
-        });
+          setLocalRole(response.payload)
+        })
       }
     }
-  }, [dispatch, roleId, userRoleData]);
+  }, [dispatch, roleId, userRoleData])
 
-  const matchedRole = localRole;
-  const roleName = matchedRole?.name || searchParams.get('name') || 'N/A';
-  const roleDescription = matchedRole?.description || searchParams.get('description') || 'N/A';
-  const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]');
+  const matchedRole = localRole
+  const roleName = matchedRole?.name || searchParams.get('name') || 'N/A'
+  const roleDescription = matchedRole?.description || searchParams.get('description') || 'N/A'
+  const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]')
 
   // Group and sort permissions
-  const groupedPermissions = {};
+  const groupedPermissions = {}
 
   permissions.forEach(perm => {
-    const [moduleName] = perm.name.split('_');
+    const [moduleName] = perm.name.split('_')
+
     if (MODULES.includes(moduleName)) {
-      groupedPermissions[moduleName] = groupedPermissions[moduleName] || [];
-      groupedPermissions[moduleName].push({ name: perm.name, description: perm.description });
+      groupedPermissions[moduleName] = groupedPermissions[moduleName] || []
+      groupedPermissions[moduleName].push({ name: perm.name, description: perm.description })
     }
-  });
+  })
 
   Object.keys(groupedPermissions).forEach(module => {
     groupedPermissions[module].sort((a, b) => {
-      const aIndex = PERMISSION_ORDER.indexOf(a.name.split('_')[1]);
-      const bIndex = PERMISSION_ORDER.indexOf(b.name.split('_')[1]);
-      return aIndex - bIndex;
-    });
-  });
+      const aIndex = PERMISSION_ORDER.indexOf(a.name.split('_')[1])
+      const bIndex = PERMISSION_ORDER.indexOf(b.name.split('_')[1])
+
+      return aIndex - bIndex
+    })
+  })
 
   const handleEdit = (role: any) => {
     const query = new URLSearchParams({
       id: role.id,
-      name: role.name,
-    }).toString();
-    router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`);
-  };
+      name: role.name
+    }).toString()
+
+    router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+  }
 
   const formatModuleName = module =>
     ({
       user: 'User Management',
       role: 'User Roles',
       approvals: 'Approvals',
-      candidate :'Candidate Management',
+      candidate: 'Candidate Management',
       jd: 'JD Management',
       vacancy: 'Vacancy Management',
-      budget:'Budget Management',
+      budget: 'Budget Management',
       recruitment: 'Recruitment Management',
       branch: 'Branch Management',
       bucket: 'Bucket Management',
@@ -124,15 +130,16 @@ const ViewUserRole = () => {
       general: 'General Settings',
       home: 'Home Dashboard',
       employee: 'Employee Management'
-    })[module] || module;
+    })[module] || module
 
   const getPermissionDescription = (module, perm) => {
-    const permission = permissions.find(p => p.name === `${module}_${perm}`);
-    return permission?.description || 'No description available';
-  };
+    const permission = permissions.find(p => p.name === `${module}_${perm}`)
 
-  if (isUserRoleLoading) return <Typography>Loading...</Typography>;
-  if (!matchedRole && !searchParams.get('name')) return <Typography>No role data found for ID: {roleId}</Typography>;
+    return permission?.description || 'No description available'
+  }
+
+  if (isUserRoleLoading) return <Typography>Loading...</Typography>
+  if (!matchedRole && !searchParams.get('name')) return <Typography>No role data found for ID: {roleId}</Typography>
 
   return (
     <Box>
@@ -142,8 +149,8 @@ const ViewUserRole = () => {
             <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
               {roleName.toUpperCase()}
             </Typography>
-            <IconButton sx={{fontSize:'20px'}}onClick={() => handleEdit(matchedRole)}>
-              <Edit /> 
+            <IconButton sx={{ fontSize: '20px' }} onClick={() => handleEdit(matchedRole)} aria-label='Edit role'>
+              <Edit />
             </IconButton>
           </Box>
 
@@ -169,9 +176,9 @@ const ViewUserRole = () => {
                   <TableRow key={module}>
                     <TableCell sx={{ fontSize: '15px' }}>{formatModuleName(module)}</TableCell>
                     {PERMISSION_ORDER.map(perm => {
-                      const hasPermission = groupedPermissions[module]?.some(p => p.name === `${module}_${perm}`);
-                      const isApplicable = APPLICABLE_PERMISSIONS[module]?.includes(perm);
-                      const description = hasPermission ? getPermissionDescription(module, perm) : '';
+                      const hasPermission = groupedPermissions[module]?.some(p => p.name === `${module}_${perm}`)
+                      const isApplicable = APPLICABLE_PERMISSIONS[module]?.includes(perm)
+                      const description = hasPermission ? getPermissionDescription(module, perm) : ''
 
                       return (
                         <TableCell key={`${module}_${perm}`} align='center'>
@@ -187,7 +194,7 @@ const ViewUserRole = () => {
                             <Typography color='gray'>-</Typography>
                           )}
                         </TableCell>
-                      );
+                      )
                     })}
                   </TableRow>
                 ))}
@@ -198,7 +205,7 @@ const ViewUserRole = () => {
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
                 Description:
               </Typography>
-              <Typography sx={{ backgroundColor: '#f5f5f5', p: 5, borderRadius: 1,fontSize:'10px' }} >
+              <Typography sx={{ backgroundColor: '#f5f5f5', p: 5, borderRadius: 1, fontSize: '10px' }}>
                 {roleDescription}
               </Typography>
             </Box>
@@ -211,7 +218,7 @@ const ViewUserRole = () => {
         </Box>
       </Card>
     </Box>
-  );
-};
+  )
+}
 
-export default ViewUserRole;
+export default ViewUserRole

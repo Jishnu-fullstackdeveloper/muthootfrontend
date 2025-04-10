@@ -132,7 +132,7 @@ const BranchListing = () => {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mt: { xs: 4, md: 0 } }}>
-            <Button
+            {/* <Button
               variant='contained'
               color='primary'
               startIcon={<AssessmentIcon />}
@@ -140,7 +140,7 @@ const BranchListing = () => {
               sx={{ mr: 2 }}
             >
               Branch Report Dashboard
-            </Button>
+            </Button> */}
             <Box
               sx={{
                 display: 'flex',

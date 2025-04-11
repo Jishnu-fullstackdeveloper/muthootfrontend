@@ -106,6 +106,27 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
   }
 )
 
+// ** Fetch Permission Render Configuration
+export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
+  'login/fetchPermissionRenderConfig',
+  async (_, { rejectWithValue }) => {
+    try {
+      const accessToken = getAccessToken()
+      const api = '/render-config'
+
+      const response = await AxiosLib.get(api, {
+        headers: {
+          authorization: `Bearer ${accessToken}`
+        }
+      })
+
+      return response.data
+    } catch (error: any) {
+      throw rejectWithValue(error.response.data)
+    }
+  }
+)
+
 export const loginSlice: any = createSlice({
   name: 'login',
   initialState: {
@@ -125,7 +146,11 @@ export const loginSlice: any = createSlice({
     loginErrorMessage: {},
     loginFailure: false,
     isSecondLoading: false,
-    secondLoginData: null
+    secondLoginData: null,
+    fetchPermissionRenderConfigLoading: false,
+    fetchPermissionRenderConfigData: null,
+    fetchPermissionRenderConfigError: false,
+    fetchPermissionRenderConfigErrorMessage: ''
   },
   reducers: {
     LoginDataDismiss: (state, action: PayloadAction<boolean>) => {
@@ -199,6 +224,23 @@ export const loginSlice: any = createSlice({
       state.changePasswordData = null
       state.isLoading = false
       ;(state.changePasswordFailure = false), (state.changePasswordFailureMessage = action?.payload?.message || '')
+    })
+
+    // Add extra reducers for fetchPermissionRenderConfig
+    builder.addCase(fetchPermissionRenderConfig.pending, state => {
+      state.fetchPermissionRenderConfigLoading = true
+      state.fetchPermissionRenderConfigError = false
+      state.fetchPermissionRenderConfigErrorMessage = ''
+    })
+    builder.addCase(fetchPermissionRenderConfig.fulfilled, (state, action) => {
+      state.fetchPermissionRenderConfigLoading = false
+      state.fetchPermissionRenderConfigData = action.payload
+    })
+    builder.addCase(fetchPermissionRenderConfig.rejected, (state, action: any) => {
+      state.fetchPermissionRenderConfigLoading = false
+      state.fetchPermissionRenderConfigError = true
+      state.fetchPermissionRenderConfigErrorMessage =
+        action.payload?.message || 'Failed to fetch permission configuration'
     })
   }
 })

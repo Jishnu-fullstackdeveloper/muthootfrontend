@@ -1,7 +1,6 @@
 import React from 'react'
 
-import { getCurrentPermissions } from '@/utils/functions'
-import { permissionsMap } from '@/configs/permissionsMap' // Import the permissions map
+import { getCurrentPermissions, getPermissionRenderConfig } from '@/utils/functions'
 
 interface WithPermissionProps {
   fallback?: React.ReactNode
@@ -10,11 +9,22 @@ interface WithPermissionProps {
 }
 
 const withPermission = <P extends object>(WrappedComponent: React.ComponentType<any>, componentName?: string) => {
+  // Get the dynamic permissions map from getPermissionRenderConfig
+  const dynamicPermissionsMap =
+    getPermissionRenderConfig()?.reduce(
+      (acc, item) => {
+        acc[item.key] = item.permissions
+
+        return acc
+      },
+      {} as { [key: string]: string[] }
+    ) || {}
+
   return (props: P & WithPermissionProps) => {
     const rolesAndPermissions = getCurrentPermissions()
 
-    // Get the required permissions for the component from permissionsMap
-    const requiredPermissions = permissionsMap[componentName] || []
+    // Get the required permissions for the component from the dynamic permissions map
+    const requiredPermissions = dynamicPermissionsMap[componentName] || []
 
     // Handle individual permissions if provided
     const individualPermissions = props.individualPermission

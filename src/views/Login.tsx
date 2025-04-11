@@ -48,9 +48,9 @@ import custom_theme_settings from '@/utils/custom_theme_settings.json'
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
-import { fetchInitialLoginURL } from '@/redux/loginSlice'
+import { fetchInitialLoginURL, fetchPermissionRenderConfig } from '@/redux/loginSlice'
 
-import { getAccessToken } from '@/utils/functions'
+import { getAccessToken, setPermissionRenderConfig } from '@/utils/functions'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -110,7 +110,9 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
   // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const { firstLoginData, loginErrorMessage, loginFailure }: any = useSelector((state: any) => state.loginReducer)
+  const { firstLoginData, loginErrorMessage, loginFailure, fetchPermissionRenderConfigData }: any = useSelector(
+    (state: any) => state.loginReducer
+  )
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -126,7 +128,6 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   }
 
   useEffect(() => {
-    console.log(isPasswordShown)
     setDisplayLoginPage(false)
     setIsPasswordShown(false)
 
@@ -194,6 +195,10 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    dispatch<any>(fetchPermissionRenderConfig(''))
+  }, [dispatch])
 
   return (
     <>

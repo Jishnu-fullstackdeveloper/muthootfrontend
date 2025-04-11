@@ -121,6 +121,15 @@ export const setAccessToken = (val: any) => {
   }
 }
 
+export const setPermissionRenderConfig = (val: any) => {
+  if (typeof window !== 'undefined') {
+    // Serialize the object/array to a JSON string before storing
+    const serializedData = JSON.stringify(val)
+
+    localStorage.setItem('permission_config', serializedData)
+  }
+}
+
 export const removeRefreshToken = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('refresh_token')
@@ -137,6 +146,17 @@ export const getRefreshToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('refresh_token')
   }
+}
+
+export const getPermissionRenderConfig = () => {
+  if (typeof window !== 'undefined') {
+    // Retrieve the JSON string and parse it back to an object/array
+    const storedData = localStorage.getItem('permission_config')
+
+    return storedData ? JSON.parse(storedData) : null
+  }
+
+  return null
 }
 
 export const setUserId = (val: any) => {

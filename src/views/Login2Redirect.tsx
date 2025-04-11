@@ -10,8 +10,14 @@ import { jwtDecode } from 'jwt-decode'
 import { ToastContainer, toast } from 'react-toastify'
 
 import type { RootState } from '@/redux/store'
-import { fetchLoginToken } from '@/redux/loginSlice'
-import { setAccessToken, setRefreshToken, setUserId, storeLoginResponse } from '@/utils/functions'
+import { fetchLoginToken, fetchPermissionRenderConfig } from '@/redux/loginSlice'
+import {
+  setAccessToken,
+  setPermissionRenderConfig,
+  setRefreshToken,
+  setUserId,
+  storeLoginResponse
+} from '@/utils/functions'
 import AxiosLib from '@/lib/AxiosLib'
 
 const Login2Redirect = () => {
@@ -25,7 +31,16 @@ const Login2Redirect = () => {
   const stateFetched = urlParams.get('state') //CR: State Is undefined
 
   const dispatch = useDispatch<Dispatch>()
-  const { secondLoginData }: any = useSelector((state: RootState) => state.loginReducer)
+
+  const { secondLoginData, fetchPermissionRenderConfigData }: any = useSelector(
+    (state: RootState) => state.loginReducer
+  )
+
+  const params = {
+    code,
+    issuer,
+    state: stateFetched
+  }
 
   // Use useRef to track if the API has been dispatched
   const hasDispatchedRef = useRef(false)
@@ -41,12 +56,6 @@ const Login2Redirect = () => {
       })
 
       return
-    }
-
-    const params = {
-      code,
-      issuer,
-      state: stateFetched
     }
 
     // Dispatch the API call
@@ -97,6 +106,12 @@ const Login2Redirect = () => {
         toast.success('Login Successful.', {
           closeOnClick: true
         })
+
+        dispatch<any>(fetchPermissionRenderConfig(params))
+
+        if (fetchPermissionRenderConfigData) {
+          setPermissionRenderConfig(fetchPermissionRenderConfigData.data)
+        }
 
         setTimeout(() => {
           router.push('/home')

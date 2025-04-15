@@ -13,12 +13,15 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Adjust the import path based on your file structure
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { createNewApprovalMatrix, updateApprovalMatrix } from '@/redux/approvalMatrixSlice'
-
-type Section = {
-  designationName: { id: number; name: string } | null
-  grade: { id: number; name: string } | null
-}
+import {
+  createNewApprovalMatrix,
+  updateApprovalMatrix,
+  createApprovalCategory,
+  updateApprovalCategory,
+  fetchDesignations,
+  fetchGrades
+} from '@/redux/approvalMatrixSlice'
+import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix' // Import types
 
 const validationSchema = Yup.object({
   approvalCategory: Yup.string().required('Approval Type is required'),
@@ -34,14 +37,14 @@ const validationSchema = Yup.object({
       Yup.object().shape({
         designationName: Yup.object()
           .shape({
-            id: Yup.number().required('Invalid option selected'),
+            id: Yup.string().required('Invalid option selected'), // Updated to string
             name: Yup.string().required('Invalid option selected')
           })
           .nullable()
           .required('Approval For is required'),
         grade: Yup.object()
           .shape({
-            id: Yup.number().required('Invalid option selected'),
+            id: Yup.string().required('Invalid option selected'), // Updated to string
             name: Yup.string().required('Invalid option selected')
           })
           .nullable()
@@ -55,15 +58,16 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const [sectionsVisible, setSectionsVisible] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
+  const [approvalCategoryId, setApprovalCategoryId] = useState<string | null>(null) // Store the created category ID
   const searchParams = useSearchParams()
 
   const router = useRouter()
   const dispatch = useAppDispatch()
   const isUpdateMode = Boolean(searchParams.get('id'))
 
-  const { options } = useAppSelector(state => state.approvalMatrixReducer)
+  const { options, designations, grades } = useAppSelector(state => state.approvalMatrixReducer)
 
-  const ApprovalMatrixFormik = useFormik({
+  const ApprovalMatrixFormik = useFormik<ApprovalMatrixFormValues>({
     initialValues: {
       id: '',
       approvalCategory: '',
@@ -74,33 +78,62 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     },
     validationSchema,
     onSubmit: async values => {
-      const configurations = values.sections.map((section, index) => ({
-        designationId: JSON.stringify(section.designationName?.id) || '',
-        gradeId: JSON.stringify(section.grade?.id) || '',
-        approvalSequenceLevel: index + 1
+      // Retrieve approvalCategoryId from searchParams in edit mode
+      const categoryIdFromUrl = searchParams.get('approvalCategoryId') || approvalCategoryId || ''
+
+      // Prepare the approval matrix data for submission
+      const approvalMatrix = values.sections.map((section, index) => ({
+        approvalCategoryId: categoryIdFromUrl, // Use the approvalCategoryId from URL or state
+        designation: section.designationName?.name || '',
+        grade: section.grade?.name || '',
+        level: index + 1
       }))
 
-      const params = {
-        name: values.approvalCategory,
-        description: values.description,
-        branchId: 'string',
-        approvalActionCategoryId: searchParams.get('categoryId'),
-        configurations: configurations
-      }
-
       if (isUpdateMode) {
-        dispatch(updateApprovalMatrix({ id: values.id, approvalMatrix: params })).unwrap()
+        try {
+          // Update the approval category first
+          await dispatch(
+            updateApprovalCategory({
+              id: categoryIdFromUrl,
+              name: values.approvalCategory,
+              description: values.description
+            })
+          ).unwrap()
+          console.log('Approval Category updated successfully')
+
+          // Then update each approval matrix section
+          await Promise.all(
+            approvalMatrix.map((matrix, index) =>
+              dispatch(
+                updateApprovalMatrix({
+                  id: values.id, // Assuming the ID from searchParams is the matrix ID to update
+                  approvalMatrix: {
+                    approvalCategoryId: matrix.approvalCategoryId,
+                    designation: matrix.designation,
+                    grade: matrix.grade,
+                    level: matrix.level
+                  }
+                })
+              ).unwrap()
+            )
+          )
+          console.log('Approval Matrix updated successfully')
+        } catch (error) {
+          console.error('Error updating approval category or matrix:', error)
+        }
       } else {
         try {
-          const response = await dispatch(createNewApprovalMatrix(params as any)).unwrap()
-          console.log('Approval Matrix created successfully:', response)
+          const response = await dispatch(createNewApprovalMatrix({ approvalMatrix })).unwrap()
+          console.log('Approval Matrices created successfully:', response)
         } catch (error) {
-          console.error('Error creating approval matrix:', error)
+          console.error('Error creating approval matrices:', error)
         }
       }
 
-      console.log('Approval Data to API:', params)
+      console.log('Approval Matrix Data to API:', approvalMatrix)
       ApprovalMatrixFormik.resetForm()
+      setApprovalCategoryId(null) // Reset category ID after submission
+      setSectionsVisible(false) // Hide sections after submission
 
       router.back()
     }
@@ -115,12 +148,14 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       const description = searchParams.get('description') || ''
       const designationName = searchParams.get('designationName') || '[]'
       const grade = searchParams.get('grade') || '[]'
+      const categoryId = searchParams.get('approvalCategoryId') || '' // Get approvalCategoryId from URL
 
       if (isUpdateMode) {
         ApprovalMatrixFormik.setFieldValue('id', tableId)
         ApprovalMatrixFormik.setFieldValue('approvalCategory', approvalCategory)
         ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10))
         ApprovalMatrixFormik.setFieldValue('description', description)
+        setApprovalCategoryId(categoryId) // Set approvalCategoryId for use in submission
 
         const parsedDesignations = JSON.parse(designationName)
         const parsedGrades = JSON.parse(grade)
@@ -140,8 +175,11 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   }
 
   useEffect(() => {
+    // Fetch designations and grades on component mount
+    dispatch(fetchDesignations({}))
+    dispatch(fetchGrades({}))
     fetchOptions(0, 'designation')
-  }, [])
+  }, [dispatch])
 
   const handleAddSection = () => {
     const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels
@@ -152,6 +190,26 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
     ApprovalMatrixFormik.setFieldValue('sections', newSections)
     setSectionsVisible(true)
+  }
+
+  const handleNextClick = async () => {
+    const { approvalCategory, description } = ApprovalMatrixFormik.values
+
+    // Validate approvalCategory and description before API call
+    const errors = await ApprovalMatrixFormik.validateForm()
+    if (errors.approvalCategory || errors.description) {
+      ApprovalMatrixFormik.setTouched({ approvalCategory: true, description: true })
+      return
+    }
+
+    try {
+      const response = await dispatch(createApprovalCategory({ name: approvalCategory, description })).unwrap()
+      console.log('Approval Category created successfully:', response)
+      setApprovalCategoryId(response.id) // Store the created category ID
+      handleAddSection() // Show sections after successful creation
+    } catch (error) {
+      console.error('Error creating approval category:', error)
+    }
   }
 
   const handleDragStart = (index: number) => {
@@ -191,6 +249,11 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       const updatedSections = ApprovalMatrixFormik.values.sections.filter((_, i) => i !== index)
       ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
       ApprovalMatrixFormik.setFieldValue('numberOfLevels', updatedSections.length)
+
+      // If no sections remain, hide the sections
+      if (updatedSections.length === 0) {
+        setSectionsVisible(false)
+      }
     }
     handleCloseDialog()
   }
@@ -198,22 +261,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const areAllSectionsFilled = ApprovalMatrixFormik.values.sections.every(
     section => section.designationName !== null && section.grade !== null
   )
-
-  const designationOptions = [
-    { id: 1, name: 'HR Manager' },
-    { id: 2, name: 'Branch Manager' },
-    { id: 3, name: 'Area Manager' },
-    { id: 4, name: 'Manager' }, // Added to match sample data
-    { id: 5, name: 'Supervisor' } // Added to match sample data
-  ]
-  // Mock grade options (replace with actual data from your store/api if available)
-  const gradeOptions = [
-    { id: 1, name: 'Grade A' },
-    { id: 2, name: 'Grade B' },
-    { id: 3, name: 'Grade C' },
-    { id: 4, name: 'Area Manager' }, // Added to match sample data
-    { id: 5, name: 'Jr. Manager' } // Added to match sample data
-  ]
 
   return (
     <form onSubmit={ApprovalMatrixFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
@@ -251,6 +298,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 helperText={
                   ApprovalMatrixFormik.touched.approvalCategory && ApprovalMatrixFormik.errors.approvalCategory
                 }
+                disabled={isUpdateMode} // Disable in edit mode if you don’t want category name changes; remove if editable
               />
             </FormControl>
 
@@ -322,7 +370,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     updatedSections[index].designationName = value
                     ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
                   }}
-                  options={designationOptions} //options={Array.isArray(options) ? options : []}
+                  options={designations} // Use fetched designations
                   getOptionLabel={option => option.name || ''}
                   isOptionEqualToValue={(option, value) => option.id === value?.id}
                   renderInput={params => (
@@ -349,7 +397,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     updatedSections[index].grade = value
                     ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
                   }}
-                  options={gradeOptions}
+                  options={grades} // Use fetched grades
                   getOptionLabel={option => option.name || ''}
                   isOptionEqualToValue={(option, value) => option.id === value?.id}
                   renderInput={params => (
@@ -377,7 +425,15 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-          <Button variant='contained' color='secondary' onClick={() => ApprovalMatrixFormik.resetForm()}>
+          <Button
+            variant='contained'
+            color='secondary'
+            onClick={() => {
+              ApprovalMatrixFormik.resetForm()
+              setSectionsVisible(false) // Reset sections visibility
+              setApprovalCategoryId(null) // Reset category ID on clear
+            }}
+          >
             Clear
           </Button>
           <Button
@@ -385,9 +441,9 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             color='primary'
             onClick={() => {
               if (sectionsVisible && areAllSectionsFilled) {
-                void ApprovalMatrixFormik.submitForm()
+                void ApprovalMatrixFormik.submitForm() // Second API call for designation and grade
               } else {
-                handleAddSection()
+                void handleNextClick() // First API call for approval category and description
               }
             }}
           >

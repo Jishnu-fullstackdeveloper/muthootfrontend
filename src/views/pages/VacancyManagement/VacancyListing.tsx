@@ -14,7 +14,8 @@ import {
   Tabs,
   Tooltip,
   Typography,
-  InputAdornment
+  InputAdornment,
+  TextField
 } from '@mui/material'
 import Stack from '@mui/material/Stack'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -34,6 +35,8 @@ import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSl
 import type { ViewMode, VacancyFilters, Vacancy, DebouncedInputProps, SelectedTabs } from '@/types/vacancy'
 
 // Import MUI icons
+import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined' //designation
+import EngineeringOutlinedIcon from '@mui/icons-material/EngineeringOutlined' //job role
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined' // openings
 import CorporateFareOutlinedIcon from '@mui/icons-material/CorporateFareOutlined' // businessRole
 import ViewTimelineOutlinedIcon from '@mui/icons-material/ViewTimelineOutlined' // experience
@@ -68,9 +71,11 @@ const VacancyListingPage = () => {
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
   const [page, setPage] = useState(1)
   const [limit] = useState(6) // Fixed limit for lazy loading batches
-  const [searchTerm, setSearchTerm] = useState('') // New state for search input
+  //const [searchTerm, setSearchTerm] = useState('') // New state for search input
+  const [searchQuery, setSearchQuery] = useState<string>('') // Updated to searchQuery for consistency
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null) // Added for debounce
 
   // const [selectedFilters, setSelectedFilters] = useState<VacancyFilters>({
   //   location: [],
@@ -106,23 +111,26 @@ const VacancyListingPage = () => {
   //   if (cookieFilters?.appliedFilters) setAppliedFilters(cookieFilters.appliedFilters)
   // }, [])
 
-  // Reset visibleVacancies when switching to grid view
+  // Update the useEffect for resetting vacancies and fetching initial data
   useEffect(() => {
-    setVisibleVacancies([])
-    setPage(1)
-    dispatch(fetchVacancies({ page: 1, limit, search: searchTerm }))
-  }, [viewMode, dispatch, limit, searchTerm])
+    console.log('Fetching vacancies with:', { page: 1, limit, search: searchQuery }) // Debug log
+    setVisibleVacancies([]) // Clear existing vacancies
+    setPage(1) // Reset to page 1
+    dispatch(fetchVacancies({ page: 1, limit, search: searchQuery }))
+  }, [dispatch, limit, searchQuery, viewMode])
 
-  // Fetch vacancies for the current page
-  useEffect(() => {
-    dispatch(fetchVacancies({ page, limit, search: searchTerm }))
-  }, [dispatch, page, limit, viewMode, searchTerm])
+  // Update the useEffect for fetching additional pages (keep this as is, just confirming)
+  // useEffect(() => {
+  //   if (page > 1) {
+  //     dispatch(fetchVacancies({ page, limit, search: searchTerm }))
+  //   }
+  // }, [dispatch, page, limit, searchTerm])
 
   // Update visibleVacancies with unique items from API
   useEffect(() => {
-    if (vacancies?.length && viewMode === 'grid' && 'table') {
+    if (vacancies?.length && viewMode === 'grid') {
+      console.log('Appending vacancies:', vacancies) // Debug log
       setVisibleVacancies(prev => {
-        // Filter out duplicates by ID
         const newVacancies = vacancies.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
         return [...prev, ...newVacancies]
       })
@@ -131,12 +139,15 @@ const VacancyListingPage = () => {
         ...vacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs)
       }))
     }
-  }, [vacancies, viewMode, page])
+  }, [vacancies, viewMode])
 
   const loadMoreVacancies = useCallback(() => {
     if (loading || visibleVacancies.length >= totalCount) return
-    setPage(prev => prev + 1)
-  }, [loading, visibleVacancies.length, totalCount])
+    const nextPage = page + 1
+    console.log('Loading more vacancies for page:', nextPage) // Debug log
+    setPage(nextPage)
+    dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery }))
+  }, [loading, visibleVacancies.length, totalCount, page, dispatch, limit, searchQuery])
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -172,38 +183,44 @@ const VacancyListingPage = () => {
   //   return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   // }
 
-  const DebouncedInput = ({ value: initialValue, onChange, ...props }: DebouncedInputProps) => {
-    const [value, setValue] = useState(initialValue)
-    const inputRef = useRef<HTMLInputElement>(null) // Ref to control the input element
-
-    useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
-
-    useEffect(() => {
-      const timeout = setTimeout(() => onChange(value))
-      return () => clearTimeout(timeout)
-    }, [value, onChange])
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(e.target.value)
-      // Ensure focus remains on the input after typing
-      if (inputRef.current) {
-        inputRef.current.focus()
-      }
+  // New useEffect for debounced search
+  useEffect(() => {
+    // Clear the previous timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current)
     }
 
-    return (
-      <CustomTextField
-        variant='filled'
-        {...props}
-        value={value}
-        onChange={handleChange}
-        inputRef={inputRef} // Attach ref to the input
-        // No autoFocus to prevent focus on page load
-      />
-    )
-  }
+    // Set a new timeout
+    debounceTimeout.current = setTimeout(() => {
+      console.log('Debounced search:', searchQuery) // Debug log
+      if (searchQuery.trim() === '') {
+        // Fetch all vacancies when search is cleared
+        dispatch(
+          fetchVacancies({
+            page: 1,
+            limit,
+            search: searchQuery
+          })
+        )
+      } else {
+        // Fetch vacancies with search term
+        // dispatch(
+        //   fetchVacancies({
+        //     page: 1,
+        //     limit,
+        //     search: searchQuery
+        //   })
+        // )
+      }
+    }, 300) // 300ms delay - matches ApprovalMatrixList.tsx
+
+    // Cleanup function to clear timeout
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current)
+      }
+    }
+  }, [searchQuery, dispatch, limit])
 
   // const CheckAllFiltersEmpty = (filters: VacancyFilters): boolean =>
   //   Object.entries(filters).every(([key, value]) =>
@@ -320,18 +337,13 @@ const VacancyListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
-            <DebouncedInput
-              value={searchTerm}
-              onChange={(value: string) => setSearchTerm(value)} // Update search term
-              placeholder='Search by Job Title or skill...'
-              className='is-full sm:is-[400px] mt-4'
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-                    <i className='tabler-search text-xxl' />
-                  </InputAdornment>
-                )
-              }}
+            <TextField
+              label='Search by Job Title or Designation'
+              variant='outlined'
+              size='small' // Matches ApprovalMatrixList.tsx
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              sx={{ width: '400px', mr: 2, mt: 3 }} // Matches ApprovalMatrixList.tsx
             />
             {/* <Box sx={{ mt: 5 }}>
               <DynamicButton
@@ -501,13 +513,13 @@ const VacancyListingPage = () => {
                 <Box className='mt-4'>
                   {selectedTabs[vacancy.id] === 0 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <Tooltip title='Desgination'>
+                      <Tooltip title='Designation'>
                         <Typography
                           variant='body2'
                           fontSize='10px'
                           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                         >
-                          <WorkOutlineOutlinedIcon fontSize='small' />: {vacancy.designation}
+                          <CardMembershipOutlinedIcon fontSize='small' />: {vacancy.designation}
                         </Typography>
                       </Tooltip>
                       <Tooltip title='Job Role'>
@@ -516,7 +528,7 @@ const VacancyListingPage = () => {
                           fontSize='10px'
                           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                         >
-                          <WorkOutlineOutlinedIcon fontSize='small' />: {vacancy.jobRole}
+                          <EngineeringOutlinedIcon fontSize='small' />: {vacancy.jobRole}
                         </Typography>
                       </Tooltip>
                       <Tooltip title='Openings'>

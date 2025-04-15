@@ -542,7 +542,6 @@ export const fetchVacancies = createAsyncThunk(
 )
 
 // Async thunk to fetch a single vacancy by ID
-// Async thunk to fetch a single vacancy by ID
 export const fetchVacancyById = createAsyncThunk(
   'vacancyManagement/fetchVacancyById',
   async (id: string, { rejectWithValue }) => {

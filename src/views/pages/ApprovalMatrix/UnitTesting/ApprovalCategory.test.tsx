@@ -2,7 +2,7 @@ import { useRouter } from 'next/navigation'
 
 import { render, screen, fireEvent } from '@testing-library/react'
 
-import ApprovalCategory from '../ApprovalCategory' // Adjust path
+import ApprovalCategory from '../ApprovalMatrixList' // Adjust path
 
 import DynamicTable from '@/components/Table/dynamicTable'
 

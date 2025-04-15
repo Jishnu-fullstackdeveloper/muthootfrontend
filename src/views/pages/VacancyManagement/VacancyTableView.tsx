@@ -132,11 +132,11 @@ const VacancyListingTableView = () => {
                 <i className='tabler-eye text-textSecondary'></i>
               </IconButton>
             </Tooltip>
-            <Tooltip title='Edit' placement='top'>
+            {/* <Tooltip title='Edit' placement='top'>
               <IconButton onClick={() => router.push(`/vacancy-management/edit/${row.original.id}`)}>
                 <i className='tabler-edit text-[22px] text-textSecondary' />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Box>
         ),
         enableSorting: false

@@ -64,6 +64,7 @@ export const createApprovalCategory = createAsyncThunk(
   async ({ name, description }: { name: string; description: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.post(API_ENDPOINTS.APPROVAL_CATEGORIES, { name, description })
+
       return response.data.data // Return the created category data (including id)
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create approval category')
@@ -77,6 +78,7 @@ export const updateApprovalCategory = createAsyncThunk(
   async ({ id, name, description }: { id: string; name: string; description: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id), { name, description })
+
       return response.data.data // Return the updated category data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update approval category')
@@ -128,6 +130,7 @@ export const updateApprovalMatrix = createAsyncThunk(
   async ({ id, approvalMatrix }: { id: string; approvalMatrix: any }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_MATRICES_BY_ID(id), approvalMatrix)
+
       return response.data.data // Return the updated approval matrix data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update approval matrix')
@@ -141,6 +144,7 @@ export const deleteApprovalMatrix = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.delete(API_ENDPOINTS.APPROVAL_MATRICES_BY_ID(id))
+
       return response.data.data // Return the deleted approval matrix data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete approval matrix')
@@ -156,6 +160,7 @@ export const fetchDesignations = createAsyncThunk(
       const response = await AxiosLib.get(API_ENDPOINTS.DESIGNATIONS, {
         params: { page, limit }
       })
+
       return response.data.data // Return the array of designations
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch designations')
@@ -171,6 +176,7 @@ export const fetchGrades = createAsyncThunk(
       const response = await AxiosLib.get(API_ENDPOINTS.GRADES, {
         params: { page, limit }
       })
+
       return response.data.data // Return the array of grades
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch grades')
@@ -199,6 +205,7 @@ const approvalMatrixSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+
       // Fetch approval categories
       .addCase(fetchApprovalCategories.pending, state => {
         state.status = 'loading'
@@ -234,6 +241,7 @@ const approvalMatrixSlice = createSlice({
       .addCase(updateApprovalCategory.fulfilled, (state, action) => {
         state.status = 'succeeded'
         const index = state.approvalCategories.findIndex(category => category.id === action.payload.id)
+
         if (index !== -1) {
           state.approvalCategories[index] = action.payload // Update the existing category
         }

@@ -1,18 +1,12 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
-import {
-  Typography,
-  IconButton,
-  InputAdornment,
-  Box,
-  Card,
-  CardContent,
- 
-  Tooltip
-} from '@mui/material'
+
+import { Typography, IconButton, InputAdornment, Box, Card, CardContent, Tooltip } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
@@ -36,10 +30,9 @@ const UserRolesAndPermisstionList = () => {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
 
- 
-
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
+
     return () => clearTimeout(timer)
   }, [searchText])
 
@@ -49,25 +42,28 @@ const UserRolesAndPermisstionList = () => {
       page,
       ...(debouncedSearchText && { search: debouncedSearchText })
     }
+
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+
     if (activePermissions.length > 0) {
       params.permissionName = activePermissions
     }
+
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
-
-
 
   const handleEdit = (role: any) => {
     const query = new URLSearchParams({
       id: role.id,
       name: role.name
     }).toString()
+
     router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
   const handleView = (role: any) => {
     const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
+
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
@@ -88,6 +84,7 @@ const UserRolesAndPermisstionList = () => {
         cell: ({ row }) => {
           const description = row.original.description || 'N/A'
           const truncated = description.length > 30 ? description.slice(0, 30) + '  ...' : description
+
           return (
             <Tooltip title={description.length > 1 ? description : ''} arrow>
               <Typography>{truncated}</Typography>
@@ -107,7 +104,7 @@ const UserRolesAndPermisstionList = () => {
                 onClick={() => handleEdit(row.original)}
                 title='Edit'
                 sx={{ fontSize: '20px' }}
-                disabled={isEditDisabled} 
+                disabled={isEditDisabled}
               >
                 <i className='tabler-edit' />
               </IconButton>
@@ -124,7 +121,9 @@ const UserRolesAndPermisstionList = () => {
 
   const filteredRoles = useMemo(() => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
+
     if (activePermissions.length === 0) return userRoleData?.data || []
+
     return (userRoleData?.data || []).filter(role =>
       activePermissions.every(permission => (role.permissions || []).includes(permission))
     )
@@ -137,9 +136,6 @@ const UserRolesAndPermisstionList = () => {
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value)
   }
-
- 
-
 
   return (
     <div>
@@ -169,12 +165,8 @@ const UserRolesAndPermisstionList = () => {
               />
             </Box>
           </Box>
-         
-          
         </CardContent>
       </Card>
-
-   
 
       {isUserRoleLoading ? (
         <Typography>Loading roles...</Typography>

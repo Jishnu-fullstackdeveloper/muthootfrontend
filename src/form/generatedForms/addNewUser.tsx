@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FormControl, TextField, Autocomplete, Grid, Box, Button } from '@mui/material'
@@ -18,8 +18,9 @@ type Props = {
 const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const params = useParams()
-  const userId = mode === 'edit' ? (params.id as string) : null
+  // const params = useParams()
+   const searchParams = useSearchParams()
+  const userId = mode === 'edit' ? (searchParams.get('id')) : null
 
   const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage, userManagementData } =
     useAppSelector((state: any) => state.UserManagementReducer || {})

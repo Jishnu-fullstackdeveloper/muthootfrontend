@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+
 import { Box, Card, CardContent, Grid, Chip, IconButton, Typography, Button, CircularProgress } from '@mui/material'
 import { grey } from '@mui/material/colors'
 
@@ -27,7 +28,7 @@ interface User {
 interface UserGridProps {
   data: User[]
   loading: boolean
-  onEdit: (id: string) => void
+  onEdit: (empCode: string, id: string) => void
   loadMore: () => void
   hasMore: boolean
 }
@@ -46,6 +47,7 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
     )
 
     const sentinel = document.getElementById('sentinel')
+
     if (sentinel) observer.observe(sentinel)
 
     return () => {
@@ -59,8 +61,10 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
       [userId]: !prev[userId]
     }))
   }
+
   const toTitleCase = (str: string) =>
-    str.toString()
+    str
+      .toString()
       .toLowerCase()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -83,7 +87,7 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
                       size='small'
                       sx={{ backgroundColor: grey[300], color: 'black', fontWeight: 'bold', fontSize: '10px' }}
                     />
-                    <IconButton onClick={() => onEdit(user.userId)}>
+                    <IconButton onClick={() => onEdit(user.employeeCode, user.userId)}>
                       <i className='tabler-edit' style={{ fontSize: '23px' }} />
                     </IconButton>
                   </Box>
@@ -120,10 +124,12 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Designation: <Typography component='span'>{user.designation ? toTitleCase (user.designation): 'N/A'}</Typography>
+                      Designation:{' '}
+                      <Typography component='span'>
+                        {user.designation ? toTitleCase(user.designation) : 'N/A'}
+                      </Typography>
                     </Typography>
                   </Grid>
-
 
                   <Grid item xs={12}>
                     <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>

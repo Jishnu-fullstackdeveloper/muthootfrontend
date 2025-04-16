@@ -83,25 +83,27 @@ export const addNewUser = createAsyncThunk<any, any>(
 //   }
 // )
 
-export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleNames: string[]  } }>(
-  //   'userManagement/updateUser',
+export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleNames: string[] } }>(
+ 
   'userManagement/updateUser',
-  async ({ id, params }, { rejectWithValue }) => {
+  async ({ params }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.patch(`/users/role`, {
         email: params.email,
         newRoleNames: params.newRoleNames
-      });
-      return response.data;
+      })
+
+      return response.data
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update role';
+      const errorMessage = error.response?.data?.message || 'Failed to update role'
+
       return rejectWithValue({
         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
         statusCode: error.response?.data?.statusCode || 500
-      });
+      })
     }
   }
-);
+)
 
 export const UserManagementSlice = createSlice({
   name: 'UserManagement',

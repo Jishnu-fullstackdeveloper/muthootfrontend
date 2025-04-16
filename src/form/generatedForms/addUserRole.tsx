@@ -18,7 +18,7 @@ const defaultPermissionsList = [
   { module: 'Candidate Management', actions: ['read'] },
   { module: 'JD Management', actions: ['read', 'update', 'delete', 'create', 'upload', 'approval'] },
   { module: 'Vaccancy Management', actions: ['read', 'update'] },
-  { module: 'Budget Management', actions: ['read', 'Create', 'approval'] },
+  { module: 'Budget Management', actions: ['read', 'create', 'approval'] },
   { module: 'Branch Management', actions: ['read'] },
   { module: 'Approval Matrix', actions: ['read', 'update', 'delete', 'create'] },
   { module: 'General Settings', actions: ['read', 'update', 'delete', 'create'] },

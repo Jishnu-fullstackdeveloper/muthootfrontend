@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 
 import {
   Autocomplete,
@@ -19,28 +19,47 @@ import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicTable from '@/components/Table/dynamicTable'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchXFactor, fetchDesignation, createXFactor, updateXFactor } from '@/redux/XFactor/xFactorSlice'
 
 const DesignationForm = ({ formik }) => {
-  const [searchText, setSearchText] = useState('')
   const [accordionExpanded, setAccordionExpanded] = useState(false)
   const [tempDesignations, setTempDesignations] = useState([{ name: '', days: '' }])
-  const [savedDesignations, setSavedDesignations] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
+  const [editMode, setEditMode] = useState(false)
+  const [editId, setEditId] = useState(null)
 
-  const designationOptions = [
-    { id: 1, name: 'Developer' },
-    { id: 2, name: 'Manager' },
-    { id: 3, name: 'Designer' }
-  ]
+  const dispatch = useAppDispatch()
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)
+  const { xFactorData, designationData, totalCount } = useAppSelector(state => state.xFactorReducer)
+
+  useEffect(() => {
+    dispatch(fetchDesignation({ page: 1, limit: 100 }))
+  }, [dispatch])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setPage(1)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  useEffect(() => {
+    dispatch(fetchXFactor({ page, limit, search: debouncedSearch }))
+  }, [page, limit, debouncedSearch, dispatch])
 
   const handleXFactorClick = () => {
     setAccordionExpanded(prev => !prev)
 
     if (!accordionExpanded) {
       setTempDesignations([{ name: '', days: '' }])
+      setEditMode(false)
+      setEditId(null)
     }
   }
 
@@ -48,22 +67,27 @@ const DesignationForm = ({ formik }) => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('serialNo', {
-        header: 'Sl No',
-        cell: ({ row }) => <Typography>{(page - 1) * limit + row.index + 1}</Typography>
-      }),
-      columnHelper.accessor('name', {
+      columnHelper.accessor('designationName', {
         header: 'Designation',
-        cell: ({ row }) => <Typography>{row.original.name || '-'}</Typography>
+        cell: ({ row }) => <Typography>{row.original.designationName || '-'}</Typography>
       }),
-      columnHelper.accessor('days', {
-        header: 'Days',
-        cell: ({ row }) => <Typography>{row.original.days || '0'}</Typography>
+      columnHelper.accessor('xFactor', {
+        header: 'X-Factor',
+        cell: ({ row }) => <Typography>{row.original.xFactor || '0'}</Typography>
       }),
       columnHelper.accessor('Action', {
         header: 'Action',
         cell: ({ row }) => (
-          <IconButton title='Edit' sx={{ fontSize: '30px' }}>
+          <IconButton
+            title='Edit'
+            sx={{ fontSize: '30px' }}
+            onClick={() => {
+              setEditMode(true)
+              setEditId(row.original.id)
+              setTempDesignations([{ name: row.original.designationName, days: row.original.xFactor }])
+              setAccordionExpanded(true)
+            }}
+          >
             <i className='tabler-edit w-5 h-5' />
           </IconButton>
         )
@@ -71,24 +95,6 @@ const DesignationForm = ({ formik }) => {
     ],
     [page, limit]
   )
-
-  const handleSave = () => {
-    const validDesignations = tempDesignations.filter(d => d.name && d.days)
-
-    console.log('Saving designations:', validDesignations) // Debug log
-    setSavedDesignations([...savedDesignations, ...validDesignations])
-
-    formik.setFieldValue('designations', validDesignations)
-
-    if (formik.handleSubmit) {
-      formik.handleSubmit()
-    } 
-
-    setTempDesignations([{ name: '', days: '' }])
-
-   
-    setAccordionExpanded(false)
-  }
 
   const isSaveDisabled = !tempDesignations.some(d => d.name && d.days) || formik?.isSubmitting
 
@@ -101,14 +107,28 @@ const DesignationForm = ({ formik }) => {
               <DynamicTextField
                 label='Search Roles'
                 variant='outlined'
-                onChange={handleSearch}
-                value={searchText}
+                onChange={e => setSearchTerm(e.target.value)}
+                value={searchTerm}
                 placeholder='Search roles...'
                 size='small'
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position='end'>
-                      <i className='tabler-search text-xxl' />
+                      {searchTerm ? (
+                        <IconButton
+                          size='small'
+                          onClick={() => {
+                            setSearchTerm('')
+                            setDebouncedSearch('')
+                            setPage(1)
+                            dispatch(fetchXFactor({ page: 1, limit, search: '' }))
+                          }}
+                        >
+                          <i className='tabler-x text-xxl' />
+                        </IconButton>
+                      ) : (
+                        <i className='tabler-search text-xxl' />
+                      )}
                     </InputAdornment>
                   )
                 }}
@@ -139,16 +159,14 @@ const DesignationForm = ({ formik }) => {
                           alignItems: 'center',
                           width: '100%',
                           gap: '10px'
-
-                        
                         }}
                       >
                         <Box sx={{ width: '300px', boxShadow: 'none' }}>
                           <Autocomplete
-                            options={designationOptions}
+                            options={designationData || []}
                             getOptionLabel={option => option.name || ''}
                             isOptionEqualToValue={(option, value) => option.id === value.id}
-                            value={designationOptions.find(item => item.name === designation.name) || null}
+                            value={designationData?.find(item => item.name === designation.name) || null}
                             onChange={(e, value) => {
                               const selectedName = value ? value.name.trim() : ''
                               const newDesignations = [...tempDesignations]
@@ -215,8 +233,46 @@ const DesignationForm = ({ formik }) => {
                     ))}
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, boxShadow: 'none' }}>
-                    <Button variant='contained' color='primary' onClick={handleSave} disabled={isSaveDisabled}>
-                      Save
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      onClick={async () => {
+                        const validDesignations = tempDesignations.filter(d => d.name && d.days)
+
+                        if (validDesignations.length > 0) {
+                          const payload = validDesignations.map(d => ({
+                            designationName: d.name,
+                            xFactor: d.days
+                          }))
+
+                          try {
+                            if (editMode && editId) {
+                              // Update the existing X-Factor for the first valid designation
+                              await dispatch(updateXFactor({ id: editId, data: payload[0] }))
+
+                              // Create any additional X-Factors if provided
+                              if (payload.length > 1) {
+                                await dispatch(createXFactor({ data: payload.slice(1) }))
+                              }
+                            } else {
+                              // Create all valid designations in bulk
+                              await dispatch(createXFactor({ data: payload }))
+                            }
+
+                            setTempDesignations([{ name: '', days: '' }])
+                            setAccordionExpanded(false)
+                            setEditMode(false)
+                            setEditId(null)
+
+                            dispatch(fetchXFactor({ page, limit, search: debouncedSearch }))
+                          } catch (error) {
+                            console.error('Error saving X-Factor:', error)
+                          }
+                        }
+                      }}
+                      disabled={isSaveDisabled}
+                    >
+                      {editMode ? 'Update' : 'Save'}
                     </Button>
                   </Box>
                 </Box>
@@ -226,14 +282,20 @@ const DesignationForm = ({ formik }) => {
         </CardContent>
       </Card>
       <DynamicTable
-       tableName = 'Xfactor List'
+        tableName='X-Factor List'
         columns={columns}
-        data={savedDesignations}
-        totalCount={savedDesignations.length}
+        data={xFactorData}
+        pagination={{ pageIndex: page - 1, pageSize: limit }}
         page={page}
         limit={limit}
-        onPageChange={setPage}
-        onLimitChange={setLimit}
+        totalCount={totalCount}
+        onPageChange={newPage => {
+          setPage(newPage + 1)
+        }}
+        onLimitChange={newLimit => {
+          setLimit(newLimit)
+          setPage(1)
+        }}
       />
     </div>
   )

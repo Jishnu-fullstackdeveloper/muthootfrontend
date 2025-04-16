@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Button,
@@ -25,6 +27,7 @@ import {
   TableView as TableChartIcon,
   FilterList as FilterListIcon
 } from '@mui/icons-material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
@@ -67,6 +70,7 @@ const UserListing = () => {
   const [filterOpen, setFilterOpen] = useState(false)
   const [allUsers, setAllUsers] = useState<User[]>([])
   const [hasMore, setHasMore] = useState(true)
+
   const [filters, setFilters] = useState({
     active: false,
     inactive: false,
@@ -86,6 +90,7 @@ const UserListing = () => {
       setPage(1)
       setAllUsers([])
     }, 500)
+
     return () => clearTimeout(timer)
   }, [searchTerm])
 
@@ -104,8 +109,9 @@ const UserListing = () => {
       ...(debouncedSearch && { search: debouncedSearch }),
       ...(filterValues.length > 0 && { filters: filterValues })
     }
+
     dispatch(fetchUserManagement(params))
-    dispatch(fetchUserRole({ limit: 1000, page: 1 }))
+    dispatch(fetchUserRole({ limit: 10, page: 1 }))
   }, [debouncedSearch, filters, page, dispatch, limit])
 
   useEffect(() => {
@@ -114,6 +120,7 @@ const UserListing = () => {
         const newUsers = userManagementData.data.filter(
           (newUser: User) => !prev.some(existingUser => existingUser.userId === newUser.userId)
         )
+
         return [...prev, ...newUsers]
       })
       setHasMore(page * limit < (userManagementData.totalCount || 0))
@@ -141,6 +148,7 @@ const UserListing = () => {
         selectedRoles: prev.selectedRoles.filter(role => role !== filterName)
       }))
     }
+
     setPage(1)
     setAllUsers([])
   }
@@ -149,6 +157,7 @@ const UserListing = () => {
 
   const enrichedUserData = useMemo(() => {
     const roles = safeGetData<Role>(userRoleData)
+
     return allUsers.map(user => ({
       ...user,
       roles: (Array.isArray(user.roles) ? user.roles : user.role ? [user.role] : []).map(
@@ -157,10 +166,20 @@ const UserListing = () => {
     }))
   }, [allUsers, userRoleData])
 
-  const handleEdit = (id: string) => router.push(`/user-management/edit/${id}`)
+  const handleEdit = (empCode: string, id: string) => {
+    const query = new URLSearchParams({ id: id }).toString()
+
+    router.push(`/user-management/edit/${empCode}?${query}`)
+  }
+
+  // const handleEdit = (role: any) => {
+  //   const query = new URLSearchParams({ id: role.id, name: role.name }).toString();
+  //   router.push(`/user-management/edit/${role.name.replace(/\s+/g, '-')}/?${query}`);
+  // };
 
   const handleView = (role: any) => {
     const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
+
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 

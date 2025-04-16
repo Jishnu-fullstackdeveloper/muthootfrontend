@@ -11,7 +11,6 @@ import branchManagementReducer from './BranchManagement/BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
 import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
 import xFactorReducer from './XFactor/xFactorSlice'
-import approvalsReducer from './Approvals/approvalsSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -26,8 +25,7 @@ export const makeStore = () =>
       branchManagementReducer,
       vacancyManagementReducer,
       budgetManagementReducer,
-      xFactorReducer,
-      approvalsReducer
+      xFactorReducer
     }
   })
 

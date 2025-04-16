@@ -1,38 +1,16 @@
 'use client'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
+
 import { useRouter } from 'next/navigation'
-import {
-  Box,
-  Card,
-  Chip,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Tab,
-  Tabs,
-  Tooltip,
-  Typography,
-  InputAdornment,
-  TextField
-} from '@mui/material'
-import Stack from '@mui/material/Stack'
+
+import { Box, Card, IconButton, Tab, Tabs, Tooltip, Typography, TextField, InputAdornment } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+
+// import Stack from '@mui/material/Stack'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
-import { RestartAlt } from '@mui/icons-material'
-import DynamicButton from '@/components/Button/dynamicButton'
-import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
-import CustomTextField from '@/@core/components/mui/TextField'
-import {
-  getVacancyManagementFiltersFromCookie,
-  removeVacancyManagementFiltersFromCookie,
-  setVacancyManagementFiltersToCookie
-} from '@/utils/functions'
-import VacancyListingTableView from './VacancyTableView'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-import type { ViewMode, VacancyFilters, Vacancy, DebouncedInputProps, SelectedTabs } from '@/types/vacancy'
+
+// import { RestartAlt } from '@mui/icons-material'
 
 // Import MUI icons
 import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined' //designation
@@ -61,12 +39,27 @@ import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined' 
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined' // state
 import SourceOutlinedIcon from '@mui/icons-material/SourceOutlined' // origin
 
+import type { ViewMode, Vacancy, SelectedTabs } from '@/types/vacancy' //VacancyFilters //DebouncedInputProps
+import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import VacancyListingTableView from './VacancyTableView'
+
+// import {
+//   getVacancyManagementFiltersFromCookie,
+//   removeVacancyManagementFiltersFromCookie,
+//   setVacancyManagementFiltersToCookie
+// } from '@/utils/functions'
+// import CustomTextField from '@/@core/components/mui/TextField'
+// import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
+// import DynamicButton from '@/components/Button/dynamicButton'
+
 const VacancyListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { vacancies, totalCount, loading, error } = useAppSelector(state => state.vacancyManagementReducer)
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+
   //const [addMoreFilters, setAddMoreFilters] = useState(false)
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
   const [page, setPage] = useState(1)
@@ -132,6 +125,7 @@ const VacancyListingPage = () => {
       console.log('Appending vacancies:', vacancies) // Debug log
       setVisibleVacancies(prev => {
         const newVacancies = vacancies.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+
         return [...prev, ...newVacancies]
       })
       setSelectedTabs(prev => ({
@@ -144,6 +138,7 @@ const VacancyListingPage = () => {
   const loadMoreVacancies = useCallback(() => {
     if (loading || visibleVacancies.length >= totalCount) return
     const nextPage = page + 1
+
     console.log('Loading more vacancies for page:', nextPage) // Debug log
     setPage(nextPage)
     dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery }))
@@ -193,6 +188,7 @@ const VacancyListingPage = () => {
     // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
       console.log('Debounced search:', searchQuery) // Debug log
+
       if (searchQuery.trim() === '') {
         // Fetch all vacancies when search is cleared
         dispatch(
@@ -344,6 +340,13 @@ const VacancyListingPage = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               sx={{ width: '400px', mr: 2, mt: 3 }} // Matches ApprovalMatrixList.tsx
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
             />
             {/* <Box sx={{ mt: 5 }}>
               <DynamicButton

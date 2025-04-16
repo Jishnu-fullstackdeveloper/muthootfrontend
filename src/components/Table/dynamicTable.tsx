@@ -12,7 +12,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableFooter,
   TablePagination,
   FormControlLabel,
   Box,
@@ -24,14 +23,11 @@ import {
   Tooltip,
   Card
 } from '@mui/material'
-import FilterListIcon from '@mui/icons-material/FilterList'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import CloseIcon from '@mui/icons-material/Close'
 import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
-import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined'
-import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
 
 // New Client-Side TablePagination Component
 const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
@@ -70,16 +66,20 @@ const DynamicTable = ({
   // Load initial column state from localStorage or use first 7 columns as default
   const [columns, setColumns] = useState<ColumnDef<any>[]>(() => {
     const savedColumns = localStorage.getItem(`${tableName}_columns`)
+
     if (savedColumns) {
       const headers = JSON.parse(savedColumns)
+
       return headers
         .map(header => initialColumns.find(col => col.header === header))
         .filter(Boolean) as ColumnDef<any>[]
     }
+
     return initialColumns.slice(0, 7) // Default to first 7 columns
   })
 
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
+
   //const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [openColumnDrawer, setOpenColumnDrawer] = useState(false)
@@ -112,20 +112,26 @@ const DynamicTable = ({
   const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>(() => {
     const allHeaders = extractHeaders(initialColumns)
     const savedColumns = localStorage.getItem(`${tableName}_columns`)
+
     if (savedColumns) {
       const savedHeaders = JSON.parse(savedColumns)
+
       return Object.keys(allHeaders).reduce(
         (acc, header) => {
           acc[header] = savedHeaders.includes(header)
+
           return acc
         },
         {} as Record<string, boolean>
       )
     }
+
     const selectedHeaders = Object.keys(allHeaders).slice(0, 7) // Take the first 7 headers
+
     return Object.keys(allHeaders).reduce(
       (acc, header) => {
         acc[header] = selectedHeaders.includes(header) // True for first 7, false for others
+
         return acc
       },
       {} as Record<string, boolean>
@@ -135,20 +141,24 @@ const DynamicTable = ({
   // New state to maintain the order of headers for the drawer
   const [headerOrder, setHeaderOrder] = useState<string[]>(() => {
     const savedColumns = localStorage.getItem(`${tableName}_columns`)
+
     if (savedColumns) {
       return JSON.parse(savedColumns)
     }
+
     return Object.keys(extractHeaders(initialColumns)) // Default to all headers in initial order
   })
 
   // Save columns and header order to localStorage whenever they change
   useEffect(() => {
     const headersToSave = columns.map(col => col.header)
+
     localStorage.setItem(`${tableName}_columns`, JSON.stringify(headersToSave))
     setHeaderOrder(prev => {
       // Merge saved headers with all possible headers, preserving order
       const allHeaders = Object.keys(extractHeaders(initialColumns))
       const unseenHeaders = allHeaders.filter(header => !headersToSave.includes(header))
+
       return [...headersToSave, ...unseenHeaders]
     })
   }, [columns, tableName, initialColumns])
@@ -204,6 +214,7 @@ const DynamicTable = ({
     const updatedSelectedColumns = Object.keys(allHeaders).reduce(
       (acc, header) => {
         acc[header] = checked ? true : selectedHeaders.includes(header) // All true if checked, first 7 true if unchecked
+
         return acc
       },
       {} as Record<string, boolean>
@@ -241,6 +252,7 @@ const DynamicTable = ({
     const updatedSelectedColumns = updatedHeaders.reduce(
       (acc, header) => {
         acc[header] = selectedColumns[header] || false // Preserve selection state, default to false if undefined
+
         return acc
       },
       {} as Record<string, boolean>
@@ -355,24 +367,32 @@ const DynamicTable = ({
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={columns.length + 1}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                  {/* Replace TablePagination with ClientSideTablePagination */}
-                  <ClientSideTablePagination
-                    totalCount={totalCount}
-                    pagination={pagination}
-                    onPageChange={onPageChange}
-                    onRowsPerPageChange={onRowsPerPageChange}
-                  />
-                </Box>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
         </Table>
       </TableContainer>
-
+      <Box
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 1,
+          backgroundColor: 'white',
+          borderTop: '1px solid rgba(224, 224, 224, 1)',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          p: 1,
+          mt: 1,
+          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
+          width: '100%',
+          boxSizing: 'border-box',
+          borderRadius: 1
+        }}
+      >
+        <ClientSideTablePagination
+          totalCount={totalCount}
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onRowsPerPageChange={onRowsPerPageChange}
+        />
+      </Box>
       <Drawer
         anchor='right'
         open={openColumnDrawer}
@@ -391,7 +411,6 @@ const DynamicTable = ({
               </IconButton>
             </Tooltip>
           </Box>
-
           {/* Select All Checkbox */}
           <Box sx={{ mb: 2 }}>
             <FormControlLabel
@@ -399,7 +418,6 @@ const DynamicTable = ({
               label='Select All'
             />
           </Box>
-
           <Grid container spacing={2}>
             {headerOrder.map((header, index) => (
               <Grid

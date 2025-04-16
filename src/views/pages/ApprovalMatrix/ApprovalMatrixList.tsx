@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, IconButton, Button, Card, TextField } from '@mui/material'
+import { Box, Typography, IconButton, Button, Card, TextField, InputAdornment } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 
 import type { ColumnDef } from '@tanstack/react-table'
 
@@ -15,7 +16,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchApprovalCategories, fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
 import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
-import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
+//import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
 
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
@@ -90,6 +91,7 @@ const ApprovalMatrixList = () => {
     const grouped = approvalMatrixData.reduce(
       (acc, item) => {
         const categoryId = item.approvalCategoryId
+
         if (!acc[categoryId]) {
           acc[categoryId] = {
             id: item.id, // Use the first item's ID for simplicity
@@ -99,15 +101,17 @@ const ApprovalMatrixList = () => {
             level: 0 // We'll use the max level as numberOfLevels
           }
         }
+
         acc[categoryId].designations.push(item.designation)
         acc[categoryId].grades.push(item.grade)
         acc[categoryId].level = Math.max(acc[categoryId].level, item.level) // Update max level
+
         return acc
       },
       {} as Record<string, any>
     )
 
-    let groupedArray = Object.values(grouped)
+    const groupedArray = Object.values(grouped)
 
     // Filter based on search query
     if (searchQuery.trim() === '') {
@@ -124,6 +128,7 @@ const ApprovalMatrixList = () => {
   const paginatedGroupedData = React.useMemo(() => {
     const startIndex = pagination.pageIndex * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
+
     return groupedData.slice(startIndex, endIndex)
   }, [groupedData, pagination.pageIndex, pagination.pageSize])
 
@@ -133,6 +138,7 @@ const ApprovalMatrixList = () => {
       id: `${rowData.id}-${index}`, // Generate a unique ID for each designation
       name: designation
     }))
+
     const grades = rowData.grades.map((grade: string, index: number) => ({
       id: `${rowData.id}-${index}`, // Generate a unique ID for each grade
       name: grade
@@ -162,13 +168,16 @@ const ApprovalMatrixList = () => {
     if (id) {
       try {
         await dispatch(deleteApprovalMatrix(id)).unwrap()
+
         // No need to manually update state here; Redux slice handles it
         // Removed alert for success
       } catch (error) {
         console.error('Delete failed:', error)
+
         // Removed alert for failure
       }
     }
+
     setDeleteModalOpen(false)
     setMatrixIdToDelete(null) // Reset the ID after action
   }
@@ -258,9 +267,9 @@ const ApprovalMatrixList = () => {
   ]
 
   // Handle view action
-  const handleView = (rowData: any) => {
-    router.push(`/approval-matrix/view/${rowData.id}?id=${rowData.id}`)
-  }
+  // const handleView = (rowData: any) => {
+  //   router.push(`/approval-matrix/view/${rowData.id}?id=${rowData.id}`)
+  // }
 
   // Pagination handlers for DynamicTable
   const handlePageChange = (newPage: number) => {
@@ -307,6 +316,13 @@ const ApprovalMatrixList = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             sx={{ width: '400px', mr: 2 }} // Margin-right to separate from the button
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
           />
           <Button
             variant='contained'

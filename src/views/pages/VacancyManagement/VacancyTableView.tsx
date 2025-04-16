@@ -68,7 +68,7 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor('designation', {
+      columnHelper.accessor('jobRole', {
         // Match the actual data key
         header: 'JOB ROLE',
         cell: ({ row }) => (

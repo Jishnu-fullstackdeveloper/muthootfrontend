@@ -37,7 +37,7 @@ export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', as
   try {
     thunkAPI
 
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/auth`, {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth`, {
       params: {
         iss: params.issuer,
         code: params.code,
@@ -57,7 +57,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
     thunkAPI
     const refreshToken = getRefreshToken()
     const accessToken = getAccessToken()
-    const api = '/auth/user/signout'
+    const api = '/auth/signout'
 
     const response = await AxiosLib.get(api, {
       headers: {
@@ -76,7 +76,7 @@ export const changePasswordApi = createAsyncThunk<any, any>('change-password', a
   try {
     params
     const accessToken = getAccessToken()
-    const api = '/auth/user/change-password'
+    const api = '/auth/change-password'
 
     const response = await AxiosLib.get(api, {
       headers: {
@@ -94,7 +94,7 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
   'appLogin/fetchNewAccessToken',
   async (params: any, { rejectWithValue }) => {
     try {
-      const api = `/auth/user/refresh-token`
+      const api = `/auth/refresh-token`
 
       AxiosLib.defaults.headers.common['refreshtoken'] = `${params.refreshtoken}`
       const response = await AxiosLib.get(api)
@@ -112,7 +112,7 @@ export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
   async (_, { rejectWithValue }) => {
     try {
       const accessToken = getAccessToken()
-      const api = '/render-config'
+      const api = '/system-management/render-config'
 
       const response = await AxiosLib.get(api, {
         headers: {

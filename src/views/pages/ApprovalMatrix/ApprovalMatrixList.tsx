@@ -22,7 +22,7 @@ const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
 
-  const { approvalMatrixData, status, totalItems } = useAppSelector(state => state.approvalMatrixReducer)
+  const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
 
   // Pagination state (0-based for table)
   const [pagination, setPagination] = useState({
@@ -38,15 +38,15 @@ const ApprovalMatrixList = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   // Fetch all approval matrices on initial load
-  useEffect(() => {
-    // Fetch all data by setting a high limit (e.g., 1000) or adjust based on your API's max limit
-    dispatch(
-      fetchApprovalMatrices({
-        page: 1, // Fetch from the first page
-        limit: 1000 // Set a high limit to get all data; adjust as needed
-      })
-    )
-  }, [dispatch])
+  // useEffect(() => {
+  //   // Fetch all data by setting a high limit (e.g., 1000) or adjust based on your API's max limit
+  //   dispatch(
+  //     fetchApprovalMatrices({
+  //       page: 1, // Fetch from the first page
+  //       limit: 1000 // Set a high limit to get all data; adjust as needed
+  //     })
+  //   )
+  // }, [dispatch])
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 

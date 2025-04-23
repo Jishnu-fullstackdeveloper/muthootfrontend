@@ -1,39 +1,67 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-import type { TextFieldProps } from '@mui/material'
-import { Box, Card, InputAdornment } from '@mui/material'
+//import type { TextFieldProps } from '@mui/material'
+import { Box, Card, TextField, InputAdornment } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 
-import CustomTextField from '@/@core/components/mui/TextField'
+//import CustomTextField from '@/@core/components/mui/TextField'
 import EmployeeTable from './EmployeeTableList'
 
+import { useAppDispatch } from '@/lib/hooks'
+import { fetchEmployees } from '@/redux/EmployeeManagement/employeeManagementSlice'
+
 const EmployeeListingPage = () => {
-  const DebouncedInput = ({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    ...props
-  }: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-  } & Omit<TextFieldProps, 'onChange'>) => {
-    const [value, setValue] = useState(initialValue)
+  const dispatch = useAppDispatch()
+  const [searchQuery, setSearchQuery] = useState('')
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
-    useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
+  // const DebouncedInput = ({
+  //   value: initialValue,
+  //   onChange,
+  //   debounce = 500,
+  //   ...props
+  // }: {
+  //   value: string | number
+  //   onChange: (value: string | number) => void
+  //   debounce?: number
+  // } & Omit<TextFieldProps, 'onChange'>) => {
+  //   const [value, setValue] = useState(initialValue)
 
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange(value)
-      }, debounce)
+  //   useEffect(() => {
+  //     setValue(initialValue)
+  //   }, [initialValue])
 
-      return () => clearTimeout(timeout)
-    }, [value])
+  //   useEffect(() => {
+  //     const timeout = setTimeout(() => {
+  //       onChange(value)
+  //     }, debounce)
 
-    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
-  }
+  //     return () => clearTimeout(timeout)
+  //   }, [value])
+
+  //   return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
+  // }
+
+  // Debounced search effect
+  useEffect(() => {
+    // Clear the previous timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current)
+    }
+
+    // Set a new timeout
+    debounceTimeout.current = setTimeout(() => {
+      dispatch(fetchEmployees({ page: 1, limit: 5, search: searchQuery }))
+    }, 300) // 300ms delay, matching VacancyListingPage
+
+    // Cleanup function to clear timeout
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current)
+      }
+    }
+  }, [searchQuery, dispatch])
 
   return (
     <>
@@ -50,15 +78,33 @@ const EmployeeListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
-            <DebouncedInput
-              value=''
-              onChange={() => {}}
-              placeholder='Search by Name or Employee Code...'
+            {/* <DebouncedInput
+              value={searchQuery}
+              onChange={value => {
+                setSearchQuery(value.toString())
+                dispatch(fetchEmployees({ page: 1, limit: 5, search: value.toString() }))
+              }}
+              placeholder='Search by Employee Name'
               className='is-full sm:is-[400px]'
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
                     <i className='tabler-search text-xxl' />
+                  </InputAdornment>
+                )
+              }}
+            /> */}
+            <TextField
+              label='Search by Employee Name'
+              variant='outlined'
+              size='small'
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              sx={{ width: '400px' }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <SearchIcon />
                   </InputAdornment>
                 )
               }}

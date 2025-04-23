@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
+import { API_ENDPOINTS } from '../ApiUrls/employeeApiUrls'
 
 // Define the employee data type based on the API response
 interface Employee {
@@ -135,7 +136,7 @@ const initialState: EmployeeState = {
 export const fetchEmployees = createAsyncThunk(
   'employees/fetchEmployees',
   async ({ page, limit, search }: { page: number; limit: number; search?: string }) => {
-    const response = await AxiosLib.get('/employee', {
+    const response = await AxiosLib.get(API_ENDPOINTS.EMPLOYEES, {
       params: { page, limit, search }
     })
 
@@ -145,17 +146,17 @@ export const fetchEmployees = createAsyncThunk(
 
 // Async thunk to fetch a single employee by ID
 export const fetchEmployeeById = createAsyncThunk('employees/fetchEmployeeById', async (id: string) => {
-  const response = await AxiosLib.get(`/employee/${id}`)
+  const response = await AxiosLib.get(API_ENDPOINTS.EMPLOYEE_BY_ID(id))
 
   return response.data
 })
 
 // Async thunk to delete an employee
-export const deleteEmployee = createAsyncThunk('employees/deleteEmployee', async (id: string) => {
-  await AxiosLib.delete(`/api/employees/${id}`)
+// export const deleteEmployee = createAsyncThunk('employees/deleteEmployee', async (id: string) => {
+//   await AxiosLib.delete(`/api/employees/${id}`)
 
-  return id
-})
+//   return id
+// })
 
 const employeeManagementSlice = createSlice({
   name: 'employees',
@@ -192,14 +193,14 @@ const employeeManagementSlice = createSlice({
         state.selectedEmployeeError = action.error.message || 'Failed to fetch employee'
       })
 
-      // Delete employee
-      .addCase(deleteEmployee.fulfilled, (state, action) => {
-        state.employees = state.employees.filter(employee => employee.id !== action.payload)
-        state.totalCount -= 1
-      })
-      .addCase(deleteEmployee.rejected, (state, action) => {
-        state.error = action.error.message || 'Failed to delete employee'
-      })
+    // Delete employee
+    //   .addCase(deleteEmployee.fulfilled, (state, action) => {
+    //     state.employees = state.employees.filter(employee => employee.id !== action.payload)
+    //     state.totalCount -= 1
+    //   })
+    //   .addCase(deleteEmployee.rejected, (state, action) => {
+    //     state.error = action.error.message || 'Failed to delete employee'
+    //   })
   }
 })
 

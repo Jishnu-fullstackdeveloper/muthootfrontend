@@ -12,6 +12,7 @@ import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSl
 import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
 import xFactorReducer from './XFactor/xFactorSlice'
 import employeeManagementReducer from './EmployeeManagement/employeeManagementSlice'
+import approvalsReducer from './Approvals/approvalsSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -27,7 +28,8 @@ export const makeStore = () =>
       vacancyManagementReducer,
       budgetManagementReducer,
       xFactorReducer,
-      employeeManagementReducer
+      employeeManagementReducer,
+      approvalsReducer
     }
   })
 

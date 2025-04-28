@@ -33,7 +33,7 @@ export const fetchUserRole = createAsyncThunk(
   'userManagement/fetchUserRole',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/users/roles', { params })
+      const response = await AxiosLib.get('/roles', { params })
 
       return response
     } catch (error: any) {
@@ -88,7 +88,7 @@ export const updateUser = createAsyncThunk<any, { id: string; params: { email: s
   'userManagement/updateUser',
   async ({ params }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.patch(`/users/role`, {
+      const response = await AxiosLib.patch(`/users/update-roles`, {
         email: params.email,
         newRoleNames: params.newRoleNames
       })

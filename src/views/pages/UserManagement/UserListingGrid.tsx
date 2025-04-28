@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 import { Box, Card, CardContent, Grid, Chip, IconButton, Typography, Button, CircularProgress } from '@mui/material'
 import { grey } from '@mui/material/colors'
@@ -28,32 +28,17 @@ interface User {
 interface UserGridProps {
   data: User[]
   loading: boolean
-  onEdit: (empCode: string, id: string) => void
-  loadMore: () => void
-  hasMore: boolean
+  onEdit: (empCode: string | undefined, id: string) => void
+  page: number
+  totalPages: number
+  totalCount: number // Added to track total number of users
+  onLoadMore: (newPage: number) => void // Modified to handle lazy loading
 }
 
-const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) => {
+const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserGridProps) => {
   const [expandedRoles, setExpandedRoles] = useState<{ [key: string]: boolean }>({})
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadMore()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const sentinel = document.getElementById('sentinel')
-
-    if (sentinel) observer.observe(sentinel)
-
-    return () => {
-      if (sentinel) observer.unobserve(sentinel)
-    }
-  }, [hasMore, loading, loadMore])
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   const toggleShowRoles = (userId: string) => {
     setExpandedRoles(prev => ({
@@ -69,6 +54,34 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
+
+  const loadMoreUsers = useCallback(() => {
+    if (loading || data.length >= totalCount) return
+    const nextPage = page + 1
+
+    onLoadMore(nextPage)
+  }, [loading, data.length, totalCount, page, onLoadMore])
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          loadMoreUsers()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current)
+    }
+
+    return () => {
+      if (observerRef.current && loadMoreRef.current) {
+        observerRef.current.unobserve(loadMoreRef.current)
+      }
+    }
+  }, [loadMoreUsers])
 
   return (
     <Box>
@@ -112,11 +125,6 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
                       Employee Code: <Typography component='span'>{user.employeeCode || 'N/A'}</Typography>
                     </Typography>
                   </Grid>
-                  {/* <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      User ID: <Typography component='span'>{user.userId || 'N/A'}</Typography>
-                    </Typography>
-                  </Grid> */}
                   <Grid item xs={12}>
                     <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
                       Email: <Typography component='span'>{user.email || 'N/A'}</Typography>
@@ -130,7 +138,6 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
                       </Typography>
                     </Typography>
                   </Grid>
-
                   <Grid item xs={12}>
                     <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
                       Roles:{' '}
@@ -167,7 +174,11 @@ const UserGrid = ({ data, loading, onEdit, loadMore, hasMore }: UserGridProps) =
           <CircularProgress />
         </Box>
       )}
-      <div id='sentinel' style={{ height: '1px' }} />
+      {data.length < totalCount && (
+        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography>{loading ? 'Loading more...' : 'Scroll to load more'}</Typography>
+        </Box>
+      )}
     </Box>
   )
 }

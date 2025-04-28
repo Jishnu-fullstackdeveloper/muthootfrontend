@@ -34,7 +34,7 @@ interface UserTableProps {
   totalCount: number
   onPageChange: (newPage: number) => void
   onRowsPerPageChange: (newPageSize: number) => void
-  handleEdit: (id: string) => void
+  handleEdit: (empCode: string | undefined, id: string) => void // Updated to match UserListing
   handleView: (role: any) => void
 }
 
@@ -51,7 +51,8 @@ const UserTable = ({
   const columnHelper = createColumnHelper<User>()
 
   const toTitleCase = (str: string) =>
-    str.toString()
+    str
+      .toString()
       .toLowerCase()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -59,7 +60,6 @@ const UserTable = ({
 
   const columns = useMemo(
     () => [
-      
       columnHelper.accessor('employeeCode', {
         header: 'Employee Code',
         cell: ({ row }) => row.original.employeeCode || 'N/A'
@@ -85,8 +85,10 @@ const UserTable = ({
                 <li key={index}>
                   <Typography
                     variant='body2'
+                    onClick={() => 'name' in role && handleView(role)}
+                    sx={{ cursor: 'name' in role ? 'pointer' : 'default',  }}
                   >
-                    {'name' in role ? role.name : role }
+                    {'name' in role ? role.name : role}
                   </Typography>
                 </li>
               ))}
@@ -108,7 +110,11 @@ const UserTable = ({
         header: 'Action',
         cell: ({ row }) => (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={() => handleEdit(row.original.userId)} title='Edit' sx={{ fontSize: '20px' }}>
+            <IconButton
+              onClick={() => handleEdit(row.original.employeeCode, row.original.userId)}
+              title='Edit'
+              sx={{ fontSize: '20px' }}
+            >
               <i className='tabler-edit' />
             </IconButton>
           </Box>
@@ -124,16 +130,16 @@ const UserTable = ({
       }),
       columnHelper.accessor('designation', {
         header: 'Designation',
-        cell: ({ row }) => row.original.designation ? toTitleCase(row.original.designation) :  'N/A'
+        cell: ({ row }) => (row.original.designation ? toTitleCase(row.original.designation) : 'N/A')
       })
     ],
-    [columnHelper, page, limit, handleEdit, handleView]
+    [columnHelper, handleEdit, handleView]
   )
 
   return (
     <Card>
       <DynamicTable
-        tableName = 'Users List'
+        tableName='Users List'
         columns={columns}
         data={data}
         pagination={{ pageIndex: page - 1, pageSize: limit }}

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Typography, IconButton, InputAdornment, Box, Card, CardContent, Tooltip } from '@mui/material'
+import { Typography, IconButton, InputAdornment, Box, Card, CardContent, Tooltip, Button } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -25,7 +25,7 @@ const UserRolesAndPermisstionList = () => {
   const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
   const [searchText, setSearchText] = useState('')
   const [debouncedSearchText, setDebouncedSearchText] = useState('')
-  const [tempPermissionFilters, setTempPermissionFilters] = useState({})
+  
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -67,6 +67,10 @@ const UserRolesAndPermisstionList = () => {
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
+  const handleAdd = () => {
+    router.push('/user-role/add/new') // Navigate to the edit page for adding a new role
+  }
+
   const columnHelper = createColumnHelper<any>()
 
   const columns = useMemo(
@@ -96,7 +100,7 @@ const UserRolesAndPermisstionList = () => {
         header: 'Action',
         cell: ({ row }) => {
           const roleName = row.original.name.toUpperCase()
-          const isEditDisabled = roleName === 'DEFAULT-ROLE' || roleName === 'DEFAULT-ROLES-HRMS'
+          const isEditDisabled = roleName === 'DEFAULT-ROLE' || roleName === 'DEFAULT-ROLES-HRMS' || roleName === 'SUPER ADMIN'
 
           return (
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -164,6 +168,9 @@ const UserRolesAndPermisstionList = () => {
                 }}
               />
             </Box>
+            <Button variant='contained' color='primary' onClick={handleAdd}>
+              Add Role
+            </Button>
           </Box>
         </CardContent>
       </Card>
@@ -172,13 +179,16 @@ const UserRolesAndPermisstionList = () => {
         <Typography>Loading roles...</Typography>
       ) : (
         <Card>
-          <DynamicTable
+         <DynamicTable
             tableName='User Roles List'
             columns={columns}
             data={filteredRoles}
-            pagination={{ pageIndex: page - 1, pageSize: limit }}
-            totalCount={userRoleData?.meta?.totalRecords}
-            onPageChange={newPage => setPage(newPage + 1)}
+            pagination={{
+              pageIndex: page - 1, // 0-based for DynamicTable
+              pageSize: limit
+            }}
+            totalCount={userRoleData?.pagination?.totalItems || 0}
+            onPageChange={newPage => setPage(newPage + 1)} // Convert 0-based to 1-based for API
             onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
           />
         </Card>

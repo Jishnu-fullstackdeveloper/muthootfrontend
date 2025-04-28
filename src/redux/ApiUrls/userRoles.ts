@@ -1,5 +1,5 @@
 export const API_ENDPOINTS = {
-    getUserRolesUrl: '/users/roles',
-    patchUserRoleUrl:'/users/roles/permissions'
+    getUserRolesUrl: '/roles',
+    patchUserRoleUrl:'/roles/update-permissions'
 
   }

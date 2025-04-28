@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -9,7 +11,6 @@ import {
   Button,
   Divider,
   Typography,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +19,8 @@ import {
   TableRow,
   Tooltip
 } from '@mui/material'
-import { ArrowBack, Edit } from '@mui/icons-material'
+import { ArrowBack } from '@mui/icons-material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
@@ -34,7 +36,8 @@ const MODULES = [
   'approvalmatrix',
   'general',
   'home',
-  'employee'
+  'employee',
+  'system',
 ]
 
 const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
@@ -51,7 +54,8 @@ const APPLICABLE_PERMISSIONS = {
   approvalMatrix: ['read', 'create', 'update', 'delete'],
   general: ['read', 'create', 'update', 'delete'],
   home: ['read'],
-  employee: ['employee_read']
+  employee: ['read'],
+  system: ['read', 'create', 'update', 'delete'],
 }
 
 const ViewUserRole = () => {
@@ -65,6 +69,7 @@ const ViewUserRole = () => {
   useEffect(() => {
     if (roleId) {
       const existingRole = userRoleData?.data?.find(role => role.id === roleId)
+
       if (existingRole) {
         setLocalRole(existingRole)
       } else {
@@ -81,13 +86,11 @@ const ViewUserRole = () => {
   const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]')
 
 
-  const nonEditableRoles = ['DEFAULT-ROLE', 'DEFAULT-ROLES-HRMS']
-  const isEditable = !nonEditableRoles.includes(roleName)
-
-  
   const groupedPermissions = {}
+
   permissions.forEach(perm => {
     const [moduleName] = perm.name.split('_')
+
     if (MODULES.includes(moduleName)) {
       groupedPermissions[moduleName] = groupedPermissions[moduleName] || []
       groupedPermissions[moduleName].push({ name: perm.name, description: perm.description })
@@ -98,12 +101,13 @@ const ViewUserRole = () => {
     groupedPermissions[module].sort((a, b) => {
       const aIndex = PERMISSION_ORDER.indexOf(a.name.split('_')[1])
       const bIndex = PERMISSION_ORDER.indexOf(b.name.split('_')[1])
+
       return aIndex - bIndex
     })
   })
 
   // const handleEdit = (role: any) => {
-  //   if (!isEditable) return; 
+  //   if (!isEditable) return;
   //   const query = new URLSearchParams({
   //     id: role.id,
   //     name: role.name
@@ -126,11 +130,14 @@ const ViewUserRole = () => {
       approvalmatrix: 'Approval Matrix',
       general: 'General Settings',
       home: 'Home Dashboard',
-      employee: 'Employee Management'
+      employee: 'Employee Management',
+      system: 'System Management',
+
     })[module] || module
 
   const getPermissionDescription = (module, perm) => {
     const permission = permissions.find(p => p.name === `${module}_${perm}`)
+
     return permission?.description || 'No description available'
   }
 

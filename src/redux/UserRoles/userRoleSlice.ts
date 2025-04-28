@@ -22,7 +22,7 @@ export const addNewUserRole = createAsyncThunk<any, any>(
   'userManagement/addNewUserRole',
   async (params: object, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.post('/users/roles', params)
+      const response = await AxiosLib.post('/roles', params)
 
       return response.data
     } catch (error: any) {

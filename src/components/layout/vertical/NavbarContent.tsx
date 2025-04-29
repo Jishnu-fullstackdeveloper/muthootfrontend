@@ -1,13 +1,13 @@
 'use client'
 
 // Third-party Imports
-import { usePathname } from 'next/navigation' // Util Imports
+import { usePathname } from 'next/navigation'
 
 import classnames from 'classnames'
 
 // Component Imports
 import { Breadcrumbs, Link, Typography } from '@mui/material'
-import HomeIcon from '@mui/icons-material/Home' // Import MUI Home icon
+import HomeIcon from '@mui/icons-material/Home'
 
 import NavToggle from './NavToggle'
 
@@ -40,23 +40,21 @@ const NavbarContent = () => {
             href='/home'
             sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'primary.main' }}
           >
-            <HomeIcon sx={{ mr: 0 }} fontSize='small' /> {/* Removed text "Home" */}
+            <HomeIcon sx={{ mr: 0 }} fontSize='small' />
           </Link>
 
           {pathSegments.map((segment, index) => {
-            const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
-            const segmentText = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ')
-
             // Skip "view", "edit", and "add" segments in breadcrumbs
-            if (
-              segment.toLowerCase() === 'view' ||
-              segment.toLowerCase() === 'edit' ||
-              segment.toLowerCase() === 'add'
-            ) {
+            if (['view', 'edit', 'add'].includes(segment.toLowerCase())) {
               return null
             }
 
-            // Always render the last segment as non-clickable Typography
+            const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
+
+            // Decode URL component and format segment text
+            const decodedSegment = decodeURIComponent(segment)
+            const segmentText = decodedSegment.charAt(0).toUpperCase() + decodedSegment.slice(1).replace(/-/g, ' ')
+
             const isLastSegment = index === pathSegments.length - 1
 
             return isLastSegment ? (

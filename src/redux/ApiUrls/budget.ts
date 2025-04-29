@@ -1,3 +1,23 @@
 export const API_ENDPOINTS = {
-  fetchBudgetDepartmentUrl: '/department-budget'
+  fetchBudgetDepartmentUrl: '/department-budget',
+  budgetIncreaseRequestUrl: '/budget-increase-request', // POST URL
+  budgetIncreaseRequestListUrl: '/budget-increase-request', // GET URL for list
+  budgetIncreaseRequestApproveRejectUrl: '/budget-increase-request/approve-reject', // PUT URL
+  budgetIncreaseRequestDetailUrl: '/budget-increase-request', // GET URL for detail by ID (with {id} parameter)
+  jobRoleUrl: '/jobRole',
+  employeeUrl: '/employee',
+  businessUnitUrl: '/businessUnit',
+  employeeCategoryTypeUrl: '/employeeCategoryType',
+  departmentUrl: '/department',
+  designationUrl: '/designation',
+  gradeUrl: '/grade',
+  zoneUrl: '/zone',
+  regionUrl: '/region',
+  areaUrl: '/area',
+  branchUrl: '/branch',
+  stateUrl: '/state',
+  approvalCategoriesUrl: '/approval-service/approval-categories',
+  territoryUrl: '/territory',
+  clusterUrl: '/cluster',
+  cityUrl: '/city'
 }

@@ -19,7 +19,7 @@ import DynamicTable from '@/components/Table/dynamicTable'
 type BudgetData = {
   id: number
   jobTitle: string
-  noOfOpenings: number
+  openings: number
   grade: string
   designation: string
   businessRole: string
@@ -86,11 +86,11 @@ const BudgetListingTableView = ({
         </Typography>
       )
     }),
-    columnHelper.accessor('noOfOpenings', {
+    columnHelper.accessor('openings', {
       header: 'NO. OF OPENINGS',
       cell: ({ row }) => (
         <Typography color='text.primary' sx={{ fontWeight: 'medium' }}>
-          {row.original.noOfOpenings}
+          {row.original.openings}
         </Typography>
       )
     }),

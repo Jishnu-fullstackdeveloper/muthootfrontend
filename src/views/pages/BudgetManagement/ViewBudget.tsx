@@ -1,12 +1,12 @@
 'use client'
 
 // React Imports
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 // Next Imports
 import { useRouter, usePathname } from 'next/navigation'
 
-// MUI Imports
+// Redux Imports
 import {
   Box,
   Typography,
@@ -19,10 +19,22 @@ import {
   Card,
   Tooltip,
   Grid,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material'
+
 import { ArrowBack, Business, People, CalendarToday, Work } from '@mui/icons-material'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  fetchBudgetIncreaseRequestById,
+  approveRejectBudgetIncreaseRequest
+} from '@/redux/BudgetManagement/BudgetManagementSlice'
+import type { RootState } from '@/redux/store'
+
+// MUI Imports
+
+// Types
 import type { Budget } from '@/types/budget'
 import { BudgetData } from '@/utils/sampleData/BudgetManagement/BudgetDetailsData'
 
@@ -33,11 +45,23 @@ import Department from './Department'
 type Props = {
   mode: string
   id: string
+  jobTitle: string
 }
 
-const ViewBudget: React.FC<Props> = ({ mode, id }) => {
+const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
+  const dispatch = useAppDispatch()
   const router = useRouter()
-  const pathname = usePathname() // Get the current route
+  const pathname = usePathname()
+
+  jobTitle
+
+  // Redux State
+  const {
+    fetchBudgetIncreaseRequestByIdLoading,
+    fetchBudgetIncreaseRequestByIdData,
+    fetchBudgetIncreaseRequestByIdFailure,
+    fetchBudgetIncreaseRequestByIdFailureMessage
+  } = useAppSelector((state: RootState) => state.budgetManagementReducer) as any
 
   // Check if the last segment of the path is "department"
   const isDepartmentRoute = pathname.split('/').pop() === 'department'
@@ -45,81 +69,85 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
   mode
   id
 
-  // Placeholder for future API integration
-  // const dispatch = useAppDispatch()
-  // const { fetchResignationOverviewListData } = useAppSelector((state: RootState) => state.recruitmentResignationReducer)
+  // Fetch data on mount
+  useEffect(() => {
+    dispatch(fetchBudgetIncreaseRequestById({ id }))
+  }, [dispatch, id])
 
-  // const getApproverId = () => {
-  //   const token = getAccessToken()
-  //   if (!token) return null
-  //   const decodedToken = decodeToken(token)
-  //   return decodedToken?.sub
-  // }
-
-  // const safeGetData = (source: any): any[] => (source?.data || Array.isArray(source.data) ? source.data : [])
-
+  // Memoized budget data
   const budget = useMemo((): Budget => {
-    // For now, return mock data
-    return BudgetData
+    // Use API data if available, fallback to mock data if loading or failed
+    return fetchBudgetIncreaseRequestByIdData?.data || BudgetData
+  }, [fetchBudgetIncreaseRequestByIdData])
 
-    // For future API integration:
-    // const data = safeGetData(fetchResignationOverviewListData)
-    // return data as Budget
-  }, []) // Add fetchResignationOverviewListData to dependencies when using API
-
-  // Placeholder for future API integration
-  // useEffect(() => {
-  //   dispatch(fetchResignationOverviewList({ id, page: 1, limit: 10 }))
-  // }, [dispatch, id])
-
+  // Handle Approve
   const handleApprove = async (e: React.MouseEvent) => {
     e.stopPropagation()
 
     try {
-      // const approverId = getApproverId()
-      // if (!approverId) throw new Error('No approver ID found')
-      // if (!budget?.approvalId) throw new Error('No approval ID found')
-      // await dispatch(
-      //   submitRequestDecision({
-      //     id: budget.approvalId,
-      //     approvalStatus: 'APPROVED',
-      //     approverId,
-      //   })
-      // ).unwrap()
-      router.push('/budget-management')
+      if (!budget?.approvalRequestId) throw new Error('No approval request ID found')
+      await dispatch(
+        approveRejectBudgetIncreaseRequest({
+          approvalRequestId: budget.approvalRequestId,
+          status: 'APPROVED',
+          approverId: 'some-approver-id', // Replace with dynamic value (e.g., from token)
+          approverDesignation: 'some-designation' // Replace with dynamic value
+        })
+      ).unwrap()
+      dispatch(fetchBudgetIncreaseRequestById({ id })) // Refetch data after approval
     } catch (error) {
       console.error('Error approving request:', error)
     }
   }
 
+  // Handle Reject
   const handleReject = async (e: React.MouseEvent) => {
     e.stopPropagation()
 
     try {
-      // const approverId = getApproverId()
-      // if (!approverId) throw new Error('No approver ID found')
-      // if (!budget?.approvalId) throw new Error('No approval ID found')
-      // await dispatch(
-      //   submitRequestDecision({
-      //     id: budget.approvalId,
-      //     approvalStatus: 'REJECTED',
-      //     approverId,
-      //   })
-      // ).unwrap()
+      if (!budget?.approvalRequestId) throw new Error('No approval request ID found')
+      await dispatch(
+        approveRejectBudgetIncreaseRequest({
+          approvalRequestId: budget.approvalRequestId,
+          status: 'REJECTED',
+          approverId: 'some-approver-id', // Replace with dynamic value
+          approverDesignation: 'some-designation' // Replace with dynamic value
+        })
+      ).unwrap()
+      dispatch(fetchBudgetIncreaseRequestById({ id })) // Refetch data after rejection
       router.push('/budget-management')
     } catch (error) {
       console.error('Error rejecting request:', error)
     }
   }
 
+  // Determine active step based on approvalStatus
   const activeStep = budget?.approvalStatusLevel?.findIndex(step => step.status === 'Pending') ?? 0
 
-  // If the route is /budget-management/view/department, show only the welcome message
+  // Conditionally render based on route
   if (isDepartmentRoute) {
     return <Department />
   }
 
-  // Otherwise, render the full page
+  // Render loading or error state if applicable
+  if (fetchBudgetIncreaseRequestByIdLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (fetchBudgetIncreaseRequestByIdFailure) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <Typography variant='h6' color='error'>
+          {fetchBudgetIncreaseRequestByIdFailureMessage || 'Failed to load budget details'}
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <Paper
       sx={{
@@ -127,7 +155,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
         padding: { xs: 2, md: 4 },
         borderRadius: 2,
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)',
-        backgroundColor: '#f9fafb' // Soft gray background for a clean look
+        backgroundColor: '#f9fafb'
       }}
     >
       {/* Header Section */}
@@ -180,9 +208,9 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
                 fontWeight: 500,
                 textTransform: 'uppercase',
                 bgcolor:
-                  budget?.status === 'Approve'
+                  budget?.status === 'APPROVED'
                     ? 'success.light'
-                    : budget?.status === 'Reject'
+                    : budget?.status === 'REJECTED'
                       ? 'error.light'
                       : 'warning.light',
                 color: 'white'
@@ -194,7 +222,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
               <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
                 <Tooltip title='Approve Budget Request'>
                   <Button
-                    variant='contained'
+                    variant='outlined'
                     color='success'
                     onClick={handleApprove}
                     sx={{
@@ -271,7 +299,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
                 No. of Openings:
               </Typography>
               <Typography variant='body2' sx={{ fontWeight: 500, color: 'text.primary' }}>
-                {budget?.noOfOpenings || 'N/A'}
+                {budget?.openings || 'N/A'}
               </Typography>
             </Box>
           </Grid>
@@ -293,7 +321,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
                 Start Date:
               </Typography>
               <Typography variant='body2' sx={{ fontWeight: 500, color: 'text.primary' }}>
-                {budget?.startDate ? new Date(budget.startDate).toLocaleDateString() : 'N/A'}
+                {budget?.startingDate ? new Date(budget.startingDate).toLocaleDateString() : 'N/A'}
               </Typography>
             </Box>
           </Grid>
@@ -386,7 +414,7 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
                 Branch:
               </Typography>
               <Typography variant='body2' sx={{ fontWeight: 500, color: 'text.primary' }}>
-                {budget?.branch} ({budget?.branchCode || 'N/A'})
+                {budget?.branchName} ({budget?.branchCode || 'N/A'})
               </Typography>
             </Box>
           </Grid>
@@ -433,96 +461,98 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
         </Grid>
       </Card>
 
-      {/* Approval Status Section */}
-      <Card
-        sx={{
-          p: 3,
-          mb: 4,
-          borderRadius: 2,
-          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
-          border: '1px solid',
-          borderColor: 'divider',
-          backgroundColor: 'white'
-        }}
-      >
-        <Typography variant='h6' sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
-          Approval Status
-        </Typography>
-        <Divider sx={{ mb: 3 }} />
-        <Box sx={{ px: { xs: 2, md: 5 }, py: 3 }}>
-          <Stepper activeStep={activeStep} alternativeLabel>
-            {budget?.approvalStatusLevel?.map((step, index) => (
-              <Step key={index}>
-                <StepLabel
-                  error={step.status === 'Rejected'}
-                  sx={{
-                    '& .MuiStepLabel-label': {
-                      color:
-                        step.status === 'Completed'
-                          ? 'success.main'
-                          : step.status === 'Rejected'
-                            ? 'error.main'
-                            : 'warning.main',
-                      fontWeight: 500
-                    }
-                  }}
-                >
-                  Level {index + 1}: {step.label} - {step.status}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Box>
-
-        {/* Approver Details */}
-        <Box
+      {/* Approval Status Section (only if approvalStatus is not empty) */}
+      {budget?.approvalStatus?.length > 0 && (
+        <Card
           sx={{
-            mt: 4,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(250px, 1fr))' },
-            gap: 2
+            p: 3,
+            mb: 4,
+            borderRadius: 2,
+            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'white'
           }}
         >
-          {budget?.approvalStatusLevel?.map((approver, index) => (
-            <Card
-              key={index}
-              sx={{
-                p: 2,
-                borderRadius: 1,
-                boxShadow: '0px 1px 5px rgba(0, 0, 0, 0.05)',
-                border: '1px solid',
-                borderColor: 'divider'
-              }}
-            >
-              <Typography variant='subtitle1' sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                Level {index + 1}: {approver.designation}
-              </Typography>
-              <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                <strong>Name:</strong> {approver.approverName}
-              </Typography>
-              <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                <strong>Employee Code:</strong> {approver.employeeCode}
-              </Typography>
-              <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                <strong>Status:</strong>{' '}
-                <span
-                  style={{
-                    color:
-                      approver.status === 'Rejected'
-                        ? '#d32f2f'
-                        : approver.status === 'Completed'
-                          ? '#2e7d32'
-                          : '#ed6c02',
-                    fontWeight: 500
-                  }}
-                >
-                  {approver.status}
-                </span>
-              </Typography>
-            </Card>
-          ))}
-        </Box>
-      </Card>
+          <Typography variant='h6' sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
+            Approval Status
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          <Box sx={{ px: { xs: 2, md: 5 }, py: 3 }}>
+            <Stepper activeStep={activeStep} alternativeLabel>
+              {budget?.approvalStatusLevel?.map((step, index) => (
+                <Step key={index}>
+                  <StepLabel
+                    error={step.status === 'Rejected'}
+                    sx={{
+                      '& .MuiStepLabel-label': {
+                        color:
+                          step.status === 'Completed'
+                            ? 'success.main'
+                            : step.status === 'Rejected'
+                              ? 'error.main'
+                              : 'warning.main',
+                        fontWeight: 500
+                      }
+                    }}
+                  >
+                    Level {index + 1}: {step.label} - {step.status}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+
+          {/* Approver Details */}
+          <Box
+            sx={{
+              mt: 4,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(250px, 1fr))' },
+              gap: 2
+            }}
+          >
+            {budget?.approvalStatusLevel?.map((approver, index) => (
+              <Card
+                key={index}
+                sx={{
+                  p: 2,
+                  borderRadius: 1,
+                  boxShadow: '0px 1px 5px rgba(0, 0, 0, 0.05)',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Typography variant='subtitle1' sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                  Level {index + 1}: {approver.designation}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                  <strong>Name:</strong> {approver.approverName}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                  <strong>Employee Code:</strong> {approver.employeeCode}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <strong>Status:</strong>{' '}
+                  <span
+                    style={{
+                      color:
+                        approver.status === 'Rejected'
+                          ? '#d32f2f'
+                          : approver.status === 'Completed'
+                            ? '#2e7d32'
+                            : '#ed6c02',
+                      fontWeight: 500
+                    }}
+                  >
+                    {approver.status}
+                  </span>
+                </Typography>
+              </Card>
+            ))}
+          </Box>
+        </Card>
+      )}
 
       {/* Additional Details Section */}
       <Card
@@ -547,4 +577,4 @@ const ViewBudget: React.FC<Props> = ({ mode, id }) => {
   )
 }
 
-export default ViewBudget
+export default withPermission(ViewBudget, 'budgetManagement')

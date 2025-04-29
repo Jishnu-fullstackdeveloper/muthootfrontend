@@ -131,6 +131,7 @@ const UserDropdown = () => {
     const params = {}
 
     dispatch(changePasswordApi(params))
+    Logout()
   }
 
   const pathName = usePathname()

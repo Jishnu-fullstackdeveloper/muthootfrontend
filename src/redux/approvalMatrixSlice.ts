@@ -34,7 +34,7 @@ const initialState: ApprovalMatrixState = {
   totalPages: 10
 }
 
-//APPROVAL CATEGORIES
+// APPROVAL CATEGORIES
 // Async thunk for fetching all approval categories with pagination
 export const fetchApprovalCategories = createAsyncThunk(
   'apphrms/fetchApprovalCategories',
@@ -44,16 +44,34 @@ export const fetchApprovalCategories = createAsyncThunk(
         params: { page, limit, search }
       })
 
-      const { items = [], meta = {} } = response.data || {} // Extracting `items`
+      console.log('fetchApprovalCategories response:', response.data) // Debug: Log API response
+
+      const { data = [], totalCount = 0 } = response.data || {} // Extract `data` and `totalCount`
 
       return {
-        data: items, // Store the extracted `items`
-        totalItems: meta.total || 0,
-        page: meta.page?.page || 1, // Fixing incorrect `meta.page`
-        limit: meta.limit || 10
+        data, // Store the `data` array containing approval categories
+        totalItems: totalCount,
+        page,
+        limit
       }
     } catch (error: any) {
+      console.error('fetchApprovalCategories error:', error) // Debug: Log error
+
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch approval categories')
+    }
+  }
+)
+
+// Async thunk for fetching a single approval category by ID
+export const fetchApprovalCategoryById = createAsyncThunk(
+  'apphrms/fetchApprovalCategoryById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id))
+
+      return response.data.data // Return the category data (including id, name, description)
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch approval category')
     }
   }
 )
@@ -86,7 +104,7 @@ export const updateApprovalCategory = createAsyncThunk(
   }
 )
 
-//APPROVAL MATRIX
+// APPROVAL MATRIX
 // Async thunk for fetching all approval matrices with pagination
 export const fetchApprovalMatrices = createAsyncThunk(
   'apphrms/fetchApprovalMatrices',
@@ -184,20 +202,6 @@ export const fetchGrades = createAsyncThunk(
   }
 )
 
-// Fetch approval matrix options
-// export const getApprovalMatrixOptions = createAsyncThunk(
-//   'apphrms/setApprovalMatrixOptions',
-//   async (_, { rejectWithValue }) => {
-//     try {
-//       const response = await AxiosLib.get('/appproval-actions/designations')
-
-//       return response.data.data
-//     } catch (error: any) {
-//       return rejectWithValue(error.response?.data || 'Error fetching approval matrix options')
-//     }
-//   }
-// )
-
 // Slice definition
 const approvalMatrixSlice = createSlice({
   name: 'approvalMatrix',
@@ -212,13 +216,35 @@ const approvalMatrixSlice = createSlice({
       })
       .addCase(fetchApprovalCategories.fulfilled, (state, action) => {
         state.status = 'succeeded'
-        state.approvalCategories = action.payload.data // Corrected assignment
+        state.approvalCategories = action.payload.data // Assign the fetched categories
         state.totalItems = action.payload.totalItems
         state.page = action.payload.page
         state.limit = action.payload.limit
+        console.log('fetchApprovalCategories stored in state:', state.approvalCategories) // Debug: Log stored data
       })
       .addCase(fetchApprovalCategories.rejected, state => {
         state.status = 'failed'
+      })
+
+      // Fetch approval category by ID
+      .addCase(fetchApprovalCategoryById.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(fetchApprovalCategoryById.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+
+        // Optionally update approvalCategories if needed
+        const index = state.approvalCategories.findIndex(category => category.id === action.payload.id)
+
+        if (index !== -1) {
+          state.approvalCategories[index] = action.payload
+        } else {
+          state.approvalCategories.push(action.payload)
+        }
+      })
+      .addCase(fetchApprovalCategoryById.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = (action.payload as string) || 'Failed to fetch approval category'
       })
 
       // Create approval category
@@ -335,19 +361,6 @@ const approvalMatrixSlice = createSlice({
         state.status = 'failed'
         state.error = (action.payload as string) || 'Failed to fetch grades'
       })
-
-    // Fetch approval matrix options
-    // .addCase(getApprovalMatrixOptions.pending, state => {
-    //   state.status = 'loading'
-    // })
-    // .addCase(getApprovalMatrixOptions.fulfilled, (state, action) => {
-    //   state.status = 'succeeded' // Changed from 'idle' to 'succeeded' for better status tracking
-    //   state.options = action.payload
-    // })
-    // .addCase(getApprovalMatrixOptions.rejected, (state, action) => {
-    //   state.status = 'failed'
-    //   state.error = (action.payload as string) || 'Error fetching approval matrix options'
-    // })
   }
 })
 

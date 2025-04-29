@@ -2,7 +2,18 @@ import React from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, Typography, Grid, Button } from '@mui/material'
+import {
+  Box,
+  Card,
+  Typography,
+  Grid,
+  Button,
+  TableCell,
+  TableContainer,
+  TableBody,
+  TableRow,
+  Table
+} from '@mui/material'
 
 import { ArrowBack } from '@mui/icons-material'
 
@@ -15,13 +26,31 @@ const ViewJD: React.FC<Props> = () => {
   const router = useRouter()
 
   const keyResponsibilities = [
-    { title: 'Lead development', description: 'Manage the end-to-end product development lifecycle' },
-    { title: 'Review processes', description: 'Ensure team compliance with coding best practices' }
+    {
+      title: 'Operational Governance',
+      description: ['Cascade and communicate branch-wise targets to the team, create daily/weekly/monthly targets, ']
+    },
+    {
+      title: 'Business Development',
+      description: [
+        'Leverage market and customer insights to support product strategy, market opportunities and potential new branch locations within the assigned area.'
+      ]
+    }
   ]
 
   const keyInteractions = [
-    { type: 'Internal Stakeholders', description: 'Coordination with product and design teams' },
-    { type: 'External Stakeholders', description: 'Client discussions and feedback loops' }
+    {
+      type: 'Internal Stakeholders',
+      description: [
+        'RM: For review of operational performance and approvals.',
+        'SULB: For credit checks, collections, and disbursements.',
+        'Internal Team: Branch Manager for operational matters, guidance and support.'
+      ]
+    },
+    {
+      type: 'External Stakeholders',
+      description: ['Key customers and relationships.', 'Regulatory bodies for compliance related matters.']
+    }
   ]
 
   const keySkillsAndAttributes = [
@@ -36,6 +65,15 @@ const ViewJD: React.FC<Props> = () => {
       competencies: ['Stakeholder Engagement'],
       definitions: ['Effective communication with clients'],
       behavioralAttributes: ['Team leadership', 'Cross-functional collaboration']
+    }
+  ]
+
+  const keyRoleDimentions = [
+    {
+      portfolioSize: ' 100+',
+      geographicalCoverage: ' 10-14',
+      branchesTeamSize: '12-15',
+      totalTeamSize: ' 40-50'
     }
   ]
 
@@ -322,17 +360,47 @@ const ViewJD: React.FC<Props> = () => {
             </Typography>
             {keyResponsibilities.map((item, index) => (
               <Box key={index} sx={{ mb: 2 }}>
-                <Typography variant='body1' sx={{ fontWeight: 'bold', color: '#444' }}>
-                  {item.title}
-                </Typography>
-                <Typography variant='body2' sx={{ color: '#666' }}>
-                  {item.description}
-                </Typography>
+                <TableContainer sx={{ maxHeight: 'none', overflow: 'hidden' }}>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '30%', paddingRight: 2 }}>
+                          <Typography variant='body1' sx={{ fontWeight: 'bold', color: '#444' }}>
+                            {item.title}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '70%' }}>
+                          {item.description.map((desc, idx) => {
+                            const words = desc.split(' ')
+                            const lines = []
+                            let currentLine = ''
+
+                            words.forEach((word, i) => {
+                              if ((currentLine + word).split(' ').length > 10 || i === words.length - 1) {
+                                lines.push(currentLine.trim())
+                                currentLine = word + ' '
+                              } else {
+                                currentLine += word + ' '
+                              }
+                            })
+
+                            return lines.map((line, lineIdx) => (
+                              <Typography key={`${idx}-${lineIdx}`} variant='body2' sx={{ color: '#666', mb: 1 }}>
+                                {line}
+                              </Typography>
+                            ))
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             ))}
           </Card>
 
           {/* Key Challenges */}
+
           <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
               Key Challenges
@@ -348,14 +416,43 @@ const ViewJD: React.FC<Props> = () => {
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
               Key Interactions
             </Typography>
-            {keyInteractions.map((interaction, index) => (
-              <Box key={index} sx={{ mb: 1 }}>
-                <Typography variant='body2' sx={{ color: '#444' }}>
-                  <strong>{interaction.type}:</strong> {interaction.description}
-                </Typography>
-              </Box>
-            ))}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              {keyInteractions.map((interaction, index) => (
+                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
+                  <Typography
+                    variant='body2'
+                    sx={{ color: '#444', mb: 2, backgroundColor: '#f5f5f5', padding: '6px 10px', borderRadius: '4px' }}
+                  >
+                    <strong>{interaction.type}</strong>
+                  </Typography>
+                  <Typography variant='body2' sx={{ color: '#666', paddingLeft: 2 }}>
+                    {interaction.description.map((item, idx) => (
+                      <span key={idx}>
+                        {item.trim()}
+                        <br />
+                        <br />
+                      </span>
+                    ))}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Card>
+
+       {/* Education & Experience */}
+
+          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
+              Educational & Experience 
+            </Typography>
+            <Typography sx={{ color: '#555' }}>
+            <strong>Minimum Qualification:</strong>  Bachelor’s Degree in Computer Science/Related Fields 
+            </Typography>
+            <Typography sx={{ color: '#555' }}>
+            <strong>Nature of Experience::</strong> 5+ years of experience in software development, with at least 2 years in a leadership role.
+            </Typography>
+          </Card>
+
         </Grid>
 
         {/* Right Side Content */}
@@ -375,16 +472,31 @@ const ViewJD: React.FC<Props> = () => {
               Role Details
             </Typography>
             <Typography>
+              <strong>Role Title:</strong> ABC Developer
+            </Typography>
+            <Typography>
+              <strong>Employee Interviewed:</strong> ABC Ltd.
+            </Typography>
+            <Typography>
+              <strong>Reports To:</strong>Regional Manager
+            </Typography>
+            <Typography>
               <strong>Company Name:</strong> ABC Ltd.
             </Typography>
             <Typography>
-              <strong>Reporting To:</strong> John Doe
+              <strong>Function/Department:</strong>Branch Business
             </Typography>
             <Typography>
-              <strong>Function/Department:</strong> Research & Development
+              <strong>Written By:</strong> Korn Ferry
             </Typography>
             <Typography>
-              <strong>Written By:</strong> HR Department
+              <strong>Approved By (Jobholder):</strong> HR Department
+            </Typography>
+            <Typography>
+              <strong>Approved By (Immediate Superior):</strong> HR Department
+            </Typography>
+            <Typography>
+              <strong>Date (Written On):</strong> 10-01-2023
             </Typography>
           </Card>
 
@@ -411,15 +523,30 @@ const ViewJD: React.FC<Props> = () => {
             ))}
           </Card>
 
-          {/* Education & Experience */}
+          {/* KEY ROLE DIMENTIONS */}
+
           <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Educational & Experience Description
+              KEY ROLE DIMENSIONS
             </Typography>
-            <Typography sx={{ color: '#555' }}>
-              Bachelor’s Degree in Computer Science/Related Fields with 5+ years of relevant experience in leadership
-              and technical expertise areas.
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              {keyRoleDimentions.map((dimentions, index) => (
+                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
+                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
+                    <strong>Portfolio Size:</strong> {dimentions.portfolioSize}
+                  </Typography>
+                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
+                    <strong>Geographical Coverage:</strong> {dimentions.geographicalCoverage}
+                  </Typography>
+                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
+                    <strong>Branches Team Size:</strong> {dimentions.branchesTeamSize}
+                  </Typography>
+                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
+                    <strong>Total Team Size:</strong> {dimentions.totalTeamSize}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Card>
         </Grid>
       </Grid>

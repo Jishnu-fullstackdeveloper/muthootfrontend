@@ -45,10 +45,14 @@ const steps = [
 
 const validationSchema = Yup.object().shape({
   roleTitle: Yup.string().required('Role Title is required'),
-  reportingTo: Yup.string().required('Reporting To is required'),
+  employeeInterviewed: Yup.string().required('Role Title is required'),
+  reportsTo: Yup.string().required('Reporting To is required'),
   companyName: Yup.string().required('Company Name is required'),
   functionOrDepartment: Yup.string().required('Function/Department is required'),
   writtenBy: Yup.string().required('Written By is required'),
+  approvedByJobholder: Yup.string().required('Approved By is required'),
+  approvedByImmediateSuperior: Yup.string().required('Approved By is required'),
+  date: Yup.string().required('Approved By is required'),
   roleSummary: Yup.string().required('Role Summary is required'),
   keyResponsibilities: Yup.array()
     .of(
@@ -59,23 +63,11 @@ const validationSchema = Yup.object().shape({
     )
     .min(1, 'At least one responsibility must be added'),
   keyChallenges: Yup.string().required('Key Challenges is required'),
-  keyDecisions: Yup.string().required('Key Decisions Taken is required'),
+  keyDecisionsTaken: Yup.string().required('Key Decisions Taken is required'),
   internalStakeholders: Yup.string().required('Internal Stakeholders is required'),
   externalStakeholders: Yup.string().required('External Stakeholders is required'),
   skillsAndAttributesType: Yup.string().required('Skills and Attributes Type is required'),
-  skillsAndAttributesTypeDescriptionOnly: Yup.string().test(
-    'validate-description-only',
-    'Required if description_only is selected',
-    function (value) {
-      const { skillsAndAttributesType } = this.parent // Access sibling fields
 
-      if (skillsAndAttributesType === 'description_only') {
-        return !!value // Ensure value exists for 'description_only'
-      }
-
-      return true // Skip validation for other types
-    }
-  ),
   skillsAndAttributesDetails: Yup.array()
     .of(
       Yup.object().shape({
@@ -153,7 +145,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             geographicalCoverage: '',
             teamSize: '',
             totalTeamSize: '',
-            skillsAndAttributesTypeDescriptionOnly: ''
           },
     validationSchema,
     onSubmit: values => {
@@ -182,7 +173,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
       teamSize,
       totalTeamSize,
       skillsAndAttributesType,
-      skillsAndAttributesTypeDescriptionOnly,
       skillsAndAttributesDetails,
       minimumQualification,
       experienceDescription
@@ -226,7 +216,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     // Step 8: Skills and attributes
     if (
       completedSteps >= 7 &&
-      ((skillsAndAttributesType === 'description_only' && skillsAndAttributesTypeDescriptionOnly) ||
+      (
         (skillsAndAttributesType === 'in_detail' &&
           Array.isArray(skillsAndAttributesDetails) &&
           skillsAndAttributesDetails.every(
@@ -289,7 +279,6 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
         geographicalCoverage: '',
         teamSize: '',
         totalTeamSize: '',
-        skillsAndAttributesTypeDescriptionOnly: ''
       }
     })
   }
@@ -336,6 +325,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           <h1 className='text-2xl font-bold text-gray-800 mb-4'>
             {mode === 'add' ? 'Add Job Description' : 'Edit JD'}
           </h1>
+
+{/* Role Specification */}
 
           <h3>Job Roles</h3>
           <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
@@ -476,6 +467,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
             </div>
           </fieldset>
 
+          {/* Role Summary */}
+
           <h3>Role Summary</h3>
           <fieldset className='border border-gray-300 rounded p-8 mb-6  mt-2'>
             <div className=''>
@@ -528,6 +521,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
               </FormControl>
             </div>
           </fieldset>
+
+          {/* Key Responsibilities */}
 
           <h3>Key Responsibilities</h3>
           <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white  mt-2'>
@@ -588,6 +583,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                           AddNewJDFormik.errors.keyResponsibilities?.[index]?.description
                         }
                       /> */}
+
+
                         <ReactQuill
                           id={`keyResponsibilities[${index}].description`}
                           style={{ height: '40vh', paddingBottom: 50 }}
@@ -923,68 +920,17 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
           <h3>Key Skills and Behavioural Attributes</h3>
           <Box sx={{ width: '50%', mb: 5 }}>
             <FormControl fullWidth margin='normal'>
-              <label htmlFor='reportingTo' className='block text-sm font-medium text-gray-700'>
-                Select type
-              </label>
-              <DynamicSelect
-                id='skillsAndAttributesType'
-                name='skillsAndAttributesType'
-                value={AddNewJDFormik.values.skillsAndAttributesType}
-                onChange={AddNewJDFormik.handleChange}
-                error={
-                  AddNewJDFormik.touched.skillsAndAttributesType &&
-                  Boolean(AddNewJDFormik.errors.skillsAndAttributesType)
-                }
-                helperText={
-                  AddNewJDFormik.touched.skillsAndAttributesType && AddNewJDFormik.errors.skillsAndAttributesType
-                    ? AddNewJDFormik.errors.skillsAndAttributesType
-                    : ''
-                }
-              >
-                <MenuItem value='description_only'>Add Description Only</MenuItem>
-                <MenuItem value='in_detail'>Add in Detail</MenuItem>
-              </DynamicSelect>
+            
+            
             </FormControl>
           </Box>
 
           <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white  mt-2'>
             {AddNewJDFormik.values.skillsAndAttributesType === 'description_only' ? (
               <>
-                <label htmlFor='reportingTo' className='block text-sm font-medium text-gray-700'>
-                  Description
-                </label>
-                <ReactQuill
-                  id='skillsAndAttributesTypeDescriptionOnly'
-                  style={{ height: '40vh', paddingBottom: 50 }}
-                  value={AddNewJDFormik.values.skillsAndAttributesTypeDescriptionOnly}
-                  onChange={(value: any) => {
-                    if (isEmptyContent(value)) {
-                      AddNewJDFormik.setFieldValue('skillsAndAttributesTypeDescriptionOnly', '')
-                    } else {
-                      AddNewJDFormik.setFieldValue('skillsAndAttributesTypeDescriptionOnly', value)
-                    }
-                  }}
-                  modules={{
-                    toolbar: {
-                      container: [
-                        [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
-                        [{ size: [] }],
-                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                        [{ list: 'ordered' }, { list: 'bullet' }],
+             
 
-                        // ['link', 'image', 'video'],
-                        ['clean']
-                      ]
-                    }
-                  }}
-                />
-
-                {AddNewJDFormik.touched.skillsAndAttributesTypeDescriptionOnly &&
-                  AddNewJDFormik.errors.skillsAndAttributesTypeDescriptionOnly && (
-                    <div style={{ color: 'red', marginTop: '8px' }}>
-                      {AddNewJDFormik.errors.skillsAndAttributesTypeDescriptionOnly}
-                    </div>
-                  )}
+                
               </>
             ) : (
               <div className='space-y-6'>

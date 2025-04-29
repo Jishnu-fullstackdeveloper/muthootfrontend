@@ -22,7 +22,7 @@ import Stack from '@mui/material/Stack'
 
 import type { TextFieldProps } from '@mui/material/TextField'
 
-import GridViewIcon from '@mui/icons-material/GridView' // Replace with your icon library if different
+import GridViewIcon from '@mui/icons-material/GridView'
 
 import { RestartAlt } from '@mui/icons-material'
 
@@ -30,7 +30,6 @@ import TableChartIcon from '@mui/icons-material/TableChart'
 
 import CustomTextField from '@/@core/components/mui/TextField'
 
-//import ViewListIcon from '@mui/icons-material/ViewList'
 import DynamicButton from '@/components/Button/dynamicButton'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
 
@@ -52,21 +51,21 @@ const JobListing = () => {
   const FiltersFromCookie = getJDManagementFiltersFromCookie()
 
   const [selectedFilters, setSelectedFilters] = useState({
-    jobType: [], // Array for checkboxes
+    jobType: [],
     experience: [],
     education: [],
     skills: [],
-    salaryRange: [0, 0], // Default range for the slider
-    jobRole: '' // Default value for the select dropdown
+    salaryRange: [0, 0],
+    jobRole: ''
   })
 
   const [appliedFilters, setAppliedFilters] = useState({
-    jobType: [], // Array for checkboxes
+    jobType: [],
     experience: [],
     education: [],
     skills: [],
-    salaryRange: [0, 0], // Default range for the slider
-    jobRole: '' // Default value for the select dropdown
+    salaryRange: [0, 0],
+    jobRole: ''
   })
 
   useEffect(() => {
@@ -81,12 +80,12 @@ const JobListing = () => {
 
   const handleResetFilters = () => {
     setSelectedFilters({
-      jobType: [], // Array for checkboxes
+      jobType: [],
       experience: [],
       education: [],
       skills: [],
-      salaryRange: [0, 0], // Default range for the slider
-      jobRole: '' // Default value for the select dropdown
+      salaryRange: [0, 0],
+      jobRole: ''
     })
     removeJDManagementFiltersFromCookie()
   }
@@ -142,25 +141,21 @@ const JobListing = () => {
   const CheckAllFiltersEmpty = (filters: any): boolean => {
     return Object.entries(filters).every(([key, value]) => {
       if (Array.isArray(value)) {
-        // For arrays, check if empty or salaryRange specifically equals [0, 0]
         return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
       }
 
       if (typeof value === 'string') {
-        // For strings, check if empty
         return value.trim() === ''
       }
 
       if (typeof value === 'object' && value !== null) {
-        // For objects, check if they are empty
         return Object.keys(value).length === 0
       }
 
-      return !value // Handles numbers, null, undefined, etc.
+      return !value
     })
   }
 
-  // Function to remove a value dynamically from a filter array
   const removeSelectedFilterItem = (category: any, value: string) => {
     setSelectedFilters((prev: any) => {
       if (category === 'jobRole') {
@@ -179,26 +174,22 @@ const JobListing = () => {
   const toggleFilter = (filterType: any, filterValue: any) => {
     setAppliedFilters((prev: any) => {
       if (filterType === 'salaryRange') {
-        // Toggle salary range: set to [0, 0] if already applied
         return {
           ...prev,
           salaryRange:
-            prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1]
-              ? [0, 0] // Reset to default
-              : filterValue
+            prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1] ? [0, 0] : filterValue
         }
       } else if (filterType === 'jobRole') {
         return {
           ...prev,
-          jobRole: prev.jobRole === filterValue ? '' : filterValue // Reset if matched, otherwise set new value
+          jobRole: prev.jobRole === filterValue ? '' : filterValue
         }
       } else {
-        // Toggle for other filters
         return {
           ...prev,
           [filterType]: prev[filterType]?.includes(filterValue)
-            ? prev[filterType].filter((item: any) => item !== filterValue) // Remove filter value
-            : [...(prev[filterType] || []), filterValue] // Add filter value
+            ? prev[filterType].filter((item: any) => item !== filterValue)
+            : [...(prev[filterType] || []), filterValue]
         }
       }
     })
@@ -229,15 +220,12 @@ const JobListing = () => {
         sx={{
           mb: 4,
           position: 'sticky',
-          top: 70, // Sticks the card at the top of the viewport
-          zIndex: 10, // Ensures it stays above other elements
+          top: 70,
+          zIndex: 10,
           backgroundColor: 'white',
-
-          // height: 'auto', // Automatically adjusts height based on content
-          paddingBottom: 2 // Adds some space at the bottom
+          paddingBottom: 2
         }}
       >
-        {/* <CardHeader title='Filters' className='pbe-4' /> */}
         <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
             <DebouncedInput
@@ -270,7 +258,7 @@ const JobListing = () => {
               <DynamicButton
                 label='Reset Filters'
                 variant='outlined'
-                icon={<RestartAlt />} // Proper reset icon from MUI
+                icon={<RestartAlt />}
                 position='start'
                 onClick={handleResetFilters}
                 children='Reset Filters'
@@ -279,7 +267,6 @@ const JobListing = () => {
             </Box>
           </div>
 
-          {/* Buttons */}
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
             <DynamicButton
               label='Upload JD'
@@ -300,7 +287,7 @@ const JobListing = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: 2, // Spacing between icons
+                gap: 2,
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '1px',
@@ -317,11 +304,6 @@ const JobListing = () => {
                   <GridViewIcon />
                 </IconButton>
               </Tooltip>
-              {/* <Tooltip title='List View'>
-                <IconButton color={viewMode === 'list' ? 'primary' : 'secondary'} onClick={() => setViewMode('list')}>
-                  <ViewListIcon />
-                </IconButton>
-              </Tooltip> */}
               <Tooltip title='Table View'>
                 <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
                   <TableChartIcon />
@@ -330,7 +312,7 @@ const JobListing = () => {
             </Box>
           </Box>
         </div>
-        {/* Reset Filters */}
+
         <Box>
           <Stack direction='row' spacing={1} ml={5}>
             {!CheckAllFiltersEmpty(selectedFilters) && (
@@ -340,11 +322,6 @@ const JobListing = () => {
             )}
           </Stack>
           <Stack direction='row' spacing={1} ml={5}>
-            {/*
-            <Chip label='Filter1' variant='outlined' color='primary' onDelete={() => {}} sx={{ ml: 5 }} />
-            <Chip label='Filter2' variant='outlined' onDelete={() => {}} />
-            */}
-
             <Box
               sx={{
                 overflow: 'hidden',
@@ -355,7 +332,6 @@ const JobListing = () => {
                 p: 1
               }}
             >
-              {/* Map Experience Chips */}
               {selectedFilters.experience.map(exp => (
                 <Chip
                   key={exp}
@@ -367,7 +343,6 @@ const JobListing = () => {
                 />
               ))}
 
-              {/* Map Education Chips */}
               {selectedFilters.education.map(edu => (
                 <Chip
                   key={edu}
@@ -379,7 +354,6 @@ const JobListing = () => {
                 />
               ))}
 
-              {/* Map Job Type Chips */}
               {selectedFilters.jobType.map(type => (
                 <Chip
                   key={type}
@@ -391,7 +365,6 @@ const JobListing = () => {
                 />
               ))}
 
-              {/* Map Skills Chips */}
               {selectedFilters.skills.map(skill => (
                 <Chip
                   key={skill}
@@ -403,7 +376,6 @@ const JobListing = () => {
                 />
               ))}
 
-              {/* Handle Salary Range */}
               {selectedFilters?.salaryRange[0] !== 0 || selectedFilters?.salaryRange[1] !== 0 ? (
                 <Chip
                   key='salary-range'
@@ -438,28 +410,26 @@ const JobListing = () => {
           </Stack>
         </Box>
       </Card>
-      {/* <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'> */}
-      {/* <div className='space-y-4'> */}
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
+
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-5 ' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
           jobs?.map(job => (
             <Box
               onClick={() => router.push(`/jd-management/view/${job.id}`)}
               key={job.id}
-              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1`}
+              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 border border-gray-200`}
               sx={{
                 cursor: 'pointer',
                 minHeight: '150px'
               }}
             >
-              {/* Header Section with Action Buttons */}
-              <Box className='pt-4 pl-4 pb-3 pr-2 flex justify-between items-center'>
-                <Typography variant='h5' mt={2} fontWeight='bold' gutterBottom color='primary'>
-                  {job.title}
+              <Box className='flex justify-between items-center p-4 border-b border-gray-200'>
+                <Typography variant='h6' fontWeight='bold' color='primary'>
+                  {job.title.toUpperCase()}
                 </Typography>
                 <div className='flex space-x-2'>
                   <Tooltip title='Edit JD' placement='top'>
-                    <IconButton
+                    {/* <IconButton
                       sx={{ ':hover': { color: 'primary.main' } }}
                       onClick={e => {
                         e.stopPropagation()
@@ -467,15 +437,13 @@ const JobListing = () => {
                       }}
                     >
                       <i className='tabler-edit' />
-                    </IconButton>
+                    </IconButton> */}
                   </Tooltip>
                   <Tooltip title='Delete JD' placement='top'>
                     <IconButton
                       sx={{ ':hover': { color: 'error.main' } }}
                       onClick={e => {
                         e.stopPropagation()
-
-                        //handleDeleteClick(job.id);
                       }}
                     >
                       <i className='tabler-trash' />
@@ -484,46 +452,25 @@ const JobListing = () => {
                 </div>
               </Box>
 
-              {/* Job Details */}
-              <Box className='p-4 border-t grid grid-cols-2'>
-                <p className='text-sm text-gray-700 mb-2'>
-                  <strong>Job Type:</strong> {job.job_type}
-                </p>
-                <p className='text-sm text-gray-700 mb-2'>
+              <Box className='p-4 grid gap-2'>
+                <Typography variant='body2' color='textSecondary'>
                   <strong>Job Role:</strong> {job.job_role}
-                </p>
-                <p className='text-sm text-gray-700 mb-2'>
+                </Typography>
+                <Typography variant='body2' color='textSecondary'>
                   <strong>Experience:</strong> {job.experience}
-                </p>
-                <p className='text-sm text-gray-700 mb-2'>
-                  <strong>Education</strong> {job.education}
-                </p>
-                <p className='text-sm text-gray-700 mb-2'>
+                </Typography>
+                <Typography variant='body2' color='textSecondary'>
+                  <strong>Job Type:</strong> {job.job_type}
+                </Typography>
+                <Typography variant='body2' color='textSecondary'>
+                  <strong>Education:</strong> {job.education}
+                </Typography>
+                <Typography variant='body2' color='textSecondary'>
                   <strong>Salary Range:</strong> {job.salary_range}
-                </p>
-                {/* <p className='text-sm text-gray-700 mb-4'>
-                  <strong>Role Description:</strong>{' '}
-                  {job.description.length > 110 ? `${job.description.slice(0, 110)}...` : job.description}
-                </p> */}
-                {/* <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                  {job.skills.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag}
-                      variant='outlined'
-                      sx={{
-                        fontSize: '12px',
-                        backgroundColor: '#f5f5f5',
-                        color: '#555',
-                        ':hover': { backgroundColor: 'primary.light', color: 'white' }
-                      }}
-                    />
-                  ))}
-                </Stack> */}
-
-                <p className='text-sm text-gray-700 mb-2'>
+                </Typography>
+                <Typography variant='body2' color='textSecondary'>
                   <strong>Skills:</strong> {job.skills.join(', ')}
-                </p>
+                </Typography>
               </Box>
             </Box>
           ))
@@ -534,13 +481,6 @@ const JobListing = () => {
 
       {viewMode !== 'table' && (
         <div className='flex items-center justify-end mt-6'>
-          {/* Center-aligned "Load More" Button */}
-          {/* <Box className='flex items-center justify-start flex-grow gap-4'>
-          <Button variant='outlined' color='primary' endIcon={<ArrowDropDownIcon />}>
-            Load More
-          </Button>
-        </Box> */}
-
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
@@ -561,9 +501,9 @@ const JobListing = () => {
               shape='rounded'
               showFirstButton
               showLastButton
-              count={paginationState?.display_numbers_count} //pagination numbers display count
-              page={paginationState?.page} //current page
-              onChange={handlePageChange} //changing page function
+              count={paginationState?.display_numbers_count}
+              page={paginationState?.page}
+              onChange={handlePageChange}
             />
           </div>
         </div>

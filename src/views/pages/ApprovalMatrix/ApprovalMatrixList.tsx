@@ -32,7 +32,7 @@ const ApprovalMatrixList = () => {
 
   // State for delete confirmation modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [matrixIdToDelete, setMatrixIdToDelete] = useState<string | null>(null)
+  const [matrixIdsToDelete, setMatrixIdsToDelete] = useState<string[]>([]) // Changed to array to store multiple IDs
 
   // State for search input
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -98,13 +98,15 @@ const ApprovalMatrixList = () => {
             approvalCategories: item.approvalCategories,
             designations: [],
             grades: [],
-            level: 0 // We'll use the max level as numberOfLevels
+            level: 0, // We'll use the max level as numberOfLevels
+            matrixIds: [] // Store all matrix IDs for this category
           }
         }
 
         acc[categoryId].designations.push(item.designation)
         acc[categoryId].grades.push(item.grade)
         acc[categoryId].level = Math.max(acc[categoryId].level, item.level) // Update max level
+        acc[categoryId].matrixIds.push(item.id) // Collect matrix ID
 
         return acc
       },
@@ -158,16 +160,21 @@ const ApprovalMatrixList = () => {
   }
 
   // Handle delete action (open modal)
-  const handleDelete = (id: string) => {
-    setMatrixIdToDelete(id)
+  const handleDelete = (rowData: any) => {
+    // Collect all matrix IDs for the given approvalCategoryId
+    const matrixIds =
+      groupedData.find((group: any) => group.approvalCategories.id === rowData.approvalCategories.id)?.matrixIds || []
+
+    setMatrixIdsToDelete(matrixIds)
     setDeleteModalOpen(true)
   }
 
   // Handle delete confirmation from modal
-  const handleDeleteConfirm = async (id?: string | null) => {
-    if (id) {
+  const handleDeleteConfirm = async () => {
+    if (matrixIdsToDelete.length > 0) {
       try {
-        await dispatch(deleteApprovalMatrix(id)).unwrap()
+        // Delete all matrices with the collected IDs
+        await Promise.all(matrixIdsToDelete.map(id => dispatch(deleteApprovalMatrix(id)).unwrap()))
 
         // No need to manually update state here; Redux slice handles it
         // Removed alert for success
@@ -179,7 +186,7 @@ const ApprovalMatrixList = () => {
     }
 
     setDeleteModalOpen(false)
-    setMatrixIdToDelete(null) // Reset the ID after action
+    setMatrixIdsToDelete([]) // Reset the IDs after action
   }
 
   // Define columns for the table
@@ -256,7 +263,7 @@ const ApprovalMatrixList = () => {
             sx={{ fontSize: 18 }}
             onClick={e => {
               e.stopPropagation()
-              handleDelete(row.original.id)
+              handleDelete(row.original)
             }}
           >
             <DeleteIcon />
@@ -338,6 +345,10 @@ const ApprovalMatrixList = () => {
 
       {status === 'loading' ? (
         <Typography>Loading...</Typography>
+      ) : paginatedGroupedData.length === 0 && searchQuery.trim() !== '' ? (
+        <Typography variant='h6' align='center' sx={{ mt: 4, color: 'text.secondary' }}>
+          No data found
+        </Typography>
       ) : (
         <DynamicTable
           columns={columns}
@@ -356,7 +367,7 @@ const ApprovalMatrixList = () => {
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
-        id={matrixIdToDelete}
+        id={matrixIdsToDelete[0] || null} // Pass the first ID for compatibility with ConfirmModal
       />
     </>
   )

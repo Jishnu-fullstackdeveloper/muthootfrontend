@@ -1,24 +1,19 @@
-import React from 'react';
+import React from 'react'
+
 import { useRouter } from 'next/navigation'
-import {
-   
-    Button, 
-} from '@mui/material'
+
+import { Button, Box } from '@mui/material'
+
 const SystemManagement = () => {
-    
   const router = useRouter() // Initialize router if using Next.js
-    
-    const XFactor = (id: string) => {
-        router.push(`/system-management/view/xfactor`); // Fixed path naming convention and syntax
-    };
 
-    return (
-        <div>
-         <Button onClick={() => XFactor('someId')}>
-               XFactor
-            </Button>
-        </div>
-    );
-};
+  return (
+    <Box className='flex'>
+      <Button onClick={() => router.push('/system-management/view/xfactor')}>XFactor</Button>
+      <Button onClick={() => router.push('/system-management/view/data-upload')}>Data Upload</Button>
+      <Button onClick={() => router.push('/system-management/view/approval-category')}>Approval Category</Button>
+    </Box>
+  )
+}
 
-export default SystemManagement;
+export default SystemManagement

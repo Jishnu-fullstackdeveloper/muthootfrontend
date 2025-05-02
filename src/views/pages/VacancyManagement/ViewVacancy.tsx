@@ -1,25 +1,13 @@
 'use client'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+
 import { useRouter, useParams } from 'next/navigation'
-import {
-  Box,
-  Typography,
-  Divider,
-  Grid,
-  Paper,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  Stack,
-  Card,
-  CardContent,
-  Button,
-  Tabs,
-  Tab
-} from '@mui/material'
-import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
-import CandidateListingTableView from './VacancyCandidateTable'
+
+import { Box, Typography, Divider, Paper, Button, Tabs, Tab } from '@mui/material'
+
+//import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
+
+//import CandidateListingTableView from './VacancyCandidateTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancyById } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import type { Props } from '@/types/vacancy'
@@ -31,16 +19,19 @@ const tabMapping: { [key: string]: number } = {
 
 const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   const router = useRouter()
+
   //const { id } = useParams() // Get the vacancy ID from the URL
   const params = useParams() // Get params object
   // const id = params?.editId as string | undefined // Extract id safely
   const dispatch = useAppDispatch()
+
   const { selectedVacancy, selectedVacancyLoading, selectedVacancyError } = useAppSelector(
     state => state.vacancyManagementReducer
   )
 
-  const jobDetailRef = useRef<HTMLDivElement>(null)
-  const candidateListRef = useRef<HTMLDivElement>(null)
+  // const jobDetailRef = useRef<HTMLDivElement>(null)
+  // const candidateListRef = useRef<HTMLDivElement>(null)
+
   //const [tabValue, setTabValue] = useState(0) // State for tab value
   const [activeTab, setActiveTab] = useState<number>(tabMapping[vacancyTab] || 0)
 
@@ -48,6 +39,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   useEffect(() => {
     console.log('Params:', params) // Debug full params object
     console.log('Dispatching fetchVacancyById with ID:', id)
+
     if (id) {
       dispatch(fetchVacancyById(id))
     } else {
@@ -56,6 +48,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   }, [dispatch, id])
 
   console.log('Dispatching fetchVacancyById with ID:', id)
+
   // Log selectedVacancy changes for debugging
   useEffect(() => {
     console.log('Current selectedVacancy:', selectedVacancy)
@@ -69,9 +62,9 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   //   candidateListRef.current?.scrollIntoView({ behavior: 'smooth' });
   // };
 
-  const handleBack = () => {
-    router.push('/vacancy-management') // Navigates to the previous page
-  }
+  // const handleBack = () => {
+  //   router.push('/vacancy-management') // Navigates to the previous page
+  // }
 
   // Tab change handler
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -124,8 +117,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
               {selectedVacancy?.jobTitle}
             </Typography>
             <Tabs value={activeTab} onChange={handleTabChange} aria-label='job tabs'>
-              <Tab label='Vacancy details' />
-              <Tab label='JD Details' />
+              {/* <Tab label='Vacancy details' /> */}
+              {/* <Tab label='JD Details' /> */}
             </Tabs>
           </Box>
           <Box>
@@ -168,17 +161,20 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                       Job Role: <strong>{selectedVacancy?.jobRole}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
+                      Grade: <strong>{selectedVacancy?.grade}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
                       Openings: <strong>{selectedVacancy?.openings}</strong>
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    {/* <Typography variant='body2' color='text.secondary'>
                       Business Role: <strong>{selectedVacancy?.businessRole}</strong>
-                    </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    </Typography> */}
+                    {/* <Typography variant='body2' color='text.secondary'>
                       Experience:{' '}
                       <strong>
                         {selectedVacancy?.experienceMin} - {selectedVacancy?.experienceMax} years
                       </strong>
-                    </Typography>
+                    </Typography> */}
                     <Typography variant='body2' color='text.secondary'>
                       Campus/Lateral: <strong>{selectedVacancy?.campusOrLateral}</strong>
                     </Typography>
@@ -275,7 +271,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   {/* Grid for Details */}
                   <Box className='grid grid-cols-2 md:grid-cols-3 gap-2'>
                     <Typography variant='body2' color='text.secondary'>
-                      Territory: <strong>{selectedVacancy?.teritory}</strong>
+                      Territory: <strong>{selectedVacancy?.territory}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
                       Region: <strong>{selectedVacancy?.region}</strong>

@@ -16,8 +16,8 @@ import TableChartIcon from '@mui/icons-material/TableChart'
 import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined' //designation
 import EngineeringOutlinedIcon from '@mui/icons-material/EngineeringOutlined' //job role
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined' // openings
-import CorporateFareOutlinedIcon from '@mui/icons-material/CorporateFareOutlined' // businessRole
-import ViewTimelineOutlinedIcon from '@mui/icons-material/ViewTimelineOutlined' // experience
+//import CorporateFareOutlinedIcon from '@mui/icons-material/CorporateFareOutlined' // businessRole
+//import ViewTimelineOutlinedIcon from '@mui/icons-material/ViewTimelineOutlined' // experience
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined' // campusOrLateral
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined' // employeeCategory
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined' // employeeType
@@ -38,6 +38,7 @@ import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined' // branchCode
 import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined' // city
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined' // state
 import SourceOutlinedIcon from '@mui/icons-material/SourceOutlined' // origin
+import MilitaryTechOutlinedIcon from '@mui/icons-material/MilitaryTechOutlined'
 
 import type { ViewMode, Vacancy, SelectedTabs } from '@/types/vacancy' //VacancyFilters //DebouncedInputProps
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
@@ -80,7 +81,7 @@ const VacancyListingPage = () => {
   //   jobRole: ''
   // })
 
-  // const [appliedFilters, setAppliedFilters] = useState<VacancyFilters>({
+  // const [selectedFilters, setSelectedFilters] = useState<VacancyFilters>({
   //   location: [],
   //   department: [],
   //   employmentType: [],
@@ -104,26 +105,39 @@ const VacancyListingPage = () => {
   //   if (cookieFilters?.appliedFilters) setAppliedFilters(cookieFilters.appliedFilters)
   // }, [])
 
-  // Update the useEffect for resetting vacancies and fetching initial data
+  // Consolidated useEffect for fetching vacancies with debounced search
   useEffect(() => {
-    console.log('Fetching vacancies with:', { page: 1, limit, search: searchQuery }) // Debug log
-    setVisibleVacancies([]) // Clear existing vacancies
-    setPage(1) // Reset to page 1
-    dispatch(fetchVacancies({ page: 1, limit, search: searchQuery }))
-  }, [dispatch, limit, searchQuery, viewMode])
+    // Clear any existing timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current)
+    }
 
-  // Update the useEffect for fetching additional pages (keep this as is, just confirming)
-  // useEffect(() => {
-  //   if (page > 1) {
-  //     dispatch(fetchVacancies({ page, limit, search: searchTerm }))
-  //   }
-  // }, [dispatch, page, limit, searchTerm])
+    // Set a new timeout for debounced search
+    debounceTimeout.current = setTimeout(() => {
+      console.log('Dispatching fetchVacancies with:', { page: 1, limit, search: searchQuery.trim() }) // Debug log
+      setVisibleVacancies([]) // Clear existing vacancies
+      setPage(1) // Reset to page 1
+      dispatch(fetchVacancies({ page: 1, limit, search: searchQuery.trim() }))
+        .unwrap()
+        .then(result => {
+          console.log('fetchVacancies result:', result) // Debug API response
+        })
+        .catch(err => console.error('Search failed:', err)) // Log errors
+    }, 300) // 300ms debounce delay
+
+    // Cleanup timeout on unmount or searchQuery/viewMode change
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current)
+      }
+    }
+  }, [dispatch, limit, searchQuery, viewMode])
 
   // Update visibleVacancies with unique items from API
   useEffect(() => {
     if (vacancies?.length && viewMode === 'grid') {
       console.log('Appending vacancies:', vacancies) // Debug log
-      setVisibleVacancies(prev => {
+      setVisibleVacancies((prev: Vacancy[]) => {
         const newVacancies = vacancies.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
 
         return [...prev, ...newVacancies]
@@ -132,8 +146,12 @@ const VacancyListingPage = () => {
         ...prev,
         ...vacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs)
       }))
+    } else if (!vacancies?.length && viewMode === 'grid' && !loading) {
+      // Clear visibleVacancies for empty results
+      console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
+      setVisibleVacancies([])
     }
-  }, [vacancies, viewMode])
+  }, [vacancies, viewMode, loading])
 
   const loadMoreVacancies = useCallback(() => {
     if (loading || visibleVacancies.length >= totalCount) return
@@ -141,7 +159,7 @@ const VacancyListingPage = () => {
 
     console.log('Loading more vacancies for page:', nextPage) // Debug log
     setPage(nextPage)
-    dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery }))
+    dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery.trim() }))
   }, [loading, visibleVacancies.length, totalCount, page, dispatch, limit, searchQuery])
 
   useEffect(() => {
@@ -177,46 +195,6 @@ const VacancyListingPage = () => {
   //   }, [value])
   //   return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
   // }
-
-  // New useEffect for debounced search
-  useEffect(() => {
-    // Clear the previous timeout
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current)
-    }
-
-    // Set a new timeout
-    debounceTimeout.current = setTimeout(() => {
-      console.log('Debounced search:', searchQuery) // Debug log
-
-      if (searchQuery.trim() === '') {
-        // Fetch all vacancies when search is cleared
-        dispatch(
-          fetchVacancies({
-            page: 1,
-            limit,
-            search: searchQuery
-          })
-        )
-      } else {
-        // Fetch vacancies with search term
-        // dispatch(
-        //   fetchVacancies({
-        //     page: 1,
-        //     limit,
-        //     search: searchQuery
-        //   })
-        // )
-      }
-    }, 300) // 300ms delay - matches ApprovalMatrixList.tsx
-
-    // Cleanup function to clear timeout
-    return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current)
-      }
-    }
-  }, [searchQuery, dispatch, limit])
 
   // const CheckAllFiltersEmpty = (filters: VacancyFilters): boolean =>
   //   Object.entries(filters).every(([key, value]) =>
@@ -261,7 +239,7 @@ const VacancyListingPage = () => {
   //     return {
   //       ...prev,
   //       [filterType]: prev[filterType]?.includes(filterValue)
-  //         ? (prev[filterType] as string[]).filter(item => item !== filterValue)
+  //         ? (prev[filterType] as string[]).filter(item => item !== value)
   //         : [...((prev[filterType] as string[]) || []), filterValue]
   //     }
   //   })
@@ -334,7 +312,7 @@ const VacancyListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <TextField
-              label='Search by Job Title or Designation'
+              label='Search'
               variant='outlined'
               size='small' // Matches ApprovalMatrixList.tsx
               value={searchQuery}
@@ -467,6 +445,22 @@ const VacancyListingPage = () => {
         </Box>
       )}
 
+      {/* {viewMode === 'grid' && loading && (
+        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+          <Typography variant='h6' color='text.secondary'>
+            Searching...
+          </Typography>
+        </Box>
+      )} */}
+
+      {viewMode === 'grid' && !loading && visibleVacancies.length === 0 && !error && (
+        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+          <Typography variant='h6' color='text.secondary'>
+            {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
+          </Typography>
+        </Box>
+      )}
+
       <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
           visibleVacancies?.map(vacancy => (
@@ -485,8 +479,8 @@ const VacancyListingPage = () => {
                     <IconButton
                       sx={{ ':hover': { color: 'primary.main' }, fontSize: '1.2rem' }}
                       onClick={e => {
-                        e.stopPropagation();
-                        router.push(`/vacancy-management/edit/${vacancy.id}`);
+                        e.stopPropagation()
+                        router.push(`/vacancy-management/edit/${vacancy.id}`)
                       }}
                     >
                       <i className='tabler-edit' />
@@ -514,7 +508,7 @@ const VacancyListingPage = () => {
                   {/* <Tab label='More details2' sx={{ fontSize: '11px' }} /> */}
                 </Tabs>
                 <Box className='mt-4'>
-                  {selectedTabs[vacancy.id] === 0 && (
+                  {/* {selectedTabs[vacancy.id] === 0 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
                       <Tooltip title='Designation'>
                         <Typography
@@ -590,10 +584,10 @@ const VacancyListingPage = () => {
                         </Typography>
                       </Tooltip>
                     </Box>
-                  )}
-                  {selectedTabs[vacancy.id] === 1 && (
+                  )} */}
+                  {selectedTabs[vacancy.id] === 0 && (
                     <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <Tooltip title='Business Role'>
+                      {/* <Tooltip title='Business Role'>
                         <Typography
                           variant='body2'
                           fontSize='10px'
@@ -601,7 +595,7 @@ const VacancyListingPage = () => {
                         >
                           <CorporateFareOutlinedIcon fontSize='small' />: {vacancy.businessRole}
                         </Typography>
-                      </Tooltip>
+                      </Tooltip> */}
                       <Tooltip title='Employee Category'>
                         <Typography
                           variant='body2'
@@ -653,7 +647,7 @@ const VacancyListingPage = () => {
                           fontSize='10px'
                           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                         >
-                          <PublicOutlinedIcon fontSize='small' />: {vacancy.teritory} {/* Typo in API */}
+                          <PublicOutlinedIcon fontSize='small' />: {vacancy.territory}
                         </Typography>
                       </Tooltip>
                       <Tooltip title='Region'>
@@ -672,6 +666,92 @@ const VacancyListingPage = () => {
                           sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                         >
                           <HubOutlinedIcon fontSize='small' />: {vacancy.cluster}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  )}
+                  {selectedTabs[vacancy.id] === 1 && (
+                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
+                      <Tooltip title='Designation'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <CardMembershipOutlinedIcon fontSize='small' />: {vacancy.designation}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='Job Role'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <EngineeringOutlinedIcon fontSize='small' />: {vacancy.jobRole}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='Openings'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <WorkOutlineOutlinedIcon fontSize='small' />: {vacancy.openings}
+                        </Typography>
+                      </Tooltip>
+                      {/* <Tooltip title='Experience'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <ViewTimelineOutlinedIcon fontSize='small' />: {vacancy.experienceMin} -{' '}
+                          {vacancy.experienceMax} years
+                        </Typography>
+                      </Tooltip> */}
+                      <Tooltip title='Campus/Lateral'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <SchoolOutlinedIcon fontSize='small' />: {vacancy.campusOrLateral}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='Employee Type'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <PersonOutlineOutlinedIcon fontSize='small' />: {vacancy.employeeType}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='Employee Type'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <MilitaryTechOutlinedIcon fontSize='small' />: {vacancy.grade}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='Start Date'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'green' }}
+                        >
+                          <TodayOutlinedIcon fontSize='small' />: {vacancy.startingDate.split('T')[0]}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title='End Date'>
+                        <Typography
+                          variant='body2'
+                          fontSize='10px'
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'red' }}
+                        >
+                          <EventOutlinedIcon fontSize='small' />: {vacancy.closingDate.split('T')[0]}
                         </Typography>
                       </Tooltip>
                     </Box>

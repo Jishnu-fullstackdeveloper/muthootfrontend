@@ -59,21 +59,24 @@ import DynamicButton from '@/components/Button/dynamicButton'
 // Static Dropdown Options
 const staticDropdownOptions = {
   campusOrLateral: ['Campus', 'Lateral'],
-  employeeType: ['Full-Time', 'Part-Time'],
-  company: ['Tech Corp', 'Innovate Inc']
+  employeeType: ['Fulltime', 'Parttime'],
+  company: ['Muthoot Fincorp Ltd.', 'Muthoot Papachan']
 }
 
 // Validation Schema
 const validationSchema = Yup.object({
   jobTitle: Yup.string().required('Job Title is required'),
   jobRole: Yup.string().required('Job Role is required'),
-  openings: Yup.number().required('No. of Openings is required').min(1, 'No. of Openings must be at least 1'),
+  openings: Yup.number()
+    .required('No. of Openings is required')
+    .min(1, 'No. of Openings must be a positive number (at least 1)'),
   experienceMin: Yup.number()
     .required('Minimum Experience is required')
-    .min(0, 'Minimum Experience must be at least 0'),
+    .min(0, 'Minimum Experience must be 0 or positive'),
   experienceMax: Yup.number()
     .required('Maximum Experience is required')
-    .min(Yup.ref('experienceMin'), 'Maximum Experience must be greater than or equal to Minimum Experience'),
+    .min(0, 'Maximum Experience must be 0 or positive')
+    .moreThan(Yup.ref('experienceMin'), 'Maximum Experience must be greater than Minimum Experience'),
   campusOrLateral: Yup.string().required('Campus / Lateral is required'),
   hiringManager: Yup.string().required('Hiring Manager is required'),
   startingDate: Yup.date().required('Start Date is required').nullable(),
@@ -168,9 +171,17 @@ const ManualRequestGeneratedForm: React.FC = () => {
   })
 
   // Refs to track fetched values for dependent APIs
-  const employeeFetchRef = useRef<string | null>(null)
+  const jobRoleFetchRef = useRef<string | null>(null)
   const businessUnitFetchRef = useRef<string | null>(null)
-  const employeeCategoryRef = useRef<string | null>(null)
+  const employeeCategoryFetchRef = useRef<string | null>(null)
+  const departmentFetchRef = useRef<string | null>(null)
+  const territoryFetchRef = useRef<string | null>(null)
+  const zoneFetchRef = useRef<string | null>(null)
+  const regionFetchRef = useRef<string | null>(null)
+  const areaFetchRef = useRef<string | null>(null)
+  const clusterFetchRef = useRef<string | null>(null)
+  const branchNameFetchRef = useRef<string | null>(null)
+  const cityFetchRef = useRef<string | null>(null)
 
   // Observer Refs
   const observerRefs = {
@@ -231,10 +242,40 @@ const ManualRequestGeneratedForm: React.FC = () => {
     onSubmit: async values => {
       try {
         const payload = {
-          ...values,
+          jobTitle: values.jobTitle,
+          jobRole: jobRoles.find(option => option.id === values.jobRole)?.name || values.jobRole,
+          openings: values.openings,
+          experienceMin: values.experienceMin,
+          experienceMax: values.experienceMax,
+          campusOrLateral: values.campusOrLateral,
+          hiringManager: employees.find(option => option.id === values.hiringManager)
+            ? `${employees.find(option => option.id === values.hiringManager).firstName} ${
+                employees.find(option => option.id === values.hiringManager).middleName || ''
+              } ${employees.find(option => option.id === values.hiringManager).lastName}`.trim()
+            : values.hiringManager,
+          startingDate: values.startingDate,
+          closingDate: values.closingDate,
+          company: values.company,
+          businessUnit: businessUnits.find(option => option.id === values.businessUnit)?.name || values.businessUnit,
+          employeeCategory:
+            employeeCategories.find(option => option.id === values.employeeCategory)?.name || values.employeeCategory,
+          employeeType: values.employeeType,
+          department: departments.find(option => option.id === values.department)?.name || values.department,
+          designation: designations.find(option => option.id === values.designation)?.name || values.designation,
+          grade: grades.find(option => option.id === values.grade)?.name || values.grade,
+          territory: territories.find(option => option.id === values.territory)?.name || values.territory,
+          zone: zones.find(option => option.id === values.zone)?.name || values.zone,
+          region: regions.find(option => option.id === values.region)?.name || values.region,
+          area: areas.find(option => option.id === values.area)?.name || values.area,
+          cluster: clusters.find(option => option.id === values.cluster)?.name || values.cluster,
+          branchName: branches.find(option => option.id === values.branchName)?.name || values.branchName,
+          branchCode: values.branchCode,
+          city: cities.find(option => option.id === values.city)?.name || values.city,
+          state: states.find(option => option.id === values.state)?.name || values.state,
+          approvalCategory:
+            approvalCategories.find(option => option.id === values.approvalCategory)?.name || values.approvalCategory,
           approvalCategoryId: values.approvalCategoryId,
-          raisedById: values.raisedById,
-          branchCode: values.branchCode
+          raisedById: values.raisedById
         }
 
         await dispatch(createBudgetIncreaseRequest(payload)).unwrap()
@@ -259,7 +300,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
   const loadMoreEmployees = useCallback(() => {
     if (!hasMore.employee || !formik.values.jobRole) return
-    dispatch(fetchEmployee({ page: 1, limit: limit.employee, search: 'hr' }))
+    dispatch(fetchEmployee({ page: 1, limit: limit.employee, search: '' }))
       .unwrap()
       .then(data => {
         setEmployees(prev => [...prev, ...(data.data || [])])
@@ -371,7 +412,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
 
   const loadClusters = useCallback(() => {
     if (!hasMore.cluster || !formik.values.area) return
-    dispatch(fetchCluster({ page: 1, limit: limit.cluster, areaId: formik.values.area }))
+    dispatch(fetchCluster({ page: 1, limit: limit.cluster }))
       .unwrap()
       .then(data => {
         setClusters(prev => [...prev, ...(data.data || [])])
@@ -407,7 +448,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     dispatch(fetchState({ page: 1, limit: limit.state }))
       .unwrap()
       .then(data => {
-        setStates(prev => [...prev, ...(data.data || [])])
+        setStates(prev => [...prev, ...(data?.data || [])])
         setLimit(prev => ({ ...prev, state: prev.state + 10 }))
         setHasMore(prev => ({ ...prev, state: data.data.length === limit.state }))
       })
@@ -431,7 +472,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     loadGrades()
     loadTerritories()
     loadApprovalCategories()
-  }, []) // Empty dependency array ensures this runs only once
+  }, [loadJobRoles, loadBusinessUnits, loadGrades, loadTerritories, loadApprovalCategories])
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -527,22 +568,22 @@ const ManualRequestGeneratedForm: React.FC = () => {
     loadApprovalCategories
   ])
 
-  // Handle jobRole change to fetch employees (single call)
+  // Handle jobRole change to fetch employees
   useEffect(() => {
-    if (formik.values.jobRole && formik.values.jobRole !== employeeFetchRef.current) {
+    if (formik.values.jobRole && formik.values.jobRole !== jobRoleFetchRef.current) {
       setEmployees([])
       setLimit(prev => ({ ...prev, employee: 10 }))
       setHasMore(prev => ({ ...prev, employee: true }))
-      employeeFetchRef.current = formik.values.jobRole
+      jobRoleFetchRef.current = formik.values.jobRole
       loadMoreEmployees()
-    } else if (!formik.values.jobRole) {
+    } else if (!formik.values.jobRole && jobRoleFetchRef.current !== null) {
       setEmployees([])
       formik.setFieldValue('hiringManager', '')
-      employeeFetchRef.current = null
+      jobRoleFetchRef.current = null
     }
-  }, [formik.values.jobRole, loadMoreEmployees, formik.setFieldValue])
+  }, [formik.values.jobRole, loadMoreEmployees, formik])
 
-  // Handle businessUnit change to fetch employee categories (single call)
+  // Handle businessUnit change to fetch employee categories
   useEffect(() => {
     if (formik.values.businessUnit && formik.values.businessUnit !== businessUnitFetchRef.current) {
       setEmployeeCategories([])
@@ -550,52 +591,55 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setHasMore(prev => ({ ...prev, employeeCategory: true }))
       businessUnitFetchRef.current = formik.values.businessUnit
       loadEmployeeCategories()
-    } else if (!formik.values.businessUnit) {
+    } else if (!formik.values.businessUnit && businessUnitFetchRef.current !== null) {
       setEmployeeCategories([])
       formik.setFieldValue('employeeCategory', '')
       formik.setFieldValue('department', '')
       formik.setFieldValue('designation', '')
       businessUnitFetchRef.current = null
     }
-  }, [formik.values.businessUnit, loadEmployeeCategories, formik.setFieldValue])
+  }, [formik.values.businessUnit, loadEmployeeCategories, formik])
 
   // Handle employeeCategory change to fetch departments
   useEffect(() => {
-    if (formik.values.employeeCategory && formik.values.employeeCategory !== employeeCategoryRef.current) {
+    if (formik.values.employeeCategory && formik.values.employeeCategory !== employeeCategoryFetchRef.current) {
       setDepartments([])
       setLimit(prev => ({ ...prev, department: 10 }))
       setHasMore(prev => ({ ...prev, department: true }))
-      employeeCategoryRef.current = formik.values.employeeCategory
+      employeeCategoryFetchRef.current = formik.values.employeeCategory
       loadDepartments()
-    } else if (!formik.values.employeeCategory) {
+    } else if (!formik.values.employeeCategory && employeeCategoryFetchRef.current !== null) {
       setDepartments([])
       formik.setFieldValue('department', '')
       formik.setFieldValue('designation', '')
-      employeeCategoryRef.current = null
+      employeeCategoryFetchRef.current = null
     }
-  }, [formik.values.employeeCategory, loadDepartments, formik.setFieldValue])
+  }, [formik.values.employeeCategory, loadDepartments, formik])
 
   // Handle department change to fetch designations
   useEffect(() => {
-    if (formik.values.department) {
+    if (formik.values.department && formik.values.department !== departmentFetchRef.current) {
       setDesignations([])
       setLimit(prev => ({ ...prev, designation: 10 }))
       setHasMore(prev => ({ ...prev, designation: true }))
+      departmentFetchRef.current = formik.values.department
       loadDesignations()
-    } else {
+    } else if (!formik.values.department && departmentFetchRef.current !== null) {
       setDesignations([])
       formik.setFieldValue('designation', '')
+      departmentFetchRef.current = null
     }
-  }, [formik.values.department, loadDesignations, formik.setFieldValue])
+  }, [formik.values.department, loadDesignations, formik])
 
   // Handle territory change to fetch zones
   useEffect(() => {
-    if (formik.values.territory) {
+    if (formik.values.territory && formik.values.territory !== territoryFetchRef.current) {
       setZones([])
       setLimit(prev => ({ ...prev, zone: 10 }))
       setHasMore(prev => ({ ...prev, zone: true }))
+      territoryFetchRef.current = formik.values.territory
       loadZones()
-    } else {
+    } else if (!formik.values.territory && territoryFetchRef.current !== null) {
       formik.setFieldValue('zone', '')
       formik.setFieldValue('region', '')
       formik.setFieldValue('area', '')
@@ -631,17 +675,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      territoryFetchRef.current = null
     }
-  }, [formik.values.territory, loadZones, formik.setFieldValue])
+  }, [formik.values.territory, loadZones, formik])
 
   // Handle zone change to fetch regions
   useEffect(() => {
-    if (formik.values.zone) {
+    if (formik.values.zone && formik.values.zone !== zoneFetchRef.current) {
       setRegions([])
       setLimit(prev => ({ ...prev, region: 10 }))
       setHasMore(prev => ({ ...prev, region: true }))
+      zoneFetchRef.current = formik.values.zone
       loadRegions()
-    } else {
+    } else if (!formik.values.zone && zoneFetchRef.current !== null) {
       formik.setFieldValue('region', '')
       formik.setFieldValue('area', '')
       formik.setFieldValue('cluster', '')
@@ -673,17 +719,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      zoneFetchRef.current = null
     }
-  }, [formik.values.zone, loadRegions, formik.setFieldValue])
+  }, [formik.values.zone, loadRegions, formik])
 
   // Handle region change to fetch areas
   useEffect(() => {
-    if (formik.values.region) {
+    if (formik.values.region && formik.values.region !== regionFetchRef.current) {
       setAreas([])
       setLimit(prev => ({ ...prev, area: 10 }))
       setHasMore(prev => ({ ...prev, area: true }))
+      regionFetchRef.current = formik.values.region
       loadAreas()
-    } else {
+    } else if (!formik.values.region && regionFetchRef.current !== null) {
       formik.setFieldValue('area', '')
       formik.setFieldValue('cluster', '')
       formik.setFieldValue('branchName', '')
@@ -711,17 +759,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      regionFetchRef.current = null
     }
-  }, [formik.values.region, loadAreas, formik.setFieldValue])
+  }, [formik.values.region, loadAreas, formik])
 
   // Handle area change to fetch clusters
   useEffect(() => {
-    if (formik.values.area) {
+    if (formik.values.area && formik.values.area !== areaFetchRef.current) {
       setClusters([])
       setLimit(prev => ({ ...prev, cluster: 10 }))
       setHasMore(prev => ({ ...prev, cluster: true }))
+      areaFetchRef.current = formik.values.area
       loadClusters()
-    } else {
+    } else if (!formik.values.area && areaFetchRef.current !== null) {
       formik.setFieldValue('cluster', '')
       formik.setFieldValue('branchName', '')
       formik.setFieldValue('branchCode', '')
@@ -745,17 +795,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      areaFetchRef.current = null
     }
-  }, [formik.values.area, loadClusters, formik.setFieldValue])
+  }, [formik.values.area, loadClusters, formik])
 
   // Handle cluster change to fetch branches
   useEffect(() => {
-    if (formik.values.cluster) {
+    if (formik.values.cluster && formik.values.cluster !== clusterFetchRef.current) {
       setBranches([])
       setLimit(prev => ({ ...prev, branch: 10 }))
       setHasMore(prev => ({ ...prev, branch: true }))
+      clusterFetchRef.current = formik.values.cluster
       loadBranches()
-    } else {
+    } else if (!formik.values.cluster && clusterFetchRef.current !== null) {
       formik.setFieldValue('branchName', '')
       formik.setFieldValue('branchCode', '')
       formik.setFieldValue('city', '')
@@ -775,17 +827,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      clusterFetchRef.current = null
     }
-  }, [formik.values.cluster, loadBranches, formik.setFieldValue])
+  }, [formik.values.cluster, loadBranches, formik])
 
   // Handle branchName change to fetch cities
   useEffect(() => {
-    if (formik.values.branchName) {
+    if (formik.values.branchName && formik.values.branchName !== branchNameFetchRef.current) {
       setCities([])
       setLimit(prev => ({ ...prev, city: 10 }))
       setHasMore(prev => ({ ...prev, city: true }))
+      branchNameFetchRef.current = formik.values.branchName
       loadCities()
-    } else {
+    } else if (!formik.values.branchName && branchNameFetchRef.current !== null) {
       formik.setFieldValue('city', '')
       formik.setFieldValue('state', '')
       setCities([])
@@ -800,23 +854,26 @@ const ManualRequestGeneratedForm: React.FC = () => {
         city: true,
         state: true
       }))
+      branchNameFetchRef.current = null
     }
-  }, [formik.values.branchName, loadCities, formik.setFieldValue])
+  }, [formik.values.branchName, loadCities, formik])
 
   // Handle city change to fetch states
   useEffect(() => {
-    if (formik.values.city) {
+    if (formik.values.city && formik.values.city !== cityFetchRef.current) {
       setStates([])
       setLimit(prev => ({ ...prev, state: 10 }))
       setHasMore(prev => ({ ...prev, state: true }))
+      cityFetchRef.current = formik.values.city
       loadStates()
-    } else {
+    } else if (!formik.values.city && cityFetchRef.current !== null) {
       formik.setFieldValue('state', '')
       setStates([])
       setLimit(prev => ({ ...prev, state: 10 }))
       setHasMore(prev => ({ ...prev, state: true }))
+      cityFetchRef.current = null
     }
-  }, [formik.values.city, loadStates, formik.setFieldValue])
+  }, [formik.values.city, loadStates, formik])
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue)
@@ -889,6 +946,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
                   helperText={formik.touched.openings && formik.errors.openings}
                   fullWidth
                   variant='outlined'
+                  inputProps={{ min: 1 }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -968,6 +1026,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
                     helperText={formik.touched.experienceMin && formik.errors.experienceMin}
                     fullWidth
                     variant='outlined'
+                    inputProps={{ min: 0 }}
                   />
                   <TextField
                     label='Experience (Max)'
@@ -980,6 +1039,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
                     helperText={formik.touched.experienceMax && formik.errors.experienceMax}
                     fullWidth
                     variant='outlined'
+                    inputProps={{ min: 0 }}
                   />
                 </Box>
               </Grid>

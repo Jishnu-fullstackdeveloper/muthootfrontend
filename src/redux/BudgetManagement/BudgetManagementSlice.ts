@@ -84,7 +84,7 @@ export const approveRejectBudgetIncreaseRequest = createAsyncThunk<
   async ({ approvalRequestId, status, approverId, approverDesignation }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.put(
-        `${API_ENDPOINTS.budgetIncreaseRequestApproveRejectUrl}/${approvalRequestId}`,
+        `${API_ENDPOINTS.budgetIncreaseRequestApproveRejectUrl}${approvalRequestId}`,
         { status, approverId, approverDesignation }
       )
 

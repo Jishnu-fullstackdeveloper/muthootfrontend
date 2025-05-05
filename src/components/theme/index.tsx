@@ -122,6 +122,7 @@ const ThemeProvider = (props: Props) => {
         }
       }
     },
+
     // Removed MuiTypography override to allow typographySettings to take effect
     // MuiTypography: {
     //   styleOverrides: {
@@ -139,6 +140,7 @@ const ThemeProvider = (props: Props) => {
         }
       }
     },
+
     // Override MuiTableHead to customize TableHead styles
     MuiTableHead: {
       styleOverrides: {
@@ -154,6 +156,7 @@ const ThemeProvider = (props: Props) => {
         }
       }
     },
+
     // Override MuiTableBody to customize TableBody styles
     MuiTableBody: {
       styleOverrides: {
@@ -180,6 +183,7 @@ const ThemeProvider = (props: Props) => {
         }
       }
     },
+
     // Override MuiBox to set a default font size for all Box components
     MuiBox: {
       styleOverrides: {
@@ -189,6 +193,7 @@ const ThemeProvider = (props: Props) => {
         }
       }
     },
+
     // Optional: Override MuiGrid to ensure it doesn't interfere with nested Typography
     MuiGrid: {
       styleOverrides: {

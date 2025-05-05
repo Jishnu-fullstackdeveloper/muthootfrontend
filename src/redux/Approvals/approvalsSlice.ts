@@ -8,8 +8,6 @@ export const fetchUser = createAsyncThunk('user/fetchUser', async (id: string, {
   try {
     const response = await AxiosLib.get(`/users/${id}`)
 
-    console.log('fetchUser API response:', response.data) // Debug log (remove after testing)
-
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to fetch user')
     }
@@ -89,16 +87,8 @@ export const approvalsSlice = createSlice({
     }
   },
   extraReducers: builder => {
-    handleAsyncThunkStates(builder, fetchUser, 'fetchUser', {})
-    handleAsyncThunkStates(builder, fetchApprovals, 'fetchApprovals', {
-      fulfilled: (state, action) => {
-        state.fetchApprovalsData = action.payload.data
-        state.fetchApprovalsTotalCount = action.payload.totalCount
-        state.fetchApprovalsSuccess = true
-        state.fetchApprovalsFailure = false
-        state.fetchApprovalsFailureMessage = ''
-      }
-    })
+    handleAsyncThunkStates(builder, fetchUser, 'fetchUser')
+    handleAsyncThunkStates(builder, fetchApprovals, 'fetchApprovals')
   }
 })
 

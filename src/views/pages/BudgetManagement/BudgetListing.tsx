@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 // React Imports
@@ -36,12 +37,14 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined' // starting date
 import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined' // closing date
 
-import type { RootState } from '@/redux/store'
+import { getUserId } from '@/utils/functions'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import { fetchUser } from '@/redux/Approvals/approvalsSlice'
 import {
   fetchBudgetIncreaseRequestList,
   approveRejectBudgetIncreaseRequest
 } from '@/redux/BudgetManagement/BudgetManagementSlice'
-import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import type { RootState } from '@/redux/store'
 
 // Components and Utils
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -74,6 +77,11 @@ const BudgetListing = () => {
     fetchBudgetIncreaseRequestListData,
     fetchBudgetIncreaseRequestListTotal
   } = useAppSelector((state: RootState) => state.budgetManagementReducer) as any
+
+  const { fetchUserData } = useAppSelector((state: RootState) => state.approvalsReducer) as any
+
+  const userId = getUserId()
+  const approverDesignation = fetchUserData?.designation || ''
 
   // Filter Area Options
   const filterAreaOptions = {
@@ -123,6 +131,8 @@ const BudgetListing = () => {
     debounce?: number
   } & Omit<TextFieldProps, 'onChange'>) => {
     const [value, setValue] = useState(initialValue)
+    const inputRef = useRef<HTMLInputElement>(null)
+    const [isFocused, setIsFocused] = useState(false)
 
     useEffect(() => {
       setValue(initialValue)
@@ -136,16 +146,24 @@ const BudgetListing = () => {
       return () => clearTimeout(timeout)
     }, [value, debounce, onChange])
 
-    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
+    return (
+      <CustomTextField
+        variant='filled'
+        {...props}
+        inputRef={inputRef}
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+      />
+    )
   }
 
   // Lazy Loading State
   const [allBudgetData, setAllBudgetData] = useState<any[]>([])
   const [page, setPage] = useState(1)
-  const limit = 100 // Fixed limit for lazy loading batches
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
-  const observerRef = useRef<IntersectionObserver | null>(null)
+  const limit = 10 // Fixed limit set to 10
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
 
   // Handle Approve/Reject
   const handleApprove = (id: string, approvalRequestId: string) => {
@@ -153,13 +171,14 @@ const BudgetListing = () => {
       approveRejectBudgetIncreaseRequest({
         approvalRequestId,
         status: 'APPROVED',
-        approverId: 'some-approver-id', // Replace with dynamic value
-        approverDesignation: 'some-designation' // Replace with dynamic value
+        approverId: userId,
+        approverDesignation: approverDesignation.toUpperCase()
       })
     ).then(() => {
       // Reset data and reload
       setAllBudgetData([])
       setPage(1)
+      setHasMore(true)
       fetchData(1, true)
     })
   }
@@ -169,13 +188,14 @@ const BudgetListing = () => {
       approveRejectBudgetIncreaseRequest({
         approvalRequestId,
         status: 'REJECTED',
-        approverId: 'some-approver-id', // Replace with dynamic value
-        approverDesignation: 'some-designation' // Replace with dynamic value
+        approverId: userId,
+        approverDesignation: approverDesignation.toUpperCase()
       })
     ).then(() => {
       // Reset data and reload
       setAllBudgetData([])
       setPage(1)
+      setHasMore(true)
       fetchData(1, true)
     })
   }
@@ -183,6 +203,8 @@ const BudgetListing = () => {
   // Fetch data function
   const fetchData = useCallback(
     (pageNum: number, reset: boolean = false) => {
+      if (!hasMore && !reset) return
+
       dispatch(
         fetchBudgetIncreaseRequestList({
           page: pageNum,
@@ -190,21 +212,30 @@ const BudgetListing = () => {
           search,
           status: null // Add status filter if needed
         })
-      )
+      ).then((action: any) => {
+        if (action.payload?.data) {
+          const newData = action.payload.data
+
+          if (newData.length < limit) {
+            setHasMore(false)
+          }
+        }
+      })
 
       if (reset) {
         setAllBudgetData([])
       }
     },
-    [dispatch, limit, search]
+    [dispatch, limit, search, hasMore]
   )
 
   // Initial load and search change effect
   useEffect(() => {
     setIsInitialLoad(true)
     setPage(1)
+    setHasMore(true)
     fetchData(1, true)
-  }, [search, viewMode, fetchData])
+  }, [search, viewMode])
 
   // Handle new data received
   useEffect(() => {
@@ -225,47 +256,37 @@ const BudgetListing = () => {
     }
   }, [fetchBudgetIncreaseRequestListData, fetchBudgetIncreaseRequestListLoading, isInitialLoad])
 
-  // IntersectionObserver for lazy loading
+  // Scroll-based lazy loading
   useEffect(() => {
-    if (!loadMoreRef.current || viewMode !== 'grid') return
+    if (viewMode !== 'grid' || !hasMore) return
 
-    const observer = new IntersectionObserver(
-      entries => {
-        const firstEntry = entries[0]
+    const handleScroll = () => {
+      const scrollPosition = window.innerHeight + document.documentElement.scrollTop
+      const documentHeight = document.documentElement.offsetHeight
+      const threshold = 100 // pixels from bottom
 
-        if (
-          firstEntry.isIntersecting &&
-          !fetchBudgetIncreaseRequestListLoading &&
-          allBudgetData.length < fetchBudgetIncreaseRequestListTotal
-        ) {
-          const nextPage = page + 1
+      if (scrollPosition >= documentHeight - threshold && !fetchBudgetIncreaseRequestListLoading && hasMore) {
+        const nextPage = page + 1
 
-          setPage(nextPage)
-          fetchData(nextPage)
-        }
-      },
-      { threshold: 0.1, rootMargin: '100px' }
-    )
-
-    observer.observe(loadMoreRef.current)
-    observerRef.current = observer
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect()
+        setPage(nextPage)
+        fetchData(nextPage)
       }
     }
-  }, [
-    fetchBudgetIncreaseRequestListLoading,
-    allBudgetData.length,
-    fetchBudgetIncreaseRequestListTotal,
-    page,
-    fetchData,
-    viewMode
-  ])
+
+    window.addEventListener('scroll', handleScroll)
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [fetchBudgetIncreaseRequestListLoading, hasMore, page, fetchData, viewMode])
 
   // Fallback Data
   const budgetData = allBudgetData.length > 0 ? allBudgetData : fetchBudgetIncreaseRequestListData?.data || []
+
+  // Fetch user data
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchUser(userId as string))
+    }
+  }, [userId, dispatch])
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative' }}>
@@ -315,17 +336,17 @@ const BudgetListing = () => {
               alignItems: 'center'
             }}
           >
-            <Typography variant='body2' color='text.secondary'>
+            {/* <Typography variant='body2' color='text.secondary'>
               Last Bot Update on:{' '}
               <Box component='span' sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                 January 6, 2025
               </Box>
-            </Typography>
-            <Tooltip title='Click here for help'>
+            </Typography> */}
+            {/* <Tooltip title='Click here for help'>
               <IconButton size='small'>
                 <HelpOutlineIcon fontSize='small' />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Box>
         </Box>
         <Box
@@ -367,6 +388,14 @@ const BudgetListing = () => {
             />
           </Box>
           <Box sx={{ display: 'flex', gap: 4, alignItems: 'center', mt: { xs: 4, md: 0 } }}>
+            <DynamicButton
+              label='Department'
+              variant='contained'
+              icon={<i className='tabler-building' />}
+              position='start'
+              onClick={() => router.push(`/budget-management/view/department`)}
+              children='Department'
+            />
             <DynamicButton
               label='New Budget Request'
               variant='contained'
@@ -497,13 +526,13 @@ const BudgetListing = () => {
                                   <CardMembershipOutlinedIcon fontSize='small' />: {budget.designation}
                                 </Typography>
                               </Tooltip>
-                              <Tooltip title='Business Role'>
+                              <Tooltip title='Hiring Manager'>
                                 <Typography
                                   variant='body2'
                                   fontSize='10px'
                                   sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                                 >
-                                  <EngineeringOutlinedIcon fontSize='small' />: {budget.businessRole}
+                                  <EngineeringOutlinedIcon fontSize='small' />: {budget.hiringManager}
                                 </Typography>
                               </Tooltip>
                               <Tooltip title='Openings'>
@@ -624,11 +653,6 @@ const BudgetListing = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
                   <CircularProgress size={24} />
                 </Box>
-              )}
-
-              {/* Load more trigger */}
-              {viewMode === 'grid' && allBudgetData.length < fetchBudgetIncreaseRequestListTotal && (
-                <Box ref={loadMoreRef} sx={{ height: '20px', my: 2 }} />
               )}
             </Box>
           )}

@@ -30,7 +30,9 @@ import {
   fetchBudgetIncreaseRequestById,
   approveRejectBudgetIncreaseRequest
 } from '@/redux/BudgetManagement/BudgetManagementSlice'
+import { fetchUser } from '@/redux/Approvals/approvalsSlice'
 import type { RootState } from '@/redux/store'
+import { getUserId } from '@/utils/functions'
 
 // MUI Imports
 
@@ -63,6 +65,11 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
     fetchBudgetIncreaseRequestByIdFailureMessage
   } = useAppSelector((state: RootState) => state.budgetManagementReducer) as any
 
+  const { fetchUserData } = useAppSelector((state: RootState) => state.approvalsReducer) as any
+
+  const userId = getUserId()
+  const approverDesignation = fetchUserData?.designation || ''
+
   // Check if the last segment of the path is "department"
   const isDepartmentRoute = pathname.split('/').pop() === 'department'
 
@@ -80,6 +87,13 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
     return fetchBudgetIncreaseRequestByIdData?.data || BudgetData
   }, [fetchBudgetIncreaseRequestByIdData])
 
+  // Fetch user data
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchUser(userId as string))
+    }
+  }, [userId, dispatch])
+
   // Handle Approve
   const handleApprove = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -90,8 +104,8 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
         approveRejectBudgetIncreaseRequest({
           approvalRequestId: budget.approvalRequestId,
           status: 'APPROVED',
-          approverId: 'some-approver-id', // Replace with dynamic value (e.g., from token)
-          approverDesignation: 'some-designation' // Replace with dynamic value
+          approverId: userId,
+          approverDesignation: approverDesignation.toUpperCase()
         })
       ).unwrap()
       dispatch(fetchBudgetIncreaseRequestById({ id })) // Refetch data after approval
@@ -110,8 +124,8 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
         approveRejectBudgetIncreaseRequest({
           approvalRequestId: budget.approvalRequestId,
           status: 'REJECTED',
-          approverId: 'some-approver-id', // Replace with dynamic value
-          approverDesignation: 'some-designation' // Replace with dynamic value
+          approverId: userId,
+          approverDesignation: approverDesignation.toUpperCase()
         })
       ).unwrap()
       dispatch(fetchBudgetIncreaseRequestById({ id })) // Refetch data after rejection

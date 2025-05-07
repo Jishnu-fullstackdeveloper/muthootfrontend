@@ -19,5 +19,7 @@ export const API_ENDPOINTS = {
   approvalCategoriesUrl: '/approval-service/approval-categories',
   territoryUrl: '/territory',
   clusterUrl: '/cluster',
-  cityUrl: '/city'
+  cityUrl: '/city',
+  departmentBudgetUrl: '/department-budget',
+  departmentBudgetVacancyUrl: '/department-budget/vacancy'
 }

@@ -104,7 +104,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'BRANCH CODE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.branchCode}
+            {row.original?.branchCode}
           </Typography>
         )
       }),
@@ -114,7 +114,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'TERRITORY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area.regionId}
+            {row.original.area?.regionId}
           </Typography>
         )
       }),
@@ -124,7 +124,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'ZONAL',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area.name}
+            {row.original.area?.name}
           </Typography>
         )
       }),
@@ -134,7 +134,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'REGION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area.regionId}
+            {row.original.area?.regionId}
           </Typography>
         )
       }),
@@ -144,7 +144,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'AREA',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area.name}
+            {row.original.area?.name}
           </Typography>
         )
       }),
@@ -164,7 +164,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'CITY CLASSIFICATION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.district.name}
+            {row.original.district?.name}
           </Typography>
         )
       }),
@@ -174,7 +174,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'STATE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.state.name}
+            {row.original.state?.name}
           </Typography>
         )
       }),

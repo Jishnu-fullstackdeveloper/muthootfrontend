@@ -250,19 +250,19 @@ const BranchListing = () => {
                       }}
                     >
                       <Typography>
-                        <strong>Branch Code:</strong> {branch.branchCode}
+                        <strong>Branch Code:</strong> {branch?.branchCode}
                       </Typography>
                       <Typography>
-                        <strong>Territory:</strong> {branch.area.regionId}
+                        <strong>Territory:</strong> {branch.area?.regionId}
                       </Typography>
                       <Typography>
-                        <strong>Zonal:</strong> {branch.area.name}
+                        <strong>Zonal:</strong> {branch.area?.name}
                       </Typography>
                       <Typography>
-                        <strong>Region:</strong> {branch.area.regionId}
+                        <strong>Region:</strong> {branch.area?.regionId}
                       </Typography>
                       <Typography>
-                        <strong>Area:</strong> {branch.area.name}
+                        <strong>Area:</strong> {branch.area?.name}
                       </Typography>
                       <Typography>
                         <strong>Cluster:</strong> {branch.bucket?.name}

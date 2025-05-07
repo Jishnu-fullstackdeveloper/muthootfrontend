@@ -26,8 +26,41 @@ import type {
   ApprovalCategoryResponse,
   TerritoryResponse,
   ClusterResponse,
-  CityResponse
+  CityResponse,
+  DepartmentBudgetResponse,
+  DepartmentBudgetVacancyResponse
 } from '@/types/budget'
+
+// Type for the new POST /department-budget request body
+export interface DepartmentBudgetRequest {
+  jobTitle: string
+  grade: string
+  designation: string
+  jobRole: string
+  openings: number
+  experienceMin: number
+  experienceMax: number
+  campusOrLateral: 'Campus' | 'Lateral'
+  employeeCategory: string
+  employeeType: 'Fulltime' | 'Parttime'
+  hiringManager: string
+  startingDate: string
+  closingDate: string
+  company: 'Muthoot Fincorp Ltd.' | 'Muthoot Papachan'
+  businessUnit: string
+  department: string
+  territory: string
+  zone: string
+  region: string
+  area: string
+  cluster: string
+  branch: string
+  branchCode: string
+  city: string
+  state: string
+  origin: 'MANUAL'
+  status: 'Open'
+}
 
 // Existing thunks (unchanged)
 export const fetchBudgetDepartment = createAsyncThunk<
@@ -282,7 +315,6 @@ export const fetchArea = createAsyncThunk<
   }
 })
 
-// New thunks for Territory, Cluster, and City
 export const fetchTerritory = createAsyncThunk<TerritoryResponse, { page: number; limit: number; search?: string }>(
   'budgetManagement/fetchTerritory',
   async ({ page, limit, search }, { rejectWithValue }) => {
@@ -399,6 +431,37 @@ export const fetchApprovalCategories = createAsyncThunk<
 
     if (search) params.search = search
     const response = await AxiosLib.get(`${API_ENDPOINTS.approvalCategoriesUrl}`, { params })
+
+    return response.data
+  } catch (error: any) {
+    return rejectWithValue(error.response.data)
+  }
+})
+
+// New thunk for POST /department-budget
+export const createDepartmentBudget = createAsyncThunk<DepartmentBudgetResponse, DepartmentBudgetRequest>(
+  'budgetManagement/createDepartmentBudget',
+  async (requestData, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.post(API_ENDPOINTS.departmentBudgetUrl, requestData)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// New thunk for GET /department-budget/vacancy
+export const fetchDepartmentBudgetVacancy = createAsyncThunk<
+  DepartmentBudgetVacancyResponse,
+  { page: number; limit: number; search?: string }
+>('budgetManagement/fetchDepartmentBudgetVacancy', async ({ page, limit, search }, { rejectWithValue }) => {
+  try {
+    const params: { page: number; limit: number; search?: string } = { page, limit }
+
+    if (search) params.search = search
+    const response = await AxiosLib.get(API_ENDPOINTS.departmentBudgetVacancyUrl, { params })
 
     return response.data
   } catch (error: any) {
@@ -532,7 +595,18 @@ export const budgetManagementSlice = createSlice({
     fetchApprovalCategoriesData: null,
     fetchApprovalCategoriesTotal: 0,
     fetchApprovalCategoriesFailure: false,
-    fetchApprovalCategoriesFailureMessage: ''
+    fetchApprovalCategoriesFailureMessage: '',
+    createDepartmentBudgetLoading: false,
+    createDepartmentBudgetSuccess: false,
+    createDepartmentBudgetData: null,
+    createDepartmentBudgetFailure: false,
+    createDepartmentBudgetFailureMessage: '',
+    fetchDepartmentBudgetVacancyLoading: false,
+    fetchDepartmentBudgetVacancySuccess: false,
+    fetchDepartmentBudgetVacancyData: null,
+    fetchDepartmentBudgetVacancyTotal: 0,
+    fetchDepartmentBudgetVacancyFailure: false,
+    fetchDepartmentBudgetVacancyFailureMessage: ''
   } as BudgetManagementState,
   reducers: {
     // Define any additional reducers if needed
@@ -559,6 +633,8 @@ export const budgetManagementSlice = createSlice({
     handleAsyncThunkStates(builder, fetchCity, 'fetchCity')
     handleAsyncThunkStates(builder, fetchState, 'fetchState')
     handleAsyncThunkStates(builder, fetchApprovalCategories, 'fetchApprovalCategories')
+    handleAsyncThunkStates(builder, createDepartmentBudget, 'createDepartmentBudget')
+    handleAsyncThunkStates(builder, fetchDepartmentBudgetVacancy, 'fetchDepartmentBudgetVacancy')
   }
 })
 

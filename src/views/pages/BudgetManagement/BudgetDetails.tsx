@@ -20,6 +20,7 @@ const BudgetDetails = () => {
     <>
       {mode === 'add' && <NewBudgetRequest mode={mode} id={id} />}
       {mode === 'view' && <ViewBudget mode={mode} id={id} jobTitle={jobTitle} />}
+      {mode === 'department' && <ViewBudget mode={mode} id={id} jobTitle={jobTitle} />}
     </>
   )
 }

@@ -47,24 +47,19 @@ const EmployeeTable = () => {
     const mappedData = employees.map(employee => ({
       id: employee.id,
       employeeCode: employee.employeeCode,
-
-      // title: employee.title || '-',
-      // firstName: employee.firstName,
-      // middleName: employee.middleName || '-',
-      // lastName: employee.lastName,
       fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName}`, // Combine firstName, middleName, lastName
       employeeType: employee.employeeDetails.employmentType,
       status: employee.employeeDetails.employmentStatus,
       company: employee.companyStructure.company,
       businessUnit: employee.businessUnit.name,
       department: employee.department.name,
-      territory: '-', // Not in API response
-      zone: '-', // Not in API response
-      region: '-', // Not in API response
-      //area: employee.designation.type || '-', // Using designation.type as a proxy
-      cluster: '-', // Not in API response
-      branch: employee.companyStructure.branchCode || '-',
+      territory: employee.companyStructure.territory || '-',
+      zone: employee.companyStructure.zone || '-',
+      region: employee.companyStructure.region || '-',
+      cluster: employee.companyStructure.cluster || '-',
+      branch: employee.companyStructure.branch || '-',
       branchCode: employee.companyStructure.branchCode || '-',
+      area: employee.companyStructure.area || '-',
       cityClassification: employee.address.cityClassification,
       state: employee.address.state,
       dateOfJoining: employee.employeeDetails.dateOfJoining,
@@ -72,17 +67,62 @@ const EmployeeTable = () => {
       grade: employee.grade.name,
       band: employee.band.name,
       designation: employee.designation.name,
-      employeeCategory: '-', // Not in API response
-      employeeCategoryType: '-', // Not in API response
+      employeeCategory: employee.department.employeeCategoryTypeId ? 'Defined' : '-', // Assuming category exists if ID is present
+      employeeCategoryType: '-', // Not directly in API response
       l1ManagerCode: employee.managementHierarchy.l1ManagerCode,
-      l1Manager: '-', // Not in API response
+      l1Manager: employee.managementHierarchy.l1Manager || '-',
       l2ManagerCode: employee.managementHierarchy.l2ManagerCode,
-      l2Manager: '-', // Not in API response
+      l2Manager: employee.managementHierarchy.l2Manager || '-',
       hrManagerCode: employee.managementHierarchy.hrManagerCode,
-      hrManager: '-', // Not in API response
-      functionHead: '-', // Not in API response
-      practiceHead: '-', // Not in API response
-      jobRole: '-' // Not in API response
+      hrManager: employee.managementHierarchy.hrManager || '-',
+      functionHead: employee.managementHierarchy.functionHead || '-',
+      practiceHead: employee.managementHierarchy.practiceHead || '-',
+      jobRole: employee.jobRole.name || '-',
+      dateOfBirth: employee.personalDetails?.dateOfBirth || '-',
+      gender: employee.personalDetails?.gender || '-',
+      maritalStatus: employee.personalDetails?.maritalStatus || '-',
+      personalEmailAddress: employee.personalEmailAddress || '-',
+      officialEmailAddress: employee.officeEmailAddress || '-',
+      confirmationStatus: employee.employeeDetails?.confirmationStatus || '-',
+      residenceAddressLine1: employee.address?.residenceAddressLine1 || '-',
+      residenceState: employee.address?.residenceState || '-',
+      residenceCity: employee.address?.residenceCity || '-',
+      residenceCountry: employee.address?.residenceCountry || '-',
+      residencePostalCode: employee.address?.residencePostalCode || '-',
+      residenceLandline: employee.address?.residenceLandline || '-',
+      bloodGroup: employee.personalDetails?.bloodGroup || '-',
+      confirmationDate: employee.employeeDetails?.confirmationDate || '-',
+      emergencyContactName: employee.emergencyContact?.emergencyContactName || '-',
+      emergencyContactRelation: employee.emergencyContact?.emergencyContactRelationship || '-',
+      emergencyContactMobilePhone: employee.emergencyContact?.emergencyContactMobilePhone || '-',
+      pfAccountNumber: employee.payrollDetails?.pfAccountNo || '-',
+      panNumber: employee.payrollDetails?.panNo || '-',
+      bankName: employee.payrollDetails?.bankName || '-',
+      bankAccountNumber: employee.payrollDetails?.bankAccountNo || '-',
+      ifscCode: employee.payrollDetails?.ifscCode || '-',
+      uanNumber: employee.payrollDetails?.uanNumber || '-',
+      noticePeriod: employee.employeeDetails?.noticePeriod || '-',
+      mobileNumber: employee.mobileNumber || '-',
+      dateOfResignation: employee.resignationDetails?.dateOfResignation || '-',
+      finalApprovalLWD: employee.resignationDetails?.finalApprovalLWD || '-',
+      foodCardNumber: employee.payrollDetails?.foodCardNo || '-',
+      npsAccountNumber: employee.payrollDetails?.npsAccountNo || '-',
+      esiNo: employee.payrollDetails?.esiNo || '-',
+      isDisability: employee.personalDetails?.isDisability ? 'Yes' : 'No',
+      typeOfDisability: employee.personalDetails?.typeOfDisability || '-',
+      nameAsPerAadhar: employee.personalDetails?.nameAsPerAadhar || '-',
+      functionalManager: employee.managementHierarchy?.functionalManager || '-',
+      totalExperience: employee.experienceDetails?.totalExperience || '-',
+      currentCompanyExperience: employee.experienceDetails?.currentCompanyExperience || '-',
+      age: employee.experienceDetails?.ageYYMM || '-',
+      retirementDate: employee.experienceDetails?.retirementDate || '-',
+      pfApplicable: employee.payrollDetails?.pfApplicable ? 'Yes' : 'No',
+      pfGrossLimit: employee.payrollDetails?.pfGrossLimit || '-',
+      lwfApplicable: employee.payrollDetails?.lwfApplicable ? 'Yes' : 'No',
+      esiApplicable: employee.payrollDetails?.esiApplicable ? 'Yes' : 'No',
+      aadharNumber: employee.personalDetails?.aadharNumber || '-',
+      matrixManagerCode: employee.managementHierarchy?.matrixManagerCode || '-',
+      functionalManagerCode: employee.managementHierarchy?.functionalManagerCode || '-'
     }))
 
     return {
@@ -124,24 +164,6 @@ const EmployeeTable = () => {
         header: 'EMPLOYEE CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCode}</Typography>
       }),
-
-      // columnHelper.accessor('title', {
-      //   header: 'TITLE',
-      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.title}</Typography>
-      // }),
-      // columnHelper.accessor('firstName', {
-      //   header: 'FIRST NAME',
-      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.firstName}</Typography>
-      // }),
-      // columnHelper.accessor('middleName', {
-      //   header: 'MIDDLE NAME',
-      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.middleName || '-'}</Typography>
-      // }),
-      // columnHelper.accessor('lastName', {
-      //   header: 'LAST NAME',
-      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.lastName}</Typography>
-      // }),
-
       columnHelper.accessor('fullName', {
         header: 'FULL NAME',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.fullName}</Typography>
@@ -173,12 +195,10 @@ const EmployeeTable = () => {
         ),
         enableSorting: false
       }),
-
       columnHelper.accessor('status', {
         header: 'EMPLOYEE STATUS',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
       }),
-
       columnHelper.accessor('company', {
         header: 'COMPANY',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.company}</Typography>
@@ -203,11 +223,6 @@ const EmployeeTable = () => {
         header: 'REGION',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.region}</Typography>
       }),
-
-      // columnHelper.accessor('area', {
-      //   header: 'AREA',
-      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
-      // }),
       columnHelper.accessor('cluster', {
         header: 'CLUSTER',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.cluster}</Typography>
@@ -219,6 +234,10 @@ const EmployeeTable = () => {
       columnHelper.accessor('branchCode', {
         header: 'BRANCH CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.branchCode}</Typography>
+      }),
+      columnHelper.accessor('area', {
+        header: 'AREA',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
       }),
       columnHelper.accessor('cityClassification', {
         header: 'CITY CLASSIFICATION',
@@ -291,6 +310,186 @@ const EmployeeTable = () => {
       columnHelper.accessor('jobRole', {
         header: 'JOB ROLE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.jobRole}</Typography>
+      }),
+      columnHelper.accessor('dateOfBirth', {
+        header: 'DATE OF BIRTH',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfBirth}</Typography>
+      }),
+      columnHelper.accessor('gender', {
+        header: 'GENDER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.gender}</Typography>
+      }),
+      columnHelper.accessor('maritalStatus', {
+        header: 'MARITAL STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.maritalStatus}</Typography>
+      }),
+      columnHelper.accessor('personalEmailAddress', {
+        header: 'PERSONAL EMAIL ADDRESS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.personalEmailAddress}</Typography>
+      }),
+      columnHelper.accessor('officialEmailAddress', {
+        header: 'OFFICIAL EMAIL ADDRESS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.officialEmailAddress}</Typography>
+      }),
+      columnHelper.accessor('confirmationStatus', {
+        header: 'CONFIRMATION STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.confirmationStatus}</Typography>
+      }),
+      columnHelper.accessor('residenceAddressLine1', {
+        header: 'RESIDENCE ADDRESS LINE 1',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residenceAddressLine1}</Typography>
+      }),
+      columnHelper.accessor('residenceState', {
+        header: 'RESIDENCE STATE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residenceState}</Typography>
+      }),
+      columnHelper.accessor('residenceCity', {
+        header: 'RESIDENCE CITY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residenceCity}</Typography>
+      }),
+      columnHelper.accessor('residenceCountry', {
+        header: 'RESIDENCE COUNTRY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residenceCountry}</Typography>
+      }),
+      columnHelper.accessor('residencePostalCode', {
+        header: 'RESIDENCE POSTAL CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residencePostalCode}</Typography>
+      }),
+      columnHelper.accessor('residenceLandline', {
+        header: 'RESIDENCE LANDLINE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.residenceLandline}</Typography>
+      }),
+      columnHelper.accessor('bloodGroup', {
+        header: 'BLOOD GROUP',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.bloodGroup}</Typography>
+      }),
+      columnHelper.accessor('confirmationDate', {
+        header: 'CONFIRMATION DATE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.confirmationDate}</Typography>
+      }),
+      columnHelper.accessor('emergencyContactName', {
+        header: 'EMERGENCY CONTACT NAME',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.emergencyContactName}</Typography>
+      }),
+      columnHelper.accessor('emergencyContactRelation', {
+        header: 'EMERGENCY CONTACT RELATION',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.emergencyContactRelation}</Typography>
+      }),
+      columnHelper.accessor('emergencyContactMobilePhone', {
+        header: 'EMERGENCY CONTACT MOBILE PHONE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.emergencyContactMobilePhone}</Typography>
+      }),
+      columnHelper.accessor('pfAccountNumber', {
+        header: 'PF ACCOUNT NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.pfAccountNumber}</Typography>
+      }),
+      columnHelper.accessor('panNumber', {
+        header: 'PAN NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.panNumber}</Typography>
+      }),
+      columnHelper.accessor('bankName', {
+        header: 'BANK NAME',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.bankName}</Typography>
+      }),
+      columnHelper.accessor('bankAccountNumber', {
+        header: 'BANK ACCOUNT NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.bankAccountNumber}</Typography>
+      }),
+      columnHelper.accessor('ifscCode', {
+        header: 'IFSC CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.ifscCode}</Typography>
+      }),
+      columnHelper.accessor('uanNumber', {
+        header: 'UAN NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.uanNumber}</Typography>
+      }),
+      columnHelper.accessor('noticePeriod', {
+        header: 'NOTICE PERIOD',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.noticePeriod}</Typography>
+      }),
+      columnHelper.accessor('mobileNumber', {
+        header: 'MOBILE NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.mobileNumber}</Typography>
+      }),
+      columnHelper.accessor('dateOfResignation', {
+        header: 'DATE OF RESIGNATION',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation}</Typography>
+      }),
+      columnHelper.accessor('finalApprovalLWD', {
+        header: 'FINAL APPROVAL LWD',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.finalApprovalLWD}</Typography>
+      }),
+      columnHelper.accessor('foodCardNumber', {
+        header: 'FOOD CARD NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.foodCardNumber}</Typography>
+      }),
+      columnHelper.accessor('npsAccountNumber', {
+        header: 'NPS ACCOUNT NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.npsAccountNumber}</Typography>
+      }),
+      columnHelper.accessor('esiNo', {
+        header: 'ESI NO',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.esiNo}</Typography>
+      }),
+      columnHelper.accessor('isDisability', {
+        header: 'IS DISABILITY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.isDisability}</Typography>
+      }),
+      columnHelper.accessor('typeOfDisability', {
+        header: 'TYPE OF DISABILITY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.typeOfDisability}</Typography>
+      }),
+      columnHelper.accessor('nameAsPerAadhar', {
+        header: 'NAME AS PER AADHAR',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.nameAsPerAadhar}</Typography>
+      }),
+      columnHelper.accessor('functionalManager', {
+        header: 'FUNCTIONAL MANAGER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.functionalManager}</Typography>
+      }),
+      columnHelper.accessor('totalExperience', {
+        header: 'TOTAL EXPERIENCE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.totalExperience}</Typography>
+      }),
+      columnHelper.accessor('currentCompanyExperience', {
+        header: 'CURRENT COMPANY EXPERIENCE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.currentCompanyExperience}</Typography>
+      }),
+      columnHelper.accessor('age', {
+        header: 'AGE (YY:MM)',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.age}</Typography>
+      }),
+      columnHelper.accessor('retirementDate', {
+        header: 'RETIREMENT DATE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.retirementDate}</Typography>
+      }),
+      columnHelper.accessor('pfApplicable', {
+        header: 'PF APPLICABLE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.pfApplicable}</Typography>
+      }),
+      columnHelper.accessor('pfGrossLimit', {
+        header: 'PF GROSS LIMIT',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.pfGrossLimit}</Typography>
+      }),
+      columnHelper.accessor('lwfApplicable', {
+        header: 'LWF APPLICABLE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.lwfApplicable}</Typography>
+      }),
+      columnHelper.accessor('esiApplicable', {
+        header: 'ESI APPLICABLE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.esiApplicable}</Typography>
+      }),
+      columnHelper.accessor('aadharNumber', {
+        header: 'AADHAR NUMBER',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.aadharNumber}</Typography>
+      }),
+      columnHelper.accessor('matrixManagerCode', {
+        header: 'MATRIX MANAGER CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.matrixManagerCode}</Typography>
+      }),
+      columnHelper.accessor('functionalManagerCode', {
+        header: 'FUNCTIONAL MANAGER CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.functionalManagerCode}</Typography>
       })
     ],
     [columnHelper, router]

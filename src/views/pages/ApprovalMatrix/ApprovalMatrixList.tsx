@@ -3,14 +3,16 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, IconButton, Button, Card, TextField, InputAdornment } from '@mui/material'
+import { Box, Typography, IconButton, Button, Card, TextField, InputAdornment, Tooltip } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
-import type { ColumnDef } from '@tanstack/react-table'
-
+//import VisibilityIcon from '@mui/icons-material/Visibility'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+
+import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchApprovalCategories, fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
@@ -21,6 +23,7 @@ import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const columnHelper = createColumnHelper<any>()
 
   const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
 
@@ -29,6 +32,9 @@ const ApprovalMatrixList = () => {
     pageIndex: 0, // Changed to 0-based index for table compatibility
     pageSize: 5
   })
+
+  // Sorting state to control table sorting (initialize as empty to prevent default sorting)
+  const [sorting, setSorting] = useState<SortingState>([])
 
   // State for delete confirmation modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -131,7 +137,10 @@ const ApprovalMatrixList = () => {
     const startIndex = pagination.pageIndex * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
 
-    return groupedData.slice(startIndex, endIndex)
+    return {
+      data: groupedData.slice(startIndex, endIndex),
+      totalCount: groupedData.length
+    }
   }, [groupedData, pagination.pageIndex, pagination.pageSize])
 
   // Handle edit action
@@ -189,94 +198,107 @@ const ApprovalMatrixList = () => {
     setMatrixIdsToDelete([]) // Reset the IDs after action
   }
 
-  // Define columns for the table
-  const columns: ColumnDef<any>[] = [
-    {
-      id: 'approvalCategory',
-      header: 'Approval Category',
-      accessorKey: 'approvalCategories.name', // Access nested property
-      cell: info => info.getValue()
-    },
-    {
-      id: 'description',
-      header: 'Description',
-      accessorKey: 'approvalCategories.description', // Access nested property
-      cell: info => info.getValue()
-    },
-    {
-      id: 'numberOfLevels',
-      header: 'Number of Levels',
-      accessorKey: 'level',
-      cell: info => (info.getValue() === 0 ? 1 : info.getValue()) // Handle level 0 as 1
-    },
-    {
-      id: 'designation',
-      header: 'Designation',
-      accessorKey: 'designations',
-      cell: ({ row }) =>
-        Array.isArray(row.original.designations) && row.original.designations.length > 0 ? (
-          <ul style={{ margin: 0, paddingLeft: '20px' }}>
-            {row.original.designations.map((designation: string, index: number) => (
-              <li key={index}>
-                <Typography variant='body2'>{designation}</Typography>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Typography variant='body2'>No Designation</Typography>
-        )
-    },
-    {
-      id: 'grade',
-      header: 'Grade',
-      accessorKey: 'grades',
-      cell: ({ row }) =>
-        Array.isArray(row.original.grades) && row.original.grades.length > 0 ? (
-          <ul style={{ margin: 0, paddingLeft: '20px' }}>
-            {row.original.grades.map((grade: string, index: number) => (
-              <li key={index}>
-                <Typography variant='body2'>{grade}</Typography>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Typography variant='body2'>No Grade</Typography>
-        )
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <Box>
-          <IconButton
-            aria-label='edit'
-            sx={{ fontSize: 18 }}
-            onClick={e => {
-              e.stopPropagation()
-              handleEdit(row.original)
-            }}
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            aria-label='delete'
-            sx={{ fontSize: 18 }}
-            onClick={e => {
-              e.stopPropagation()
-              handleDelete(row.original)
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      )
-    }
-  ]
-
   // Handle view action
   // const handleView = (rowData: any) => {
   //   router.push(`/approval-matrix/view/${rowData.id}?id=${rowData.id}`)
   // }
+
+  // Define columns for the table
+  const columns = React.useMemo<ColumnDef<any, any>[]>(
+    () => [
+      columnHelper.accessor('approvalCategories.name', {
+        header: 'APPROVAL CATEGORY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.approvalCategories?.name}</Typography>
+      }),
+      columnHelper.accessor('approvalCategories.description', {
+        header: 'DESCRIPTION',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.approvalCategories?.description}</Typography>
+      }),
+      columnHelper.accessor('level', {
+        header: 'NUMBER OF LEVELS',
+        cell: ({ row }) => (
+          <Typography color='text.primary'>{row.original.level === 0 ? 1 : row.original?.level}</Typography>
+        )
+      }),
+      columnHelper.accessor('designations', {
+        header: 'DESIGNATION',
+        cell: ({ row }) =>
+          Array.isArray(row.original.designations) && row.original.designations.length > 0 ? (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+              {row.original.designations.map((designation: string, index: number) => (
+                <li key={index}>
+                  <Typography color='text.primary' variant='body2'>
+                    {designation}
+                  </Typography>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Typography color='text.primary' variant='body2'>
+              No Designation
+            </Typography>
+          )
+      }),
+      columnHelper.accessor('grades', {
+        header: 'GRADE',
+        cell: ({ row }) =>
+          Array.isArray(row.original.grades) && row.original.grades.length > 0 ? (
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+              {row.original.grades.map((grade: string, index: number) => (
+                <li key={index}>
+                  <Typography color='text.primary' variant='body2'>
+                    {grade}
+                  </Typography>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Typography color='text.primary' variant='body2'>
+              No Grade
+            </Typography>
+          )
+      }),
+      columnHelper.accessor('action', {
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            {/* <Tooltip title='View' placement='top'>
+              <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip> */}
+            <Tooltip title='Edit' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleEdit(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='edit'
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Delete' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleDelete(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='delete'
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+        enableSorting: false
+      })
+    ],
+    [columnHelper, router]
+  )
 
   // Pagination handlers for DynamicTable
   const handlePageChange = (newPage: number) => {
@@ -296,9 +318,6 @@ const ApprovalMatrixList = () => {
   const handlePageCountChange = (newPageCount: number) => {
     console.log('Page Count:', newPageCount)
   }
-
-  // Calculate the total number of grouped rows for pagination
-  const groupedTotalCount = groupedData.length
 
   return (
     <>
@@ -343,21 +362,20 @@ const ApprovalMatrixList = () => {
         </Card>
       </Box>
 
-      {status === 'loading' ? (
-        <Typography>Loading...</Typography>
-      ) : paginatedGroupedData.length === 0 && searchQuery.trim() !== '' ? (
-        <Typography variant='h6' align='center' sx={{ mt: 4, color: 'text.secondary' }}>
-          No data found
-        </Typography>
-      ) : (
+      {status === 'loading' && <Typography>Loading...</Typography>}
+      {status === 'failed' && <Typography color='error'>Error: Failed to load data</Typography>}
+      {status === 'succeeded' && (
         <DynamicTable
           columns={columns}
-          data={paginatedGroupedData} // Use paginated grouped data
+          data={paginatedGroupedData.data} // Use paginated grouped data
+          totalCount={paginatedGroupedData.totalCount} // Use total grouped count
           pagination={pagination} // Pass 0-based pagination directly
+          sorting={sorting} // Pass sorting state to control table sorting
+          onSortingChange={setSorting} // Handle sorting changes
+          initialState={{ sorting: [] }} // Ensure no default sorting
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onPageCountChange={handlePageCountChange} // Added for consistency
-          totalCount={groupedTotalCount} // Use total grouped count
           tableName='Approvals Listing'
         />
       )}

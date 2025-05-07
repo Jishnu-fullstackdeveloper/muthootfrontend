@@ -5,6 +5,8 @@ import { API_ENDPOINTS } from '../ApiUrls/employeeApiUrls'
 
 // Define the employee data type based on the API response
 interface Employee {
+  jobRole: any
+  resignationDetails: any
   id: string
   employeeCode: string
   title: string | null
@@ -21,6 +23,7 @@ interface Employee {
   bandId: string
   designationId: string
   employeeDetails: {
+    noticePeriod: string
     band: string
     grade: string
     groupDOJ: string
@@ -32,12 +35,24 @@ interface Employee {
     confirmationStatus: string
   }
   companyStructure: {
+    territory: string
+    zone: string
+    region: string
+    cluster: string
+    branch: string
+    area: string
     company: string
     branchCode: string | null
     department: string
     businessUnitFunction: string
   }
   managementHierarchy: {
+    l1Manager: string
+    l2Manager: string
+    hrManager: string
+    functionHead: string
+    practiceHead: string
+    functionalManager: string
     hrManagerCode: string
     l1ManagerCode: string
     l2ManagerCode: string
@@ -45,6 +60,8 @@ interface Employee {
     functionalManagerCode: string
   }
   payrollDetails: {
+    foodCardNo: string
+    npsAccountNo: string
     esiNo: string
     panNo: string
     bankName: string
@@ -58,6 +75,7 @@ interface Employee {
     lwfApplicable: boolean
   }
   address: {
+    residenceState: string
     state: string
     permanentCity: string
     residenceCity: string
@@ -91,6 +109,10 @@ interface Employee {
     currentCompanyExperience: string
   }
   personalDetails: {
+    isDisability: any
+    typeOfDisability: string
+    nameAsPerAadhar: string
+    aadharNumber: string
     gender: string
     religion: string
     birthPlace: string
@@ -107,7 +129,11 @@ interface Employee {
   band: { id: string; name: string }
   grade: { id: string; name: string }
   designation: { id: string; name: string; departmentId: string }
-  department: { id: string; name: string }
+  department: {
+    employeeCategoryTypeId: any
+    id: string
+    name: string
+  }
 }
 
 // State interface

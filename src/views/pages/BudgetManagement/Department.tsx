@@ -99,22 +99,6 @@ const Department = () => {
         </Typography>
       )
     }),
-    columnHelper.accessor('createdAt', {
-      header: 'CREATED AT',
-      cell: ({ row }) => (
-        <Typography color='text.primary' sx={{ fontWeight: 'medium' }}>
-          {new Date(row.original.createdAt).toLocaleDateString()}
-        </Typography>
-      )
-    }),
-    columnHelper.accessor('updatedAt', {
-      header: 'UPDATED AT',
-      cell: ({ row }) => (
-        <Typography color='text.primary' sx={{ fontWeight: 'medium' }}>
-          {new Date(row.original.updatedAt).toLocaleDateString()}
-        </Typography>
-      )
-    }),
     columnHelper.accessor('id', {
       id: 'action',
       header: 'ACTION',
@@ -123,7 +107,7 @@ const Department = () => {
       },
       cell: ({ row }) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton onClick={() => router.push(`/budget-management/view/${row.original.id}`)}>
+          <IconButton onClick={() => router.push(`/budget-management/department/${row.original.id}`)}>
             <i className='tabler-eye text-textSecondary'></i>
           </IconButton>
         </Box>

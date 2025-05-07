@@ -49,12 +49,14 @@ export interface BudgetDepartment {
   id: string
   deletedBy: string | null
   name: string
+
   positionCategories: {
     designationName: string
     count: number
   }[]
   createdAt: string
   updatedAt: string
+  updatedBy: string
   deletedAt: string | null
   data: any
   totalCount: number
@@ -660,4 +662,51 @@ export interface CityResponse {
   totalCount: number
   page: number
   limit: number
+}
+
+export interface DepartmentBudgetResponse {
+  data: {
+    id: string
+    jobTitle: string
+    grade: string
+    designation: string
+    jobRole: string
+    openings: number
+    experienceMin: number
+    experienceMax: number
+    campusOrLateral: 'Campus' | 'Lateral'
+    employeeCategory: string
+    employeeType: 'Fulltime' | 'Parttime'
+    hiringManager: string
+    startingDate: string
+    closingDate: string
+    company: 'Muthoot Fincorp Ltd.' | 'Muthoot Papachan'
+    businessUnit: string
+    department: string
+    territory: string
+    zone: string
+    region: string
+    area: string
+    cluster: string
+    branch: string
+    branchCode: string
+    city: string
+    state: string
+    origin: 'MANUAL'
+    status: 'Open' | 'Closed' | 'Pending'
+    [key: string]: any // For additional fields
+  }
+}
+
+export interface DepartmentBudgetVacancyResponse {
+  data: {
+    id: string
+    jobTitle: string
+    grade: string
+    designation: string
+    jobRole: string
+    openings: number
+    [key: string]: any // For additional fields
+  }[]
+  total: number
 }

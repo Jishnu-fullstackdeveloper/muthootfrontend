@@ -388,14 +388,14 @@ const BudgetListing = () => {
             />
           </Box>
           <Box sx={{ display: 'flex', gap: 4, alignItems: 'center', mt: { xs: 4, md: 0 } }}>
-            <DynamicButton
+            {/* <DynamicButton
               label='Department'
               variant='contained'
               icon={<i className='tabler-building' />}
               position='start'
               onClick={() => router.push(`/budget-management/view/department`)}
               children='Department'
-            />
+            /> */}
             <DynamicButton
               label='New Budget Request'
               variant='contained'

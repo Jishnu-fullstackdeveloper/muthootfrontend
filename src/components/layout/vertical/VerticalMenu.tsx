@@ -69,6 +69,15 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       //   permission: 'candidateManagement'
       // },
 
+
+      {
+        path: '/hiring-management',
+        label: 'Hiring Management',
+        iconClass: 'tabler-apps',
+        
+      },
+    
+
       {
         path: '/jd-management',
         label: 'JD Management',

@@ -20,23 +20,55 @@ import type {
 // Thunk for fetching branch list
 export const getBranchList = createAsyncThunk<
   BranchListResponse,
-  { search: string; page: number; limit: number; branchStatus?: string }
->('branchManagement/getBranchList', async ({ search, page, limit, branchStatus }, { rejectWithValue }) => {
-  try {
-    const response = await AxiosLib.get(API_ENDPOINTS.getBranchListUrl, {
-      params: {
-        search,
-        page,
-        limit,
-        branchStatus // Add branchStatus to the params
-      }
-    })
-
-    return response.data
-  } catch (error: any) {
-    return rejectWithValue(error.response.data)
+  {
+    page: number
+    limit: number
+    search?: string
+    areaId?: string
+    districtId?: string
+    stateId?: string
+    clusterId?: string
+    cityId?: string
+    branchCode?: string
+    bucketNames?: string[]
   }
-})
+>(
+  'branchManagement/getBranchList',
+  async (
+    { page, limit, search, areaId, districtId, stateId, clusterId, cityId, branchCode, bucketNames },
+    { rejectWithValue }
+  ) => {
+    try {
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        areaId?: string
+        districtId?: string
+        stateId?: string
+        clusterId?: string
+        cityId?: string
+        branchCode?: string
+        bucketNames?: string[]
+      } = { page, limit }
+
+      if (search) params.search = search
+      if (areaId) params.areaId = areaId
+      if (districtId) params.districtId = districtId
+      if (stateId) params.stateId = stateId
+      if (clusterId) params.clusterId = clusterId
+      if (cityId) params.cityId = cityId
+      if (branchCode) params.branchCode = branchCode
+      if (bucketNames && bucketNames.length > 0) params.bucketNames = bucketNames
+
+      const response = await AxiosLib.get(API_ENDPOINTS.getBranchListUrl, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
 
 // Thunk for fetching branch details
 export const getBranchDetails = createAsyncThunk<BranchDetailsResponse, { id: string }>(

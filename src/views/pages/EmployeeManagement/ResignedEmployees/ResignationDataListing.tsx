@@ -4,7 +4,8 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 //import { useRouter } from 'next/navigation'
 
 import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
+
+//import SearchIcon from '@mui/icons-material/Search'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined'
@@ -23,25 +24,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
-
-type ViewMode = 'grid' | 'table'
-
-interface ResignedEmployee {
-  id: string
-  employeeCode: string
-  firstName: string
-  middleName?: string
-  lastName: string
-  designation: { name: string }
-  department: { name: string }
-  resignationDetails: {
-    dateOfResignation: string
-    lwd: string
-    noticePeriod: string
-    relievingDateAsPerNotice: string
-    notes?: string
-  }
-}
+import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
@@ -256,10 +239,18 @@ const ResignationDataListingPage = () => {
         </Box>
       )}
 
-      {error && !error.includes('No resigned employees found') && (
+      {/* {error && !error.includes('No resigned employees found') && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='error'>
             Error: {error}
+          </Typography>
+        </Box>
+      )} */}
+
+      {error && (
+        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+          <Typography variant='h6' color='secondary'>
+            {error.includes('No resigned employees found') ? 'No resigned employees found' : `Error: ${error}`}
           </Typography>
         </Box>
       )}

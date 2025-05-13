@@ -1,45 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
-
-interface ResignedEmployee {
-  id: string
-  employeeCode: string
-  firstName: string
-  middleName?: string
-  lastName: string
-  designation: { name: string }
-  department: { name: string }
-  resignationDetails: {
-    dateOfResignation: string
-    lwd: string
-    noticePeriod: string
-    relievingDateAsPerNotice: string
-    notes?: string
-  }
-}
-
-interface ResignedEmployeesState {
-  employees: ResignedEmployee[]
-  loading: boolean
-  error: string | null
-  totalCount: number
-}
-
-const initialState: ResignedEmployeesState = {
-  employees: [],
-  loading: false,
-  error: null,
-  totalCount: 0
-}
-
-interface FetchResignedEmployeesParams {
-  page: number
-  limit: number
-  isResigned: boolean
-  search?: string
-  resignationDateFrom?: string
-}
+import type { ResignedEmployeesState, FetchResignedEmployeesParams } from '@/types/resignationDataListing'
+import { API_ENDPOINTS } from '../ApiUrls/employeeApiUrls'
 
 // Async thunk to fetch resigned employees
 export const fetchResignedEmployees = createAsyncThunk(
@@ -49,7 +12,7 @@ export const fetchResignedEmployees = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await AxiosLib.get('/employee', {
+      const response = await AxiosLib.get(API_ENDPOINTS.EMPLOYEES, {
         params: {
           page,
           limit,
@@ -75,7 +38,12 @@ export const fetchResignedEmployees = createAsyncThunk(
 
 const resignedEmployeesSlice = createSlice({
   name: 'resignedEmployees',
-  initialState,
+  initialState: {
+    employees: [],
+    loading: false,
+    error: null,
+    totalCount: 0
+  } as ResignedEmployeesState,
   reducers: {},
   extraReducers: builder => {
     builder

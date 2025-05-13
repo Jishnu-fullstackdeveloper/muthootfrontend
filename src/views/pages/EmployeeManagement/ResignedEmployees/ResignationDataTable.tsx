@@ -8,27 +8,12 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 
+import type { ResignedEmployee } from '@/types/resignationDataListing'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTable from '@/components/Table/dynamicTable'
 import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
-
-interface ResignedEmployee {
-  id: string
-  employeeCode: string
-  firstName: string
-  middleName?: string
-  lastName: string
-  designation: { name: string }
-  department: { name: string }
-  resignationDetails: {
-    dateOfResignation: string
-    lwd: string
-    noticePeriod: string
-    relievingDateAsPerNotice: string
-    notes?: string
-  }
-}
 
 interface ResignedEmployeesTableViewProps {
   fromDate?: string
@@ -197,7 +182,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
           </Typography>
         </Box>
       )} */}
-      {error && (
+      {/* {error && (
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h6' color='error'>
             Error: {error}
@@ -210,7 +195,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
             No resigned employees found
           </Typography>
         </Box>
-      )}
+      )} */}
       <DynamicTable
         columns={columns}
         data={tableData.data}

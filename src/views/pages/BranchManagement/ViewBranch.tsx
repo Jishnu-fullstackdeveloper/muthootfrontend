@@ -271,9 +271,9 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             <Typography variant='body1'>
               <strong>State:</strong> {branchData.state?.name || 'N/A'}
             </Typography>
-            <Typography variant='body1'>
+            {/* <Typography variant='body1'>
               <strong>Turnover Code:</strong> {branchData.turnoverCode}
-            </Typography>
+            </Typography> */}
           </Grid>
         </Grid>
       </Card>

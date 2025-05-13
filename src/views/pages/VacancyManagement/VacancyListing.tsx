@@ -438,9 +438,9 @@ const VacancyListingPage = () => {
       </Card>
 
       {error && (
-        <Box sx={{ mb: 4, mx: 6 }}>
-          <Typography variant='h6' color='error'>
-            Error: {error}
+        <Box sx={{ mb: 4, mx: 6, justifyContent: 'center', alignItems: 'center' }}>
+          <Typography variant='h6' color='secondary'>
+            {error}
           </Typography>
         </Box>
       )}
@@ -453,13 +453,13 @@ const VacancyListingPage = () => {
         </Box>
       )} */}
 
-      {viewMode === 'grid' && !loading && visibleVacancies.length === 0 && !error && (
+      {/* {viewMode === 'grid' && error && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='text.secondary'>
             {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
           </Typography>
         </Box>
-      )}
+      )} */}
 
       <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (

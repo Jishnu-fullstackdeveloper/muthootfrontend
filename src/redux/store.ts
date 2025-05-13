@@ -14,6 +14,7 @@ import xFactorReducer from './XFactor/xFactorSlice'
 import employeeManagementReducer from './EmployeeManagement/employeeManagementSlice'
 import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
+import dataUploadReducer from './DataUpload/dataUploadSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -31,7 +32,8 @@ export const makeStore = () =>
       xFactorReducer,
       employeeManagementReducer,
       approvalsReducer,
-      resignationDataListingReducer
+      resignationDataListingReducer,
+      dataUploadReducer
     }
   })
 

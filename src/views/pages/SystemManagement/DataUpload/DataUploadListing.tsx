@@ -18,18 +18,30 @@ import SearchIcon from '@mui/icons-material/Search'
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 
 import DataUploadTableList from './DataUploadTable'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchDataUploads, createDataUpload, fetchUploadCategories } from '@/redux/DataUpload/dataUploadSlice'
 
 //import DataUploadTable from './DataUploadTable'
 
 const DataUploadListingPage = () => {
+  const dispatch = useAppDispatch()
+  const { categories, categoriesStatus, categoriesError } = useAppSelector(state => state.dataUploadReducer)
   const [searchQuery, setSearchQuery] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+  const hasFetchedCategories = useRef(false) // Track if categories have been fetched
+  const prevSearchQuery = useRef('') // Track previous search query
 
-  // Predefined categories for Autocomplete
-  const categories = ['Employee data', 'Resignation data']
+  // Fetch categories only once on mount
+  useEffect(() => {
+    if (!hasFetchedCategories.current && categoriesStatus === 'idle') {
+      console.log('Fetching upload categories') // Debug log
+      dispatch(fetchUploadCategories())
+      hasFetchedCategories.current = true
+    }
+  }, [dispatch]) // Removed categoriesStatus from dependencies
 
   // Debounced search effect
   useEffect(() => {
@@ -40,8 +52,20 @@ const DataUploadListingPage = () => {
 
     // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
-      // Update search query for client-side filtering
-      setSearchQuery(searchQuery)
+      const trimmedQuery = searchQuery.trim()
+
+      // Only dispatch if query has changed
+      if (trimmedQuery !== prevSearchQuery.current) {
+        console.log('Fetching data uploads with search:', trimmedQuery) // Debug log
+        dispatch(
+          fetchDataUploads({
+            page: 1, // Reset to first page on new search
+            limit: 5, // Consistent with DataUploadTableList
+            search: trimmedQuery || undefined // Send search query if not empty
+          })
+        )
+        prevSearchQuery.current = trimmedQuery
+      }
     }, 300) // 300ms delay, consistent with EmployeeListingPage
 
     // Cleanup function to clear timeout
@@ -50,7 +74,7 @@ const DataUploadListingPage = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [searchQuery])
+  }, [searchQuery, dispatch])
 
   const handleUploadClick = () => {
     setOpenDialog(true)
@@ -68,19 +92,37 @@ const DataUploadListingPage = () => {
     setSelectedFile(file)
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedFile && selectedCategory) {
-      console.log('Submitting:', {
-        fileName: selectedFile.name,
-        category: selectedCategory
-      })
+      try {
+        const type = selectedCategory
 
-      // Add logic to handle file upload (e.g., API call)
+        // Dispatch the createDataUpload thunk
+        const result = await dispatch(
+          createDataUpload({
+            file: selectedFile,
+            type
+          })
+        ).unwrap()
+
+        console.log('File uploaded successfully:', result)
+
+        // Refresh the data after successful upload
+        dispatch(
+          fetchDataUploads({
+            page: 1,
+            limit: 5,
+            search: searchQuery.trim() || undefined
+          })
+        )
+      } catch (error) {
+        console.error('File upload failed:', error)
+      }
+
+      handleDialogClose()
     } else {
       console.log('Please select a file and category')
     }
-
-    handleDialogClose()
   }
 
   return (
@@ -120,10 +162,10 @@ const DataUploadListingPage = () => {
                 variant='contained'
                 color='primary'
                 onClick={handleUploadClick}
-                sx={{ minWidth: '80px', textTransform: 'none' }}
+                sx={{ minWidth: '70px', textTransform: 'none' }}
                 size='small'
+                startIcon={<FileUploadOutlinedIcon fontSize='medium' />}
               >
-                <FileUploadOutlinedIcon fontSize='small' />
                 Upload
               </Button>
             </Tooltip>
@@ -151,8 +193,17 @@ const DataUploadListingPage = () => {
               options={categories}
               value={selectedCategory}
               onChange={(event, newValue) => setSelectedCategory(newValue)}
-              renderInput={params => <TextField {...params} label='Category' size='small' />}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Type/Category'
+                  size='small'
+                  error={categoriesStatus === 'failed'}
+                  helperText={categoriesStatus === 'failed' ? categoriesError : undefined}
+                />
+              )}
               fullWidth
+              disabled={categoriesStatus === 'loading'}
             />
           </Box>
         </DialogContent>
@@ -164,7 +215,7 @@ const DataUploadListingPage = () => {
             onClick={handleSubmit}
             color='primary'
             variant='contained'
-            disabled={!selectedFile || !selectedCategory}
+            disabled={!selectedFile || !selectedCategory || categoriesStatus === 'loading'}
           >
             Submit
           </Button>

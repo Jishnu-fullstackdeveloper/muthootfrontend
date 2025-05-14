@@ -3,21 +3,22 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, IconButton, Button, Card, TextField, InputAdornment, Tooltip } from '@mui/material'
+import { Box, Typography, Button, Card, TextField, InputAdornment } from '@mui/material' //IconButton //Tooltip
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
 import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
+
+//import EditIcon from '@mui/icons-material/Edit'
+//import DeleteIcon from '@mui/icons-material/Delete'
 
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalCategories, fetchApprovalMatrices, deleteApprovalMatrix } from '@/redux/approvalMatrixSlice'
+import { fetchApprovalCategories, fetchApprovalMatrices } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
+//import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
 //import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
 
 const ApprovalMatrixList = () => {
@@ -37,22 +38,11 @@ const ApprovalMatrixList = () => {
   const [sorting, setSorting] = useState<SortingState>([])
 
   // State for delete confirmation modal
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [matrixIdsToDelete, setMatrixIdsToDelete] = useState<string[]>([]) // Changed to array to store multiple IDs
+  //const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  //const [matrixIdsToDelete, setMatrixIdsToDelete] = useState<string[]>([]) // Changed to array to store multiple IDs
 
   // State for search input
   const [searchQuery, setSearchQuery] = useState<string>('')
-
-  // Fetch all approval matrices on initial load
-  // useEffect(() => {
-  //   // Fetch all data by setting a high limit (e.g., 1000) or adjust based on your API's max limit
-  //   dispatch(
-  //     fetchApprovalMatrices({
-  //       page: 1, // Fetch from the first page
-  //       limit: 1000 // Set a high limit to get all data; adjust as needed
-  //     })
-  //   )
-  // }, [dispatch])
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
@@ -143,64 +133,57 @@ const ApprovalMatrixList = () => {
     }
   }, [groupedData, pagination.pageIndex, pagination.pageSize])
 
-  // Handle edit action
-  const handleEdit = (rowData: any) => {
-    const designations = rowData.designations.map((designation: string, index: number) => ({
-      id: `${rowData.id}-${index}`, // Generate a unique ID for each designation
-      name: designation
-    }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const handleEdit = (rowData: any) => {
+  //   const designations = rowData.designations.map((designation: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique designation ID
+  //     name: designation
+  //   }))
 
-    const grades = rowData.grades.map((grade: string, index: number) => ({
-      id: `${rowData.id}-${index}`, // Generate a unique ID for each grade
-      name: grade
-    }))
+  //   const grades = rowData.grades.map((grade: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique grade ID
+  //     name: grade
+  //   }))
 
-    const queryParams = new URLSearchParams({
-      id: rowData.id.toString(),
-      approvalCategoryId: rowData.approvalCategories.id, // Pass approvalCategoryId correctly
-      approvalCategory: rowData.approvalCategories.name, // Use nested approvalCategories.name
-      numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(), // Adjust level for edit
-      description: rowData.approvalCategories.description, // Use nested description
-      designationName: JSON.stringify(designations), // Pass designations as JSON string
-      grade: JSON.stringify(grades) // Pass grades as JSON string
-    }).toString()
+  //   const queryParams = new URLSearchParams({
+  //     id: rowData.matrixIds.join(','), // Pass all matrix IDs as a comma-separated string
+  //     approvalCategoryId: rowData.approvalCategories.id,
+  //     approvalCategory: rowData.approvalCategories.name,
+  //     numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+  //     description: rowData.approvalCategories.description,
+  //     designationName: JSON.stringify(designations),
+  //     grade: JSON.stringify(grades)
+  //   }).toString()
 
-    router.push(`/approval-matrix/edit/edit-approval?${queryParams}`)
-  }
+  //   router.push(`/approval-matrix/edit/edit-approval?${queryParams}`)
+  // }
 
-  // Handle delete action (open modal)
-  const handleDelete = (rowData: any) => {
-    // Collect all matrix IDs for the given approvalCategoryId
-    const matrixIds =
-      groupedData.find((group: any) => group.approvalCategories.id === rowData.approvalCategories.id)?.matrixIds || []
+  // // Handle delete action (open modal)
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const handleDelete = (rowData: any) => {
+  //   // Collect all matrix IDs for the given approvalCategoryId
+  //   const matrixIds =
+  //     groupedData.find((group: any) => group.approvalCategories.id === rowData.approvalCategories.id)?.matrixIds || []
 
-    setMatrixIdsToDelete(matrixIds)
-    setDeleteModalOpen(true)
-  }
+  //   setMatrixIdsToDelete(matrixIds)
+  //   setDeleteModalOpen(true)
+  // }
 
-  // Handle delete confirmation from modal
-  const handleDeleteConfirm = async () => {
-    if (matrixIdsToDelete.length > 0) {
-      try {
-        // Delete all matrices with the collected IDs
-        await Promise.all(matrixIdsToDelete.map(id => dispatch(deleteApprovalMatrix(id)).unwrap()))
+  // const handleDeleteConfirm = async () => {
+  //   if (matrixIdsToDelete.length > 0) {
+  //     try {
+  //       // Delete all matrices with the collected IDs
+  //       await Promise.all(matrixIdsToDelete.map(id => dispatch(deleteApprovalMatrix(id)).unwrap()))
 
-        // No need to manually update state here; Redux slice handles it
-        // Removed alert for success
-      } catch (error) {
-        console.error('Delete failed:', error)
+  //       // Fetch updated data after deletion to refresh the table
+  //       await dispatch(fetchApprovalMatrices({ page: 1, limit: 1000 }))
+  //     } catch (error) {
+  //       console.error('Delete failed:', error)
+  //     }
+  //   }
 
-        // Removed alert for failure
-      }
-    }
-
-    setDeleteModalOpen(false)
-    setMatrixIdsToDelete([]) // Reset the IDs after action
-  }
-
-  // Handle view action
-  // const handleView = (rowData: any) => {
-  //   router.push(`/approval-matrix/view/${rowData.id}?id=${rowData.id}`)
+  //   setDeleteModalOpen(false)
+  //   setMatrixIdsToDelete([]) // Reset the IDs after action
   // }
 
   // Define columns for the table
@@ -212,7 +195,8 @@ const ApprovalMatrixList = () => {
       }),
       columnHelper.accessor('approvalCategories.description', {
         header: 'DESCRIPTION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.approvalCategories?.description}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.approvalCategories?.description}</Typography>,
+        enableSorting: true
       }),
       columnHelper.accessor('level', {
         header: 'NUMBER OF LEVELS',
@@ -257,47 +241,48 @@ const ApprovalMatrixList = () => {
               No Grade
             </Typography>
           )
-      }),
-      columnHelper.accessor('action', {
-        header: 'ACTIONS',
-        meta: { className: 'sticky right-0' },
-        cell: ({ row }) => (
-          <Box className='flex items-center'>
-            {/* <Tooltip title='View' placement='top'>
-              <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
-                <VisibilityIcon />
-              </IconButton>
-            </Tooltip> */}
-            <Tooltip title='Edit' placement='top'>
-              <IconButton
-                onClick={e => {
-                  e.stopPropagation()
-                  handleEdit(row.original)
-                }}
-                sx={{ fontSize: 18 }}
-                aria-label='edit'
-              >
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Delete' placement='top'>
-              <IconButton
-                onClick={e => {
-                  e.stopPropagation()
-                  handleDelete(row.original)
-                }}
-                sx={{ fontSize: 18 }}
-                aria-label='delete'
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        ),
-        enableSorting: false
       })
+
+      // columnHelper.accessor('action', {
+      //   header: 'ACTIONS',
+      //   meta: { className: 'sticky right-0' },
+      //   cell: ({ row }) => (
+      //     <Box className='flex items-center'>
+      //       {/* <Tooltip title='View' placement='top'>
+      //         <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
+      //           <VisibilityIcon />
+      //         </IconButton>
+      //       </Tooltip> */}
+      //       <Tooltip title='Edit' placement='top'>
+      //         <IconButton
+      //           onClick={e => {
+      //             e.stopPropagation()
+      //             handleEdit(row.original)
+      //           }}
+      //           sx={{ fontSize: 18 }}
+      //           aria-label='edit'
+      //         >
+      //           <EditIcon />
+      //         </IconButton>
+      //       </Tooltip>
+      //       <Tooltip title='Delete' placement='top'>
+      //         <IconButton
+      //           onClick={e => {
+      //             e.stopPropagation()
+      //             handleDelete(row.original)
+      //           }}
+      //           sx={{ fontSize: 18 }}
+      //           aria-label='delete'
+      //         >
+      //           <DeleteIcon />
+      //         </IconButton>
+      //       </Tooltip>
+      //     </Box>
+      //   ),
+      //   enableSorting: false
+      // })
     ],
-    [columnHelper, router]
+    [columnHelper]
   )
 
   // Pagination handlers for DynamicTable
@@ -381,12 +366,12 @@ const ApprovalMatrixList = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      <ConfirmModal
+      {/* <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         id={matrixIdsToDelete[0] || null} // Pass the first ID for compatibility with ConfirmModal
-      />
+      /> */}
     </>
   )
 }

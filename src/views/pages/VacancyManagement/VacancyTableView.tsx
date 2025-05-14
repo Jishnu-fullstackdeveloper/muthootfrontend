@@ -10,7 +10,6 @@ import { createColumnHelper } from '@tanstack/react-table'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-import { vacancyList } from '@/utils/sampleData/VacancyManagement/VacancyListingData'
 
 const VacancyListingTableView = () => {
   const router = useRouter()
@@ -86,15 +85,38 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor('businessRole', {
+
+      columnHelper.accessor('status', {
         // Match the actual data key
-        header: 'BUSINESS ROLE',
+        header: 'STATUS',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.businessRole}
-          </Typography>
+          <Chip
+            label={row.original.status}
+            size='small'
+            variant='tonal'
+            color={
+              row.original.status === 'Open'
+                ? 'success'
+                : row.original.status === 'Closed'
+                  ? 'error'
+                  : row.original.status === 'Freeze'
+                    ? 'info'
+                    : 'default'
+            }
+            sx={{ ml: 1, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}
+          />
         )
       }),
+
+      // columnHelper.accessor('businessRole', {
+      //   // Match the actual data key
+      //   header: 'BUSINESS ROLE',
+      //   cell: ({ row }) => (
+      //     <Typography color='text.primary' className='font-medium'>
+      //       {row.original.businessRole}
+      //     </Typography>
+      //   )
+      // }),
       columnHelper.accessor('campusOrLateral', {
         // Match the actual data key
         header: 'CAMPUS/LATERAL',
@@ -165,7 +187,7 @@ const VacancyListingTableView = () => {
         cell: ({ row }) => (
           <Chip
             variant='tonal'
-            label={`${row.original.startingDate}`}
+            label={`${row.original.startingDate.split('T')[0]}`}
             color='success'
             size='medium'
             sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 103 }}
@@ -178,7 +200,7 @@ const VacancyListingTableView = () => {
         cell: ({ row }) => (
           <Chip
             variant='tonal'
-            label={`${row.original.closingDate}`}
+            label={`${row.original.closingDate.split('T')[0]}`}
             color='error'
             size='medium'
             sx={{ fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase', width: 105 }}
@@ -308,19 +330,25 @@ const VacancyListingTableView = () => {
 
   return (
     <Box>
-      <DynamicTable
-        columns={columns}
-        //data={vacancyList} // Commented out static data
-        data={vacancies || []} // Use Redux state instead
-        totalCount={totalCount} // Use totalCount from Redux
-        pagination={pagination} // Pass 0-based pagination directly
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onPageCountChange={handlePageCountChange}
-        tableName='Vacancy List'
-      />
       {loading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
       {error && <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>Error: {error}</Typography>}
+      {!loading && !error && vacancies.length === 0 ? (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
+      ) : (
+        !loading &&
+        !error && (
+          <DynamicTable
+            columns={columns}
+            data={vacancies || []}
+            totalCount={totalCount}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            onPageCountChange={handlePageCountChange}
+            tableName='Vacancy Listing Table'
+          />
+        )
+      )}
     </Box>
   )
 }

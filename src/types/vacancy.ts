@@ -29,6 +29,7 @@ export interface Vacancy {
   deletedBy: string | null // Matches "null" in the response
   jobTitle: string // Added from "Senior Software Engineer"
   grade: string // Added from "E3"
+  band: string
   designation: string // Matches "SSE - Backend" (no rename needed)
   jobRole: string // Added from "Backend Developer"
   openings: number // Matches 4
@@ -54,6 +55,7 @@ export interface Vacancy {
   city: string // Matches "Hyderabad"
   state: string // Matches "Telangana"
   origin: string // Matches "MANUAL"
+  status: string
   metaData: {
     project: string // Matches "Phoenix"
     priority: string // Matches "High"

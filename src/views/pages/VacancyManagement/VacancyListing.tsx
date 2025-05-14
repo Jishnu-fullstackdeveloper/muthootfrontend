@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tab, Tabs, Tooltip, Typography, TextField, InputAdornment } from '@mui/material'
+import { Box, Card, IconButton, Tab, Tabs, Tooltip, Typography, TextField, InputAdornment, Chip } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 // import Stack from '@mui/material/Stack'
@@ -115,12 +115,12 @@ const VacancyListingPage = () => {
     // Set a new timeout for debounced search
     debounceTimeout.current = setTimeout(() => {
       console.log('Dispatching fetchVacancies with:', { page: 1, limit, search: searchQuery.trim() }) // Debug log
-      setVisibleVacancies([]) // Clear existing vacancies
-      setPage(1) // Reset to page 1
       dispatch(fetchVacancies({ page: 1, limit, search: searchQuery.trim() }))
         .unwrap()
         .then(result => {
           console.log('fetchVacancies result:', result) // Debug API response
+          setVisibleVacancies(result.data || []) // Reset visibleVacancies with new data
+          setPage(1) // Reset to page 1
         })
         .catch(err => console.error('Search failed:', err)) // Log errors
     }, 300) // 300ms debounce delay
@@ -146,12 +146,13 @@ const VacancyListingPage = () => {
         ...prev,
         ...vacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs)
       }))
-    } else if (!vacancies?.length && viewMode === 'grid' && !loading) {
-      // Clear visibleVacancies for empty results
+    } else if (!vacancies?.length && viewMode === 'grid' && !loading && page === 1) {
+      // Clear visibleVacancies only on initial empty results
       console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
       setVisibleVacancies([])
+      setSelectedTabs({}) // Clear selectedTabs when no vacancies
     }
-  }, [vacancies, viewMode, loading])
+  }, [vacancies, viewMode, loading, page])
 
   const loadMoreVacancies = useCallback(() => {
     if (loading || visibleVacancies.length >= totalCount) return
@@ -160,12 +161,19 @@ const VacancyListingPage = () => {
     console.log('Loading more vacancies for page:', nextPage) // Debug log
     setPage(nextPage)
     dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery.trim() }))
+      .unwrap()
+      .then(result => {
+        console.log('Loaded more vacancies:', result) // Debug log
+      })
+      .catch(err => console.error('Load more failed:', err))
   }, [loading, visibleVacancies.length, totalCount, page, dispatch, limit, searchQuery])
 
   useEffect(() => {
+    if (viewMode !== 'grid' || visibleVacancies.length >= totalCount) return
+
     observerRef.current = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && !loading) {
           loadMoreVacancies()
         }
       },
@@ -181,10 +189,12 @@ const VacancyListingPage = () => {
         observerRef.current.unobserve(loadMoreRef.current)
       }
     }
-  }, [loadMoreVacancies])
+  }, [loadMoreVacancies, viewMode, visibleVacancies.length, totalCount, loading])
 
   const handleTabChange = (vacancyId: any, newValue: number) =>
     setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
+
+  console.log('Vacancies', visibleVacancies)
 
   // const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }: DebouncedInputProps) => {
   //   const [value, setValue] = useState(initialValue)
@@ -309,15 +319,20 @@ const VacancyListingPage = () => {
           paddingBottom: 2
         }}
       >
-        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
+        {viewMode === 'grid' && (
+          <Typography variant='h5' fontWeight='bold' sx={{ p: 2 }}>
+            Vacancy Listing
+          </Typography>
+        )}
+        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-2 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <TextField
               label='Search'
               variant='outlined'
-              size='small' // Matches ApprovalMatrixList.tsx
+              size='small'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              sx={{ width: '400px', mr: 2, mt: 3 }} // Matches ApprovalMatrixList.tsx
+              sx={{ width: '400px', mr: 2, mt: 3 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
@@ -470,10 +485,28 @@ const VacancyListingPage = () => {
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}
             >
-              <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-center items-center'>
-                <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
-                  {vacancy.jobTitle}
-                </Typography>
+              <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
+                <Tooltip title='Job Title'>
+                  <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
+                    {vacancy.jobTitle}
+                  </Typography>
+                </Tooltip>
+                <Chip
+                  label={vacancy.status}
+                  size='small'
+                  variant='tonal'
+                  color={
+                    vacancy.status === 'Open'
+                      ? 'success'
+                      : vacancy.status === 'Closed'
+                        ? 'error'
+                        : vacancy.status === 'Freeze'
+                          ? 'info'
+                          : 'default'
+                  }
+                  sx={{ ml: 1, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}
+                />
+
                 {/* <Box className='flex'>
                   <Tooltip title='Edit Vacancy' placement='top'>
                     <IconButton

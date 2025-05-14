@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls' // API endpoint defini
 
 // Define the Vacancy type based on API response
 export interface Vacancy {
+  status: string
   territory: string
   id: string
   deletedBy: string | null
@@ -107,16 +108,38 @@ export const fetchVacancies = createAsyncThunk(
 )
 
 // Async thunk to fetch a single vacancy by ID
+// export const fetchVacancyById = createAsyncThunk(
+//   'vacancyManagement/fetchVacancyById',
+//   async (id: string, { rejectWithValue }) => {
+//     try {
+//       const response = await AxiosLib.get(`/vacancy/${id}`)
+
+//       console.log('API Response for ID', id, ':', response.data) // Debug API response
+//       const data = response.data
+
+//       if (data.status !== 'Success' || !data.data) {
+//         throw new Error(data.message || 'Invalid API response')
+//       }
+
+//       return data.data // Return the vacancy object
+//     } catch (error: any) {
+//       console.error('API Error for ID', id, ':', error.message) // Debug API error
+
+//       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy')
+//     }
+//   }
+// )
+
 export const fetchVacancyById = createAsyncThunk(
   'vacancyManagement/fetchVacancyById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/vacancy/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingById.replace(':id', id))
 
       console.log('API Response for ID', id, ':', response.data) // Debug API response
       const data = response.data
 
-      if (data.status !== 'Success' || !data.data) {
+      if (!data.success || !data.data) {
         throw new Error(data.message || 'Invalid API response')
       }
 

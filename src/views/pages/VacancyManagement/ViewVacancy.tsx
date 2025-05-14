@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 
 import { useRouter, useParams } from 'next/navigation'
 
-import { Box, Typography, Divider, Paper, Button, Tabs, Tab } from '@mui/material'
+import { Box, Typography, Divider, Paper, Button, Tabs, Tab, Chip } from '@mui/material'
 
 //import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
 
@@ -35,6 +35,14 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   //const [tabValue, setTabValue] = useState(0) // State for tab value
   const [activeTab, setActiveTab] = useState<number>(tabMapping[vacancyTab] || 0)
 
+  // Tab change handler
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue)
+    const paths = ['vacancy-details', 'jd-details']
+
+    router.push(`${paths[newValue]}?id=${id}`)
+  }
+
   // Fetch vacancy data when component mounts or ID changes
   useEffect(() => {
     console.log('Params:', params) // Debug full params object
@@ -45,7 +53,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
     } else {
       console.warn('No ID provided in URL')
     }
-  }, [dispatch, id])
+  }, [dispatch, id, params])
 
   console.log('Dispatching fetchVacancyById with ID:', id)
 
@@ -65,14 +73,6 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   // const handleBack = () => {
   //   router.push('/vacancy-management') // Navigates to the previous page
   // }
-
-  // Tab change handler
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue)
-    const paths = ['vacancy-details', 'jd-details']
-
-    router.push(`${paths[newValue]}?id=${id}`)
-  }
 
   // Show loading or error states
   if (selectedVacancyLoading) {
@@ -116,10 +116,25 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
             <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
               {selectedVacancy?.jobTitle}
             </Typography>
-            <Tabs value={activeTab} onChange={handleTabChange} aria-label='job tabs'>
-              {/* <Tab label='Vacancy details' /> */}
-              {/* <Tab label='JD Details' /> */}
-            </Tabs>
+            <Chip
+              label={selectedVacancy?.status}
+              size='small'
+              variant='tonal'
+              color={
+                selectedVacancy?.status === 'Open'
+                  ? 'success'
+                  : selectedVacancy?.status === 'Closed'
+                    ? 'error'
+                    : selectedVacancy?.status === 'Freeze'
+                      ? 'info'
+                      : 'default'
+              }
+              sx={{ ml: 1, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}
+            />
+            {/* <Tabs value={activeTab} onChange={handleTabChange} aria-label='job tabs'>
+              <Tab label='Vacancy details' />
+              <Tab label='JD Details' />
+            </Tabs> */}
           </Box>
           <Box>
             {activeTab === 0 && (
@@ -145,7 +160,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   sx={{ margin: 'auto', borderRadius: 4 }}
                 >
                   {/* Heading */}
-                  <Typography variant='h6' color='text.primary' gutterBottom>
+                  <Typography variant='h6' color='text.primary' fontWeight='bold' gutterBottom>
                     Application Details
                   </Typography>
 
@@ -162,6 +177,9 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
                       Grade: <strong>{selectedVacancy?.grade}</strong>
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Band: <strong>{selectedVacancy?.band}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
                       Openings: <strong>{selectedVacancy?.openings}</strong>
@@ -261,7 +279,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   sx={{ margin: 'auto', borderRadius: 4 }}
                 >
                   {/* Heading */}
-                  <Typography variant='h6' color='text.primary' gutterBottom>
+                  <Typography variant='h6' color='text.primary' fontWeight='bold' gutterBottom>
                     Location Details
                   </Typography>
 

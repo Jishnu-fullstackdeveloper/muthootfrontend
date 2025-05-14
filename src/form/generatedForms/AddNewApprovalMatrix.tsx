@@ -47,6 +47,7 @@ const validationSchema = Yup.object({
     .required('Approval Category is required'),
   numberOfLevels: Yup.number()
     .required('Number of Levels is required')
+    .integer('Number of Levels must be an integer')
     .min(1, 'Number of Levels must be at least 1')
     .max(10, 'Number of Levels cannot exceed 10'),
   description: Yup.string()
@@ -57,14 +58,14 @@ const validationSchema = Yup.object({
       Yup.object().shape({
         designationName: Yup.object()
           .shape({
-            id: Yup.string().required('Invalid option selected'), // Updated to string
+            id: Yup.string().required('Invalid option selected'),
             name: Yup.string().required('Invalid option selected')
           })
           .nullable()
           .required('Approval For is required'),
         grade: Yup.object()
           .shape({
-            id: Yup.string().required('Invalid option selected'), // Updated to string
+            id: Yup.string().required('Invalid option selected'),
             name: Yup.string().required('Invalid option selected')
           })
           .nullable()
@@ -93,7 +94,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
   const { designations, grades, approvalCategories } = useAppSelector(state => state.approvalMatrixReducer) //options
 
-  // Debug: Log approvalCategories to check if data is fetched
+  // Debug  Debug: Log approvalCategories to check if data is fetched
   useEffect(() => {
     console.log('approvalCategories:', approvalCategories)
   }, [approvalCategories])
@@ -108,13 +109,47 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       draggingIndex: null as number | null
     },
     validationSchema,
+
     onSubmit: async values => {
+      // Check for duplicate designation or grade
+      const seenDesignations = new Set<string>()
+      const seenGrades = new Set<string>()
+      let hasDuplicates = false
+
+      for (let i = 0; i < values.sections.length; i++) {
+        const section = values.sections[i]
+        const designationId = section.designationName?.id || ''
+        const gradeId = section.grade?.id || ''
+
+        if (seenDesignations.has(designationId) || seenGrades.has(gradeId)) {
+          hasDuplicates = true
+          break
+        }
+
+        seenDesignations.add(designationId)
+        seenGrades.add(gradeId)
+      }
+
+      if (hasDuplicates) {
+        toast.error('The same designation or grade are selected in the previous level', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+
+        return // Prevent form submission and stay on the same page
+      }
+
       // Retrieve approvalCategoryId from searchParams in edit mode
       const categoryIdFromUrl = searchParams.get('approvalCategoryId') || approvalCategoryId || ''
 
       // Prepare the approval matrix data for submission
       const approvalMatrix = values.sections.map((section, index) => ({
-        approvalCategoryId: categoryIdFromUrl, // Use the approvalCategoryId from URL or state
+        approvalCategoryId: categoryIdFromUrl,
         designation: section.designationName?.name || '',
         grade: section.grade?.name || '',
         level: index + 1
@@ -132,22 +167,41 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           ).unwrap()
           console.log('Approval Category updated successfully')
 
-          // Then update each approval matrix section
-          await Promise.all(
-            approvalMatrix.map(matrix =>
-              dispatch(
-                updateApprovalMatrix({
-                  id: values.id, // Assuming the ID from searchParams is the matrix ID to update
-                  approvalMatrix: {
-                    approvalCategoryId: matrix.approvalCategoryId,
-                    designation: matrix.designation,
-                    grade: matrix.grade,
-                    level: matrix.level
-                  }
-                })
-              ).unwrap()
-            )
+          // Get existing matrix IDs for the approval category
+          const existingMatrixIds = searchParams.get('id')?.split(',') || []
+
+          // Update or create matrices for current levels
+          const updatedMatrixIds = await Promise.all(
+            approvalMatrix.map(async (matrix, index) => {
+              if (index < existingMatrixIds.length) {
+                // Update existing matrix
+                const response = await dispatch(
+                  updateApprovalMatrix({
+                    id: existingMatrixIds[index],
+                    approvalMatrix: {
+                      approvalCategoryId: matrix.approvalCategoryId,
+                      designation: matrix.designation,
+                      grade: matrix.grade,
+                      level: matrix.level
+                    }
+                  })
+                ).unwrap()
+
+                return existingMatrixIds[index]
+              } else {
+                // Create new matrix for additional levels
+                const response = await dispatch(createNewApprovalMatrix({ approvalMatrix: [matrix] })).unwrap()
+
+                return response[0]?.id || '' // Assume API returns the new matrix ID
+              }
+            })
           )
+
+          // Delete matrices for levels that were removed
+          const matricesToDelete = existingMatrixIds.slice(values.sections.length)
+
+          await Promise.all(matricesToDelete.map(id => dispatch(deleteApprovalMatrix(id)).unwrap()))
+
           console.log('Approval Matrix updated successfully')
           toast.success('Approval Matrix updated successfully!', {
             position: 'top-right',
@@ -169,6 +223,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             draggable: true,
             progress: undefined
           })
+
+          return // Stay on the same page on error
         }
       } else {
         try {
@@ -195,6 +251,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             draggable: true,
             progress: undefined
           })
+
+          return // Stay on the same page on error
         }
       }
 
@@ -203,7 +261,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       setApprovalCategoryId(null) // Reset category ID after submission
       setSectionsVisible(false) // Hide sections after submission
 
-      router.back()
+      router.back() // Route back to the listing page
     }
   })
 
@@ -473,13 +531,41 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   name='numberOfLevels'
                   type='number'
                   value={ApprovalMatrixFormik.values.numberOfLevels}
-                  onChange={ApprovalMatrixFormik.handleChange}
+                  onChange={e => {
+                    const value = e.target.value
+
+                    // Allow only integers between 1 and 10
+                    if (
+                      value === '' ||
+                      (/^[1-9]$|^10$/.test(value) && parseInt(value, 10) >= 1 && parseInt(value, 10) <= 10)
+                    ) {
+                      ApprovalMatrixFormik.handleChange(e)
+                    }
+                  }}
                   onBlur={ApprovalMatrixFormik.handleBlur}
                   error={
                     ApprovalMatrixFormik.touched.numberOfLevels && Boolean(ApprovalMatrixFormik.errors.numberOfLevels)
                   }
                   helperText={ApprovalMatrixFormik.touched.numberOfLevels && ApprovalMatrixFormik.errors.numberOfLevels}
-                  inputProps={{ min: 1, max: 10 }}
+                  inputProps={{
+                    min: 1,
+                    max: 10,
+                    pattern: '[1-9]|10', // Restrict to 1-9 or 10
+                    inputMode: 'numeric' // Suggest numeric keyboard on mobile
+                  }}
+                  onKeyDown={e => {
+                    // Allow only numbers, backspace, delete, arrow keys, and tab
+                    if (
+                      !/^[0-9]$/.test(e.key) &&
+                      e.key !== 'Backspace' &&
+                      e.key !== 'Delete' &&
+                      e.key !== 'ArrowLeft' &&
+                      e.key !== 'ArrowRight' &&
+                      e.key !== 'Tab'
+                    ) {
+                      e.preventDefault()
+                    }
+                  }}
                 />
               </FormControl>
             </Box>
@@ -636,17 +722,19 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-            <Button
-              variant='contained'
-              color='secondary'
-              onClick={() => {
-                ApprovalMatrixFormik.resetForm()
-                setSectionsVisible(false) // Reset sections visibility
-                setApprovalCategoryId(null) // Reset category ID on clear
-              }}
-            >
-              Clear
-            </Button>
+            {!isUpdateMode && (
+              <Button
+                variant='contained'
+                color='secondary'
+                onClick={() => {
+                  ApprovalMatrixFormik.resetForm()
+                  setSectionsVisible(false) // Reset sections visibility
+                  setApprovalCategoryId(null) // Reset category ID on clear
+                }}
+              >
+                Clear
+              </Button>
+            )}
             <Button
               variant='contained'
               color='primary'

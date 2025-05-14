@@ -25,6 +25,7 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
+import L2ManagerDashboard from './L2ManagerDashboard'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
@@ -166,6 +167,9 @@ const ResignationDataListingPage = () => {
               Resignation Data Listing
             </Typography>
           </Box>
+
+         
+
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
             <AppReactDatepicker
               selected={fromDate}
@@ -230,6 +234,10 @@ const ResignationDataListingPage = () => {
           </Box>
         </Box>
       </Card>
+
+       <Box>
+            <L2ManagerDashboard />
+          </Box>
 
       {loading && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>

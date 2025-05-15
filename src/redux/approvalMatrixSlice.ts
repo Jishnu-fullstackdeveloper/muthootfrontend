@@ -17,6 +17,11 @@ interface ApprovalMatrixState {
   page: number
   limit: number
   totalPages: number
+  message: string
+  createApprovalCategoryResponse: any // Added for createApprovalCategory
+  updateApprovalCategoryResponse: any // Added for updateApprovalCategory
+  createApprovalMatrixResponse: any // Added for createNewApprovalMatrix
+  updateApprovalMatrixResponse: any // Added for updateApprovalMatrix
 }
 
 // Initial state
@@ -31,7 +36,12 @@ const initialState: ApprovalMatrixState = {
   grades: [], // Initialize grades
   page: 1,
   limit: 10,
-  totalPages: 10
+  totalPages: 10,
+  message: '',
+  createApprovalCategoryResponse: null, // Added for createApprovalCategory
+  updateApprovalCategoryResponse: null, // Added for updateApprovalCategory
+  createApprovalMatrixResponse: null, // Added for createNewApprovalMatrix
+  updateApprovalMatrixResponse: null // Added for updateApprovalMatrix
 }
 
 // APPROVAL CATEGORIES
@@ -250,19 +260,23 @@ const approvalMatrixSlice = createSlice({
       // Create approval category
       .addCase(createApprovalCategory.pending, state => {
         state.status = 'loading'
+        state.createApprovalCategoryResponse = null // Reset response
       })
       .addCase(createApprovalCategory.fulfilled, (state, action) => {
         state.status = 'succeeded'
         state.approvalCategories.push(action.payload) // Add new category to state
+        state.createApprovalCategoryResponse = action.payload // Store response
       })
       .addCase(createApprovalCategory.rejected, (state, action) => {
         state.status = 'failed'
         state.error = (action.payload as string) || 'Failed to create approval category'
+        state.createApprovalCategoryResponse = null // Reset response
       })
 
       // Update approval category
       .addCase(updateApprovalCategory.pending, state => {
         state.status = 'loading'
+        state.updateApprovalCategoryResponse = null // Reset response
       })
       .addCase(updateApprovalCategory.fulfilled, (state, action) => {
         state.status = 'succeeded'
@@ -271,10 +285,13 @@ const approvalMatrixSlice = createSlice({
         if (index !== -1) {
           state.approvalCategories[index] = action.payload // Update the existing category
         }
+
+        state.updateApprovalCategoryResponse = action.payload // Store response
       })
       .addCase(updateApprovalCategory.rejected, (state, action) => {
         state.status = 'failed'
         state.error = (action.payload as string) || 'Failed to update approval category'
+        state.updateApprovalCategoryResponse = null // Reset response
       })
 
       // Fetch approval matrices
@@ -295,19 +312,23 @@ const approvalMatrixSlice = createSlice({
       // Create new approval matrix
       .addCase(createNewApprovalMatrix.pending, state => {
         state.status = 'loading'
+        state.createApprovalMatrixResponse = null // Reset response
       })
       .addCase(createNewApprovalMatrix.fulfilled, (state, action: PayloadAction<any>) => {
         state.status = 'succeeded'
         state.approvalMatrixData.push(action.payload)
+        state.createApprovalMatrixResponse = action.payload // Store response
       })
       .addCase(createNewApprovalMatrix.rejected, (state, action: PayloadAction<any>) => {
         state.status = 'failed'
         state.error = action.payload
+        state.createApprovalMatrixResponse = null // Reset response
       })
 
       // Update approval matrix
       .addCase(updateApprovalMatrix.pending, state => {
         state.status = 'loading'
+        state.updateApprovalMatrixResponse = null // Reset response
       })
       .addCase(updateApprovalMatrix.fulfilled, (state, action: PayloadAction<any>) => {
         state.status = 'succeeded'
@@ -316,10 +337,13 @@ const approvalMatrixSlice = createSlice({
         if (index !== -1) {
           state.approvalMatrixData[index] = action.payload
         }
+
+        state.updateApprovalMatrixResponse = action.payload // Store response
       })
       .addCase(updateApprovalMatrix.rejected, (state, action: PayloadAction<any>) => {
         state.status = 'failed'
         state.error = action.payload || 'Failed to update approval matrix'
+        state.updateApprovalMatrixResponse = null // Reset response
       })
 
       // Delete approval matrix
@@ -364,4 +388,5 @@ const approvalMatrixSlice = createSlice({
   }
 })
 
+export const {} = approvalMatrixSlice.actions
 export default approvalMatrixSlice.reducer

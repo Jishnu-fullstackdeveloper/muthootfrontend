@@ -21,7 +21,13 @@ import {
   IconButton,
   Typography,
   Tooltip,
-  Card
+  Card,
+  Pagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  PaginationItem
 } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
@@ -30,6 +36,29 @@ import CloseIcon from '@mui/icons-material/Close'
 import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
 
 // New Client-Side TablePagination Component
+// const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
+//   const [isMounted, setIsMounted] = useState(false)
+
+//   useEffect(() => {
+//     setIsMounted(true)
+//   }, [])
+
+//   if (!isMounted) {
+//     return null // Prevent rendering on server
+//   }
+
+//   return (
+//     <TablePagination
+//       rowsPerPageOptions={[5, 10, 25]}
+//       count={totalCount || 0}
+//       rowsPerPage={pagination?.pageSize ?? 10}
+//       page={pagination?.pageIndex ?? 0}
+//       onPageChange={(_, page) => onPageChange(page)}
+//       onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
+//     />
+//   )
+// }
+
 const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -42,14 +71,66 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
   }
 
   return (
-    <TablePagination
-      rowsPerPageOptions={[5, 10, 25]}
-      count={totalCount || 0}
-      rowsPerPage={pagination?.pageSize ?? 10}
-      page={pagination?.pageIndex ?? 0}
-      onPageChange={(_, page) => onPageChange(page)}
-      onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
-    />
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <FormControl size='small' sx={{ minWidth: 70 }}>
+        <InputLabel>Count</InputLabel>
+        <Select
+          value={pagination?.pageSize ?? 10}
+          onChange={e => onRowsPerPageChange(Number(e.target.value))}
+          label='Count'
+        >
+          {[5, 10, 25, 100].map(option => (
+            // eslint-disable-next-line react/jsx-no-undef
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      {/* <Pagination
+        color='primary'
+        shape='rounded'
+        showFirstButton
+        showLastButton
+        count={Math.ceil(totalCount / pagination?.pageSize) || 0}
+        page={(pagination?.pageIndex ?? 0) + 1} // Adjust for 1-based indexing
+        onChange={(_, page) => onPageChange(page - 1)} // Adjust for 0-based indexing
+      /> */}
+
+      <Pagination
+        color='primary'
+        shape='rounded'
+        showFirstButton
+        showLastButton
+        count={Math.ceil(totalCount / pagination?.pageSize) || 0}
+        page={(pagination?.pageIndex ?? 0) + 1} // Adjust for 1-based indexing
+        onChange={(_, page) => onPageChange(page - 1)} // Adjust for 0-based indexing
+        renderItem={item => {
+          const currentPage = (pagination?.pageIndex ?? 0) + 1 // Current page (1-based)
+          const totalPages = Math.ceil(totalCount / pagination?.pageSize) || 0 // Total pages
+
+          // Render pages 1, 2, 3 when on page 1 (initial phase)
+          // Otherwise, render three consecutive page numbers: previous, current, and next
+          if (
+            item.type === 'page' &&
+            item.page !== null &&
+            ((currentPage === 1 && item.page <= 3 && item.page <= totalPages) || // Pages 1, 2, 3 on initial page
+              (currentPage !== 1 && // Sliding window for other pages
+                item.page >= Math.max(1, currentPage - 1) && // Start at currentPage - 1 or 1
+                item.page <= Math.min(totalPages, currentPage + 1))) // End at currentPage + 1 or totalPages
+          ) {
+            return <PaginationItem {...item} />
+          }
+
+          // Always render navigation buttons (first, last, previous, next)
+          if (['first', 'last', 'previous', 'next'].includes(item.type)) {
+            return <PaginationItem {...item} />
+          }
+
+          return null // Hide other page numbers
+        }}
+      />
+    </Box>
   )
 }
 
@@ -369,7 +450,7 @@ const DynamicTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      <Box
+      {/* <Box
         sx={{
           position: 'sticky',
           bottom: 0,
@@ -384,6 +465,32 @@ const DynamicTable = ({
           width: '100%',
           boxSizing: 'border-box',
           borderRadius: 1
+        }}
+      >
+        <ClientSideTablePagination
+          totalCount={totalCount}
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onRowsPerPageChange={onRowsPerPageChange}
+        />
+      </Box> */}
+
+      <Box
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 1,
+          backgroundColor: 'white',
+          borderTop: '1px solid rgba(224, 224, 224, 1)',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          p: 1,
+          mt: 1,
+          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
+          width: '100%',
+          boxSizing: 'border-box',
+          borderRadius: 1,
+          alignItems: 'center' // Center pagination vertically
         }}
       >
         <ClientSideTablePagination

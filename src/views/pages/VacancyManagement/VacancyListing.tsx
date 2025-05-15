@@ -194,7 +194,7 @@ const VacancyListingPage = () => {
   const handleTabChange = (vacancyId: any, newValue: number) =>
     setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
 
-  console.log('Vacancies', visibleVacancies)
+  console.log('Vacancies', visibleVacancies, error)
 
   // const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }: DebouncedInputProps) => {
   //   const [value, setValue] = useState(initialValue)

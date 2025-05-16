@@ -482,7 +482,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     }
                   }}
                   options={approvalCategories} // Options from fetchApprovalCategories, only name is displayed
-                  getOptionLabel={option => option.name || ''} // Display only the approval category name
+                  getOptionLabel={option => option?.name || ''} // Display only the approval category name
                   isOptionEqualToValue={(option, value) => option.id === value?.id}
                   ListboxProps={{
                     onScroll: handleScrollApprovalCategories,

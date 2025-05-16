@@ -44,7 +44,7 @@ const EmployeeTable = () => {
 
   // Map API data to table format
   const tableData = useMemo(() => {
-    const mappedData = employees.map(employee => ({
+    const mappedData = employees?.map(employee => ({
       id: employee.id,
       employeeCode: employee.employeeCode,
       fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName}`, // Combine firstName, middleName, lastName

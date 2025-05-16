@@ -196,7 +196,7 @@ const ApprovalMatrixList = () => {
       columnHelper.accessor('approvalCategories.description', {
         header: 'DESCRIPTION',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.approvalCategories?.description}</Typography>,
-        enableSorting: true
+        enableSorting: false
       }),
       columnHelper.accessor('level', {
         header: 'NUMBER OF LEVELS',

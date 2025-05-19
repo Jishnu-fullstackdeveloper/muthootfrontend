@@ -5,13 +5,15 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
-import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography } from '@mui/material'
+import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography, Tooltip } from '@mui/material'
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   GridView as GridViewIcon,
   TableView as TableChartIcon
 } from '@mui/icons-material'
+
+import DynamicButton from '@/components/Button/dynamicButton'
 
 interface JobPosting {
   id: number
@@ -211,6 +213,14 @@ const JobPostListing = () => {
               }}
             />
             <Box>
+              <Tooltip title='Interview Management'>
+                <DynamicButton
+                  variant='contained'
+                  onClick={() => router.push('hiring-management/interview-management')}
+                >
+                  Interview
+                </DynamicButton>
+              </Tooltip>
               <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
                 <TableChartIcon />
               </IconButton>

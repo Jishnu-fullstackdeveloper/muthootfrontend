@@ -8,7 +8,9 @@ import { usePathname } from 'next/navigation'
 import CandidateDetails from './candidateManagement/candidateDetails'
 import JobDetails from './JobPosting/JobDetails/jobDetails'
 
-const UserRolesIndex = () => {
+// import InterviewDetailedPage from './InterviewManagement/InterviewDetailedView'
+
+const HiringManagementIndex = () => {
   const pathname = usePathname()
 
   const segments = pathname.split('/')
@@ -19,8 +21,9 @@ const UserRolesIndex = () => {
       {/* {/* {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole  mode={mode} id={id} />} */}
       {mode === 'view' && <JobDetails />}
       {mode === 'candidate' && <CandidateDetails />}
+      {/* {mode === 'interview' && <InterviewDetailedPage />} */}
     </>
   )
 }
 
-export default UserRolesIndex
+export default HiringManagementIndex

@@ -53,7 +53,7 @@ const JobPostListing = () => {
   const [gridLimit] = useState(6)
   const [tablePage, setTablePage] = useState(1)
   const [tableLimit, setTableLimit] = useState(10)
-  const [view, setView] = useState<'grid' | 'table'>('table')
+  const [view, setView] = useState<'grid' | 'table'>('grid')
   const [allJobs, setAllJobs] = useState<JobPosting[]>([])
   const [tableJobs, setTableJobs] = useState<JobPosting[]>([])
   const [loading, setLoading] = useState(false)

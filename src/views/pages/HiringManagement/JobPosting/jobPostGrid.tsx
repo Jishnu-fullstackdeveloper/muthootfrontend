@@ -1,18 +1,16 @@
 'use client'
 
 import React, { useEffect, useRef, useCallback } from 'react'
-
 import { useRouter } from 'next/navigation'
-
-import { Box, Card, CardContent, Grid, Typography, CircularProgress, Fade } from '@mui/material'
+import { Box, Card, CardContent, Grid, Typography, CircularProgress, Fade, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 interface JobPosting {
   id: number
-  designation: string // Renamed from title
-  jobRole: string // Added new field
+  designation: string
+  jobRole: string
   location: string
-  status: 'Hiring' | 'In Progress' | 'Completed' // Updated status values
+  status: 'Hiring' | 'In Progress' | 'Completed'
   openings: number
   candidatesApplied: number
   shortlisted: number
@@ -48,6 +46,14 @@ const StatusBadge = styled(Typography)(({ theme }) => ({
   display: 'inline-block'
 }))
 
+const calculateHiredPercentage = (job: JobPosting) => {
+  return Math.round((job.hired / job.openings) * 100)
+}
+
+const calculateShortlistedPercentage = (job: JobPosting) => {
+  return Math.round((job.shortlisted / job.candidatesApplied) * 100)
+}
+
 const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGridProps) => {
   const router = useRouter()
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -60,7 +66,6 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
   const loadMoreJobs = useCallback(() => {
     if (loading || data.length >= totalCount) return
     const nextPage = page + 1
-
     onLoadMore(nextPage)
   }, [loading, data.length, totalCount, page, onLoadMore])
 
@@ -158,23 +163,89 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
+                      <Tooltip title={`${calculateHiredPercentage(job)}% Hired (${job.hired}/${job.openings})`}>
+                        <Box
+                          sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                        >
+                          <CircularProgress
+                            variant='determinate'
+                            value={calculateHiredPercentage(job)}
+                            size={60}
+                            thickness={2}
+                            sx={{ color: 'primary.main' }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: 1
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                              <Typography
+                                variant='caption'
+                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
+                              >
+                                {`${calculateHiredPercentage(job)}%`}
+                              </Typography>
+                              
+                              <Typography> Hired</Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Tooltip
+                        title={`${calculateShortlistedPercentage(job)}% Shortlisted (${job.shortlisted}/${job.candidatesApplied})`}
+                      >
+                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                          <CircularProgress
+                            variant='determinate'
+                            value={calculateShortlistedPercentage(job)}
+                            size={60}
+                            thickness={2}
+                            sx={{ color: 'secondary.main' }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: 1
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant='caption' sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}>
+                                {`${calculateShortlistedPercentage(job)}%`}
+
+                              </Typography>
+                               Shortlist
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Tooltip>
+                      
+                    </Grid>
+                    <Grid item xs={6}>
                       <Typography variant='body2'>
                         <strong>Openings:</strong> {job.openings}
+                      </Typography>
+                      <Typography variant='body2'>
+                        <strong>Hired:</strong> {job.hired}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant='body2'>
                         <strong>Applied:</strong> {job.candidatesApplied}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
                       <Typography variant='body2'>
                         <strong>Shortlisted:</strong> {job.shortlisted}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant='body2'>
-                        <strong>Hired:</strong> {job.hired}
                       </Typography>
                     </Grid>
                   </Grid>

@@ -131,43 +131,19 @@ const ManualRequestGeneratedForm: React.FC = () => {
   const [states, setStates] = useState<any[]>([])
   const [approvalCategories, setApprovalCategories] = useState<any[]>([])
 
-  // Pagination States
+  // Pagination States (only for APIs that use lazy loading)
   const [limit, setLimit] = useState({
     jobRole: 10,
-    employee: 10,
-    businessUnit: 10,
-    employeeCategory: 10,
-    department: 10,
-    designation: 10,
-    grade: 10,
-    territory: 10,
-    zone: 10,
-    region: 10,
-    area: 10,
-    cluster: 10,
-    branch: 10,
-    city: 10,
-    state: 10,
-    approvalCategory: 10
+    employee: 10
+
+    // Removed limits for APIs that don't need pagination
   })
 
   const [hasMore, setHasMore] = useState({
     jobRole: true,
-    employee: true,
-    businessUnit: true,
-    employeeCategory: true,
-    department: true,
-    designation: true,
-    grade: true,
-    territory: true,
-    zone: true,
-    region: true,
-    area: true,
-    cluster: true,
-    branch: true,
-    city: true,
-    state: true,
-    approvalCategory: true
+    employee: true
+
+    // Removed hasMore for APIs that don't need pagination
   })
 
   // Refs to track fetched values for dependent APIs
@@ -183,24 +159,10 @@ const ManualRequestGeneratedForm: React.FC = () => {
   const branchNameFetchRef = useRef<string | null>(null)
   const cityFetchRef = useRef<string | null>(null)
 
-  // Observer Refs
+  // Observer Refs (only for jobRole and employee)
   const observerRefs = {
     jobRole: useRef<HTMLDivElement | null>(null),
-    employee: useRef<HTMLDivElement | null>(null),
-    businessUnit: useRef<HTMLDivElement | null>(null),
-    employeeCategory: useRef<HTMLDivElement | null>(null),
-    department: useRef<HTMLDivElement | null>(null),
-    designation: useRef<HTMLDivElement | null>(null),
-    grade: useRef<HTMLDivElement | null>(null),
-    territory: useRef<HTMLDivElement | null>(null),
-    zone: useRef<HTMLDivElement | null>(null),
-    region: useRef<HTMLDivElement | null>(null),
-    area: useRef<HTMLDivElement | null>(null),
-    cluster: useRef<HTMLDivElement | null>(null),
-    branch: useRef<HTMLDivElement | null>(null),
-    city: useRef<HTMLDivElement | null>(null),
-    state: useRef<HTMLDivElement | null>(null),
-    approvalCategory: useRef<HTMLDivElement | null>(null)
+    employee: useRef<HTMLDivElement | null>(null)
   }
 
   // Fetch raisedById
@@ -310,160 +272,126 @@ const ManualRequestGeneratedForm: React.FC = () => {
   }, [dispatch, limit.employee, hasMore.employee, formik.values.jobRole])
 
   const loadBusinessUnits = useCallback(() => {
-    if (!hasMore.businessUnit) return
-    dispatch(fetchBusinessUnit({ page: 1, limit: limit.businessUnit }))
+    dispatch(fetchBusinessUnit({ page: 1, limit: 1000 })) // Fetch all at once
       .unwrap()
       .then(data => {
-        setBusinessUnits(prev => [...prev, ...(data?.data || [])])
-        setLimit(prev => ({ ...prev, businessUnit: prev.businessUnit + 10 }))
-        setHasMore(prev => ({ ...prev, businessUnit: data.data.length === limit.businessUnit }))
+        setBusinessUnits(data?.data || [])
       })
-  }, [dispatch, limit.businessUnit, hasMore.businessUnit])
+  }, [dispatch])
 
   const loadEmployeeCategories = useCallback(() => {
-    if (!hasMore.employeeCategory || !formik.values.businessUnit) return
-    dispatch(
-      fetchEmployeeCategoryType({ page: 1, limit: limit.employeeCategory, businessUnitId: formik.values.businessUnit })
-    )
+    if (!formik.values.businessUnit) return
+    dispatch(fetchEmployeeCategoryType({ page: 1, limit: 1000, businessUnitId: formik.values.businessUnit }))
       .unwrap()
       .then(data => {
-        setEmployeeCategories(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, employeeCategory: prev.employeeCategory + 10 }))
-        setHasMore(prev => ({ ...prev, employeeCategory: data.data.length === limit.employeeCategory }))
+        setEmployeeCategories(data.data || [])
       })
-  }, [dispatch, limit.employeeCategory, hasMore.employeeCategory, formik.values.businessUnit])
+  }, [dispatch, formik.values.businessUnit])
 
   const loadDepartments = useCallback(() => {
-    if (!hasMore.department || !formik.values.employeeCategory) return
-    dispatch(fetchDepartment({ page: 1, limit: limit.department, employeeCategoryId: formik.values.employeeCategory }))
+    if (!formik.values.employeeCategory) return
+    dispatch(fetchDepartment({ page: 1, limit: 1000, employeeCategoryId: formik.values.employeeCategory }))
       .unwrap()
       .then(data => {
-        setDepartments(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, department: prev.department + 10 }))
-        setHasMore(prev => ({ ...prev, department: data.data.length === limit.department }))
+        setDepartments(data.data || [])
       })
-  }, [dispatch, limit.department, hasMore.department, formik.values.employeeCategory])
+  }, [dispatch, formik.values.employeeCategory])
 
   const loadDesignations = useCallback(() => {
-    if (!hasMore.designation || !formik.values.department) return
-    dispatch(fetchDesignation({ page: 1, limit: limit.designation, departmentId: formik.values.department }))
+    if (!formik.values.department) return
+    dispatch(fetchDesignation({ page: 1, limit: 1000, departmentId: formik.values.department }))
       .unwrap()
       .then(data => {
-        setDesignations(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, designation: prev.designation + 10 }))
-        setHasMore(prev => ({ ...prev, designation: data.data.length === limit.designation }))
+        setDesignations(data.data || [])
       })
-  }, [dispatch, limit.designation, hasMore.designation, formik.values.department])
+  }, [dispatch, formik.values.department])
 
   const loadGrades = useCallback(() => {
-    if (!hasMore.grade) return
-    dispatch(fetchGrade({ page: 1, limit: limit.grade }))
+    dispatch(fetchGrade({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setGrades(prev => [...prev, ...(data?.data || [])])
-        setLimit(prev => ({ ...prev, grade: prev.grade + 10 }))
-        setHasMore(prev => ({ ...prev, grade: data.data.length === limit.grade }))
+        setGrades(data?.data || [])
       })
-  }, [dispatch, limit.grade, hasMore.grade])
+  }, [dispatch])
 
   const loadTerritories = useCallback(() => {
-    if (!hasMore.territory) return
-    dispatch(fetchTerritory({ page: 1, limit: limit.territory }))
+    dispatch(fetchTerritory({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setTerritories(prev => [...prev, ...(data?.data || [])])
-        setLimit(prev => ({ ...prev, territory: prev.territory + 10 }))
-        setHasMore(prev => ({ ...prev, territory: data.data.length === limit.territory }))
+        setTerritories(data?.data || [])
       })
-  }, [dispatch, limit.territory, hasMore.territory])
+  }, [dispatch])
 
   const loadZones = useCallback(() => {
-    if (!hasMore.zone || !formik.values.territory) return
-    dispatch(fetchZone({ page: 1, limit: limit.zone, territoryId: formik.values.territory }))
+    if (!formik.values.territory) return
+    dispatch(fetchZone({ page: 1, limit: 1000, territoryId: formik.values.territory }))
       .unwrap()
       .then(data => {
-        setZones(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, zone: prev.zone + 10 }))
-        setHasMore(prev => ({ ...prev, zone: data.data.length === limit.zone }))
+        setZones(data.data || [])
       })
-  }, [dispatch, limit.zone, hasMore.zone, formik.values.territory])
+  }, [dispatch, formik.values.territory])
 
   const loadRegions = useCallback(() => {
-    if (!hasMore.region || !formik.values.zone) return
-    dispatch(fetchRegion({ page: 1, limit: limit.region, zoneId: formik.values.zone }))
+    if (!formik.values.zone) return
+    dispatch(fetchRegion({ page: 1, limit: 1000, zoneId: formik.values.zone }))
       .unwrap()
       .then(data => {
-        setRegions(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, region: prev.region + 10 }))
-        setHasMore(prev => ({ ...prev, region: data.data.length === limit.region }))
+        setRegions(data.data || [])
       })
-  }, [dispatch, limit.region, hasMore.region, formik.values.zone])
+  }, [dispatch, formik.values.zone])
 
   const loadAreas = useCallback(() => {
-    if (!hasMore.area || !formik.values.region) return
-    dispatch(fetchArea({ page: 1, limit: limit.area, regionId: formik.values.region }))
+    if (!formik.values.region) return
+    dispatch(fetchArea({ page: 1, limit: 1000, regionId: formik.values.region }))
       .unwrap()
       .then(data => {
-        setAreas(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, area: prev.area + 10 }))
-        setHasMore(prev => ({ ...prev, area: data.data.length === limit.area }))
+        setAreas(data.data || [])
       })
-  }, [dispatch, limit.area, hasMore.area, formik.values.region])
+  }, [dispatch, formik.values.region])
 
   const loadClusters = useCallback(() => {
-    if (!hasMore.cluster || !formik.values.area) return
-    dispatch(fetchCluster({ page: 1, limit: limit.cluster }))
+    if (!formik.values.area) return
+    dispatch(fetchCluster({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setClusters(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, cluster: prev.cluster + 10 }))
-        setHasMore(prev => ({ ...prev, cluster: data.data.length === limit.cluster }))
+        setClusters(data.data || [])
       })
-  }, [dispatch, limit.cluster, hasMore.cluster, formik.values.area])
+  }, [dispatch, formik.values.area])
 
   const loadBranches = useCallback(() => {
-    if (!hasMore.branch || !formik.values.cluster) return
-    dispatch(fetchBranch({ page: 1, limit: limit.branch, clusterId: formik.values.cluster }))
+    if (!formik.values.cluster) return
+    dispatch(fetchBranch({ page: 1, limit: 1000, clusterId: formik.values.cluster }))
       .unwrap()
       .then(data => {
-        setBranches(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, branch: prev.branch + 10 }))
-        setHasMore(prev => ({ ...prev, branch: data.data.length === limit.branch }))
+        setBranches(data.data || [])
       })
-  }, [dispatch, limit.branch, hasMore.branch, formik.values.cluster])
+  }, [dispatch, formik.values.cluster])
 
   const loadCities = useCallback(() => {
-    if (!hasMore.city || !formik.values.branchName) return
-    dispatch(fetchCity({ page: 1, limit: limit.city }))
+    if (!formik.values.branchName) return
+    dispatch(fetchCity({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setCities(prev => [...prev, ...(data.data || [])])
-        setLimit(prev => ({ ...prev, city: prev.city + 10 }))
-        setHasMore(prev => ({ ...prev, city: data.data.length === limit.city }))
+        setCities(data.data || [])
       })
-  }, [dispatch, limit.city, hasMore.city, formik.values.branchName])
+  }, [dispatch, formik.values.branchName])
 
   const loadStates = useCallback(() => {
-    if (!hasMore.state || !formik.values.city) return
-    dispatch(fetchState({ page: 1, limit: limit.state }))
+    if (!formik.values.city) return
+    dispatch(fetchState({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setStates(prev => [...prev, ...(data?.data || [])])
-        setLimit(prev => ({ ...prev, state: prev.state + 10 }))
-        setHasMore(prev => ({ ...prev, state: data.data.length === limit.state }))
+        setStates(data?.data || [])
       })
-  }, [dispatch, limit.state, hasMore.state, formik.values.city])
+  }, [dispatch, formik.values.city])
 
   const loadApprovalCategories = useCallback(() => {
-    if (!hasMore.approvalCategory) return
-    dispatch(fetchApprovalCategories({ page: 1, limit: limit.approvalCategory }))
+    dispatch(fetchApprovalCategories({ page: 1, limit: 1000 }))
       .unwrap()
       .then(data => {
-        setApprovalCategories(prev => [...prev, ...(data?.data || [])])
-        setLimit(prev => ({ ...prev, approvalCategory: prev.approvalCategory + 10 }))
-        setHasMore(prev => ({ ...prev, approvalCategory: data.data.length === limit.approvalCategory }))
+        setApprovalCategories(data?.data || [])
       })
-  }, [dispatch, limit.approvalCategory, hasMore.approvalCategory])
+  }, [dispatch])
 
   // Initial API calls on page load (only once)
   useEffect(() => {
@@ -474,7 +402,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     loadApprovalCategories()
   }, [loadJobRoles, loadBusinessUnits, loadGrades, loadTerritories, loadApprovalCategories])
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading (only for jobRole and employee)
   useEffect(() => {
     const observers: { [key: string]: IntersectionObserver } = {}
 
@@ -488,48 +416,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                 break
               case 'employee':
                 loadMoreEmployees()
-                break
-              case 'businessUnit':
-                loadBusinessUnits()
-                break
-              case 'employeeCategory':
-                loadEmployeeCategories()
-                break
-              case 'department':
-                loadDepartments()
-                break
-              case 'designation':
-                loadDesignations()
-                break
-              case 'grade':
-                loadGrades()
-                break
-              case 'territory':
-                loadTerritories()
-                break
-              case 'zone':
-                loadZones()
-                break
-              case 'region':
-                loadRegions()
-                break
-              case 'area':
-                loadAreas()
-                break
-              case 'cluster':
-                loadClusters()
-                break
-              case 'branch':
-                loadBranches()
-                break
-              case 'city':
-                loadCities()
-                break
-              case 'state':
-                loadStates()
-                break
-              case 'approvalCategory':
-                loadApprovalCategories()
                 break
             }
           }
@@ -549,24 +435,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         }
       })
     }
-  }, [
-    loadJobRoles,
-    loadMoreEmployees,
-    loadBusinessUnits,
-    loadEmployeeCategories,
-    loadDepartments,
-    loadDesignations,
-    loadGrades,
-    loadTerritories,
-    loadZones,
-    loadRegions,
-    loadAreas,
-    loadClusters,
-    loadBranches,
-    loadCities,
-    loadStates,
-    loadApprovalCategories
-  ])
+  }, [loadJobRoles, loadMoreEmployees])
 
   // Handle jobRole change to fetch employees
   useEffect(() => {
@@ -587,8 +456,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.businessUnit && formik.values.businessUnit !== businessUnitFetchRef.current) {
       setEmployeeCategories([])
-      setLimit(prev => ({ ...prev, employeeCategory: 10 }))
-      setHasMore(prev => ({ ...prev, employeeCategory: true }))
       businessUnitFetchRef.current = formik.values.businessUnit
       loadEmployeeCategories()
     } else if (!formik.values.businessUnit && businessUnitFetchRef.current !== null) {
@@ -604,8 +471,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.employeeCategory && formik.values.employeeCategory !== employeeCategoryFetchRef.current) {
       setDepartments([])
-      setLimit(prev => ({ ...prev, department: 10 }))
-      setHasMore(prev => ({ ...prev, department: true }))
       employeeCategoryFetchRef.current = formik.values.employeeCategory
       loadDepartments()
     } else if (!formik.values.employeeCategory && employeeCategoryFetchRef.current !== null) {
@@ -620,8 +485,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.department && formik.values.department !== departmentFetchRef.current) {
       setDesignations([])
-      setLimit(prev => ({ ...prev, designation: 10 }))
-      setHasMore(prev => ({ ...prev, designation: true }))
       departmentFetchRef.current = formik.values.department
       loadDesignations()
     } else if (!formik.values.department && departmentFetchRef.current !== null) {
@@ -635,8 +498,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.territory && formik.values.territory !== territoryFetchRef.current) {
       setZones([])
-      setLimit(prev => ({ ...prev, zone: 10 }))
-      setHasMore(prev => ({ ...prev, zone: true }))
       territoryFetchRef.current = formik.values.territory
       loadZones()
     } else if (!formik.values.territory && territoryFetchRef.current !== null) {
@@ -655,26 +516,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setBranches([])
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        zone: 10,
-        region: 10,
-        area: 10,
-        cluster: 10,
-        branch: 10,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        zone: true,
-        region: true,
-        area: true,
-        cluster: true,
-        branch: true,
-        city: true,
-        state: true
-      }))
       territoryFetchRef.current = null
     }
   }, [formik.values.territory, loadZones, formik])
@@ -683,8 +524,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.zone && formik.values.zone !== zoneFetchRef.current) {
       setRegions([])
-      setLimit(prev => ({ ...prev, region: 10 }))
-      setHasMore(prev => ({ ...prev, region: true }))
       zoneFetchRef.current = formik.values.zone
       loadRegions()
     } else if (!formik.values.zone && zoneFetchRef.current !== null) {
@@ -701,24 +540,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setBranches([])
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        region: 10,
-        area: 10,
-        cluster: 10,
-        branch: 10,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        region: true,
-        area: true,
-        cluster: true,
-        branch: true,
-        city: true,
-        state: true
-      }))
       zoneFetchRef.current = null
     }
   }, [formik.values.zone, loadRegions, formik])
@@ -727,8 +548,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.region && formik.values.region !== regionFetchRef.current) {
       setAreas([])
-      setLimit(prev => ({ ...prev, area: 10 }))
-      setHasMore(prev => ({ ...prev, area: true }))
       regionFetchRef.current = formik.values.region
       loadAreas()
     } else if (!formik.values.region && regionFetchRef.current !== null) {
@@ -743,22 +562,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setBranches([])
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        area: 10,
-        cluster: 10,
-        branch: 10,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        area: true,
-        cluster: true,
-        branch: true,
-        city: true,
-        state: true
-      }))
       regionFetchRef.current = null
     }
   }, [formik.values.region, loadAreas, formik])
@@ -767,8 +570,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.area && formik.values.area !== areaFetchRef.current) {
       setClusters([])
-      setLimit(prev => ({ ...prev, cluster: 10 }))
-      setHasMore(prev => ({ ...prev, cluster: true }))
       areaFetchRef.current = formik.values.area
       loadClusters()
     } else if (!formik.values.area && areaFetchRef.current !== null) {
@@ -781,20 +582,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setBranches([])
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        cluster: 10,
-        branch: 10,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        cluster: true,
-        branch: true,
-        city: true,
-        state: true
-      }))
       areaFetchRef.current = null
     }
   }, [formik.values.area, loadClusters, formik])
@@ -803,8 +590,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.cluster && formik.values.cluster !== clusterFetchRef.current) {
       setBranches([])
-      setLimit(prev => ({ ...prev, branch: 10 }))
-      setHasMore(prev => ({ ...prev, branch: true }))
       clusterFetchRef.current = formik.values.cluster
       loadBranches()
     } else if (!formik.values.cluster && clusterFetchRef.current !== null) {
@@ -815,18 +600,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setBranches([])
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        branch: 10,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        branch: true,
-        city: true,
-        state: true
-      }))
       clusterFetchRef.current = null
     }
   }, [formik.values.cluster, loadBranches, formik])
@@ -835,8 +608,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.branchName && formik.values.branchName !== branchNameFetchRef.current) {
       setCities([])
-      setLimit(prev => ({ ...prev, city: 10 }))
-      setHasMore(prev => ({ ...prev, city: true }))
       branchNameFetchRef.current = formik.values.branchName
       loadCities()
     } else if (!formik.values.branchName && branchNameFetchRef.current !== null) {
@@ -844,16 +615,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
       formik.setFieldValue('state', '')
       setCities([])
       setStates([])
-      setLimit(prev => ({
-        ...prev,
-        city: 10,
-        state: 10
-      }))
-      setHasMore(prev => ({
-        ...prev,
-        city: true,
-        state: true
-      }))
       branchNameFetchRef.current = null
     }
   }, [formik.values.branchName, loadCities, formik])
@@ -862,15 +623,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
   useEffect(() => {
     if (formik.values.city && formik.values.city !== cityFetchRef.current) {
       setStates([])
-      setLimit(prev => ({ ...prev, state: 10 }))
-      setHasMore(prev => ({ ...prev, state: true }))
       cityFetchRef.current = formik.values.city
       loadStates()
     } else if (!formik.values.city && cityFetchRef.current !== null) {
       formik.setFieldValue('state', '')
       setStates([])
-      setLimit(prev => ({ ...prev, state: 10 }))
-      setHasMore(prev => ({ ...prev, state: true }))
       cityFetchRef.current = null
     }
   }, [formik.values.city, loadStates, formik])
@@ -1155,7 +912,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.businessUnit} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.businessUnit && formik.errors.businessUnit && (
                     <Typography variant='caption' color='error'>
@@ -1190,7 +946,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.employeeCategory} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.employeeCategory && formik.errors.employeeCategory && (
                     <Typography variant='caption' color='error'>
@@ -1248,7 +1003,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.department} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.department && formik.errors.department && (
                     <Typography variant='caption' color='error'>
@@ -1279,7 +1033,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.designation} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.designation && formik.errors.designation && (
                     <Typography variant='caption' color='error'>
@@ -1309,7 +1062,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.grade} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.grade && formik.errors.grade && (
                     <Typography variant='caption' color='error'>
@@ -1357,7 +1109,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.territory} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.territory && formik.errors.territory && (
                     <Typography variant='caption' color='error'>
@@ -1397,7 +1148,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.zone} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.zone && formik.errors.zone && (
                     <Typography variant='caption' color='error'>
@@ -1436,7 +1186,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.region} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.region && formik.errors.region && (
                     <Typography variant='caption' color='error'>
@@ -1474,7 +1223,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.area} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.area && formik.errors.area && (
                     <Typography variant='caption' color='error'>
@@ -1511,7 +1259,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.cluster} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.cluster && formik.errors.cluster && (
                     <Typography variant='caption' color='error'>
@@ -1549,7 +1296,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.branch} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.branchName && formik.errors.branchName && (
                     <Typography variant='caption' color='error'>
@@ -1597,7 +1343,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.city} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.city && formik.errors.city && (
                     <Typography variant='caption' color='error'>
@@ -1628,7 +1373,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.state} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.state && formik.errors.state && (
                     <Typography variant='caption' color='error'>
@@ -1663,7 +1407,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         {option.name}
                       </MenuItem>
                     ))}
-                    <div ref={observerRefs.approvalCategory} style={{ height: '1px' }} />
                   </Select>
                   {formik.touched.approvalCategory && formik.errors.approvalCategory && (
                     <Typography variant='caption' color='error'>

@@ -69,7 +69,8 @@
     "tailwindcss-logical": "3.0.1",
     "tsx": "4.7.1",
     "valibot": "^1.0.0-rc.1",
-    "yup": "^1.5.0"
+    "yup": "^1.5.0",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@iconify/tools": "4.0.2",

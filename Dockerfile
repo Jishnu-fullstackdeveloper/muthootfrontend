@@ -1,20 +1,13 @@
-# Base image
-FROM node:18-alpine as base
-RUN apk add --no-cache g++ make py3-pip libc6-compat
+FROM node:18-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-EXPOSE 3000
+RUN npm ci
 COPY . .
-RUN npm install --force # Install all dependencies for development
-RUN npm install tsx --force
-# Development stage
-FROM base as dev
-ENV NODE_ENV=development
+RUN npm run build
+
+FROM node:18-slim AS runner
 WORKDIR /app
-RUN npm run build:icons
-
-# Copy all project files (avoiding this if using bind mounts)
-COPY . .
-
-CMD ["npm", "run", "dev"]
-                              
+COPY --from=builder /app ./
+ENV NODE_ENV production
+EXPOSE 3000
+CMD ["npm", "start"]

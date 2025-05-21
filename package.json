@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "license": "Commercial",
   "private": true,
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",

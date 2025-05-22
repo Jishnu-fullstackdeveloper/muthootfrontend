@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import XFactor from './XFactor'
 import DataUploadListingPage from './DataUpload/DataUploadListing'
 import ApprovalCategoryForm from './ApprovalCategory/ApprovalCategoryForm'
+import InterviewCustomizationPage from './InterviewCustomization/InterviewCustomizationList'
 
 // import AddOrEditUser from '@/form/generatedForms/addNewUser' // Update this import path to match your project structure
 
@@ -21,6 +22,7 @@ const SystemManagementIndex = () => {
       {mode === 'view' && settings === 'xfactor' && <XFactor />}
       {mode === 'view' && settings === 'data-upload' && <DataUploadListingPage />}
       {mode === 'view' && settings === 'approval-category' && <ApprovalCategoryForm />}
+      {mode === 'view' && settings === 'interview-customization' && <InterviewCustomizationPage />}
     </>
   )
 }

@@ -12,6 +12,9 @@ const SystemManagement = () => {
       <Button onClick={() => router.push('/system-management/view/xfactor')}>XFactor</Button>
       <Button onClick={() => router.push('/system-management/view/data-upload')}>Data Upload</Button>
       <Button onClick={() => router.push('/system-management/view/approval-category')}>Approval Category</Button>
+      <Button onClick={() => router.push('/system-management/view/interview-customization')}>
+        Interview Customization
+      </Button>
     </Box>
   )
 }

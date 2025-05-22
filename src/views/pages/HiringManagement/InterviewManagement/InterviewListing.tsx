@@ -3,7 +3,19 @@ import React, { useEffect, useState, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
+import {
+  Box,
+  Card,
+  IconButton,
+  Tooltip,
+  Typography,
+  TextField,
+  InputAdornment,
+  Button,
+  Chip,
+  Divider,
+  CircularProgress
+} from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
@@ -13,89 +25,17 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import SearchIcon from '@mui/icons-material/Search' // Added for search bar
+import InterviewTableView from './InterviewListTable'
 
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
+import { InterviewCandidate, staticCandidates } from '@/utils/sampleData/InterviewManagement/InterviewListData'
+
 //import InterviewTableView from './InterviewTableView'
 
-interface InterviewCandidate {
-  id: string
-  candidateName: string
-  email: string
-  mobileNumber: string
-  designationApplied: string
-  screeningStatus: 'Shortlisted' | 'Rejected' | 'Pending' | 'Interviewed'
-  interviewDate?: string
-}
-
 type ViewMode = 'grid' | 'table'
-
-const staticCandidates: InterviewCandidate[] = [
-  {
-    id: '1',
-    candidateName: 'John Doe',
-    email: 'john.doe@example.com',
-    mobileNumber: '+1234567890',
-    designationApplied: 'Software Engineer',
-    screeningStatus: 'Shortlisted',
-    interviewDate: '2025-05-10T00:00:00Z'
-  },
-  {
-    id: '2',
-    candidateName: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    mobileNumber: '+1987654321',
-    designationApplied: 'Product Manager',
-    screeningStatus: 'Pending',
-    interviewDate: '2025-05-11T00:00:00Z'
-  },
-  {
-    id: '3',
-    candidateName: 'Alice Johnson',
-    email: 'alice.johnson@example.com',
-    mobileNumber: '+1123456789',
-    designationApplied: 'UI/UX Designer',
-    screeningStatus: 'Rejected',
-    interviewDate: '2025-05-12T00:00:00Z'
-  },
-  {
-    id: '4',
-    candidateName: 'Bob Wilson',
-    email: 'bob.wilson@example.com',
-    mobileNumber: '+1098765432',
-    designationApplied: 'Data Analyst',
-    screeningStatus: 'Interviewed',
-    interviewDate: '2025-05-13T00:00:00Z'
-  },
-  {
-    id: '5',
-    candidateName: 'Emma Brown',
-    email: 'emma.brown@example.com',
-    mobileNumber: '+1345678901',
-    designationApplied: 'DevOps Engineer',
-    screeningStatus: 'Shortlisted',
-    interviewDate: '2025-05-14T00:00:00Z'
-  },
-  {
-    id: '6',
-    candidateName: 'Michael Lee',
-    email: 'michael.lee@example.com',
-    mobileNumber: '+1789012345',
-    designationApplied: 'QA Engineer',
-    screeningStatus: 'Pending',
-    interviewDate: '2025-05-15T00:00:00Z'
-  },
-  {
-    id: '7',
-    candidateName: 'Sarah Davis',
-    email: 'sarah.davis@example.com',
-    mobileNumber: '+1567890123',
-    designationApplied: 'Backend Developer',
-    screeningStatus: 'Rejected',
-    interviewDate: '2025-05-16T00:00:00Z'
-  }
-]
 
 const InterviewListingPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -149,7 +89,20 @@ const InterviewListingPage = () => {
             </Typography>
           </Box>
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
-            <AppReactDatepicker
+            <TextField
+              label='Search'
+              variant='outlined'
+              size='small'
+              sx={{ width: '300px' }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+            {/* <AppReactDatepicker
               selected={fromDate}
               onChange={(date: Date | null) => setFromDate(date)}
               placeholderText='Select from date'
@@ -174,7 +127,7 @@ const InterviewListingPage = () => {
               }}
               popperClassName='date-picker-popper'
               portalId='date-picker-portal'
-            />
+            /> */}
             <Box
               sx={{
                 display: 'flex',
@@ -232,10 +185,18 @@ const InterviewListingPage = () => {
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}
             >
-              <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
-                <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
-                  {candidate.candidateName}
-                </Typography>
+              <Box className=' pl-4  pr-2 flex justify-between items-center'>
+                <Box className='flex'>
+                  <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
+                    {candidate.candidateName}
+                  </Typography>
+                  <Divider orientation='vertical' flexItem sx={{ mx: 1, height: '36px', alignSelf: 'center' }} />
+                  <Tooltip title='Job ID'>
+                    <Typography mt={3} fontWeight='medium' fontSize='10px' gutterBottom>
+                      {candidate.jobId}
+                    </Typography>
+                  </Tooltip>
+                </Box>
                 <Tooltip title='Screening Status'>
                   <Chip
                     label={candidate.screeningStatus}
@@ -278,7 +239,63 @@ const InterviewListingPage = () => {
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box className='mt-4 flex justify-end gap-2'>
+                <Divider orientation='horizontal' sx={{ mt: 2 }} />
+                {/* <Box className='mt-3 flex justify-end gap-2'>
+                  <Tooltip title='Shortlist'>
+                    <Button
+                      variant='tonal'
+                      color='success'
+                      size='small'
+                      startIcon={<CheckCircleOutlineIcon />}
+                      onClick={e => {
+                        e.stopPropagation()
+                        console.log(`Shortlist candidate ${candidate.candidateName}`)
+                      }}
+                    >
+                      Shortlist
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title='Reject'>
+                    <Button
+                      variant='tonal'
+                      color='error'
+                      size='small'
+                      startIcon={<CancelOutlinedIcon />}
+                      onClick={e => {
+                        e.stopPropagation()
+                        console.log(`Reject candidate ${candidate.candidateName}`)
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </Tooltip>
+                </Box> */}
+                <Box className='mt-3 flex justify-end items-center gap-2'>
+                  <Box sx={{ position: 'relative', display: 'inline-flex', mr: 17 }}>
+                    <CircularProgress
+                      variant='determinate'
+                      value={candidate.profileMatchPercent || 0}
+                      size={40}
+                      thickness={3}
+                      sx={{ color: 'primary.main' }}
+                    />
+                    <Box
+                      sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Typography variant='body2' component='div' color='text.secondary' fontWeight='bold'>
+                        {`${Math.round(candidate.profileMatchPercent || 0)}%`}
+                      </Typography>
+                    </Box>
+                  </Box>
                   <Tooltip title='Shortlist'>
                     <Button
                       variant='tonal'

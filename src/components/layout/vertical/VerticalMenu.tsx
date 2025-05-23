@@ -15,6 +15,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 import withPermission from '@/hocs/withPermission'
+import { getPermissionRenderConfig } from '@/utils/functions'
 
 interface MenuItemType {
   path: string
@@ -40,26 +41,47 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
   const [clientMenuItems, setClientMenuItems] = useState<MenuItemType[]>([])
+  const [permissionConfig, setPermissionConfig] = useState<Record<string, string> | null>(null)
   const pathname = usePathname()
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
+  // Load permissionConfig on mount
+  useEffect(() => {
+    const config = getPermissionRenderConfig()
+
+    setPermissionConfig(config)
+  }, [])
+
   const staticMenuItems = useMemo(
     () => [
       {
-        path: '/user-management',
+        path: '/home', // Added Home menu item
+        label: 'Home',
+        iconClass: 'tabler-home',
+        permission: 'home',
+        read: 'HOME_READ' // Set to match getPermissionRenderConfig key
+      },
+      {
+        path: '/user-management/user',
         label: 'User Management',
         iconClass: 'tabler-users',
         permission: 'userManagement',
-        read: 'user_read'
+        read: 'USER_USER_READ'
       },
-      { path: '/user-role', label: 'User Roles', iconClass: 'tabler-key', permission: 'userRoles', read: 'role_read' },
+      {
+        path: '/user-role',
+        label: 'User Roles',
+        iconClass: 'tabler-key',
+        permission: 'userRoles',
+        read: 'USER_ROLE_READ'
+      },
       {
         path: '/approvals',
         label: 'Approvals',
         iconClass: 'tabler-rosette-discount-check',
         permission: 'approvals',
-        read: 'approvals_read'
+        read: 'APPROVALS_READ'
       },
 
       // {
@@ -69,28 +91,25 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       //   permission: 'candidateManagement'
       // },
 
-
       {
         path: '/hiring-management',
         label: 'Hiring Management',
-        iconClass: 'tabler-apps',
-        
+        iconClass: 'tabler-apps'
       },
-    
 
       {
         path: '/jd-management',
         label: 'JD Management',
         iconClass: 'tabler-file-description',
         permission: 'jdManagement',
-        read: 'jd_read'
+        read: 'JD_READ'
       },
       {
         path: '/vacancy-management',
         label: 'Vacancy Management',
         iconClass: 'tabler-briefcase',
         permission: 'vacancyManagement',
-        read: 'vacancy_read'
+        read: 'HIRING_VACANCY_READ'
       },
 
       {
@@ -98,7 +117,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'Budget Management',
         iconClass: 'tabler-report-money',
         permission: 'budgetManagement',
-        read: 'budget_read'
+        read: 'HIRING_BUDGET_READ'
       },
 
       // {
@@ -113,7 +132,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'Branch Management',
         iconClass: 'tabler-git-merge',
         permission: 'branchManagement',
-        read: 'branch_read'
+        read: 'BRANCH_READ'
       },
 
       // {
@@ -128,21 +147,21 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'Approval Matrix',
         iconClass: 'tabler-align-box-bottom-center',
         permission: 'approvalMatrix',
-        read: 'approvalmatrix_read'
+        read: 'SYSTEM_APPROVALMATRIX_READ'
       },
       {
         path: '/employee-management',
         label: 'Employee Management',
         iconClass: 'tabler-users-group',
         permission: 'employeeManagement',
-        read: 'employee_read'
+        read: 'USER_EMPLOYEE_READ'
       },
       {
         path: '/system-management',
         label: 'System Management',
         iconClass: 'tabler-settings-check',
         permission: 'systemManagement',
-        read: 'general_create'
+        read: 'GENERAL_CREATE'
       }
     ],
     []
@@ -161,12 +180,18 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       path: item.path,
       label: item.label,
       iconClass: item.iconClass,
-      permission: (item as { permission?: string }).permission || '', // Assert permission as optional
-      read: (item as { read?: string }).read || '' // Add read as optional
+      permission: (item as { permission?: string }).permission || '',
+      read: (item as { read?: string }).read || ''
     }))
 
-    setClientMenuItems([...dynamicMenuItems, ...staticMenuItems])
+    // Combine staticMenuItems with dynamicMenuItems
+    setClientMenuItems([...staticMenuItems, ...dynamicMenuItems])
   }, [staticMenuItems])
+
+  // Wait until permissionConfig is loaded before rendering menu items
+  if (!permissionConfig) {
+    return null // Or a loading spinner/placeholder
+  }
 
   return (
     <ScrollWrapper
@@ -192,6 +217,9 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
         {clientMenuItems.map((item, index) => {
+          // Map the read key to the corresponding permission value using getPermissionRenderConfig
+          const individualPermission = item.read && permissionConfig?.[item.read] ? permissionConfig[item.read] : ''
+
           // Create the permission-wrapped component
           const MenuItemWithPermission = withPermission(
             (
@@ -205,13 +233,12 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
               >
                 {item.label}
               </MenuItem>
-            ),
-            item.permission // Use permission from permissionsMap
+            )
           )
 
-          // Invoke the function with individualPermission as item.read
+          // Invoke the function with individualPermission mapped from getPermissionRenderConfig
           return MenuItemWithPermission({
-            individualPermission: item.read || ''
+            individualPermission: individualPermission
 
             // fallback: <div>Unauthorized</div>,
             // buttonDisable: true

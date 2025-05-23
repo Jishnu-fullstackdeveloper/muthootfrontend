@@ -20,6 +20,20 @@ const NavbarContent = () => {
   const pathname = usePathname()
   const pathSegments = pathname.split('/').filter(Boolean)
 
+  // Find the index of the first 'add', 'view', or 'edit' segment
+  const specialSegmentIndex = pathSegments.findIndex(segment => ['add', 'view', 'edit'].includes(segment.toLowerCase()))
+
+  // Determine the index of the clickable segment
+  let clickableSegmentIndex: number
+
+  if (specialSegmentIndex !== -1) {
+    // If 'add', 'view', or 'edit' exists, make the segment before it clickable
+    clickableSegmentIndex = specialSegmentIndex - 1
+  } else {
+    // If no 'add', 'view', or 'edit', make the last segment clickable
+    clickableSegmentIndex = pathSegments.length - 1
+  }
+
   return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
@@ -51,17 +65,18 @@ const NavbarContent = () => {
 
             const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
 
+            console.log('breadcrumbPath', breadcrumbPath)
+            console.log('segment', segment)
+
             // Decode URL component and format segment text
             const decodedSegment = decodeURIComponent(segment)
             const segmentText = decodedSegment.charAt(0).toUpperCase() + decodedSegment.slice(1).replace(/-/g, ' ')
 
-            const isLastSegment = index === pathSegments.length - 1
+            // Determine if this segment should be clickable
+            // Only the segment at clickableSegmentIndex should be clickable
+            const isClickable = index === clickableSegmentIndex
 
-            return isLastSegment ? (
-              <Typography key={breadcrumbPath} color='text.primary'>
-                {segmentText}
-              </Typography>
-            ) : (
+            return isClickable ? (
               <Link
                 key={breadcrumbPath}
                 underline='hover'
@@ -71,6 +86,10 @@ const NavbarContent = () => {
               >
                 {segmentText}
               </Link>
+            ) : (
+              <Typography key={breadcrumbPath} color='text.primary'>
+                {segmentText}
+              </Typography>
             )
           })}
         </Breadcrumbs>

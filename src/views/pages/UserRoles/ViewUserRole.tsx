@@ -37,7 +37,7 @@ const MODULES = [
   'general',
   'home',
   'employee',
-  'system',
+  'system'
 ]
 
 const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
@@ -55,7 +55,7 @@ const APPLICABLE_PERMISSIONS = {
   general: ['read', 'create', 'update', 'delete'],
   home: ['read'],
   employee: ['read'],
-  system: ['read', 'create', 'update', 'delete'],
+  system: ['read', 'create', 'update', 'delete']
 }
 
 const ViewUserRole = () => {
@@ -71,11 +71,9 @@ const ViewUserRole = () => {
       const existingRole = userRoleData?.data?.find(role => role.id === roleId)
 
       if (existingRole) {
-        setLocalRole(existingRole)
+        // setLocalRole(existingRole)
       } else {
-        dispatch(fetchUserRole({ id: roleId })).then(response => {
-          setLocalRole(response.payload)
-        })
+        dispatch(fetchUserRole({ id: roleId }))
       }
     }
   }, [dispatch, roleId, userRoleData])
@@ -84,7 +82,6 @@ const ViewUserRole = () => {
   const roleName = matchedRole?.name || searchParams.get('name') || 'N/A'
   const roleDescription = matchedRole?.description || searchParams.get('description') || 'N/A'
   const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]')
-
 
   const groupedPermissions = {}
 
@@ -131,8 +128,7 @@ const ViewUserRole = () => {
       general: 'General Settings',
       home: 'Home Dashboard',
       employee: 'Employee Management',
-      system: 'System Management',
-
+      system: 'System Management'
     })[module] || module
 
   const getPermissionDescription = (module, perm) => {

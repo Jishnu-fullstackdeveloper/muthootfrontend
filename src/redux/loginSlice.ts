@@ -5,13 +5,42 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 import AxiosLib from '@/lib/AxiosLib'
-import { getAccessToken, getRefreshToken } from '@/utils/functions'
+import { getAccessToken, getRefreshToken, handleAsyncThunkStates } from '@/utils/functions'
 
+// Define the state interface
 interface SignOutParams {
   userType: string
 }
 
-// ** Fetch Contacts List
+interface LoginState {
+  fetchInitialLoginURLLoading: boolean
+  fetchInitialLoginURLSuccess: boolean
+  fetchInitialLoginURLData: any
+  fetchInitialLoginURLFailure: boolean
+  fetchInitialLoginURLFailureMessage: string
+  fetchLoginTokenLoading: boolean
+  fetchLoginTokenSuccess: boolean
+  fetchLoginTokenData: any
+  fetchLoginTokenFailure: boolean
+  fetchLoginTokenFailureMessage: string
+  fetchNewAccessTokenLoading: boolean
+  fetchNewAccessTokenSuccess: boolean
+  fetchNewAccessTokenData: any
+  fetchNewAccessTokenFailure: boolean
+  fetchNewAccessTokenFailureMessage: string
+  changePasswordApiLoading: boolean
+  changePasswordApiSuccess: boolean
+  changePasswordApiData: any
+  changePasswordApiFailure: boolean
+  changePasswordApiFailureMessage: string
+  fetchPermissionRenderConfigLoading: boolean
+  fetchPermissionRenderConfigSuccess: boolean
+  fetchPermissionRenderConfigData: any
+  fetchPermissionRenderConfigFailure: boolean
+  fetchPermissionRenderConfigFailureMessage: string
+}
+
+// Thunk for fetching initial login URL
 export const fetchInitialLoginURL = createAsyncThunk<any, any>(
   'login/fetchurl',
   async (params, { rejectWithValue }) => {
@@ -33,6 +62,7 @@ export const fetchInitialLoginURL = createAsyncThunk<any, any>(
   }
 )
 
+// Thunk for fetching login token
 export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', async (params, thunkAPI) => {
   try {
     thunkAPI
@@ -51,6 +81,7 @@ export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', as
   }
 })
 
+// Thunk for signing out
 export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: SignOutParams, thunkAPI) => {
   try {
     params
@@ -72,6 +103,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
   }
 })
 
+// Thunk for changing password
 export const changePasswordApi = createAsyncThunk<any, any>('change-password', async (params: object) => {
   try {
     params
@@ -90,6 +122,7 @@ export const changePasswordApi = createAsyncThunk<any, any>('change-password', a
   }
 })
 
+// Thunk for fetching new access token
 export const fetchNewAccessToken = createAsyncThunk<any, any>(
   'appLogin/fetchNewAccessToken',
   async (params: any, { rejectWithValue }) => {
@@ -106,13 +139,13 @@ export const fetchNewAccessToken = createAsyncThunk<any, any>(
   }
 )
 
-// ** Fetch Permission Render Configuration
+// Thunk for fetching permission render configuration
 export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
   'login/fetchPermissionRenderConfig',
   async (_, { rejectWithValue }) => {
     try {
       const accessToken = getAccessToken()
-      const api = '/system-management/render-config'
+      const api = '/permissions'
 
       const response = await AxiosLib.get(api, {
         headers: {
@@ -127,123 +160,75 @@ export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
   }
 )
 
-export const loginSlice: any = createSlice({
+// Create the slice
+export const loginSlice = createSlice({
   name: 'login',
   initialState: {
-    isLoading: false,
-    isLoginBegin: false,
-    firstLoginData: {},
-    fetchKeycloakLoginUrlError: false,
-    fetchKeycloakLoginUrlErrorMessage: '',
-    changePasswordData: null,
-    changePasswordFailure: false,
-    changePasswordFailureMessage: '',
-    newAccessTokenApiBegin: false,
-    newAccessTokenApiData: '',
-    newAccessTokenApiSuccess: false,
-    newAccessTokenApiFailure: false,
-    newAccessTokenApiFailureMessage: '',
-    loginErrorMessage: {},
-    loginFailure: false,
-    isSecondLoading: false,
-    secondLoginData: null,
+    fetchInitialLoginURLLoading: false,
+    fetchInitialLoginURLSuccess: false,
+    fetchInitialLoginURLData: null,
+    fetchInitialLoginURLFailure: false,
+    fetchInitialLoginURLFailureMessage: '',
+    fetchLoginTokenLoading: false,
+    fetchLoginTokenSuccess: false,
+    fetchLoginTokenData: null,
+    fetchLoginTokenFailure: false,
+    fetchLoginTokenFailureMessage: '',
+    fetchNewAccessTokenLoading: false,
+    fetchNewAccessTokenSuccess: false,
+    fetchNewAccessTokenData: null,
+    fetchNewAccessTokenFailure: false,
+    fetchNewAccessTokenFailureMessage: '',
+    changePasswordApiLoading: false,
+    changePasswordApiSuccess: false,
+    changePasswordApiData: null,
+    changePasswordApiFailure: false,
+    changePasswordApiFailureMessage: '',
     fetchPermissionRenderConfigLoading: false,
+    fetchPermissionRenderConfigSuccess: false,
     fetchPermissionRenderConfigData: null,
-    fetchPermissionRenderConfigError: false,
-    fetchPermissionRenderConfigErrorMessage: ''
-  },
+    fetchPermissionRenderConfigFailure: false,
+    fetchPermissionRenderConfigFailureMessage: ''
+  } as LoginState,
   reducers: {
     LoginDataDismiss: (state, action: PayloadAction<boolean>) => {
       action
-      ;(state.newAccessTokenApiSuccess = false),
-        (state.newAccessTokenApiFailure = false),
-        (state.newAccessTokenApiFailureMessage = ''),
-        (state.fetchKeycloakLoginUrlError = false),
-        (state.fetchKeycloakLoginUrlErrorMessage = ''),
-        (state.changePasswordFailure = false),
-        (state.changePasswordFailureMessage = '')
+      state.fetchNewAccessTokenSuccess = false
+      state.fetchNewAccessTokenFailure = false
+      state.fetchNewAccessTokenFailureMessage = ''
+      state.fetchInitialLoginURLFailure = false
+      state.fetchInitialLoginURLFailureMessage = ''
+      state.changePasswordApiFailure = false
+      state.changePasswordApiFailureMessage = ''
     }
   },
   extraReducers: builder => {
-    builder.addCase(fetchInitialLoginURL.pending, state => {
-      state.isLoginBegin = true
-      state.loginFailure = false
-    })
-    builder.addCase(fetchInitialLoginURL.fulfilled, (state, action) => {
-      state.firstLoginData = action.payload
-      state.isLoginBegin = false
-      state.loginFailure = false
-    })
-    builder.addCase(fetchInitialLoginURL.rejected, (state, action) => {
-      state.isLoginBegin = false
-      state.firstLoginData = {}
-      state.loginErrorMessage = (action.payload as any)?.message
-      state.loginFailure = true
-    })
+    // Use handleAsyncThunkStates for each async thunk
 
-    builder.addCase(fetchLoginToken.pending, state => {
-      state.isSecondLoading = true
-    })
-    builder.addCase(fetchLoginToken.fulfilled, (state, action) => {
-      state.isSecondLoading = false
-      state.secondLoginData = action.payload
-    })
-    builder.addCase(fetchLoginToken.rejected, state => {
-      state.isSecondLoading = false
-      state.secondLoginData = null
-    })
-
-    builder.addCase(fetchNewAccessToken.pending, state => {
-      state.newAccessTokenApiBegin = true
-    })
+    // Custom handling for fetchNewAccessToken fulfilled case
     builder.addCase(fetchNewAccessToken.fulfilled, (state, action) => {
+      state.fetchNewAccessTokenLoading = false
+
       if (action?.payload?.success === false && action?.payload?.statusCode === 400) {
-        ;(state.newAccessTokenApiFailure = true),
-          (state.newAccessTokenApiBegin = false),
-          (state.newAccessTokenApiFailureMessage = action?.payload?.message)
+        state.fetchNewAccessTokenSuccess = false
+        state.fetchNewAccessTokenFailure = true
+        state.fetchNewAccessTokenFailureMessage = action?.payload?.message
+        state.fetchNewAccessTokenData = null
       } else {
-        ;(state.newAccessTokenApiSuccess = true),
-          (state.newAccessTokenApiData = action.payload),
-          (state.newAccessTokenApiBegin = false)
+        state.fetchNewAccessTokenSuccess = true
+        state.fetchNewAccessTokenData = action.payload
+        state.fetchNewAccessTokenFailure = false
+        state.fetchNewAccessTokenFailureMessage = ''
       }
     })
-    builder.addCase(fetchNewAccessToken.rejected, (state, action: any) => {
-      ;(state.newAccessTokenApiFailure = true),
-        (state.newAccessTokenApiBegin = false),
-        (state.newAccessTokenApiFailureMessage = action?.payload?.message || '')
-    })
-
-    builder.addCase(changePasswordApi.pending, state => {
-      state.isLoading = true
-    })
-    builder.addCase(changePasswordApi.fulfilled, (state, action) => {
-      state.changePasswordData = action?.payload?.url
-      state.isLoading = false
-    })
-    builder.addCase(changePasswordApi.rejected, (state, action: any) => {
-      state.changePasswordData = null
-      state.isLoading = false
-      ;(state.changePasswordFailure = false), (state.changePasswordFailureMessage = action?.payload?.message || '')
-    })
-
-    // Add extra reducers for fetchPermissionRenderConfig
-    builder.addCase(fetchPermissionRenderConfig.pending, state => {
-      state.fetchPermissionRenderConfigLoading = true
-      state.fetchPermissionRenderConfigError = false
-      state.fetchPermissionRenderConfigErrorMessage = ''
-    })
-    builder.addCase(fetchPermissionRenderConfig.fulfilled, (state, action) => {
-      state.fetchPermissionRenderConfigLoading = false
-      state.fetchPermissionRenderConfigData = action.payload
-    })
-    builder.addCase(fetchPermissionRenderConfig.rejected, (state, action: any) => {
-      state.fetchPermissionRenderConfigLoading = false
-      state.fetchPermissionRenderConfigError = true
-      state.fetchPermissionRenderConfigErrorMessage =
-        action.payload?.message || 'Failed to fetch permission configuration'
-    })
+    handleAsyncThunkStates(builder, fetchInitialLoginURL, 'fetchInitialLoginURL')
+    handleAsyncThunkStates(builder, fetchLoginToken, 'fetchLoginToken')
+    handleAsyncThunkStates(builder, signOutApi, 'signOut')
+    handleAsyncThunkStates(builder, changePasswordApi, 'changePasswordApi')
+    handleAsyncThunkStates(builder, fetchNewAccessToken, 'fetchNewAccessToken')
+    handleAsyncThunkStates(builder, fetchPermissionRenderConfig, 'fetchPermissionRenderConfig')
   }
 })
 
-export const { setIsLoggedIn, LoginDataDismiss } = loginSlice.actions
+export const { LoginDataDismiss } = loginSlice.actions
 export default loginSlice.reducer

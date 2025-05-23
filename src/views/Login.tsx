@@ -110,9 +110,8 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
   // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const { firstLoginData, loginErrorMessage, loginFailure, fetchPermissionRenderConfigData }: any = useSelector(
-    (state: any) => state.loginReducer
-  )
+  const { fetchInitialLoginURLData, loginErrorMessage, loginFailure, fetchPermissionRenderConfigData }: any =
+    useSelector((state: any) => state.loginReducer)
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -131,10 +130,14 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
     setDisplayLoginPage(false)
     setIsPasswordShown(false)
 
-    if (Object?.entries(firstLoginData)?.length !== 0 && firstLoginData?.url) {
-      window.location.replace(firstLoginData?.url)
+    if (
+      fetchInitialLoginURLData &&
+      Object.entries(fetchInitialLoginURLData).length !== 0 &&
+      fetchInitialLoginURLData?.url
+    ) {
+      window.location.replace(fetchInitialLoginURLData.url)
     }
-  }, [firstLoginData])
+  }, [fetchInitialLoginURLData])
 
   //for entering to the dashboard if their is an access token
   useEffect(() => {

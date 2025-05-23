@@ -5,6 +5,3 @@ import UserManagementIndex from '@/views/pages/UserManagement/UserManagementInde
 export default function Page() {
   return <UserManagementIndex />
 }
-
-
-

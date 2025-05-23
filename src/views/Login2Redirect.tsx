@@ -32,7 +32,7 @@ const Login2Redirect = () => {
 
   const dispatch = useDispatch<Dispatch>()
 
-  const { secondLoginData, fetchPermissionRenderConfigData }: any = useSelector(
+  const { fetchLoginTokenData, fetchPermissionRenderConfigData }: any = useSelector(
     (state: RootState) => state.loginReducer
   )
 
@@ -65,11 +65,11 @@ const Login2Redirect = () => {
 
   useEffect(() => {
     const handleLogin = () => {
-      if (!secondLoginData) return // Exit early if no login data
+      if (!fetchLoginTokenData) return // Exit early if no login data
 
       // Extract tokens safely
-      const accessToken = secondLoginData?.data?.token?.access_token || ''
-      const refreshToken = secondLoginData?.data?.token?.refresh_token || ''
+      const accessToken = fetchLoginTokenData?.data?.token?.access_token || ''
+      const refreshToken = fetchLoginTokenData?.data?.token?.refresh_token || ''
 
       if (!accessToken) {
         toast.error('Login failed: No access token received.', {
@@ -97,7 +97,7 @@ const Login2Redirect = () => {
         setUserId(decodedToken.sub)
 
         // Store login response in your storage (e.g., localStorage, context, or state management)
-        storeLoginResponse(secondLoginData.data)
+        storeLoginResponse(fetchLoginTokenData.data)
 
         // Set Authorization header for all Axios requests
         AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
@@ -108,10 +108,6 @@ const Login2Redirect = () => {
         })
 
         dispatch<any>(fetchPermissionRenderConfig(params))
-
-        if (fetchPermissionRenderConfigData) {
-          setPermissionRenderConfig(fetchPermissionRenderConfigData.data)
-        }
 
         setTimeout(() => {
           router.push('/home')
@@ -124,7 +120,14 @@ const Login2Redirect = () => {
     }
 
     handleLogin()
-  }, [secondLoginData, router])
+  }, [fetchLoginTokenData, router])
+
+  // New useEffect to handle fetchPermissionRenderConfigData when it becomes available
+  useEffect(() => {
+    if (fetchPermissionRenderConfigData) {
+      setPermissionRenderConfig(fetchPermissionRenderConfigData.data)
+    }
+  }, [fetchPermissionRenderConfigData])
 
   return (
     <>

@@ -1,18 +1,7 @@
 'use client'
 import React, { useState, useMemo, useEffect } from 'react'
 
-import {
-  Box,
-  Button,
-  Typography,
-  Autocomplete,
-  TextField,
-  ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
-} from '@mui/material'
+import { Box, Button, Typography, Autocomplete, TextField, ListItemText, Drawer, Divider } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 import EditIcon from '@mui/icons-material/Edit'
@@ -41,11 +30,21 @@ interface EditInterviewFormProps {
 
 const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, onSubmit, initialData }) => {
   const [formData, setFormData] = useState({
-    band: initialData.band,
-    department: initialData.department,
-    designation: initialData.designation,
-    levels: initialData.levels
+    band: initialData.band || [],
+    department: initialData.department || [],
+    designation: initialData.designation || [],
+    levels: initialData.levels || []
   })
+
+  // Sync formData with initialData when the dialog opens
+  useEffect(() => {
+    setFormData({
+      band: initialData.band || [],
+      department: initialData.department || [],
+      designation: initialData.designation || [],
+      levels: initialData.levels || []
+    })
+  }, [initialData])
 
   const handleChange = (field: keyof typeof formData, value: string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -57,10 +56,13 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>Edit Interview Customization</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+    <Drawer anchor='right' open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 350 } } }}>
+      <Box sx={{ p: 4 }}>
+        <Typography variant='h6' sx={{ mb: 2 }}>
+          Edit Interview Customization
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Band Field */}
           <Autocomplete
             multiple
@@ -78,7 +80,6 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             renderInput={params => (
               <TextField
                 {...params}
-                label='Band'
                 variant='outlined'
                 size='small'
                 placeholder={formData.band.length === 0 ? 'Select bands' : formData.band.join(', ')}
@@ -119,7 +120,6 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             renderInput={params => (
               <TextField
                 {...params}
-                label='Department'
                 variant='outlined'
                 size='small'
                 placeholder={formData.department.length === 0 ? 'Select departments' : formData.department.join(', ')}
@@ -160,7 +160,6 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             renderInput={params => (
               <TextField
                 {...params}
-                label='Designation'
                 variant='outlined'
                 size='small'
                 placeholder={
@@ -203,7 +202,6 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             renderInput={params => (
               <TextField
                 {...params}
-                label='Levels'
                 variant='outlined'
                 size='small'
                 placeholder={formData.levels.length === 0 ? 'Select levels' : formData.levels.join(', ')}
@@ -224,16 +222,16 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             sx={{ width: '100%' }}
           />
         </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color='secondary'>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} color='primary' variant='contained'>
-          Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+          <Button onClick={onClose} color='secondary'>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color='primary' variant='contained'>
+            Submit
+          </Button>
+        </Box>
+      </Box>
+    </Drawer>
   )
 }
 
@@ -377,7 +375,7 @@ const InterviewCustomizationTable = ({
           </Button>
         )
       }),
-      columnHelper.accessor('actions', {
+      columnHelper.accessor('Action', {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (

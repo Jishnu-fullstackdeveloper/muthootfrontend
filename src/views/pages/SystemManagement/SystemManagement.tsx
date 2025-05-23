@@ -15,6 +15,7 @@ const SystemManagement = () => {
       <Button onClick={() => router.push('/system-management/view/interview-customization')}>
         Interview Customization
       </Button>
+      <Button onClick={() => router.push('/system-management/view/scheduler')}>Scheduler</Button>
     </Box>
   )
 }

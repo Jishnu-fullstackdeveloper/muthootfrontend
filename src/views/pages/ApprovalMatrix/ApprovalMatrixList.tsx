@@ -338,7 +338,7 @@ const ApprovalMatrixList = () => {
           <Button
             variant='contained'
             size='small' // Reduces the height to a smaller predefined size
-            onClick={() => router.push(`/approval-matrix/add/new-approval`)}
+            onClick={() => router.push(`/system-management/approval-matrix/add/new-approval`)}
             sx={{ padding: '6px 16px' }} // Optional: Fine-tune padding to match TextField height
           >
             <AddIcon sx={{ mr: 1, width: 16 }} /> {/* Reduced icon size slightly */}

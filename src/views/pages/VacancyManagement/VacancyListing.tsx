@@ -480,7 +480,7 @@ const VacancyListingPage = () => {
         {viewMode === 'grid' ? (
           visibleVacancies?.map(vacancy => (
             <Box
-              onClick={() => router.push(`/vacancy-management/view/vacancy-details?id=${vacancy.id}`)}
+              onClick={() => router.push(`/hiring-management/vacancy-management/view/vacancy-details?id=${vacancy.id}`)}
               key={vacancy.id}
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}

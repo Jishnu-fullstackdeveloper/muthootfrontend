@@ -1,32 +1,55 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { useRouter, useParams, useSearchParams } from 'next/navigation'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, Autocomplete, Grid, Box, Button } from '@mui/material'
+import { FormControl, TextField, Autocomplete, Grid, Box, Button, CircularProgress } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+
 import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
-import { ArrowBack } from '@mui/icons-material'
 
 type Props = {
   mode: 'add' | 'edit'
 }
 
+interface GroupRole {
+  id: string
+  name: string
+  description: string
+  permissions: string[]
+}
+
+interface DesignationRole {
+  id: string
+  name: string
+  description: string
+  groupRoles: GroupRole[]
+}
+
+interface RoleOption {
+  label: string
+  value: string
+}
+
 const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  // const params = useParams()
-   const searchParams = useSearchParams()
-  const userId = mode === 'edit' ? (searchParams.get('id')) : null
+  const searchParams = useSearchParams()
+  const userId = mode === 'edit' ? searchParams.get('id') : null
 
   const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage, userManagementData } =
     useAppSelector((state: any) => state.UserManagementReducer || {})
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {})
+
+  const { userRoleData } = useAppSelector((state: any) => state.UserRoleReducer || {})
 
   const [apiErrors, setApiErrors] = useState<string[]>([])
+
   const [initialFormValues, setInitialFormValues] = useState({
     employeeCode: '',
     userId: '',
@@ -35,8 +58,10 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     lastName: '',
     email: '',
     designation: '',
-    roles: []
+    designationRole: null as RoleOption | null,
+    roles: [] as string[]
   })
+
   const [isFormEdited, setIsFormEdited] = useState(false)
 
   useEffect(() => {
@@ -61,7 +86,6 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       if (mode === 'add') {
         router.push('/user-management')
       } else {
-        
         dispatch(resetAddUserStatus())
         setIsFormEdited(false)
         setApiErrors([])
@@ -75,7 +99,14 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     }
   }, [dispatch])
 
-  const sanitizeRole = (role: string) => role.replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+  const cleanName = (name: string, prefix: string) => {
+    if (!name) return ''
+
+    return name.replace(new RegExp(`^${prefix}`), '').trim()
+  }
+
+  // Modified to preserve underscores in role names
+  const sanitizeRole = (role: string) => role.trim()
 
   const userFormik = useFormik({
     initialValues: initialFormValues,
@@ -86,43 +117,61 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       firstName: Yup.string().required('First Name is required'),
       lastName: Yup.string().required('Last Name is required'),
       email: Yup.string().email('Invalid email').required('Email is required'),
-      roles: Yup.array()
-        .of(
-          Yup.string().matches(/^[a-zA-Z0-9\s-]+$/, 'Role name can only contain letters, numbers, spaces, and hyphens')
-        )
-        .min(1, 'At least one role is required')
+      designation: Yup.string().required('Designation is required'),
+      designationRole: Yup.object()
+        .shape({
+          label: Yup.string(),
+          value: Yup.string()
+        })
+        .nullable()
+        .required('Designation Role is required'),
+      roles: Yup.array().min(1, 'At least one role is required')
     }),
     onSubmit: async values => {
       const sanitizedRoles = values.roles.map(sanitizeRole).filter(role => role.length > 0)
 
       if (sanitizedRoles.length === 0) {
         setApiErrors(['At least one valid role is required'])
+
         return
       }
 
       try {
         if (mode === 'edit' && userId) {
-          await dispatch(
-            updateUser({ id: userId, params: { email: values.email, newRoleNames: sanitizedRoles } })
-          ).unwrap()
+          const payload = {
+            id: userId,
+            params: {
+              email: values.email,
+              designation: values.designation,
+              designationRole: values.designationRole?.value,
+              newRoleNames: sanitizedRoles
+            }
+          }
+
+          console.log('Edit Payload:', payload)
+          await dispatch(updateUser(payload)).unwrap()
           setInitialFormValues({
             ...initialFormValues,
             email: values.email,
+            designation: values.designation,
+            designationRole: values.designationRole,
             roles: sanitizedRoles
           })
         } else {
-          await dispatch(
-            addNewUser({
-              employeeCode: values.employeeCode,
-              userId: values.userId,
-              firstName: values.firstName,
-              lastName: values.lastName,
-              middleName: values.middleName,
-              email: values.email,
-              designation: values.designation,
-              newRoleNames: sanitizedRoles
-            })
-          ).unwrap()
+          const payload = {
+            employeeCode: values.employeeCode,
+            userId: values.userId,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            middleName: values.middleName,
+            email: values.email,
+            designation: values.designation,
+            designationRole: values.designationRole?.value,
+            newRoleNames: sanitizedRoles
+          }
+
+          console.log('Add Payload:', payload)
+          await dispatch(addNewUser(payload)).unwrap()
         }
       } catch (error: any) {
         setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
@@ -133,7 +182,15 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   useEffect(() => {
     if (mode === 'edit' && userId && userManagementData?.data?.length) {
       const existingUser = userManagementData.data.find((user: any) => user.userId === userId)
+
       if (existingUser) {
+        const designationRole = existingUser.designationRole
+          ? {
+              label: cleanName(existingUser.designationRole.name, 'des_'),
+              value: existingUser.designationRole.name
+            }
+          : null
+
         const newInitialValues = {
           employeeCode: existingUser.employeeCode || '',
           userId: existingUser.userId || '',
@@ -142,16 +199,25 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           lastName: existingUser.lastName || '',
           email: existingUser.email || '',
           designation: existingUser.designation || '',
-          roles: existingUser.roles?.map((role: any) => (typeof role === 'string' ? role : role.name)) || []
+          designationRole,
+          roles: existingUser.groupRoles?.map((role: any) => role.name) || []
         }
+
         setInitialFormValues(newInitialValues)
       }
     }
   }, [mode, userId, userManagementData])
 
   useEffect(() => {
-    const hasChanges = Object.keys(userFormik.values).some(
-      key =>
+    const hasChanges = Object.keys(userFormik.values).some(key => {
+      if (key === 'designationRole') {
+        return (
+          userFormik.values.designationRole?.value !== initialFormValues.designationRole?.value ||
+          userFormik.values.designationRole?.label !== initialFormValues.designationRole?.label
+        )
+      }
+
+      return (
         userFormik.values[key] !== initialFormValues[key] &&
         !(
           Array.isArray(userFormik.values[key]) &&
@@ -159,14 +225,35 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           userFormik.values[key].length === initialFormValues[key].length &&
           userFormik.values[key].every((val: any, i: number) => val === initialFormValues[key][i])
         )
-    )
+      )
+    })
+
     setIsFormEdited(hasChanges)
   }, [userFormik.values, initialFormValues])
 
-  const roleOptions = useMemo(
-    () => (userRoleData?.data || []).map((role: any) => ({ label: role.name, value: role.name })),
+  const designationRoleOptions = useMemo(
+    () =>
+      (userRoleData?.data || []).map((role: DesignationRole) => ({
+        label: cleanName(role.name, 'des_'),
+        value: role.name
+      })),
     [userRoleData]
   )
+
+  const groupRoleOptions = useMemo(() => {
+    if (!userRoleData?.data) return []
+
+    return userRoleData.data
+      .flatMap((d: DesignationRole) =>
+        Array.isArray(d.groupRoles)
+          ? d.groupRoles.map((gr: GroupRole) => ({
+              label: cleanName(gr.name || '', 'grp_'),
+              value: gr.name || ''
+            }))
+          : []
+      )
+      .filter((option, index, self) => option.value && index === self.findIndex(o => o.value === option.value))
+  }, [userRoleData])
 
   const handleCancel = () => {
     if (isFormEdited) {
@@ -175,6 +262,14 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       dispatch(resetAddUserStatus())
       setApiErrors([])
     }
+  }
+
+  if (!userRoleData || !userManagementData || isAddUserLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
@@ -206,7 +301,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
               <TextField
                 label={label}
                 name={name}
-                value={(userFormik.values as any)[name]}
+                value={userFormik.values[name as keyof typeof userFormik.values]}
                 onChange={userFormik.handleChange}
                 disabled={disabled}
                 error={userFormik.touched[name] && Boolean(userFormik.errors[name])}
@@ -219,10 +314,31 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
         <Grid item xs={6}>
           <FormControl fullWidth margin='normal'>
             <Autocomplete
-              multiple
-              options={roleOptions}
+              options={designationRoleOptions}
               getOptionLabel={option => option.label}
-              value={roleOptions.filter(option => userFormik.values.roles.includes(option.value))}
+              value={userFormik.values.designationRole}
+              onChange={(event, newValue) => {
+                userFormik.setFieldValue('designationRole', newValue)
+              }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Designation Role *'
+                  error={userFormik.touched.designationRole && Boolean(userFormik.errors.designationRole)}
+                  helperText={userFormik.touched.designationRole && userFormik.errors.designationRole}
+                />
+              )}
+            />
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={6}>
+          <FormControl fullWidth margin='normal'>
+            <Autocomplete
+              multiple
+              options={groupRoleOptions}
+              getOptionLabel={option => option.label}
+              value={groupRoleOptions.filter(option => userFormik.values.roles.includes(option.value))}
               onChange={(event, newValue) =>
                 userFormik.setFieldValue(
                   'roles',
@@ -232,7 +348,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
               renderInput={params => (
                 <TextField
                   {...params}
-                  label='Roles *'
+                  label='Group Roles *'
                   error={userFormik.touched.roles && Boolean(userFormik.errors.roles)}
                   helperText={userFormik.touched.roles && userFormik.errors.roles}
                 />

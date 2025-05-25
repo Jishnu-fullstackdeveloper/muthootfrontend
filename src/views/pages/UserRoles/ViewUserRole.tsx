@@ -17,206 +17,375 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip
+  Tooltip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton
 } from '@mui/material'
-import { ArrowBack } from '@mui/icons-material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
+import { fetchUserRole, fetchDesignation } from '@/redux/UserRoles/userRoleSlice'
 
-const MODULES = [
-  'user',
-  'role',
-  'approvals',
-  'candidate',
-  'jd',
-  'vacancy',
-  'budget',
-  'branch',
-  'approvalmatrix',
-  'general',
-  'home',
-  'employee',
-  'system'
-]
-
-const PERMISSION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
-
-const APPLICABLE_PERMISSIONS = {
-  user: ['read', 'create', 'update', 'delete'],
-  role: ['read', 'create', 'update', 'delete'],
-  approvals: ['read', 'create', 'update', 'delete'],
-  candidate: ['read'],
-  jd: ['read', 'create', 'update', 'delete', 'upload', 'approval'],
-  vacancy: ['read', 'update'],
-  budget: ['read', 'create', 'approval'],
-  branch: ['read'],
-  approvalMatrix: ['read', 'create', 'update', 'delete'],
-  general: ['read', 'create', 'update', 'delete'],
-  home: ['read'],
-  employee: ['read'],
-  system: ['read', 'create', 'update', 'delete']
-}
+const ACTION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
 
 const ViewUserRole = () => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { userRoleData, isUserRoleLoading } = useAppSelector(state => state.UserRoleReducer)
+
+  const { userRoleData, isUserRoleLoading, designationData, isDesignationLoading } = useAppSelector(
+    state => state.UserRoleReducer
+  )
+
   const roleId = searchParams.get('id')
   const [localRole, setLocalRole] = useState(null)
+  const [hasFetched, setHasFetched] = useState(false) // Track if fetch has been attempted
 
+  // Fetch designations on mount
   useEffect(() => {
-    if (roleId) {
-      const existingRole = userRoleData?.data?.find(role => role.id === roleId)
+    dispatch(fetchDesignation({}))
+  }, [dispatch])
 
-      if (existingRole) {
-        // setLocalRole(existingRole)
-      } else {
-        dispatch(fetchUserRole({ id: roleId }))
-      }
+  // Fetch user role data when roleId changes
+  useEffect(() => {
+    if (!roleId) {
+      setLocalRole(null)
+      setHasFetched(true) // Mark as fetched to avoid infinite loading
+
+      return
+    }
+
+    // Check if role exists in userRoleData
+    const existingRole = userRoleData?.data?.find(role => role.id === roleId)
+
+    if (existingRole) {
+      setLocalRole(existingRole)
+      setHasFetched(true)
+    } else {
+      // Fetch role if not found in store
+      dispatch(fetchUserRole({ id: roleId }))
+        .unwrap()
+        .then(response => {
+          setLocalRole(response?.data || null)
+          setHasFetched(true)
+        })
+        .catch(() => {
+          setLocalRole(null)
+          setHasFetched(true)
+        })
     }
   }, [dispatch, roleId, userRoleData])
 
-  const matchedRole = localRole
-  const roleName = matchedRole?.name || searchParams.get('name') || 'N/A'
-  const roleDescription = matchedRole?.description || searchParams.get('description') || 'N/A'
-  const permissions = matchedRole?.permissions || JSON.parse(searchParams.get('permissions') || '[]')
+  const handleEditDesignation = () => {
+    const query = new URLSearchParams({
+      id: roleId,
+      name: localRole?.name || '',
+      editType: 'designation'
+    }).toString()
 
-  const groupedPermissions = {}
+    router.push(`/user-management/role/edit/${localRole?.name.replace(/\s+/g, '-') || 'role'}?${query}`)
+  }
 
-  permissions.forEach(perm => {
-    const [moduleName] = perm.name.split('_')
+  const handleEditGroupRole = groupRole => {
+    const query = new URLSearchParams({
+      id: roleId,
+      name: localRole?.name || '',
+      groupRoleId: groupRole.id,
+      editType: 'groupRole',
+      groupRoleName: groupRole.name.replace(/^grp_/, '').trim() || 'Default Group Role'
+    }).toString()
 
-    if (MODULES.includes(moduleName)) {
-      groupedPermissions[moduleName] = groupedPermissions[moduleName] || []
-      groupedPermissions[moduleName].push({ name: perm.name, description: perm.description })
+    router.push(`/user-management/role/edit/${localRole?.name.replace(/\s+/g, '-') || 'role'}?${query}`)
+  }
+
+  // Show loading state until fetch is complete
+  if (isUserRoleLoading || isDesignationLoading || !hasFetched) {
+    return <Typography>Loading...</Typography>
+  }
+
+  // Show error if no role data is found after fetching
+  if (!localRole) {
+    return <Typography>No role data found for ID: {roleId}</Typography>
+  }
+
+  const roleName = localRole?.name || 'N/A'
+  const roleDescription = localRole?.description || 'N/A'
+  const groupRoles = localRole?.groupRoles || []
+  const designationPermissions = localRole?.permissions || []
+
+  // Group designation permissions
+  const designationGroupedPermissions = {}
+
+  designationPermissions.forEach(perm => {
+    const parts = perm.split('_')
+
+    if (parts.length < 3) return
+    const module = parts[1]
+    const feature = parts.slice(2, -1).join('_') || 'general'
+    const action = parts[parts.length - 1]
+
+    if (!designationGroupedPermissions[module]) {
+      designationGroupedPermissions[module] = {}
+    }
+
+    if (!designationGroupedPermissions[module][feature]) {
+      designationGroupedPermissions[module][feature] = {
+        name: feature,
+        actions: [],
+        description: `${feature} permissions`
+      }
+    }
+
+    if (!designationGroupedPermissions[module][feature].actions.includes(action)) {
+      designationGroupedPermissions[module][feature].actions.push(action)
     }
   })
 
-  Object.keys(groupedPermissions).forEach(module => {
-    groupedPermissions[module].sort((a, b) => {
-      const aIndex = PERMISSION_ORDER.indexOf(a.name.split('_')[1])
-      const bIndex = PERMISSION_ORDER.indexOf(b.name.split('_')[1])
+  // Group permissions for each group role
+  const groupRolePermissions = groupRoles.map(groupRole => {
+    const groupPerms = {}
 
-      return aIndex - bIndex
+    groupRole.permissions.forEach(perm => {
+      const parts = perm.split('_')
+
+      if (parts.length < 3) return
+      const module = parts[1]
+      const feature = parts.slice(2, -1).join('_') || 'general'
+      const action = parts[parts.length - 1]
+
+      if (!groupPerms[module]) {
+        groupPerms[module] = {}
+      }
+
+      if (!groupPerms[module][feature]) {
+        groupPerms[module][feature] = {
+          name: feature,
+          actions: [],
+          description: `${feature} permissions`
+        }
+      }
+
+      if (!groupPerms[module][feature].actions.includes(action)) {
+        groupPerms[module][feature].actions.push(action)
+      }
     })
+
+    return { ...groupRole, groupedPermissions: groupPerms }
   })
 
-  // const handleEdit = (role: any) => {
-  //   if (!isEditable) return;
-  //   const query = new URLSearchParams({
-  //     id: role.id,
-  //     name: role.name
-  //   }).toString()
-  //   router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
-  // }
-
-  const formatModuleName = module =>
-    ({
+  const formatModuleName = module => {
+    const moduleFormatMap = {
+      system: 'System Management',
       user: 'User Management',
-      role: 'User Roles',
-      approvals: 'Approvals',
-      candidate: 'Candidate Management',
+      hiring: 'Hiring Management',
       jd: 'JD Management',
-      vacancy: 'Vacancy Management',
-      budget: 'Budget Management',
-      recruitment: 'Recruitment Management',
-      branch: 'Branch Management',
-      bucket: 'Bucket Management',
-      approvalmatrix: 'Approval Matrix',
+      approvals: 'Approvals',
       general: 'General Settings',
       home: 'Home Dashboard',
-      employee: 'Employee Management',
-      system: 'System Management'
-    })[module] || module
+      branch: 'Branch Management'
+    }
 
-  const getPermissionDescription = (module, perm) => {
-    const permission = permissions.find(p => p.name === `${module}_${perm}`)
-
-    return permission?.description || 'No description available'
+    return moduleFormatMap[module.toLowerCase()] || module
   }
 
-  if (isUserRoleLoading) return <Typography>Loading...</Typography>
-  if (!matchedRole && !searchParams.get('name')) return <Typography>No role data found for ID: {roleId}</Typography>
+  const getPermissionDescription = (module, feature, action, permissions) => {
+    const permString = `prv_${module}_${feature}_${action}`
+
+    return permissions.includes(permString) ? `${feature} ${action} permission` : 'No description available'
+  }
+
+  const isEditDisabled = ['DEFAULT-ROLE', 'DEFAULT-ROLES-HRMS', 'SUPER ADMIN'].includes(roleName.toUpperCase())
+
+  const cleanName = (name, prefix) => {
+    if (!name) return ''
+
+    return name.replace(new RegExp(`^${prefix}`), '').trim()
+  }
 
   return (
     <Box>
       <Card sx={{ boxShadow: 3, p: 2 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
-              {roleName.toUpperCase()}
+             
+              {cleanName(localRole?.name, 'des_').toUpperCase()}
             </Typography>
-            {/* <IconButton
-              sx={{ fontSize: '20px' }}
-              onClick={() => handleEdit(matchedRole)}
-              aria-label='Edit role'
-              disabled={!isEditable} // Disable button for non-editable roles
-            >
-              <Edit />
-            </IconButton> */}
+            <Typography variant='body1' sx={{ mt: 1 }}>
+              {cleanName(roleDescription, 'des_')}
+            </Typography>
           </Box>
-
           <Divider sx={{ mb: 4 }} />
+         
+          {Object.keys(designationGroupedPermissions).length > 0 ? (
+            <Accordion sx={{ mb: 2 }} defaultExpanded={true}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <Typography variant='subtitle1'>
+                    <strong>Designation Permissions</strong>
+                  </Typography>
+                  <IconButton
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleEditDesignation()
+                    }}
+                    title='Edit Designation Permissions'
+                    sx={{ fontSize: '20px' }}
+                    disabled={isEditDisabled}
+                  >
+                    <i className='tabler-edit' />
+                  </IconButton>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <TableContainer>
+                  <Table sx={{ minWidth: 650 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '15px' }}>Module</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '15px' }}>Feature</TableCell>
+                        {ACTION_ORDER.map(action => (
+                          <TableCell key={action} sx={{ fontWeight: 'bold', fontSize: '15px' }} align='center'>
+                            {action.charAt(0).toUpperCase() + action.slice(1)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {Object.keys(designationGroupedPermissions).map(module =>
+                        Object.keys(designationGroupedPermissions[module]).map((feature, index) => (
+                          <TableRow key={`${module}_${feature}`}>
+                            {index === 0 && (
+                              <TableCell
+                                sx={{ fontSize: '15px' }}
+                                rowSpan={Object.keys(designationGroupedPermissions[module]).length}
+                              >
+                                {formatModuleName(module)}
+                              </TableCell>
+                            )}
+                            <TableCell sx={{ fontSize: '15px' }}>{feature === 'general' ? module : feature}</TableCell>
+                            {ACTION_ORDER.map(action => {
+                              const hasPermission =
+                                designationGroupedPermissions[module][feature].actions.includes(action)
 
+                              return (
+                                <TableCell key={`${module}_${feature}_${action}`} align='center'>
+                                  {hasPermission ? (
+                                    <Tooltip
+                                      title={getPermissionDescription(module, feature, action, designationPermissions)}
+                                    >
+                                      <Typography color='green'>✅</Typography>
+                                    </Tooltip>
+                                  ) : (
+                                    <Tooltip title='No permission'>
+                                      <Typography color='red'>❌</Typography>
+                                    </Tooltip>
+                                  )}
+                                </TableCell>
+                              )
+                            })}
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </AccordionDetails>
+            </Accordion>
+          ) : (
+            <Typography>No designation permissions assigned.</Typography>
+          )}
+          <Divider sx={{ mb: 4 }} />
           <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
-            Permissions:
+            Group Roles and Permissions:
           </Typography>
-          <TableContainer>
-            <Table sx={{ minWidth: 650 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '15px' }}>Module</TableCell>
-                  {PERMISSION_ORDER.map(perm => (
-                    <TableCell key={perm} sx={{ fontWeight: 'bold', fontSize: '15px' }} align='center'>
-                      {perm.charAt(0).toUpperCase() + perm.slice(1)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.keys(groupedPermissions).map(module => (
-                  <TableRow key={module}>
-                    <TableCell sx={{ fontSize: '15px' }}>{formatModuleName(module)}</TableCell>
-                    {PERMISSION_ORDER.map(perm => {
-                      const hasPermission = groupedPermissions[module]?.some(p => p.name === `${module}_${perm}`)
-                      const isApplicable = APPLICABLE_PERMISSIONS[module]?.includes(perm)
-                      const description = hasPermission ? getPermissionDescription(module, perm) : ''
+          {groupRolePermissions.length > 0 ? (
+            groupRolePermissions.map(groupRole => (
+              <Accordion key={groupRole.id} sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <Typography variant='subtitle1'>
+                      {cleanName(groupRole.name, 'grp_')} 
+                    </Typography>
+                    <IconButton
+                      onClick={e => {
+                        e.stopPropagation()
+                        handleEditGroupRole(groupRole)
+                      }}
+                      title='Edit Group Role'
+                      sx={{ fontSize: '20px' }}
+                      disabled={isEditDisabled}
+                    >
+                      <i className='tabler-edit' />
+                    </IconButton>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <TableContainer>
+                    <Table sx={{ minWidth: 650 }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '15px' }}>Module</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', fontSize: '15px' }}>Feature</TableCell>
+                          {ACTION_ORDER.map(action => (
+                            <TableCell key={action} sx={{ fontWeight: 'bold', fontSize: '15px' }} align='center'>
+                              {action.charAt(0).toUpperCase() + action.slice(1)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {Object.keys(groupRole.groupedPermissions).map(module =>
+                          Object.keys(groupRole.groupedPermissions[module]).map((feature, index) => (
+                            <TableRow key={`${groupRole.id}_${module}_${feature}`}>
+                              {index === 0 && (
+                                <TableCell
+                                  sx={{ fontSize: '15px' }}
+                                  rowSpan={Object.keys(groupRole.groupedPermissions[module]).length}
+                                >
+                                  {formatModuleName(module)}
+                                </TableCell>
+                              )}
+                              <TableCell sx={{ fontSize: '15px' }}>
+                                {feature === 'general' ? module : feature}
+                              </TableCell>
+                              {ACTION_ORDER.map(action => {
+                                const hasPermission =
+                                  groupRole.groupedPermissions[module][feature].actions.includes(action)
 
-                      return (
-                        <TableCell key={`${module}_${perm}`} align='center'>
-                          {hasPermission ? (
-                            <Tooltip title={description}>
-                              <Typography color='green'>✅</Typography>
-                            </Tooltip>
-                          ) : isApplicable ? (
-                            <Tooltip title='No permission'>
-                              <Typography color='red'>❌</Typography>
-                            </Tooltip>
-                          ) : (
-                            <Typography color='gray'>-</Typography>
-                          )}
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            <Box sx={{ mt: 4 }}>
-              <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                Description:
-              </Typography>
-              <Typography sx={{ backgroundColor: '#f5f5f5', p: 5, borderRadius: 1, fontSize: '10px' }}>
-                {roleDescription}
-              </Typography>
-            </Box>
-          </TableContainer>
+                                return (
+                                  <TableCell key={`${module}_${feature}_${action}`} align='center'>
+                                    {hasPermission ? (
+                                      <Tooltip
+                                        title={getPermissionDescription(module, feature, action, groupRole.permissions)}
+                                      >
+                                        <Typography color='green'>✅</Typography>
+                                      </Tooltip>
+                                    ) : (
+                                      <Tooltip title='No permission'>
+                                        <Typography color='red'>❌</Typography>
+                                      </Tooltip>
+                                    )}
+                                  </TableCell>
+                                )
+                              })}
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </AccordionDetails>
+              </Accordion>
+            ))
+          ) : (
+            <Typography>No group roles assigned.</Typography>
+          )}
         </CardContent>
         <Box sx={{ mt: 3, ml: 5, mb: 2 }}>
-          <Button startIcon={<ArrowBack />} variant='outlined' onClick={() => router.back()}>
+          <Button variant='outlined' onClick={() => router.back()}>
             Go Back
           </Button>
         </Box>

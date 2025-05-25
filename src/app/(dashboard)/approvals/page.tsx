@@ -1,7 +1,7 @@
 import Approvals from '@/views/pages/Approvals/Approvals'
 
 const Page = () => {
-  return <Approvals/>
+  return <Approvals />
 }
 
 export default Page

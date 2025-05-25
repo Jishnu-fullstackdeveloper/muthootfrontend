@@ -68,8 +68,8 @@ interface User {
   employeeCode?: string
   status?: string
   source?: string
-  roles?: string[] | Role[]
-  role?: string
+  designationRole?: string[] | Role[]
+  GroupRoles?: string
   designation?: string
 }
 
@@ -215,7 +215,7 @@ const UserListing = () => {
     if (!empCode) return
     const query = new URLSearchParams({ id: id }).toString()
 
-    router.push(`/user-management/edit/${empCode}?${query}`)
+    router.push(`/user-management/user/edit/${empCode}?${query}`)
   }
 
   const handleView = (role: any) => {

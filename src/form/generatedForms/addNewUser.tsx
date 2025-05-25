@@ -1,15 +1,19 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { useRouter, useParams, useSearchParams } from 'next/navigation'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FormControl, TextField, Autocomplete, Grid, Box, Button } from '@mui/material'
+
+import { ArrowBack } from '@mui/icons-material'
+
 import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
-import { ArrowBack } from '@mui/icons-material'
 
 type Props = {
   mode: 'add' | 'edit'
@@ -18,15 +22,18 @@ type Props = {
 const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   const dispatch = useAppDispatch()
   const router = useRouter()
+
   // const params = useParams()
-   const searchParams = useSearchParams()
-  const userId = mode === 'edit' ? (searchParams.get('id')) : null
+  const searchParams = useSearchParams()
+  const userId = mode === 'edit' ? searchParams.get('id') : null
 
   const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage, userManagementData } =
     useAppSelector((state: any) => state.UserManagementReducer || {})
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {})
+
+  const { userRoleData } = useAppSelector((state: any) => state.UserRoleReducer || {})
 
   const [apiErrors, setApiErrors] = useState<string[]>([])
+
   const [initialFormValues, setInitialFormValues] = useState({
     employeeCode: '',
     userId: '',
@@ -37,6 +44,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     designation: '',
     roles: []
   })
+
   const [isFormEdited, setIsFormEdited] = useState(false)
 
   useEffect(() => {
@@ -61,7 +69,6 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       if (mode === 'add') {
         router.push('/user-management')
       } else {
-        
         dispatch(resetAddUserStatus())
         setIsFormEdited(false)
         setApiErrors([])
@@ -97,6 +104,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
 
       if (sanitizedRoles.length === 0) {
         setApiErrors(['At least one valid role is required'])
+
         return
       }
 
@@ -133,6 +141,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   useEffect(() => {
     if (mode === 'edit' && userId && userManagementData?.data?.length) {
       const existingUser = userManagementData.data.find((user: any) => user.userId === userId)
+
       if (existingUser) {
         const newInitialValues = {
           employeeCode: existingUser.employeeCode || '',
@@ -144,6 +153,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           designation: existingUser.designation || '',
           roles: existingUser.roles?.map((role: any) => (typeof role === 'string' ? role : role.name)) || []
         }
+
         setInitialFormValues(newInitialValues)
       }
     }
@@ -160,6 +170,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           userFormik.values[key].every((val: any, i: number) => val === initialFormValues[key][i])
         )
     )
+
     setIsFormEdited(hasChanges)
   }, [userFormik.values, initialFormValues])
 

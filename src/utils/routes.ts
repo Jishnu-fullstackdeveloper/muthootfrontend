@@ -2,7 +2,7 @@ export const ROUTES = {
   HOME: '/home',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
-    USER_EDIT: (id: string) => `/user-management/user/edit/EMP1202?id=${id}`,
+    USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,
     ROLE: '/user-management/role',
     ROLE_VIEW: (id: string, name: string) => `/user-management/role/view/${name}?id=${id}&name=${name}`,
     ROLE_EDIT: (id: string, name: string) => `/user-management/role/edit/${name}?id=${id}&name=${name}`,

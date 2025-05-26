@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 import PerfectScrollbar from 'react-perfect-scrollbar'
@@ -12,11 +12,12 @@ import useVerticalNav from '@menu/hooks/useVerticalNav'
 import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
+import { ROUTES } from '@/utils/routes'
+import { List, ListItem, Collapse, IconButton } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import withPermission from '@/hocs/withPermission'
 import { getPermissionRenderConfig } from '@/utils/functions'
-import { ROUTES } from '@/utils/routes'
-import { Accordion, AccordionDetails, AccordionSummary, styled } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 interface MenuItemType {
   path: string
@@ -29,7 +30,7 @@ interface MenuItemType {
 
 const RenderExpandIcon = ({ open, transitionDuration }: { open: boolean; transitionDuration: number }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
-    <i className='tabler-chevron-right' />
+    <ChevronRightIcon />
   </StyledVerticalNavExpandIcon>
 )
 
@@ -37,34 +38,8 @@ interface VerticalMenuProps {
   scrollMenu: (container: any, isPerfectScrollbar: boolean) => void
 }
 
-const StyledAccordion = styled(Accordion)(({ theme }) => ({
-  boxShadow: 'none',
-  '&:before': {
-    display: 'none'
-  },
-  '&.Mui-expanded': {
-    margin: 0
-  },
-  backgroundColor: 'transparent'
-}))
-
-const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
-  minHeight: 'unset',
-  padding: 0,
-  '& .MuiAccordionSummary-content': {
-    margin: 0,
-    '&.Mui-expanded': {
-      margin: 0
-    }
-  },
-  '& .MuiAccordionSummary-expandIconWrapper': {
-    marginRight: '0.5rem'
-  }
-}))
-
-const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
-  padding: 0
-}))
+// Wrap MenuItem with withPermission HOC
+const MenuItemWithPermission = withPermission(MenuItem)
 
 const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const theme = useTheme()
@@ -72,31 +47,16 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
   const [clientMenuItems, setClientMenuItems] = useState<MenuItemType[]>([])
-  const [permissionConfig, setPermissionConfig] = useState<Record<string, string> | null>(null)
-  const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]) // Track expanded menu items
   const pathname = usePathname()
   const router = useRouter()
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
-  // Load permissionConfig on mount
-  useEffect(() => {
-    const config = getPermissionRenderConfig()
-    setPermissionConfig(config)
-  }, [])
+  // Get the permission mapping
+  const permissionConfig = getPermissionRenderConfig()
 
-  // Set initially expanded menu based on current route
-  useEffect(() => {
-    if (pathname && clientMenuItems.length > 0) {
-      const activeParent = clientMenuItems.find(
-        item => item.children && item.children.some(child => pathname.startsWith(child.path))
-      )
-      if (activeParent) {
-        setExpandedMenu(activeParent.label)
-      }
-    }
-  }, [pathname, clientMenuItems])
-
+  // Static menu items definition
   const staticMenuItems = useMemo(
     () => [
       {
@@ -107,7 +67,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         read: 'HOME_READ'
       },
       {
-        path: '', // Empty path for parent menu items that shouldn't navigate
+        path: '',
         label: 'User Management',
         iconClass: 'tabler-users',
         permission: 'userManagement',
@@ -151,7 +111,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         read: 'APPROVALS_READ'
       },
       {
-        path: '', // Empty path for parent menu items that shouldn't navigate
+        path: '',
         label: 'Hiring Management',
         iconClass: 'tabler-apps',
         permission: 'hiringManagement',
@@ -216,7 +176,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         read: 'BRANCH_READ'
       },
       {
-        path: '', // Empty path for parent menu items that shouldn't navigate
+        path: '',
         label: 'System Management',
         iconClass: 'tabler-settings-check',
         permission: 'systemManagement',
@@ -293,114 +253,61 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     []
   )
 
-  const isMenuItemActive = (item: MenuItemType): boolean => {
-    if (item.path === '/recruitment-management/overview') {
-      return pathname.startsWith('/recruitment-management')
-    }
-
-    if (item.children) {
-      return item.children.some(child => isMenuItemActive(child))
-    }
-
-    return pathname === item.path || pathname.startsWith(item.path)
-  }
-
+  // Initialize menu items once
   useEffect(() => {
+    if (clientMenuItems.length > 0) return
+
     const dynamicMenuItems = (custom_theme_settings?.theme?.vertical_menu?.icons || []).map((item: any) => ({
       path: item.path,
       label: item.label,
       iconClass: item.iconClass,
-      permission: (item as { permission?: string }).permission || '',
-      read: (item as { read?: string }).read || ''
+      permission: item.permission || '',
+      read: item.read || ''
     }))
 
-    // Filter out duplicate "Home" from dynamicMenuItems
     const filteredDynamicMenuItems = dynamicMenuItems.filter(
       (item: MenuItemType) => !(item.label === 'Home' && item.path === ROUTES.HOME)
     )
 
     setClientMenuItems([...staticMenuItems, ...filteredDynamicMenuItems])
-  }, [staticMenuItems])
+  }, [staticMenuItems, clientMenuItems.length])
 
-  // Handle accordion change
-  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpandedMenu(isExpanded ? panel : null)
-  }
+  // Check if a menu item is active
+  const isMenuItemActive = useCallback(
+    (item: MenuItemType): boolean => {
+      if (!pathname) return false
 
-  // Handle menu item click
-  const handleMenuItemClick = (path: string) => {
-    if (path) {
-      router.push(path)
-    }
-  }
-
-  // Wait until permissionConfig is loaded before rendering menu items
-  if (!permissionConfig) {
-    return null
-  }
-
-  // Render a menu item (with or without submenus)
-  const renderMenuItem = (item: MenuItemType, index: number) => {
-    const individualPermission = item.read && permissionConfig?.[item.read] ? permissionConfig[item.read] : ''
-    const hasChildren = !!item.children
-    const isActive = isMenuItemActive(item)
-
-    const MenuItemWithPermission = withPermission((props: { read?: string }) => {
-      if (hasChildren) {
-        return (
-          <StyledAccordion
-            key={index}
-            expanded={expandedMenu === item.label}
-            onChange={handleAccordionChange(item.label)}
-            disableGutters
-          >
-            <StyledAccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls={`${item.label}-content`}
-              id={`${item.label}-header`}
-            >
-              <MenuItem
-                icon={<i className={item.iconClass} />}
-                {...(props.read && { disabled: true })}
-                active={isActive}
-                onClick={() => handleMenuItemClick(item.path)}
-              >
-                {item.label}
-              </MenuItem>
-            </StyledAccordionSummary>
-            <StyledAccordionDetails>
-              <Menu
-                popoutMenuOffset={{ mainAxis: 23 }}
-                menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-                renderExpandIcon={({ open }) => (
-                  <RenderExpandIcon open={open} transitionDuration={verticalNavOptions.transitionDuration ?? 0} />
-                )}
-                renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-                menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-              >
-                {item.children?.map((child, childIndex) => renderMenuItem(child, childIndex))}
-              </Menu>
-            </StyledAccordionDetails>
-          </StyledAccordion>
-        )
+      if (item.path === '/recruitment-management/overview') {
+        return pathname.startsWith('/recruitment-management')
       }
 
-      return (
-        <MenuItem
-          key={index}
-          icon={<i className={item.iconClass} />}
-          {...(props.read && { disabled: true })}
-          active={isActive}
-          onClick={() => handleMenuItemClick(item.path)}
-        >
-          {item.label}
-        </MenuItem>
-      )
-    })
+      if (item.children) {
+        return item.children.some(child => isMenuItemActive(child))
+      }
 
-    return MenuItemWithPermission({
-      individualPermission: individualPermission
-    })
+      return pathname === item.path || pathname.startsWith(item.path)
+    },
+    [pathname]
+  )
+
+  // Toggle submenu expansion
+  const toggleMenu = useCallback((label: string) => {
+    setExpandedMenus(prev => (prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label]))
+  }, [])
+
+  // Handle navigation
+  const handleNavigation = useCallback(
+    (path: string) => {
+      if (path) {
+        router.push(path)
+      }
+    },
+    [router]
+  )
+
+  // Early return if loading
+  if (clientMenuItems.length === 0) {
+    return null
   }
 
   return (
@@ -409,11 +316,11 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         ? {
             className: 'bs-full overflow-y-auto overflow-x-hidden',
             style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' },
-            onScroll: container => scrollMenu(container, false)
+            onScroll: (container: any) => scrollMenu(container, false)
           }
         : {
             options: { wheelPropagation: false, suppressScrollX: true },
-            onScrollY: container => scrollMenu(container, true),
+            onScrollY: (container: any) => scrollMenu(container, true),
             style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' }
           })}
     >
@@ -423,10 +330,125 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         renderExpandIcon={({ open }) => (
           <RenderExpandIcon open={open} transitionDuration={verticalNavOptions.transitionDuration ?? 0} />
         )}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
+        renderExpandedMenuItemIcon={{ icon: <ChevronRightIcon fontSize='small' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        {clientMenuItems.map((item, index) => renderMenuItem(item, index))}
+        <List disablePadding>
+          {clientMenuItems.map((item, index) => {
+            const isActive = isMenuItemActive(item)
+            const hasChildren = !!item.children
+            const isExpanded = expandedMenus.includes(item.label)
+            // Map the read key to the corresponding permission value
+            const permissionValue = item.read ? permissionConfig[item.read] || '' : ''
+
+            return (
+              <div key={`${item.label}-${index}`}>
+                {/* Main menu item */}
+                <ListItem disablePadding>
+                  <MenuItemWithPermission
+                    icon={<i className={item.iconClass} />}
+                    active={isActive}
+                    individualPermission={permissionValue}
+                    suffix={
+                      hasChildren ? (
+                        <IconButton
+                          onClick={e => {
+                            e.stopPropagation() // Prevent navigation when clicking the icon
+                            toggleMenu(item.label)
+                          }}
+                        >
+                          {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                        </IconButton>
+                      ) : null
+                    }
+                    onClick={() => {
+                      if (!hasChildren) {
+                        handleNavigation(item.path) // Navigate if it's a leaf item
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </MenuItemWithPermission>
+                </ListItem>
+
+                {/* Submenu (if any) */}
+                {hasChildren && (
+                  <Collapse in={isExpanded} timeout='auto' unmountOnExit>
+                    <List disablePadding sx={{ pl: 4 }}>
+                      {item.children?.map((child, childIndex) => {
+                        const childIsActive = isMenuItemActive(child)
+                        const childHasChildren = !!child.children
+                        const childIsExpanded = expandedMenus.includes(child.label)
+                        // Map the read key to the corresponding permission value for child
+                        const childPermissionValue = child.read ? permissionConfig[child.read] || '' : ''
+
+                        return (
+                          <div key={`${child.label}-${childIndex}`}>
+                            {/* Submenu item (Level 1) */}
+                            <ListItem disablePadding>
+                              <MenuItemWithPermission
+                                icon={<i className={child.iconClass} />}
+                                active={childIsActive}
+                                individualPermission={childPermissionValue}
+                                suffix={
+                                  childHasChildren ? (
+                                    <IconButton
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        toggleMenu(child.label)
+                                      }}
+                                    >
+                                      {childIsExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                                    </IconButton>
+                                  ) : null
+                                }
+                                onClick={() => {
+                                  if (!childHasChildren) {
+                                    handleNavigation(child.path) // Navigate if it's a leaf item
+                                  }
+                                }}
+                              >
+                                {child.label}
+                              </MenuItemWithPermission>
+                            </ListItem>
+
+                            {/* Nested submenu (Level 2, e.g., under X-Factor) */}
+                            {childHasChildren && (
+                              <Collapse in={childIsExpanded} timeout='auto' unmountOnExit>
+                                <List disablePadding sx={{ pl: 4 }}>
+                                  {child.children?.map((nestedChild, nestedIndex) => {
+                                    const nestedIsActive = isMenuItemActive(nestedChild)
+                                    // Map the read key to the corresponding permission value for nested child
+                                    const nestedPermissionValue = nestedChild.read
+                                      ? permissionConfig[nestedChild.read] || ''
+                                      : ''
+
+                                    return (
+                                      <ListItem key={`${nestedChild.label}-${nestedIndex}`} disablePadding>
+                                        <MenuItemWithPermission
+                                          icon={<i className={nestedChild.iconClass} />}
+                                          active={nestedIsActive}
+                                          individualPermission={nestedPermissionValue}
+                                          onClick={() => handleNavigation(nestedChild.path)}
+                                        >
+                                          {nestedChild.label}
+                                        </MenuItemWithPermission>
+                                      </ListItem>
+                                    )
+                                  })}
+                                </List>
+                              </Collapse>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </List>
+                  </Collapse>
+                )}
+              </div>
+            )
+          })}
+        </List>
       </Menu>
     </ScrollWrapper>
   )

@@ -10,18 +10,27 @@ import {
   InputAdornment,
   Drawer,
   Button,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { createColumnHelper } from '@tanstack/react-table'
+import { toast } from 'react-toastify'
 
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchResignedXFactor, fetchDesignation } from '@/redux/ResignedXFactor/resignedXFactorSlice'
+import {
+  fetchResignedXFactor,
+  fetchDesignation,
+  updateResignedXFactor
+} from '@/redux/ResignedXFactor/resignedXFactorSlice'
 
-const DesignationForm = ({ formik }) => {
+// Assuming createXFactor is defined similarly to updateVacancyXFactor
+// import { createXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice';
+
+const ResignedXFactor = ({ formik }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tempDesignations, setTempDesignations] = useState([{ name: '', days: '' }])
   const [searchTerm, setSearchTerm] = useState('')
@@ -30,9 +39,9 @@ const DesignationForm = ({ formik }) => {
   const [limit, setLimit] = useState(10)
   const [editMode, setEditMode] = useState(false)
   const [editId, setEditId] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const dispatch = useAppDispatch()
-
   const { resignedXFactorData, designationData, totalCount } = useAppSelector(state => state.ResignedxFactorReducer)
 
   useEffect(() => {
@@ -51,13 +60,6 @@ const DesignationForm = ({ formik }) => {
   useEffect(() => {
     dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
   }, [page, limit, debouncedSearch, dispatch])
-
-  const handleXFactorClick = () => {
-    setDrawerOpen(true)
-    setTempDesignations([{ name: '', days: '' }])
-    setEditMode(false)
-    setEditId(null)
-  }
 
   const columnHelper = createColumnHelper()
 
@@ -80,7 +82,7 @@ const DesignationForm = ({ formik }) => {
             onClick={() => {
               setEditMode(true)
               setEditId(row.original.id)
-              setTempDesignations([{ name: row.original.designationName, days: row.original.xFactor }])
+              setTempDesignations([{ name: row.original.designationName, days: row.original.xFactor.toString() }])
               setDrawerOpen(true)
             }}
           >
@@ -89,10 +91,11 @@ const DesignationForm = ({ formik }) => {
         )
       })
     ],
-    [page, limit]
+    []
   )
 
-  const isSaveDisabled = !tempDesignations.some(d => d.name && d.days) || formik?.isSubmitting
+  const isSaveDisabled =
+    !tempDesignations.some(d => d.name && d.days && !isNaN(d.days)) || formik?.isSubmitting || isLoading
 
   return (
     <div>
@@ -131,9 +134,9 @@ const DesignationForm = ({ formik }) => {
               />
             </Box>
 
-            <Button variant='contained' color='primary' onClick={handleXFactorClick}>
+            {/* <Button variant='contained' color='primary' onClick={handleXFactorClick}>
               X Factor
-            </Button>
+            </Button> */}
           </Box>
         </CardContent>
       </Card>
@@ -142,133 +145,148 @@ const DesignationForm = ({ formik }) => {
         anchor='right'
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ '& .MuiDrawer-paper': { width: '500px', padding: 2 } }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '90vw', sm: '500px' }, // Responsive width
+            padding: 2,
+            boxSizing: 'border-box'
+          }
+        }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3 }}>
-          <Typography variant='h6' sx={{ mb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3, gap: 2 }}>
+          {/* Header */}
+          <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
             {editMode ? 'Edit X-Factor' : 'Add X-Factor'}
           </Typography>
-          <Box sx={{ justifyContent: 'center', alignItems: 'center' }}>
+
+          {/* Designation List */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {tempDesignations?.map((designation, index) => (
               <Box
                 key={index}
                 sx={{
                   display: 'flex',
-                  flexDirection: 'row',
-                  marginTop: '16px',
-                  alignItems: 'center',
-                  width: '100%',
-                  gap: '10px'
+                  flexDirection: 'column',
+                  gap: 4,
+
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  borderRadius: 1
                 }}
               >
-                <Box sx={{ width: '300px', boxShadow: 'none' }}>
-                  <Autocomplete
-                    options={designationData || []}
-                    getOptionLabel={option => option.name || ''}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    value={designationData?.find(item => item.name === designation.name) || null}
-                    onChange={(e, value) => {
-                      const selectedName = value ? value.name.trim() : ''
+                {/* Autocomplete for Designation */}
+                <Autocomplete
+                  options={designationData || []}
+                  getOptionLabel={option => option.name || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  value={designationData?.find(item => item.name === designation.name) || null}
+                  onChange={(e, value) => {
+                    const selectedName = value ? value.name.trim() : ''
+                    const newDesignations = [...tempDesignations]
+
+                    newDesignations[index].name = selectedName
+                    setTempDesignations(newDesignations)
+                  }}
+                  disabled={editMode}
+                  sx={{ flex: 1 }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label={`Designation ${index + 1}`}
+                      error={formik?.touched?.designations?.[index]?.name && !designation.name}
+                      helperText={
+                        formik?.touched?.designations?.[index]?.name && !designation.name
+                          ? 'Designation is required'
+                          : ''
+                      }
+                      fullWidth
+                      aria-label={`Designation ${index + 1}`}
+                    />
+                  )}
+                />
+
+                {/* Days Input */}
+                <TextField
+                  label='Days'
+                  type='number'
+                  value={designation.days}
+                  onChange={e => {
+                    const value = e.target.value
+
+                    if (value === '' || (!isNaN(value) && value >= 0)) {
                       const newDesignations = [...tempDesignations]
 
-                      newDesignations[index].name = selectedName
+                      newDesignations[index].days = value
                       setTempDesignations(newDesignations)
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label={`Designation ${index + 1}`}
-                        error={formik?.touched?.designations?.[index]?.name && !designation.name}
-                        helperText={
-                          formik?.touched?.designations?.[index]?.name && !designation.name
-                            ? 'Designation is required'
-                            : ''
-                        }
-                      />
-                    )}
-                  />
-                </Box>
-
-                <Box style={{ width: '150px', boxShadow: 'none' }}>
-                  <TextField
-                    label='Days'
-                    type='number'
-                    value={designation.days === '' ? '' : designation.days}
-                    onChange={e => {
-                      const value = e.target.value
-                      const newDesignations = [...tempDesignations]
-
-                      newDesignations[index].days = value === '' ? '' : parseInt(value, 10) || 0
-                      setTempDesignations(newDesignations)
-                    }}
-                    error={formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days}
-                    helperText={
-                      formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days
                     }
-                    fullWidth
-                    inputProps={{ min: 0 }}
-                  />
-                </Box>
-
-                {index > 0 && (
-                  <IconButton
-                    color='secondary'
-                    onClick={() => setTempDesignations(tempDesignations.filter((_, i) => i !== index))}
-                  >
-                    <RemoveIcon />
-                  </IconButton>
-                )}
-
-                {index === tempDesignations.length - 1 && (
-                  <IconButton
-                    color='primary'
-                    onClick={() => setTempDesignations([...tempDesignations, { name: '', days: '' }])}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                )}
+                  }}
+                  error={formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days}
+                  helperText={formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days}
+                  sx={{ width: '120px' }}
+                  inputProps={{ min: 0, 'aria-label': `Days for designation ${index + 1}` }}
+                />
               </Box>
             ))}
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, boxShadow: 'none' }}>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+            <Button
+              variant='outlined'
+              onClick={() => {
+                setTempDesignations([{ name: '', days: '' }])
+                setDrawerOpen(false)
+                setEditMode(false)
+                setEditId(null)
+              }}
+              aria-label='Cancel'
+            >
+              Cancel
+            </Button>
             <Button
               variant='contained'
               color='primary'
               onClick={async () => {
-                const validDesignations = tempDesignations.filter(d => d.name && d.days)
+                const validDesignations = tempDesignations.filter(d => d.name && d.days && !isNaN(d.days))
 
-                if (validDesignations.length > 0) {
-                  const payload = validDesignations.map(d => ({
-                    designationName: d.name,
-                    xFactor: d.days
-                  }))
+                if (validDesignations.length === 0) {
+                  toast.error('At least one valid designation is required')
 
-                  try {
-                    if (editMode && editId) {
-                      // Update the existing X-Factor for the first valid designation
-                      await dispatch(updateXFactor({ id: editId, data: payload[0] }))
+                  return
+                }
 
-                      // Create any additional X-Factors if provided
-                      if (payload.length > 1) {
-                        await dispatch(createXFactor({ data: payload.slice(1) }))
-                      }
-                    } else {
-                      // Create all valid designations in bulk
-                      await dispatch(createXFactor({ data: payload }))
-                    }
+                const payload = validDesignations.map(d => ({
+                  designationName: d.name,
+                  xFactor: parseInt(d.days, 10) || 0
+                }))
 
-                    setTempDesignations([{ name: '', days: '' }])
-                    setDrawerOpen(false)
-                    setEditMode(false)
-                    setEditId(null)
+                setIsLoading(true)
 
-                    dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
-                  } catch (error) {
-                    console.error('Error saving X-Factor:', error)
+                try {
+                  if (editMode && editId) {
+                    await dispatch(updateResignedXFactor({ id: editId, data: payload[0] })).unwrap()
+                    toast.success('X-Factor updated successfully')
+                  } else {
+                    // Assuming createXFactor exists; add logic here if needed
+                    // await dispatch(createVacancyXFactor({ data: payload })).unwrap();
+                    toast.success('X-Factor added successfully')
                   }
+
+                  setTempDesignations([{ name: '', days: '' }])
+                  setDrawerOpen(false)
+                  setEditMode(false)
+                  setEditId(null)
+                  dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
+                } catch (error) {
+                  toast.error(error.message || 'Failed to save X-Factor')
+                } finally {
+                  setIsLoading(false)
                 }
               }}
               disabled={isSaveDisabled}
+              startIcon={isLoading ? <CircularProgress size={20} /> : null}
+              aria-label={editMode ? 'Update X-Factor' : 'Save X-Factor'}
             >
               {editMode ? 'Update' : 'Save'}
             </Button>
@@ -296,4 +314,4 @@ const DesignationForm = ({ formik }) => {
   )
 }
 
-export default DesignationForm
+export default ResignedXFactor

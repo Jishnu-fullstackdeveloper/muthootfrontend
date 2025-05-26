@@ -16,8 +16,8 @@ const ViewEmployeeeDetails = () => {
 
   return (
     <>
-      {mode === 'view' && settings !== 'resigned-employees' && <EmployeeProfilePage />}
-      {mode === 'view' && settings === 'resigned-employees' && <ResignationDataListingPage />}
+      {mode === 'view' && settings !== 'resigned-employee' && <EmployeeProfilePage />}
+      {mode === 'view' && settings === 'resigned-employee' && <ResignationDataListingPage />}
     </>
   )
 }

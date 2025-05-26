@@ -4,7 +4,17 @@ import React, { useEffect, useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Typography, IconButton, InputAdornment, Box, Card, CardContent, Tooltip, Button } from '@mui/material'
+import {
+  Typography,
+  IconButton,
+  InputAdornment,
+  Box,
+  Card,
+  CardContent,
+  Tooltip,
+  Button,
+  CircularProgress
+} from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -13,6 +23,14 @@ import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { ROUTES } from '@/utils/routes'
 
+// Define interfaces for type safety
+interface Role {
+  id: string
+  name: string
+  description?: string
+  permissions?: string[]
+}
+
 interface FetchParams {
   limit: number
   page: number
@@ -20,23 +38,38 @@ interface FetchParams {
   permissionName?: string[]
 }
 
-const UserRolesAndPermisstionList = () => {
+interface UserRoleState {
+  userRoleData: {
+    data: Role[]
+    pagination?: { totalItems: number }
+    message?: string
+  }
+  isUserRoleLoading: boolean
+  error?: string
+}
+
+const UserRolesAndPermissionList: React.FC = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
-  const [searchText, setSearchText] = useState('')
-  const [debouncedSearchText, setDebouncedSearchText] = useState('')
 
-  const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const { userRoleData, isUserRoleLoading, error } = useAppSelector(
+    (state: any) => state.UserRoleReducer as UserRoleState
+  )
 
+  const [searchText, setSearchText] = useState<string>('')
+  const [debouncedSearchText, setDebouncedSearchText] = useState<string>('')
+  const [appliedPermissionFilters, setAppliedPermissionFilters] = useState<Record<string, boolean>>({})
+  const [page, setPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
+
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
 
     return () => clearTimeout(timer)
   }, [searchText])
 
+  // Fetch user roles when parameters change
   useEffect(() => {
     const params: FetchParams = {
       limit,
@@ -53,7 +86,28 @@ const UserRolesAndPermisstionList = () => {
     dispatch(fetchUserRole(params))
   }, [debouncedSearchText, appliedPermissionFilters, page, limit, dispatch])
 
-  const handleEdit = (role: any) => {
+  // Log API messages or errors
+  useEffect(() => {
+    if (userRoleData?.message) {
+      console.log('API Message:', userRoleData.message)
+    }
+
+    if (error) {
+      console.error('Error fetching roles:', error)
+    }
+  }, [userRoleData?.message, error])
+
+  // Clean role names by removing prefixes and formatting
+  const cleanName = (name: string, prefix: 'DES_' | 'grp_'): string => {
+    const regex = new RegExp(`^${prefix}`, 'i')
+
+    return name.replace(regex, '').replace(/\s+/g, '-')
+  }
+
+  // Handle navigation to edit role page
+  const handleEdit = (role: Role): void => {
+    const cleanedName = cleanName(role.name, 'DES_')
+
     const query = new URLSearchParams({
       id: role.id,
       name: role.name
@@ -63,71 +117,80 @@ const UserRolesAndPermisstionList = () => {
     router.push(ROUTES.USER_MANAGEMENT.ROLE_EDIT(query, role.name))
   }
 
-  const handleView = (role: any) => {
-    const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
+  // Handle navigation to view role page
+  const handleView = (role: Role): void => {
+    const cleanedName = cleanName(role.name, 'DES_')
 
-    // router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
+    const query = new URLSearchParams({
+      id: role.id,
+      name: role.name
+    }).toString()
+
     router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
   }
 
-  const handleAdd = () => {
-    router.push('/user-role/add/new') // Navigate to the edit page for adding a new role
+  // Handle navigation to add role page
+  const handleAdd = (): void => {
     router.push(ROUTES.USER_MANAGEMENT.ROLE_ADD)
   }
 
-  const columnHelper = createColumnHelper<any>()
+  // Define table columns
+  const columnHelper = createColumnHelper<Role>()
 
   const columns = useMemo(
     () => [
       columnHelper.accessor('serialNo', {
         header: 'Sl No',
-        cell: ({ row }) => <Typography>{(page - 1) * limit + row.index + 1}</Typography>
+        cell: ({ row }) => <Typography variant='body2'>{(page - 1) * limit + row.index + 1}</Typography>
       }),
       columnHelper.accessor('name', {
         header: 'Role Name',
-        cell: ({ row }) => <Typography>{row.original.name.toUpperCase() || 'N/A'}</Typography>
+        cell: ({ row }) => (
+          <Typography variant='body2'>{cleanName(row.original.name, 'DES_').toUpperCase() || 'N/A'}</Typography>
+        )
       }),
       columnHelper.accessor('description', {
         header: 'Description',
         cell: ({ row }) => {
-          const description = row.original.description || 'N/A'
-          const truncated = description.length > 30 ? description.slice(0, 30) + '  ...' : description
+          const description = row.original.description ? row.original.description.replace(/\des_/, '') : 'N/A'
+
+          const truncated = description.length > 30 ? `${description.slice(0, 30)}...` : description
 
           return (
             <Tooltip title={description.length > 1 ? description : ''} arrow>
-              <Typography>{truncated}</Typography>
+              <Typography variant='body2'>{truncated}</Typography>
             </Tooltip>
           )
         }
       }),
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: ({ row }) => {
-          const roleName = row.original.name.toUpperCase()
-          const isEditDisabled =
-            roleName === 'DEFAULT-ROLE' || roleName === 'DEFAULT-ROLES-HRMS' || roleName === 'SUPER ADMIN'
-
-          return (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                onClick={() => handleEdit(row.original)}
-                title='Edit'
-                sx={{ fontSize: '20px' }}
-                disabled={isEditDisabled}
-              >
-                <i className='tabler-edit' />
-              </IconButton>
-              <IconButton onClick={() => handleView(row.original)} title='View' sx={{ fontSize: '20px' }}>
-                <i className='tabler-eye' />
-              </IconButton>
-            </Box>
-          )
-        }
+        cell: ({ row }) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {/* Placeholder for Edit button (disabled in original code) */}
+            {/* <IconButton
+              onClick={() => handleEdit(row.original)}
+              aria-label="Edit role"
+              disabled={isEditDisabled}
+              sx={{ color: 'text.secondary' }}
+            >
+              <i className="tabler-edit" style={{ fontSize: '20px' }} />
+            </IconButton> */}
+            <IconButton
+              onClick={() => handleView(row.original)}
+              aria-label='View role'
+              sx={{ color: 'text.secondary' }}
+            >
+              <i className='tabler-eye' style={{ fontSize: '20px' }} />
+            </IconButton>
+          </Box>
+        )
       })
     ],
     [page, limit, columnHelper]
   )
 
+  // Filter roles based on permissions
   const filteredRoles = useMemo(() => {
     const activePermissions = Object.keys(appliedPermissionFilters).filter(key => appliedPermissionFilters[key])
 
@@ -138,42 +201,58 @@ const UserRolesAndPermisstionList = () => {
     )
   }, [userRoleData?.data, appliedPermissionFilters])
 
-  useEffect(() => {
-    if (userRoleData?.message) console.log(userRoleData?.message)
-  }, [userRoleData?.message])
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle search input change
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchText(event.target.value)
   }
 
   return (
-    <div>
-      <Card sx={{ mb: 4 }}>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <DynamicTextField
-                label='Search Roles'
-                variant='outlined'
-                onChange={handleSearch}
-                value={searchText}
-                placeholder='Search roles...'
-                size='small'
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      {searchText && (
-                        <IconButton sx={{ color: '#d3d3d3' }} size='small' onClick={() => setSearchText('')} edge='end'>
-                          <i className='tabler-x text-xl' />
-                        </IconButton>
-                      )}
-                      <i className='tabler-search text-xxl' />
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Box>
-            <Button variant='contained' color='primary' onClick={handleAdd}>
+    <Box>
+      <Card sx={{ mb: 4, borderRadius: 2, boxShadow: 3 }}>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 2
+            }}
+          >
+            <DynamicTextField
+              label='Search Roles'
+              variant='outlined'
+              onChange={handleSearch}
+              value={searchText}
+              placeholder='Search roles...'
+              size='small'
+              sx={{ minWidth: { xs: '100%', sm: 300 } }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    {searchText && (
+                      <IconButton
+                        aria-label='Clear search'
+                        size='small'
+                        onClick={() => setSearchText('')}
+                        edge='end'
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        <i className='tabler-x' style={{ fontSize: '1rem' }} />
+                      </IconButton>
+                    )}
+                    <i className='tabler-search' style={{ fontSize: '1.25rem' }} />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={handleAdd}
+              startIcon={<i className='tabler-plus' />}
+              sx={{ borderRadius: 1 }}
+            >
               Add Role
             </Button>
           </Box>
@@ -181,25 +260,31 @@ const UserRolesAndPermisstionList = () => {
       </Card>
 
       {isUserRoleLoading ? (
-        <Typography>Loading roles...</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress aria-label='Loading roles' />
+        </Box>
+      ) : error ? (
+        <Typography color='error' align='center'>
+          Failed to load roles: {error}
+        </Typography>
       ) : (
-        <Card>
+        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
           <DynamicTable
             tableName='User Roles List'
             columns={columns}
             data={filteredRoles}
             pagination={{
-              pageIndex: page - 1, // 0-based for DynamicTable
+              pageIndex: page - 1,
               pageSize: limit
             }}
             totalCount={userRoleData?.pagination?.totalItems || 0}
-            onPageChange={newPage => setPage(newPage + 1)} // Convert 0-based to 1-based for API
+            onPageChange={newPage => setPage(newPage + 1)}
             onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
           />
         </Card>
       )}
-    </div>
+    </Box>
   )
 }
 
-export default UserRolesAndPermisstionList
+export default UserRolesAndPermissionList

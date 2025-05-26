@@ -200,7 +200,7 @@ const ApprovalManagement = () => {
         header: 'Move to',
         cell: () => (
           <Typography>
-           <ExitToAppIcon></ExitToAppIcon>
+            <ExitToAppIcon></ExitToAppIcon>
           </Typography>
         ) // Placeholder since API doesn't provide overdue
       })

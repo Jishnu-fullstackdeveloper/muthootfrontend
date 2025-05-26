@@ -69,8 +69,8 @@ interface User {
   employeeCode?: string
   status?: string
   source?: string
-  roles?: string[] | Role[]
-  role?: string
+  designationRole?: string[] | Role[]
+  GroupRoles?: string
   designation?: string
 }
 

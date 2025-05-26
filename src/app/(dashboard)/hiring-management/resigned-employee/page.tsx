@@ -1,7 +1,9 @@
+import ResignationDataListingPage from '@/views/pages/ResignedEmployees/ResignationDataListing'
+
 import React from 'react'
 
 function Resigned() {
-  return <div>Welcome to the Resigned Page</div>
+  return <ResignationDataListingPage />
 }
 
 export default Resigned

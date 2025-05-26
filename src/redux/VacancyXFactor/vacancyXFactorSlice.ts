@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { API_ENDPOINTS } from '../ApiUrls/xFactor' // Adjusted to point to XFactor API endpoints
 
-export const fetchXFactor = createAsyncThunk(
-  'xFactor/fetchXFactor',
+export const fetchVacancyXFactor = createAsyncThunk(
+  'xFactor/fetchVacancyXFactor',
   async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getXfactorUrl, { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getVacancyXfactorUrl, { params })
 
       return response.data
     } catch (error: any) {
@@ -29,24 +29,24 @@ export const fetchDesignation = createAsyncThunk(
   }
 )
 
-export const createXFactor = createAsyncThunk(
-  'xFactor/createXFactor',
-  async (params: { data: { designationName: string; xFactor: number }[] }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.post(API_ENDPOINTS.createXfactorUrl, params)
+// export const createXFactor = createAsyncThunk(
+//   'xFactor/createXFactor',
+//   async (params: { data: { designationName: string; xFactor: number }[] }, { rejectWithValue }) => {
+//     try {
+//       const response = await AxiosLib.post(API_ENDPOINTS.createXfactorUrl, params)
 
-      return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data || 'An error occurred while creating X-Factor')
-    }
-  }
-)
+//       return response.data
+//     } catch (error: any) {
+//       return rejectWithValue(error.response?.data || 'An error occurred while creating X-Factor')
+//     }
+//   }
+// )
 
-export const updateXFactor = createAsyncThunk(
-  'xFactor/updateXFactor',
+export const updateResignedXFactor = createAsyncThunk(
+  'xFactor/updateResignedXFactor',
   async ({ id, data }: { id: string; data: { designationName: string; xFactor: number } }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.put(`/system-management/xfactor-config/${id}`, data)
+      const response = await AxiosLib.put(API_ENDPOINTS.UpdateResignedXfactorUrl(id), data)
 
       return response.data
     } catch (error: any) {
@@ -58,12 +58,12 @@ export const updateXFactor = createAsyncThunk(
 export const xFactorSlice = createSlice({
   name: 'xFactor',
   initialState: {
-    xFactorData: [],
+    vacancyXFactorData: [],
     totalCount: 0, // Total number of records
-    isXFactorLoading: false,
-    xFactorSuccess: false,
-    xFactorFailure: false,
-    xFactorFailureMessage: '',
+    isVacancyXFactorLoading: false,
+    vacancyXFactorSuccess: false,
+    vacancyXFactorFailure: false,
+    vacancyXFactorFailureMessage: '',
 
     designationData: [],
     isDesignationLoading: false,
@@ -78,10 +78,10 @@ export const xFactorSlice = createSlice({
   },
   reducers: {
     resetXFactorState: state => {
-      state.isXFactorLoading = false
-      state.xFactorSuccess = false
-      state.xFactorFailure = false
-      state.xFactorFailureMessage = ''
+      state.isVacancyXFactorLoading = false
+      state.vacancyXFactorSuccess = false
+      state.vacancyXFactorFailure = false
+      state.vacancyXFactorFailureMessage = ''
       state.createXFactorSuccess = false
       state.createXFactorFailure = false
       state.createXFactorFailureMessage = ''
@@ -89,19 +89,19 @@ export const xFactorSlice = createSlice({
   },
   extraReducers: builder => {
     builder
-      .addCase(fetchXFactor.pending, state => {
-        state.isXFactorLoading = true
+      .addCase(fetchVacancyXFactor.pending, state => {
+        state.isVacancyXFactorLoading = true
       })
-      .addCase(fetchXFactor.fulfilled, (state, action) => {
-        state.xFactorData = action.payload.data
+      .addCase(fetchVacancyXFactor.fulfilled, (state, action) => {
+        state.vacancyXFactorData = action.payload.data
         state.totalCount = action.payload.pagination.totalItems // Extract totalItems from the API response
-        state.isXFactorLoading = false
-        state.xFactorSuccess = true
+        state.isVacancyXFactorLoading = false
+        state.vacancyXFactorSuccess = true
       })
-      .addCase(fetchXFactor.rejected, (state, action) => {
-        state.isXFactorLoading = false
-        state.xFactorFailure = true
-        state.xFactorFailureMessage = action.payload || 'Failed to fetch X-Factor data'
+      .addCase(fetchVacancyXFactor.rejected, (state, action) => {
+        state.isVacancyXFactorLoading = false
+        state.vacancyXFactorFailure = true
+        state.vacancyXFactorFailureMessage = action.payload || 'Failed to fetch X-Factor data'
       })
 
       .addCase(fetchDesignation.pending, state => {
@@ -122,22 +122,22 @@ export const xFactorSlice = createSlice({
         state.designationFailureMessage = action.payload || 'Failed to fetch Designation data'
       })
 
-      .addCase(createXFactor.pending, state => {
-        state.isCreatingXFactor = true
-        state.createXFactorSuccess = false
-        state.createXFactorFailure = false
-        state.createXFactorFailureMessage = ''
-      })
-      .addCase(createXFactor.fulfilled, (state, action) => {
-        state.isCreatingXFactor = false
-        state.createXFactorSuccess = true
-        state.xFactorData.push(action.payload) // Add the new X-Factor to the list
-      })
-      .addCase(createXFactor.rejected, (state, action) => {
-        state.isCreatingXFactor = false
-        state.createXFactorFailure = true
-        state.createXFactorFailureMessage = action.payload || 'Failed to create X-Factor'
-      })
+      // .addCase(createXFactor.pending, state => {
+      //   state.isCreatingXFactor = true
+      //   state.createXFactorSuccess = false
+      //   state.createXFactorFailure = false
+      //   state.createXFactorFailureMessage = ''
+      // })
+      // .addCase(createXFactor.fulfilled, (state, action) => {
+      //   state.isCreatingXFactor = false
+      //   state.createXFactorSuccess = true
+      //   state.resignedXFactorData.push(action.payload) // Add the new X-Factor to the list
+      // })
+      // .addCase(createXFactor.rejected, (state, action) => {
+      //   state.isCreatingXFactor = false
+      //   state.createXFactorFailure = true
+      //   state.createXFactorFailureMessage = action.payload || 'Failed to create X-Factor'
+      // })
   }
 })
 

@@ -10,11 +10,14 @@ import { createColumnHelper } from '@tanstack/react-table'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import { ROUTES } from '@/utils/routes'
 
 const VacancyListingTableView = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { vacancies, totalCount, loading, error } = useAppSelector(state => state.vacancyManagementReducer)
+  const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
+    state => state.vacancyManagementReducer
+  )
 
   const columnHelper = createColumnHelper<any>()
 
@@ -150,7 +153,11 @@ const VacancyListingTableView = () => {
         cell: ({ row }) => (
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
-              <IconButton onClick={() => router.push(`/vacancy-management/view/${row.original.id}`)}>
+              <IconButton
+                onClick={() =>
+                  router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(row.original.id))
+                }
+              >
                 <i className='tabler-eye text-textSecondary'></i>
               </IconButton>
             </Tooltip>
@@ -330,17 +337,21 @@ const VacancyListingTableView = () => {
 
   return (
     <Box>
-      {loading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
-      {error && <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>Error: {error}</Typography>}
-      {!loading && !error && vacancies.length === 0 ? (
+      {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
+      {vacancyListFailureMessage && (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>
+          Error: {vacancyListFailureMessage}
+        </Typography>
+      )}
+      {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData.length === 0 ? (
         <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
       ) : (
-        !loading &&
-        !error && (
+        !vacancyListLoading &&
+        !vacancyListFailureMessage && (
           <DynamicTable
             columns={columns}
-            data={vacancies || []}
-            totalCount={totalCount}
+            data={vacancyListData.data || []}
+            totalCount={vacancyListData.totalCount}
             pagination={pagination}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}

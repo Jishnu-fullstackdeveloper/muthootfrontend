@@ -149,11 +149,27 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             read: 'HIRING_RESIGNATION_READ'
           },
           {
-            path: ROUTES.HIRING_MANAGEMENT.VACANCY,
-            label: 'Vacancy',
+            path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
+            label: 'Vacancy Management',
             iconClass: 'tabler-briefcase',
             permission: 'vacancyManagement',
-            read: 'HIRING_VACANCY_READ'
+            read: 'HIRING_VACANCY_READ',
+            children: [
+              {
+                path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
+                label: 'Vacancy List',
+                iconClass: 'tabler-briefcase',
+                permission: 'vacancyList',
+                read: 'HIRING_VACANCY_VACANCYLIST_READ'
+              },
+              {
+                path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST,
+                label: 'Vacancy Request',
+                iconClass: 'tabler-briefcase',
+                permission: 'vacancyRequest',
+                read: 'HIRING_VACANCY_VACANCYREQUEST_READ'
+              }
+            ]
           },
           {
             path: ROUTES.HIRING_MANAGEMENT.BUDGET,

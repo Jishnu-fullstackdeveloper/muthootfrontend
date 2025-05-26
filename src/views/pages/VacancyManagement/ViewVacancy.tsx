@@ -25,7 +25,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   // const id = params?.editId as string | undefined // Extract id safely
   const dispatch = useAppDispatch()
 
-  const { selectedVacancy, selectedVacancyLoading, selectedVacancyError } = useAppSelector(
+  const { vacancyDetailsData, vacancyDetailsLoading, vacancyDetailsFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
   )
 
@@ -49,7 +49,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
     console.log('Dispatching fetchVacancyById with ID:', id)
 
     if (id) {
-      dispatch(fetchVacancyById(id))
+      dispatch(fetchVacancyById({ id }))
     } else {
       console.warn('No ID provided in URL')
     }
@@ -57,10 +57,10 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
 
   console.log('Dispatching fetchVacancyById with ID:', id)
 
-  // Log selectedVacancy changes for debugging
+  // Log vacancyDetailsData.data changes for debugging
   useEffect(() => {
-    console.log('Current selectedVacancy:', selectedVacancy)
-  }, [selectedVacancy])
+    console.log('Current vacancyDetailsData.data:', vacancyDetailsData.data)
+  }, [vacancyDetailsData.data])
 
   // const handleTabChange2 = (event: React.SyntheticEvent, newValue: number) => {
   //   setTabValue(newValue)
@@ -75,7 +75,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   // }
 
   // Show loading or error states
-  if (selectedVacancyLoading) {
+  if (vacancyDetailsLoading) {
     return (
       <Box sx={{ p: 4 }}>
         <Typography variant='h6'>Loading vacancy details...</Typography>
@@ -83,24 +83,26 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
     )
   }
 
-  if (selectedVacancyError) {
+  if (vacancyDetailsFailureMessage) {
     return (
       <Box sx={{ p: 4 }}>
         <Typography variant='h6' color='error'>
-          Error: {selectedVacancyError}
+          Error: {vacancyDetailsFailureMessage}
         </Typography>
-        <Button variant='text' onClick={() => dispatch(fetchVacancyById(id as string))}>
+        <Button variant='text' onClick={() => dispatch(fetchVacancyById({ id: id as string }))}>
           Retry
         </Button>
       </Box>
     )
   }
 
-  if (!selectedVacancy) {
+  console.log('Vacancy Details Data:', vacancyDetailsData.data)
+
+  if (!vacancyDetailsData.data) {
     return (
       <Box sx={{ p: 4 }}>
         <Typography variant='h6'>No vacancy data available for ID: {id}</Typography>
-        <Button variant='text' onClick={() => dispatch(fetchVacancyById(id as string))}>
+        <Button variant='text' onClick={() => dispatch(fetchVacancyById({ id: id as string }))}>
           Retry
         </Button>
       </Box>
@@ -114,18 +116,18 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
           {/* Tabs for Job Title and Job Details */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
-              {selectedVacancy?.jobTitle}
+              {vacancyDetailsData.data?.jobTitle}
             </Typography>
             <Chip
-              label={selectedVacancy?.status}
+              label={vacancyDetailsData.data?.status}
               size='small'
               variant='tonal'
               color={
-                selectedVacancy?.status === 'Open'
+                vacancyDetailsData.data?.status === 'Open'
                   ? 'success'
-                  : selectedVacancy?.status === 'Closed'
+                  : vacancyDetailsData.data?.status === 'Closed'
                     ? 'error'
-                    : selectedVacancy?.status === 'Freeze'
+                    : vacancyDetailsData.data?.status === 'Freeze'
                       ? 'info'
                       : 'default'
               }
@@ -142,10 +144,10 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                 <Box className='flex flex-row justify-between'>
                   <Box className='flex flex-row space-x-2 space-y-2'>
                     {/* <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
-                      {selectedVacancy?.designation}
+                      {vacancyDetailsData.data?.designation}
                     </Typography> */}
                     {/* <Typography variant='h5' color='text.secondary'>
-                      Grade: {selectedVacancy?.grade}
+                      Grade: {vacancyDetailsData.data?.grade}
                     </Typography> */}
                   </Box>
                   {/* <Box>
@@ -170,73 +172,73 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   {/* Grid for Details */}
                   <Box className='grid grid-cols-2 md:grid-cols-3 gap-2'>
                     <Typography variant='body2' color='text.secondary'>
-                      Designation: <strong>{selectedVacancy?.designation}</strong>
+                      Designation: <strong>{vacancyDetailsData.data?.designation}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Job Role: <strong>{selectedVacancy?.jobRole}</strong>
+                      Job Role: <strong>{vacancyDetailsData.data?.jobRole}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Grade: <strong>{selectedVacancy?.grade}</strong>
+                      Grade: <strong>{vacancyDetailsData.data?.grade}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Band: <strong>{selectedVacancy?.band}</strong>
+                      Band: <strong>{vacancyDetailsData.data?.band}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Openings: <strong>{selectedVacancy?.openings}</strong>
+                      Openings: <strong>{vacancyDetailsData.data?.openings}</strong>
                     </Typography>
                     {/* <Typography variant='body2' color='text.secondary'>
-                      Business Role: <strong>{selectedVacancy?.businessRole}</strong>
+                      Business Role: <strong>{vacancyDetailsData.data?.businessRole}</strong>
                     </Typography> */}
                     {/* <Typography variant='body2' color='text.secondary'>
                       Experience:{' '}
                       <strong>
-                        {selectedVacancy?.experienceMin} - {selectedVacancy?.experienceMax} years
+                        {vacancyDetailsData.data?.experienceMin} - {vacancyDetailsData.data?.experienceMax} years
                       </strong>
                     </Typography> */}
                     <Typography variant='body2' color='text.secondary'>
-                      Campus/Lateral: <strong>{selectedVacancy?.campusOrLateral}</strong>
+                      Campus/Lateral: <strong>{vacancyDetailsData.data?.campusOrLateral}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Employee Category: <strong>{selectedVacancy?.employeeCategory}</strong>
+                      Employee Category: <strong>{vacancyDetailsData.data?.employeeCategory}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Employee Type: <strong>{selectedVacancy?.employeeType}</strong>
+                      Employee Type: <strong>{vacancyDetailsData.data?.employeeType}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Hiring Manager: <strong>{selectedVacancy?.hiringManager}</strong>
+                      Hiring Manager: <strong>{vacancyDetailsData.data?.hiringManager}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Company: <strong>{selectedVacancy?.company}</strong>
+                      Company: <strong>{vacancyDetailsData.data?.company}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Business Unit: <strong>{selectedVacancy?.businessUnit}</strong>
+                      Business Unit: <strong>{vacancyDetailsData.data?.businessUnit}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Department: <strong>{selectedVacancy?.department}</strong>
+                      Department: <strong>{vacancyDetailsData.data?.department}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Starting Date: <strong>{selectedVacancy?.startingDate.split('T')[0]}</strong>
+                      Starting Date: <strong>{vacancyDetailsData.data?.startingDate?.split('T')[0]}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Closing Date: <strong>{selectedVacancy?.closingDate.split('T')[0]}</strong>
+                      Closing Date: <strong>{vacancyDetailsData.data?.closingDate?.split('T')[0]}</strong>
                     </Typography>
                   </Box>
                 </Paper>
                 {/* <Paper className='mt-4 space-x-2' elevation={4} sx={{ padding: 4, margin: 'auto', borderRadius: 1 }}>
                   <List className='grid grid-cols-2 md:grid-cols-4 gap-2'>
                     <ListItemText
-                      primary={<span className='text-green-500'>No. of openings: {selectedVacancy?.numberOfOpenings}</span>}
+                      primary={<span className='text-green-500'>No. of openings: {vacancyDetailsData.data?.numberOfOpenings}</span>}
                     />
                     <ListItemText
-                      primary={<span className='text-blue-500'>Applied: {selectedVacancy?.noOfApplicants}</span>}
+                      primary={<span className='text-blue-500'>Applied: {vacancyDetailsData.data?.noOfApplicants}</span>}
                     />
                     <ListItemText
                       primary={
-                        <span className='text-yellow-500'>Filled Positions: {selectedVacancy?.noOfFilledPositions}</span>
+                        <span className='text-yellow-500'>Filled Positions: {vacancyDetailsData.data?.noOfFilledPositions}</span>
                       }
                     />
                     <ListItemText
-                      primary={<span className='text-red-500'>Shortlisted: {selectedVacancy?.shortlisted}</span>}
+                      primary={<span className='text-red-500'>Shortlisted: {vacancyDetailsData.data?.shortlisted}</span>}
                     />
                   </List>
                 </Paper> */}
@@ -249,19 +251,19 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <DateRange fontSize='small' color='action' /> <strong>Start Date:</strong>{' '}
-                          {selectedVacancy?.startingDate}
+                          {vacancyDetailsData.data?.startingDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <DateRange fontSize='small' color='action' /> <strong>End Date:</strong>{' '}
-                          {selectedVacancy?.closingDate}
+                          {vacancyDetailsData.data?.closingDate}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <Person fontSize='small' color='action' /> <strong>Contact Person:</strong>{' '}
-                          {selectedVacancy?.contactPerson}
+                          {vacancyDetailsData.data?.contactPerson}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -289,31 +291,31 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   {/* Grid for Details */}
                   <Box className='grid grid-cols-2 md:grid-cols-3 gap-2'>
                     <Typography variant='body2' color='text.secondary'>
-                      Territory: <strong>{selectedVacancy?.territory}</strong>
+                      Territory: <strong>{vacancyDetailsData.data?.territory}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Region: <strong>{selectedVacancy?.region}</strong>
+                      Region: <strong>{vacancyDetailsData.data?.region}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Area: <strong>{selectedVacancy?.area}</strong>
+                      Area: <strong>{vacancyDetailsData.data?.area}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Cluster: <strong>{selectedVacancy?.cluster}</strong>
+                      Cluster: <strong>{vacancyDetailsData.data?.cluster}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Branch: <strong>{selectedVacancy?.branch}</strong>
+                      Branch: <strong>{vacancyDetailsData.data?.branch}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Branch Code: <strong>{selectedVacancy?.branchCode}</strong>
+                      Branch Code: <strong>{vacancyDetailsData.data?.branchCode}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      City: <strong>{selectedVacancy?.city}</strong>
+                      City: <strong>{vacancyDetailsData.data?.city}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      State: <strong>{selectedVacancy?.state}</strong>
+                      State: <strong>{vacancyDetailsData.data?.state}</strong>
                     </Typography>
                     <Typography variant='body2' color='text.secondary'>
-                      Origin: <strong>{selectedVacancy?.origin}</strong>
+                      Origin: <strong>{vacancyDetailsData.data?.origin}</strong>
                     </Typography>
                   </Box>
                 </Paper>
@@ -329,21 +331,21 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                   Job Description
                 </Typography>
                 <Typography variant='body1' color='text.secondary'>
-                  {selectedVacancy?.jobDescription || 'Not provided in API response'}
+                  {vacancyDetailsData.data?.jobDescription || 'Not provided in API response'}
                 </Typography>
                 <Typography mt={2} variant='h6' fontWeight='bold' gutterBottom>
                   Role Summary
                 </Typography>
                 <Typography variant='body1' color='text.secondary'>
-                  {selectedVacancy?.roleSummary || 'Not provided in API response'}
+                  {vacancyDetailsData.data?.roleSummary || 'Not provided in API response'}
                 </Typography>
                 <Grid container spacing={2} mt={2}>
                   <Grid item xs={6}>
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Role Details
                     </Typography>
-                    {selectedVacancy.roleDetails ? (
-                      selectedVacancy.roleDetails.map((detail, index) => (
+                    {vacancyDetailsData.data.roleDetails ? (
+                      vacancyDetailsData.data.roleDetails.map((detail, index) => (
                         <Typography key={index} variant='body1' color='text.secondary'>
                           <strong>{detail.label}:</strong> {detail.value}
                         </Typography>
@@ -358,8 +360,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Key Skills & Attributes
                     </Typography>
-                    {selectedVacancy.keySkillsAttributes ? (
-                      selectedVacancy.keySkillsAttributes.map((skill, index) => (
+                    {vacancyDetailsData.data.keySkillsAttributes ? (
+                      vacancyDetailsData.data.keySkillsAttributes.map((skill, index) => (
                         <Typography key={index} variant='body1' color='text.secondary'>
                           <strong>{skill.label}:</strong> {skill.value}
                         </Typography>
@@ -380,23 +382,23 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <LocationOn fontSize='small' color='action' /> <strong>Branch:</strong>{' '}
-                          {selectedVacancy?.branch}
+                          {vacancyDetailsData.data?.branch}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>City:</strong> {selectedVacancy?.city}
+                          <LocationOn fontSize='small' color='action' /> <strong>City:</strong> {vacancyDetailsData.data?.city}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
                           <LocationOn fontSize='small' color='action' /> <strong>State/Region:</strong>{' '}
-                          {selectedVacancy?.state}
+                          {vacancyDetailsData.data?.state}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant='body1'>
-                          <LocationOn fontSize='small' color='action' /> <strong>Zone:</strong> {selectedVacancy?.zone}
+                          <LocationOn fontSize='small' color='action' /> <strong>Zone:</strong> {vacancyDetailsData.data?.zone}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -410,10 +412,10 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                       </Typography>
                       <Typography variant='body1'>
                         <strong>Education:</strong>{' '}
-                        {selectedVacancy?.educationalQualification || 'Not provided in API response'}
+                        {vacancyDetailsData.data?.educationalQualification || 'Not provided in API response'}
                       </Typography>
                       <Typography variant='body1'>
-                        <strong>Experience:</strong> {selectedVacancy?.experienceMin} - {selectedVacancy?.experienceMax}{' '}
+                        <strong>Experience:</strong> {vacancyDetailsData.data?.experienceMin} - {vacancyDetailsData.data?.experienceMax}{' '}
                         years
                       </Typography>
                       <Box mt={2}>
@@ -421,8 +423,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                           Skills Needed:
                         </Typography>
                         <Stack direction='row' spacing={1} mt={1}>
-                          {selectedVacancy?.skills ? (
-                            selectedVacancy?.skills.map((skill, index) => (
+                          {vacancyDetailsData.data?.skills ? (
+                            vacancyDetailsData.data?.skills.map((skill, index) => (
                               <Chip
                                 key={index}
                                 label={skill}
@@ -446,7 +448,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                         Salary Details
                       </Typography>
                       <Typography variant='body1' color='text.secondary'>
-                        {selectedVacancy?.salaryDetails || 'Not provided in API response'}
+                        {vacancyDetailsData.data?.salaryDetails || 'Not provided in API response'}
                       </Typography>
                     </Box>
                   </Grid>
@@ -456,7 +458,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                     <Typography variant='h6' fontWeight='bold' gutterBottom>
                       Documents Required
                     </Typography>
-                    {selectedVacancy?.documentsRequired?.map((doc, index) => (
+                    {vacancyDetailsData.data?.documentsRequired?.map((doc, index) => (
                       <ListItem key={index} disableGutters>
                         <ListItemText primary={`• ${doc}`} />
                       </ListItem>
@@ -474,10 +476,10 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                     </Typography>
                     <Typography variant='body1'>
                       <strong>Number of Rounds:</strong>{' '}
-                      {selectedVacancy?.interviewRounds || 'Not provided in API response'}
+                      {vacancyDetailsData.data?.interviewRounds || 'Not provided in API response'}
                     </Typography>
-                    {selectedVacancy?.interviewDetails ? (
-                      selectedVacancy?.interviewDetails.map((round, index) => (
+                    {vacancyDetailsData.data?.interviewDetails ? (
+                      vacancyDetailsData.data?.interviewDetails.map((round, index) => (
                         <ListItem key={index} disableGutters>
                           <CheckCircle fontSize='small' color='success' sx={{ mr: 1 }} />
                           <ListItemText primary={round} />
@@ -495,7 +497,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
                     Approvals
                   </Typography>
                   <Typography variant='body1' color='text.secondary'>
-                    {selectedVacancy?.approvals || 'Not provided in API response'}
+                    {vacancyDetailsData.data?.approvals || 'Not provided in API response'}
                   </Typography>
                 </Box>
               </Box>

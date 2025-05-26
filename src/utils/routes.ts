@@ -17,8 +17,12 @@ export const ROUTES = {
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
-    VACANCY: '/hiring-management/vacancy-management',
-    VACANCY_VIEW: (id: string) => `/hiring-management/vacancy-management/view/vacancy-details?id=${id}`,
+    VACANCY_MANAGEMENT: {
+      VACANCY_LIST: '/hiring-management/vacancy-management/vacancy-list',
+      VACANCY_LIST_VIEW: (id: string) =>
+        `/hiring-management/vacancy-management/vacancy-list/view/vacancy-details?id=${id}`,
+      VACANCY_REQUEST: '/hiring-management/vacancy-management/vacancy-request'
+    },
     BUDGET: '/hiring-management/budget-management',
     BUDGET_ADD: '/hiring-management/budget-management/add/new',
     BUDGET_VIEW: (jobTitle: string, id: string) => `/hiring-management/budget-management/view/${jobTitle}?id=${id}`

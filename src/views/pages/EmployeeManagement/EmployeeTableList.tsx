@@ -179,7 +179,7 @@ const EmployeeTable = () => {
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton
-                onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
+                onClick={() => router.push(`/user-management/employee/view/profile-?id=${row.original.id}`)}
                 sx={{ fontSize: 18 }}
               >
                 {/* <i className='tabler-eye text-textSecondary' /> */}

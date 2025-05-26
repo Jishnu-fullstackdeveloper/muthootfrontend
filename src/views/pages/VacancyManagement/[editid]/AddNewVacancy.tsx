@@ -14,11 +14,11 @@ const AddNewVacancy = () => {
   // Example: location.pathname = "/jd-management/add/jd"
   const pathname = usePathname() // Gets the full pathname
   const segments = pathname.split('/') // Split by "/"
-  const mode = segments[3] // Extract "add, view or edit"
+  const mode = segments[4] // Extract "add, view or edit"
   //const id = segments[3] // Extract "id"
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
-  const vacancy_tab = segments[4]
+  const vacancy_tab = segments[5]
 
   return (
     <>

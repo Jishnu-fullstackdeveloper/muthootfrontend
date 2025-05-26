@@ -25,7 +25,7 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
-import L2ManagerDashboard from './L2ManagerDashboard'
+// import L2ManagerDashboard from './L2ManagerDashboard'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
@@ -238,9 +238,9 @@ const ResignationDataListingPage = () => {
         </Box>
       </Card>
 
-      <Box>
+      {/* <Box>
         <L2ManagerDashboard />
-      </Box>
+      </Box> */}
 
       {loading && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>

@@ -71,6 +71,10 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
     return null // Prevent rendering on server
   }
 
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / pagination?.pageSize) || 0
+  const currentPage = (pagination?.pageIndex ?? 0) + 1 // Current page (1-based)
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <FormControl size='small' sx={{ minWidth: 70 }}>
@@ -79,6 +83,7 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
           value={pagination?.pageSize ?? 10}
           onChange={e => onRowsPerPageChange(Number(e.target.value))}
           label='Count'
+          size='small'
         >
           {[5, 10, 25, 100].map(option => (
             // eslint-disable-next-line react/jsx-no-undef
@@ -88,6 +93,14 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
           ))}
         </Select>
       </FormControl>
+      {/* Display current page range (e.g., "1 to 10") */}
+      {/* <Typography variant='body2' sx={{ whiteSpace: 'nowrap' }}>
+        {currentPage} - {totalPages} of {totalCount}
+      </Typography> */}
+      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+        {(currentPage - 1) * pagination?.pageSize + 1}-{Math.min(currentPage * pagination?.pageSize, totalCount)} of{' '}
+        {totalCount}
+      </Typography>
       {/* <Pagination
         color='primary'
         shape='rounded'

@@ -134,8 +134,8 @@ const ResignationDataListingPage = () => {
     }
   }, [loadMoreEmployees])
 
-  const handleCardClick = (employeeId: string) => {
-    router.push(`/resignation-details/${employeeId}`)
+  const handleCardClick = (id: string) => {
+    router.push(`/user-management/resigned-employee/view/detail?id=${id}`)
   }
 
   return (

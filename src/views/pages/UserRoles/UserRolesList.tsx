@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
+import { ROUTES } from '@/utils/routes'
 
 interface FetchParams {
   limit: number
@@ -25,7 +26,7 @@ const UserRolesAndPermisstionList = () => {
   const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer)
   const [searchText, setSearchText] = useState('')
   const [debouncedSearchText, setDebouncedSearchText] = useState('')
-  
+
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState({})
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -58,17 +59,20 @@ const UserRolesAndPermisstionList = () => {
       name: role.name
     }).toString()
 
-    router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+    // router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_EDIT(query, role.name))
   }
 
   const handleView = (role: any) => {
     const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
 
-    router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
+    // router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
   }
 
   const handleAdd = () => {
     router.push('/user-role/add/new') // Navigate to the edit page for adding a new role
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_ADD)
   }
 
   const columnHelper = createColumnHelper<any>()
@@ -100,7 +104,8 @@ const UserRolesAndPermisstionList = () => {
         header: 'Action',
         cell: ({ row }) => {
           const roleName = row.original.name.toUpperCase()
-          const isEditDisabled = roleName === 'DEFAULT-ROLE' || roleName === 'DEFAULT-ROLES-HRMS' || roleName === 'SUPER ADMIN'
+          const isEditDisabled =
+            roleName === 'DEFAULT-ROLE' || roleName === 'DEFAULT-ROLES-HRMS' || roleName === 'SUPER ADMIN'
 
           return (
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -179,7 +184,7 @@ const UserRolesAndPermisstionList = () => {
         <Typography>Loading roles...</Typography>
       ) : (
         <Card>
-         <DynamicTable
+          <DynamicTable
             tableName='User Roles List'
             columns={columns}
             data={filteredRoles}

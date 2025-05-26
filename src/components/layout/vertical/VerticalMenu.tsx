@@ -53,6 +53,9 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
+  // Log the current pathname for debugging
+  // console.log('Current pathname:', pathname)
+
   // Get the permission mapping
   const permissionConfig = getPermissionRenderConfig()
 
@@ -139,11 +142,11 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             read: 'HIRING_ONBOARDING_READ'
           },
           {
-            path: ROUTES.USER_MANAGEMENT.RESIGNED_EMPLOYEE,
+            path: ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE,
             label: 'Resignation',
             iconClass: 'tabler-user-x',
             permission: 'resignedEmployee',
-            read: 'USER_RESIGNED_READ'
+            read: 'HIRING_RESIGNATION_READ'
           },
           {
             path: ROUTES.HIRING_MANAGEMENT.VACANCY,
@@ -180,7 +183,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'System Management',
         iconClass: 'tabler-settings-check',
         permission: 'systemManagement',
-        read: 'GENERAL_CREATE',
+        read: 'SYSTEM_READ',
         children: [
           {
             path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.RESIGNED_X_FACTOR,
@@ -194,14 +197,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 label: 'Resigned X-Factor',
                 iconClass: 'tabler-user-x',
                 permission: 'resignedXFactor',
-                read: 'SYSTEM_RESIGNEDXFACTOR_READ'
+                read: 'SYSTEM_XFACTOR_RESIGNEDXFACTOR_READ'
               },
               {
                 path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.VACANCY_X_FACTOR,
                 label: 'Vacancy X-Factor',
                 iconClass: 'tabler-briefcase',
                 permission: 'vacancyXFactor',
-                read: 'SYSTEM_VACANCYXFACTOR_READ'
+                read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
               }
             ]
           },
@@ -272,20 +275,44 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     setClientMenuItems([...staticMenuItems, ...filteredDynamicMenuItems])
   }, [staticMenuItems, clientMenuItems.length])
 
-  // Check if a menu item is active
+  // Check if a first-level menu item is active based on the current URL
   const isMenuItemActive = useCallback(
     (item: MenuItemType): boolean => {
-      if (!pathname) return false
+      if (!pathname) {
+        // console.log('Pathname is null for item:', item.label)
+        return false
+      }
 
+      // Special case for recruitment-management overview
       if (item.path === '/recruitment-management/overview') {
-        return pathname.startsWith('/recruitment-management')
+        const isActive = pathname.startsWith('/recruitment-management')
+        // console.log('Item:', item.label, 'Path:', item.path, 'Is Active:', isActive)
+        return isActive
       }
 
+      // For items with children (e.g., "User Management", "Hiring Management")
       if (item.children) {
-        return item.children.some(child => isMenuItemActive(child))
+        // Check if the current URL starts with any child's path
+        const isActive = item.children.some(child => {
+          if (child.path) {
+            const matches = pathname === child.path || pathname.startsWith(child.path)
+            // console.log('Child Item:', child.label, 'Child Path:', child.path, 'Matches:', matches)
+            return matches
+          }
+          return false
+        })
+        // console.log('Item:', item.label, 'Path:', item.path, 'Is Active (has children):', isActive)
+
+        if (isActive) {
+          return isActive
+        }
       }
 
-      return pathname === item.path || pathname.startsWith(item.path)
+      // For leaf items (e.g., "Home", "JD Management"), check if the URL matches exactly or starts with the path
+      const isActive = pathname === item.path || pathname.startsWith(item.path)
+      // console.log('Item:', item.label, 'Path:', item.path, 'Is Active (leaf):', isActive)
+      // console.log('Path:', pathname, item.path)
+      return true
     },
     [pathname]
   )
@@ -307,6 +334,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
   // Early return if loading
   if (clientMenuItems.length === 0) {
+    console.log('Client menu items are empty, returning null')
     return null
   }
 
@@ -340,6 +368,16 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             const isExpanded = expandedMenus.includes(item.label)
             // Map the read key to the corresponding permission value
             const permissionValue = item.read ? permissionConfig[item.read] || '' : ''
+            // console.log(
+            //   'Main Menu Item:',
+            //   item.label,
+            //   'Path:',
+            //   item.path,
+            //   'Is Active:',
+            //   isActive,
+            //   'Permission Value:',
+            //   permissionValue
+            // )
 
             return (
               <div key={`${item.label}-${index}`}>
@@ -381,6 +419,16 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                         const childIsExpanded = expandedMenus.includes(child.label)
                         // Map the read key to the corresponding permission value for child
                         const childPermissionValue = child.read ? permissionConfig[child.read] || '' : ''
+                        // console.log(
+                        //   'Submenu Item (Level 1):',
+                        //   child.label,
+                        //   'Path:',
+                        //   child.path,
+                        //   'Is Active:',
+                        //   childIsActive,
+                        //   'Permission Value:',
+                        //   childPermissionValue
+                        // )
 
                         return (
                           <div key={`${child.label}-${childIndex}`}>
@@ -388,7 +436,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                             <ListItem disablePadding>
                               <MenuItemWithPermission
                                 icon={<i className={child.iconClass} />}
-                                active={childIsActive}
+                                active={false} // Submenu items are not highlighted
                                 individualPermission={childPermissionValue}
                                 suffix={
                                   childHasChildren ? (
@@ -422,12 +470,22 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                     const nestedPermissionValue = nestedChild.read
                                       ? permissionConfig[nestedChild.read] || ''
                                       : ''
+                                    // console.log(
+                                    //   'Nested Submenu Item (Level 2):',
+                                    //   nestedChild.label,
+                                    //   'Path:',
+                                    //   nestedChild.path,
+                                    //   'Is Active:',
+                                    //   nestedIsActive,
+                                    //   'Permission Value:',
+                                    //   nestedPermissionValue
+                                    // )
 
                                     return (
                                       <ListItem key={`${nestedChild.label}-${nestedIndex}`} disablePadding>
                                         <MenuItemWithPermission
                                           icon={<i className={nestedChild.iconClass} />}
-                                          active={nestedIsActive}
+                                          active={false} // Nested submenu items are not highlighted
                                           individualPermission={nestedPermissionValue}
                                           onClick={() => handleNavigation(nestedChild.path)}
                                         >

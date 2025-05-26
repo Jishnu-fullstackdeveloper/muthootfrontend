@@ -1,7 +1,13 @@
 'use client'
 
+import VacancyXFactor from '@/views/pages/SystemManagement/VacancyXFactor/VacancyXFactor'
+
 const Page = () => {
-  return <div>Welcome to Vacancy X factor</div>
+  return (
+    <div>
+      <VacancyXFactor formik={undefined} />
+    </div>
+  )
 }
 
 export default Page

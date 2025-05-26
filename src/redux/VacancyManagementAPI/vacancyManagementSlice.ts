@@ -375,7 +375,7 @@ export const fetchVacancyRequests = createAsyncThunk<
       if (approverId) params.approverId = approverId
 
       console.log('Sending API request for vacancy requests with params:', params)
-      const response = await AxiosLib.get('/vacancy-request', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyRequestUrl, { params })
 
       console.log('API Response for vacancy requests:', response.data)
       return response.data
@@ -394,7 +394,7 @@ export const updateVacancyRequestStatus = createAsyncThunk<
   try {
     const requestBody = { approverId, status }
     console.log('Sending API request to update vacancy request status for ID:', id, 'with body:', requestBody)
-    const response = await AxiosLib.put(`/vacancy-request/status?id=${id}`, requestBody)
+    const response = await AxiosLib.put(API_ENDPOINTS.updateVacancyRequestStatusUrl(id), requestBody)
 
     console.log('API Response for updating vacancy request status:', response.data)
     return response.data
@@ -410,7 +410,7 @@ export const autoApproveVacancyRequests = createAsyncThunk<AutoApproveVacancyReq
   async (_, { rejectWithValue }) => {
     try {
       console.log('Sending API request to auto-approve vacancy requests')
-      const response = await AxiosLib.get('/vacancy-request/auto-approve')
+      const response = await AxiosLib.get(API_ENDPOINTS.autoApproveVacancyRequestsUrl)
 
       console.log('API Response for auto-approve vacancy requests:', response.data)
       return response.data

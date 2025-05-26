@@ -1,7 +1,13 @@
 'use client'
 
+import DataUploadListingPage from '@/views/pages/SystemManagement/DataUpload/DataUploadListing'
+
 const Page = () => {
-  return <div>Welcome to Data Upload </div>
+  return (
+    <div>
+      <DataUploadListingPage />
+    </div>
+  )
 }
 
 export default Page

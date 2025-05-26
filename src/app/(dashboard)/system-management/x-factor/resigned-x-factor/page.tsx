@@ -1,7 +1,13 @@
 'use client'
 
+import ResignedXFactor from '@/views/pages/SystemManagement/ResignedXFactor/ResignedXFactor'
+
 const Page = () => {
-  return <div>Welcome to Resigned X factor</div>
+  return (
+    <div>
+      <ResignedXFactor formik={undefined} />
+    </div>
+  )
 }
 
 export default Page

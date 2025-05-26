@@ -50,9 +50,11 @@ interface UserRoleState {
 const UserRolesAndPermissionList: React.FC = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+
   const { userRoleData, isUserRoleLoading, error } = useAppSelector(
     (state: any) => state.UserRoleReducer as UserRoleState
   )
+
   const [searchText, setSearchText] = useState<string>('')
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('')
   const [appliedPermissionFilters, setAppliedPermissionFilters] = useState<Record<string, boolean>>({})
@@ -203,7 +205,7 @@ const UserRolesAndPermissionList: React.FC = () => {
   }
 
   return (
-    <Box >
+    <Box>
       <Card sx={{ mb: 4, borderRadius: 2, boxShadow: 3 }}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Box

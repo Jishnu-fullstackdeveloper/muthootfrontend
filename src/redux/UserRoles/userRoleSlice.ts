@@ -49,8 +49,18 @@ export const fetchUserRole = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getUserRolesUrl, { params })
+      const roles = Array.isArray(response.data.data.roles) ? response.data.data.roles : []
 
-      return response.data
+      return {
+        data: roles,
+        pagination: {
+          totalItems: response.data.data.pagination?.totalCount || 0,
+          totalPages: response.data.data.pagination?.totalPages || 1,
+          page: response.data.data.pagination?.page || 1,
+          limit: response.data.data.pagination?.limit || 10
+        },
+        message: response.data.message
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to fetch user roles'
 

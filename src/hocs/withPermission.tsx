@@ -28,6 +28,7 @@ const withPermission = <P extends object>(WrappedComponent: React.ComponentType<
     if (!hasPermission) {
       return props.fallback || null // Return fallback UI or null if not provided
     }
+    console.log('withPermission HOC initialized', props.individualPermission)
 
     // Pass all props to the wrapped component, ensuring correct typing
     return <WrappedComponent {...props} />

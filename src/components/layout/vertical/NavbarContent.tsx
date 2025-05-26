@@ -65,9 +65,6 @@ const NavbarContent = () => {
 
             const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
 
-            console.log('breadcrumbPath', breadcrumbPath)
-            console.log('segment', segment)
-
             // Decode URL component and format segment text
             const decodedSegment = decodeURIComponent(segment)
             const segmentText = decodedSegment.charAt(0).toUpperCase() + decodedSegment.slice(1).replace(/-/g, ' ')

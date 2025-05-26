@@ -113,7 +113,7 @@ const EmployeeListingPage = () => {
               }}
             />
           </Box>
-          <Button
+          {/* <Button
             variant='contained'
             color='primary'
             className='self-center'
@@ -121,7 +121,7 @@ const EmployeeListingPage = () => {
             onClick={() => router.push('/employee-management/view/resigned-employees')}
           >
             Resigned Employees
-          </Button>
+          </Button> */}
         </Box>
       </Card>
       {/* <Typography variant='h3' sx={{ fontWeight: 'bold' }}>

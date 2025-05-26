@@ -4,12 +4,11 @@ export const ROUTES = {
     USER: '/user-management/user',
     USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,
     ROLE: '/user-management/role',
-    ROLE_VIEW: (id: string, name: string) => `/user-management/role/view/${name}?id=${id}&name=${name}`,
-    ROLE_EDIT: (id: string, name: string) => `/user-management/role/edit/${name}?id=${id}&name=${name}`,
+    ROLE_VIEW: (query: string, name: string) => `/user-management/role/view//${name.replace(/\s+/g, '-')}?${query}`,
+    ROLE_EDIT: (query: string, name: string) => `/user-management/role/edit/${name.replace(/\s+/g, '-')}?${query}`,
     ROLE_ADD: '/user-management/role/add/new',
     EMPLOYEE: '/user-management/employee',
-    EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`,
-    RESIGNED_EMPLOYEE: '/user-management/resigned-employee'
+    EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`
   },
   APPROVALS: '/approvals',
   HIRING_MANAGEMENT: {
@@ -17,6 +16,7 @@ export const ROUTES = {
     INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
+    RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
     VACANCY: '/hiring-management/vacancy-management',
     VACANCY_VIEW: (id: string) => `/hiring-management/vacancy-management/view/vacancy-details?id=${id}`,
     BUDGET: '/hiring-management/budget-management',

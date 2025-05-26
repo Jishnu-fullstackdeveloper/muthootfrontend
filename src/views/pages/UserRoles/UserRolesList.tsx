@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
+import { ROUTES } from '@/utils/routes'
 
 // Define interfaces for type safety
 interface Role {
@@ -112,7 +113,8 @@ const UserRolesAndPermissionList: React.FC = () => {
       name: role.name
     }).toString()
 
-    router.push(`/user-management/role/edit/${cleanedName}?${query}`)
+    // router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_EDIT(query, role.name))
   }
 
   // Handle navigation to view role page
@@ -124,12 +126,12 @@ const UserRolesAndPermissionList: React.FC = () => {
       name: role.name
     }).toString()
 
-    router.push(`/user-management/role/view/${cleanedName}?${query}`)
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
   }
 
   // Handle navigation to add role page
   const handleAdd = (): void => {
-    router.push('/user-management/role/add/new')
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_ADD)
   }
 
   // Define table columns

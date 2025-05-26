@@ -93,13 +93,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-users-group',
             permission: 'employeeManagement',
             read: 'USER_EMPLOYEE_READ'
-          },
-          {
-            path: ROUTES.USER_MANAGEMENT.RESIGNED_EMPLOYEE,
-            label: 'Resignation',
-            iconClass: 'tabler-user-x',
-            permission: 'resignedEmployee',
-            read: 'USER_RESIGNED_READ'
           }
         ]
       },
@@ -144,6 +137,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-user-check',
             permission: 'onboarding',
             read: 'HIRING_ONBOARDING_READ'
+          },
+          {
+            path: ROUTES.USER_MANAGEMENT.RESIGNED_EMPLOYEE,
+            label: 'Resignation',
+            iconClass: 'tabler-user-x',
+            permission: 'resignedEmployee',
+            read: 'USER_RESIGNED_READ'
           },
           {
             path: ROUTES.HIRING_MANAGEMENT.VACANCY,

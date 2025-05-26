@@ -6,35 +6,17 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, Autocomplete, Grid, Box, Button, CircularProgress } from '@mui/material'
+import { FormControl, TextField, Autocomplete, Grid, Box, Button } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 
 import DynamicButton from '@/components/Button/dynamicButton'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 type Props = {
   mode: 'add' | 'edit'
-}
-
-interface GroupRole {
-  id: string
-  name: string
-  description: string
-  permissions: string[]
-}
-
-interface DesignationRole {
-  id: string
-  name: string
-  description: string
-  groupRoles: GroupRole[]
-}
-
-interface RoleOption {
-  label: string
-  value: string
 }
 
 const AddOrEditUser: React.FC<Props> = ({ mode }) => {
@@ -58,8 +40,8 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     lastName: '',
     email: '',
     designation: '',
-    designationRole: null as RoleOption | null,
-    roles: [] as string[]
+    designationRole: '',
+    groupRoles: [] as string[]
   })
 
   const [isFormEdited, setIsFormEdited] = useState(false)
@@ -73,7 +55,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     if (addUserFailure && addUserFailureMessage) {
       setApiErrors(
         Array.isArray(addUserFailureMessage.message)
-          ? addUserFailureMessage.message
+          ? [...new Set(addUserFailureMessage.message)]
           : [addUserFailureMessage.message || 'Unknown error']
       )
     } else {
@@ -99,14 +81,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     }
   }, [dispatch])
 
-  const cleanName = (name: string, prefix: string) => {
-    if (!name) return ''
-
-    return name.replace(new RegExp(`^${prefix}`), '').trim()
-  }
-
-  // Modified to preserve underscores in role names
-  const sanitizeRole = (role: string) => role.trim()
+  const sanitizeRole = (role: string) => role.replace(/[^a-zA-Z0-9\s-]/g, '').trim()
 
   const userFormik = useFormik({
     initialValues: initialFormValues,
@@ -118,63 +93,76 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       lastName: Yup.string().required('Last Name is required'),
       email: Yup.string().email('Invalid email').required('Email is required'),
       designation: Yup.string().required('Designation is required'),
-      designationRole: Yup.object()
-        .shape({
-          label: Yup.string(),
-          value: Yup.string()
-        })
-        .nullable()
-        .required('Designation Role is required'),
-      roles: Yup.array().min(1, 'At least one role is required')
+      designationRole: Yup.string()
     }),
     onSubmit: async values => {
-      const sanitizedRoles = values.roles.map(sanitizeRole).filter(role => role.length > 0)
+      const sanitizedGroupRoles = values.groupRoles.map(sanitizeRole).filter(role => role.length > 0)
+      const backendGroupRoles = values.groupRoles.map(role => (role.startsWith('grp_') ? role : `grp_${role}`))
 
-      if (sanitizedRoles.length === 0) {
-        setApiErrors(['At least one valid role is required'])
+      // if (backendGroupRoles.length === 0 && values.designationRole !== 'des_default_role') {
+      //   setApiErrors(['At least one valid group role is required'])
 
-        return
-      }
+      //   return
+      // }
 
       try {
         if (mode === 'edit' && userId) {
-          const payload = {
-            id: userId,
-            params: {
+          if (initialFormValues.designationRole === 'des_default_role') {
+            // When initial designationRole is 'des_default_role', send email, newDesignationRole, and groupRoles
+            await dispatch(
+              updateUser({
+                id: userId,
+                params: {
+                  email: values.email,
+                  newDesignationRole: values.designationRole || '',
+                  newRoleNames: backendGroupRoles
+                }
+              })
+            ).unwrap()
+            setInitialFormValues({
+              ...initialFormValues,
+              email: values.email,
+              designationRole: values.designationRole,
+              groupRoles: sanitizedGroupRoles
+            })
+          } else {
+            // Otherwise, send email and newRoleNames
+            await dispatch(
+              updateUser({
+                id: userId,
+                params: {
+                  email: values.email,
+                  newRoleNames: backendGroupRoles
+                }
+              })
+            ).unwrap()
+            setInitialFormValues({
+              ...initialFormValues,
+              email: values.email,
+              groupRoles: sanitizedGroupRoles
+            })
+          }
+        } else {
+          await dispatch(
+            addNewUser({
+              employeeCode: values.employeeCode,
+              userId: values.userId,
+              firstName: values.firstName,
+              lastName: values.lastName,
+              middleName: values.middleName,
               email: values.email,
               designation: values.designation,
-              designationRole: values.designationRole?.value,
-              newRoleNames: sanitizedRoles
-            }
-          }
-
-          console.log('Edit Payload:', payload)
-          await dispatch(updateUser(payload)).unwrap()
-          setInitialFormValues({
-            ...initialFormValues,
-            email: values.email,
-            designation: values.designation,
-            designationRole: values.designationRole,
-            roles: sanitizedRoles
-          })
-        } else {
-          const payload = {
-            employeeCode: values.employeeCode,
-            userId: values.userId,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            middleName: values.middleName,
-            email: values.email,
-            designation: values.designation,
-            designationRole: values.designationRole?.value,
-            newRoleNames: sanitizedRoles
-          }
-
-          console.log('Add Payload:', payload)
-          await dispatch(addNewUser(payload)).unwrap()
+              newDesignationRole: values.designationRole || '',
+              newRoleNames: backendGroupRoles
+            })
+          ).unwrap()
         }
       } catch (error: any) {
-        setApiErrors(Array.isArray(error.message) ? error.message : [error.message || 'An error occurred'])
+        const errorMessages = Array.isArray(error.message)
+          ? [...new Set(error.message)]
+          : [error.message || 'An error occurred']
+
+        setApiErrors(errorMessages)
       }
     }
   })
@@ -184,13 +172,6 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       const existingUser = userManagementData.data.find((user: any) => user.userId === userId)
 
       if (existingUser) {
-        const designationRole = existingUser.designationRole
-          ? {
-              label: cleanName(existingUser.designationRole.name, 'des_'),
-              value: existingUser.designationRole.name
-            }
-          : null
-
         const newInitialValues = {
           employeeCode: existingUser.employeeCode || '',
           userId: existingUser.userId || '',
@@ -199,8 +180,11 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           lastName: existingUser.lastName || '',
           email: existingUser.email || '',
           designation: existingUser.designation || '',
-          designationRole,
-          roles: existingUser.groupRoles?.map((role: any) => role.name) || []
+          designationRole: existingUser.designationRole?.name || '',
+          groupRoles:
+            existingUser.designationRole?.groupRoles?.map((role: any) =>
+              typeof role === 'string' ? role.replace(/^grp_/, '') : role.name.replace(/^grp_/, '')
+            ) || []
         }
 
         setInitialFormValues(newInitialValues)
@@ -209,15 +193,8 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   }, [mode, userId, userManagementData])
 
   useEffect(() => {
-    const hasChanges = Object.keys(userFormik.values).some(key => {
-      if (key === 'designationRole') {
-        return (
-          userFormik.values.designationRole?.value !== initialFormValues.designationRole?.value ||
-          userFormik.values.designationRole?.label !== initialFormValues.designationRole?.label
-        )
-      }
-
-      return (
+    const hasChanges = Object.keys(userFormik.values).some(
+      key =>
         userFormik.values[key] !== initialFormValues[key] &&
         !(
           Array.isArray(userFormik.values[key]) &&
@@ -225,34 +202,40 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
           userFormik.values[key].length === initialFormValues[key].length &&
           userFormik.values[key].every((val: any, i: number) => val === initialFormValues[key][i])
         )
-      )
-    })
+    )
 
     setIsFormEdited(hasChanges)
   }, [userFormik.values, initialFormValues])
 
-  const designationRoleOptions = useMemo(
-    () =>
-      (userRoleData?.data || []).map((role: DesignationRole) => ({
-        label: cleanName(role.name, 'des_'),
-        value: role.name
-      })),
-    [userRoleData]
-  )
+  const designationRoleOptions = useMemo(() => {
+    const roles = (userRoleData?.data || []).map((role: any) => ({
+      label: role.name.replace(/^des_/, ''),
+      value: role.name
+    }))
+
+    if (!roles.some(role => role.value === '')) {
+      roles.unshift({ label: 'None', value: '' })
+    }
+
+    return roles
+  }, [userRoleData])
 
   const groupRoleOptions = useMemo(() => {
-    if (!userRoleData?.data) return []
+    const roleSet = new Set()
 
-    return userRoleData.data
-      .flatMap((d: DesignationRole) =>
-        Array.isArray(d.groupRoles)
-          ? d.groupRoles.map((gr: GroupRole) => ({
-              label: cleanName(gr.name || '', 'grp_'),
-              value: gr.name || ''
-            }))
-          : []
-      )
-      .filter((option, index, self) => option.value && index === self.findIndex(o => o.value === option.value))
+    const roles = (userRoleData?.data?.flatMap((role: any) => role.groupRoles || []) || [])
+      .filter((role: any) => {
+        if (roleSet.has(role.name)) return false
+        roleSet.add(role.name)
+
+        return true
+      })
+      .map((role: any) => ({
+        label: role.name.replace(/^grp_/, ''),
+        value: role.name.replace(/^grp_/, '')
+      }))
+
+    return roles
   }, [userRoleData])
 
   const handleCancel = () => {
@@ -264,13 +247,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     }
   }
 
-  if (!userRoleData || !userManagementData || isAddUserLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  const isDesignationRoleEditable = initialFormValues.designationRole === 'des_default_role'
 
   return (
     <form onSubmit={userFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
@@ -301,7 +278,7 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
               <TextField
                 label={label}
                 name={name}
-                value={userFormik.values[name as keyof typeof userFormik.values]}
+                value={(userFormik.values as any)[name]}
                 onChange={userFormik.handleChange}
                 disabled={disabled}
                 error={userFormik.touched[name] && Boolean(userFormik.errors[name])}
@@ -316,14 +293,15 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
             <Autocomplete
               options={designationRoleOptions}
               getOptionLabel={option => option.label}
-              value={userFormik.values.designationRole}
-              onChange={(event, newValue) => {
-                userFormik.setFieldValue('designationRole', newValue)
-              }}
+              value={designationRoleOptions.find(option => option.value === userFormik.values.designationRole) || null}
+              onChange={(event, newValue) =>
+                userFormik.setFieldValue('designationRole', newValue ? newValue.value : '')
+              }
+              disabled={mode === 'edit' && !isDesignationRoleEditable}
               renderInput={params => (
                 <TextField
                   {...params}
-                  label='Designation Role *'
+                  label='Designation Role'
                   error={userFormik.touched.designationRole && Boolean(userFormik.errors.designationRole)}
                   helperText={userFormik.touched.designationRole && userFormik.errors.designationRole}
                 />
@@ -338,19 +316,20 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
               multiple
               options={groupRoleOptions}
               getOptionLabel={option => option.label}
-              value={groupRoleOptions.filter(option => userFormik.values.roles.includes(option.value))}
+              value={groupRoleOptions.filter(option => userFormik.values.groupRoles.includes(option.value))}
               onChange={(event, newValue) =>
                 userFormik.setFieldValue(
-                  'roles',
+                  'groupRoles',
                   newValue.map(option => option.value)
                 )
               }
+              disabled={mode === 'edit' && isDesignationRoleEditable}
               renderInput={params => (
                 <TextField
                   {...params}
                   label='Group Roles *'
-                  error={userFormik.touched.roles && Boolean(userFormik.errors.roles)}
-                  helperText={userFormik.touched.roles && userFormik.errors.roles}
+                  error={userFormik.touched.groupRoles && Boolean(userFormik.errors.groupRoles)}
+                  helperText={userFormik.touched.groupRoles && (userFormik.errors.groupRoles as string)}
                 />
               )}
             />

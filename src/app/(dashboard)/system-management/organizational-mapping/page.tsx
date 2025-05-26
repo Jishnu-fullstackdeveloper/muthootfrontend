@@ -1,7 +1,13 @@
 'use client'
 
+import OrganizationalMapping from '@/views/pages/SystemManagement/OrganizationalMapping/OrganizationalMapping'
+
 const Page = () => {
-  return <div>Welcome to Organizational mapping </div>
+  return (
+    <div>
+      <OrganizationalMapping />
+    </div>
+  )
 }
 
 export default Page

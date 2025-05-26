@@ -1,7 +1,13 @@
 'use client'
 
+import SchedulerPage from '@/views/pages/SystemManagement/Scheduler/Scheduler'
+
 const Page = () => {
-  return <div>Welcome to scheduler</div>
+  return (
+    <div>
+      <SchedulerPage />
+    </div>
+  )
 }
 
 export default Page

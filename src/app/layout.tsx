@@ -58,7 +58,8 @@ const RootLayout = ({ children }: ChildrenType) => {
         {/* <link rel='manifest' href={custom_theme_settings?.theme?.images?.favicon?.url} /> */}
       </head>
       <body className='flex is-full min-bs-full flex-auto flex-col'>
-        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        {/* <Suspense fallback={<div>Loading...</div>}>{children}</Suspense> */}
+        {children}
       </body>
     </html>
   )

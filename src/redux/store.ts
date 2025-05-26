@@ -18,8 +18,7 @@ import resignationDataListingReducer from './ResignationDataListing/ResignationD
 import dataUploadReducer from './DataUpload/dataUploadSlice'
 import JobPostingReducer from './JobPosting/jobListingSlice'
 import OrganizationalMappingReducer from './OrganizationalMapping/organizationalMappingSlice'
-
-
+import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -41,7 +40,8 @@ export const makeStore = () =>
       resignationDataListingReducer,
       dataUploadReducer,
       JobPostingReducer,
-      OrganizationalMappingReducer
+      OrganizationalMappingReducer,
+      schedulerManagementSliceReducer
     }
   })
 

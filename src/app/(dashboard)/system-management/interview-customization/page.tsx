@@ -1,7 +1,13 @@
 'use client'
 
+import InterviewCustomizationPage from '@/views/pages/SystemManagement/InterviewCustomization/InterviewCustomizationList'
+
 const Page = () => {
-  return <div>Welcome to Interview customization </div>
+  return (
+    <div>
+      <InterviewCustomizationPage />
+    </div>
+  )
 }
 
 export default Page

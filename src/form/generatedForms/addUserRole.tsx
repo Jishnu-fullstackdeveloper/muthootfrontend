@@ -47,7 +47,6 @@ interface FormValues {
 }
 
 const defaultPermissionsList: PermissionState[] = [
-
   {
     module: 'User',
     features: [
@@ -57,7 +56,7 @@ const defaultPermissionsList: PermissionState[] = [
       { name: 'Resigned', actions: ['read', 'approval'] }
     ]
   },
-    {
+  {
     module: 'System',
     subModule: 'XFactor',
     features: [
@@ -66,8 +65,7 @@ const defaultPermissionsList: PermissionState[] = [
       { name: 'VacancyXFactor', actions: ['read', 'update', 'delete', 'create'] }
     ]
   },
- 
-   {
+  {
     module: 'System',
     features: [
       { name: 'DataUpload', actions: ['read', 'upload'] },
@@ -142,8 +140,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       newPermissionNames: defaultPermissionsList.map(p => ({
         module: p.module,
         subModule: p.subModule,
-        features: p.features ? p.features.map(f => ({ name: f.name, selectedActions: [] })) : undefined,
-        actions: p.actions ? [] : undefined
+        features: p.features ? p.features.map(f => ({ name: f.name, selectedActions: [] as string[] })) : undefined,
+        actions: p.actions ? ([] as string[]) : undefined
       }))
     }),
     [editType]
@@ -169,9 +167,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       setApiErrors([])
     }
   }, [addUserRoleFailure, addUserRoleFailureMessage, designationFailure, designationFailureMessage])
-
   useEffect(() => {
-    if (addUserRoleSuccess) {
+    if (addUserRoleSuccess ) {
       router.push('/user-management/role')
     }
   }, [addUserRoleSuccess, router])
@@ -193,15 +190,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       return
     }
 
-    // Validate designation against designationData
     const validDesignation =
       matchedRole.name && designationData.data.some((d: any) => d.name === matchedRole.name)
         ? matchedRole.name
-        : designationData.data[0]?.name || '' // Fallback to first available designation or empty
+        : designationData.data[0]?.name || ''
 
     const groupRole =
       editType === 'groupRole' && groupRoleId
-        ? matchedRole.groupRoles?.find((gr: any) => gr.id === groupRoleId)
+        ? matchedRole.groupRoles?.find((gr: any) => gr.id === groupRoleId) || {}
         : matchedRole.groupRoles?.[0] || {}
 
     const groupDesignation =
@@ -222,20 +218,23 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         return {
           module: p.module,
           subModule: p.subModule,
-          features: p.features?.map(f => ({
-            name: f.name,
-            selectedActions: permissions
-              .filter((perm: string) =>
-                subModuleShortName
-                  ? perm.startsWith(`prv_${moduleShortName}_${subModuleShortName}_${f.name.toLowerCase()}_`)
-                  : perm.startsWith(`prv_${moduleShortName}_${f.name.toLowerCase()}_`)
-              )
-              .map((perm: string) => perm.split('_').pop())
-          })),
+          features: p.features
+            ? p.features.map(f => ({
+                name: f.name,
+                selectedActions:
+                  permissions
+                    .filter((perm: string) =>
+                      subModuleShortName
+                        ? perm.startsWith(`prv_${moduleShortName}_${subModuleShortName}_${f.name.toLowerCase()}_`)
+                        : perm.startsWith(`prv_${moduleShortName}_${f.name.toLowerCase()}_`)
+                    )
+                    .map((perm: string) => perm.split('_').pop() || '') || []
+              }))
+            : undefined,
           actions: p.actions
             ? permissions
                 .filter((perm: string) => perm.startsWith(`prv_${moduleShortName}_`))
-                .map((perm: string) => perm.split('_').pop())
+                .map((perm: string) => perm.split('_').pop() || '') || []
             : undefined
         }
       })
@@ -349,7 +348,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     if (perm?.features) {
       const featureIndex = permissions[moduleIndex].features!.findIndex(f => f.name === featureOrAction)
-      const selectedActions = [...permissions[moduleIndex].features![featureIndex].selectedActions]
+      const selectedActions = [...(permissions[moduleIndex].features![featureIndex].selectedActions || [])]
 
       permissions[moduleIndex].features![featureIndex].selectedActions = checked
         ? [...new Set([...selectedActions, action])]
@@ -420,12 +419,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             selectedActions: checked
               ? [
                   ...new Set([
-                    ...f.selectedActions,
+                    ...(f.selectedActions || []),
                     ...(defaultPerm?.features?.find(feat => feat.name === f.name)?.actions.filter(a => a === 'read') ||
                       [])
                   ])
                 ]
-              : f.selectedActions.filter(a => a !== 'read')
+              : (f.selectedActions || []).filter(a => a !== 'read')
           })),
           actions: defaultPerm?.actions
             ? checked
@@ -453,11 +452,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       </Box>
     )
   }
-
-  const allGroupRoles =
-    userRoleData?.data?.flatMap(
-      (d: any) => d.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/, '').trim()) || []
-    ) || []
 
   return (
     <form onSubmit={roleFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
@@ -488,7 +482,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             labelId='designation-label'
             label='Designation *'
             name='designation'
-            value={roleFormik.values.designation}
+            value={roleFormik.values.designation ? roleFormik.values.designation : ''}
             onChange={roleFormik.handleChange}
             onBlur={roleFormik.handleBlur}
             error={roleFormik.touched.designation && !!roleFormik.errors.designation}
@@ -510,7 +504,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <FormControl fullWidth margin='normal'>
             <Autocomplete
               id='groupDesignation'
-              options={allGroupRoles}
+              options={
+                userRoleData?.data?.flatMap(
+                  (d: any) => d.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/, '').trim()) || []
+                ) || []
+              }
               value={Array.isArray(roleFormik.values.groupDesignation) ? roleFormik.values.groupDesignation : []}
               onChange={(e, value) => roleFormik.setFieldValue('groupDesignation', value)}
               renderInput={params => <TextField {...params} label='Group Designations *' />}
@@ -566,12 +564,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                   )
 
                   return defaultPerm?.features
-                    ? p.features!.every(f =>
+                    ? p.features?.every(f =>
                         defaultPerm
                           .features!.find(feat => feat.name === f.name)
-                          ?.actions.every(a => f.selectedActions.includes(a))
-                      )
-                    : p.actions!.length === defaultPerm?.actions!.length
+                          ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
+                      ) ?? false
+                    : (p.actions?.length ?? 0) === defaultPerm?.actions!.length
                 })}
                 onChange={e => handleSelectAllModules(e.target.checked)}
               />
@@ -582,7 +580,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             control={
               <Checkbox
                 checked={roleFormik.values.newPermissionNames.every(p =>
-                  p.features ? p.features.every(f => f.selectedActions.includes('read')) : p.actions!.includes('read')
+                  p.features
+                    ? p.features.every(f => f.selectedActions?.includes('read') ?? false)
+                    : p.actions?.includes('read') ?? false
                 )}
                 onChange={e => handleSelectAllReadPermissions(e.target.checked)}
               />
@@ -596,19 +596,19 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             <Box key={`${permission.module}-${permission.subModule || ''}`} className='mb-5'>
               <FormControlLabel
                 control={
-                  <Checkbox  
+                  <Checkbox
                     checked={
                       permission.features
                         ? roleFormik.values.newPermissionNames
                             .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                            ?.features!.every(f =>
+                            ?.features?.every(f =>
                               permission
                                 .features!.find(feat => feat.name === f.name)
-                                ?.actions.every(a => f.selectedActions.includes(a))
-                            )
-                        : roleFormik.values.newPermissionNames.find(
+                                ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
+                            ) ?? false
+                        : (roleFormik.values.newPermissionNames.find(
                             p => p.module === permission.module && p.subModule === permission.subModule
-                          )?.actions!.length === permission.actions!.length
+                          )?.actions?.length ?? 0) === permission.actions!.length
                     }
                     onChange={e => handleSelectAllFeatures(permission.module, permission.subModule, e.target.checked)}
                   />
@@ -623,9 +623,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                           control={
                             <Checkbox
                               checked={
-                                roleFormik.values.newPermissionNames
+                                (roleFormik.values.newPermissionNames
                                   .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                                  ?.features!.find(f => f.name === feature.name)?.selectedActions.length ===
+                                  ?.features?.find(f => f.name === feature.name)?.selectedActions?.length ?? 0) ===
                                 feature.actions.length
                               }
                               onChange={e =>
@@ -647,10 +647,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                               key={action}
                               control={
                                 <Checkbox
-                                  checked={roleFormik.values.newPermissionNames
-                                    .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                                    ?.features!.find(f => f.name === feature.name)
-                                    ?.selectedActions.includes(action)}
+                                  checked={
+                                    roleFormik.values.newPermissionNames
+                                      .find(p => p.module === permission.module && p.subModule === permission.subModule)
+                                      ?.features?.find(f => f.name === feature.name)
+                                      ?.selectedActions?.includes(action) ?? false
+                                  }
                                   onChange={e =>
                                     handlePermissionChange(
                                       permission.module,
@@ -673,9 +675,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                         key={action}
                         control={
                           <Checkbox
-                            checked={roleFormik.values.newPermissionNames
-                              .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                              ?.actions!.includes(action)}
+                            checked={
+                              roleFormik.values.newPermissionNames
+                                .find(p => p.module === permission.module && p.subModule === permission.subModule)
+                                ?.actions?.includes(action) ?? false
+                            }
                             onChange={e =>
                               handlePermissionChange(
                                 permission.module,
@@ -704,7 +708,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       </Box>
 
       <Box display='flex' justifyContent='space-between' alignItems='center' mx={5} mt={3} mb={2}>
-        
         <Box display='flex' gap={2}>
           <DynamicButton
             type='button'

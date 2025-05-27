@@ -1,4 +1,5 @@
 export type Section = {
+  level: any
   designationName: { id: string; name: string } | null // Updated id to string to match API
   grade: { id: string; name: string } | null // Updated id to string to match API
 }

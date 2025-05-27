@@ -265,7 +265,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           const response = await dispatch(createNewApprovalMatrix({ approvalMatrix })).unwrap()
 
           console.log('Approval Matrices created successfully:', response)
-          toast.success('Approval Matrix created successfully!', {
+          toast.success(response.message || 'Approval Matrix created successfully!', {
             position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,
@@ -275,8 +275,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             progress: undefined
           })
         } catch (error) {
-          console.error('Error creating approval matrices:', error)
-          toast.error('Failed to create approval matrix. Please try again.', {
+          console.error(error.message, 'Error creating approval matrices:')
+          toast.error(error.message || 'Failed to create approval matrix. Please try again.', {
             position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,

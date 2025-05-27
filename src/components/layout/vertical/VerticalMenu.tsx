@@ -13,7 +13,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 import { ROUTES } from '@/utils/routes'
-import { List, ListItem, Collapse, IconButton } from '@mui/material'
+import { List, ListItem, Collapse, IconButton, Box } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import withPermission from '@/hocs/withPermission'
@@ -47,7 +47,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
   const [clientMenuItems, setClientMenuItems] = useState<MenuItemType[]>([])
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]) // Track expanded menu items
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([])
   const pathname = usePathname()
   const router = useRouter()
 
@@ -285,30 +285,22 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     setClientMenuItems([...staticMenuItems, ...filteredDynamicMenuItems])
   }, [staticMenuItems, clientMenuItems.length])
 
-  // Check if a first-level menu item is active based on the current URL
+  // Check if a menu item is active based on current path
   const isMenuItemActive = useCallback(
     (item: MenuItemType): boolean => {
-      if (!pathname) {
-        return false
-      }
+      if (!pathname) return false
 
-      // Special case for recruitment-management overview
-      if (item.path === '/recruitment-management/overview') {
-        return pathname.startsWith('/recruitment-management')
-      }
+      // Direct match
+      if (item.path && pathname === item.path) return true
 
-      // For items with children (e.g., "User Management", "Hiring Management")
+      // Check if current path starts with item path (for nested routes)
+      if (item.path && pathname.startsWith(item.path)) return true
+      // Check children recursively
       if (item.children) {
-        return item.children.some(child => {
-          if (child.path) {
-            return pathname === child.path || pathname.startsWith(child.path)
-          }
-          return false
-        })
+        return item.children.some(child => isMenuItemActive(child))
       }
 
-      // For leaf items (e.g., "Home", "JD Management")
-      return pathname === item.path || pathname.startsWith(item.path)
+      return false
     },
     [pathname]
   )
@@ -327,6 +319,37 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     },
     [router]
   )
+
+  // Automatically expand parent menus when child is active
+  useEffect(() => {
+    const findActiveParents = (items: MenuItemType[], activePath: string): string[] => {
+      const parents: string[] = []
+
+      const findParents = (items: MenuItemType[]): boolean => {
+        return items.some(item => {
+          if (item.path === activePath) return true
+
+          if (item.children) {
+            const childActive = findParents(item.children)
+            if (childActive) {
+              parents.push(item.label)
+              return true
+            }
+          }
+
+          return false
+        })
+      }
+
+      findParents(items)
+      return parents
+    }
+
+    if (pathname) {
+      const activeParents = findActiveParents(clientMenuItems, pathname)
+      setExpandedMenus(prev => [...new Set([...prev, ...activeParents])])
+    }
+  }, [pathname, clientMenuItems])
 
   // Early return if loading
   if (clientMenuItems.length === 0) {
@@ -351,16 +374,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         popoutMenuOffset={{ mainAxis: 23 }}
         menuItemStyles={{
           ...menuItemStyles(verticalNavOptions, theme, settings),
-          // Override the menu item styles to ensure full-width hover
           button: {
             width: '100%',
             justifyContent: 'flex-start',
-            padding: '3px 5px',
-            borderRadius: 0,
+            padding: '1px 2px',
+            borderRadius: '6px',
+            margin: '2px 8px',
             '&:hover': {
-              backgroundColor: theme.palette.action.hover,
-              width: '100%',
-              borderRadius: 0
+              backgroundColor: theme.palette.action.hover
             },
             '&.Mui-selected': {
               backgroundColor: theme.palette.primary.main,
@@ -377,28 +398,51 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         renderExpandedMenuItemIcon={{ icon: <ChevronRightIcon fontSize='small' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        <List disablePadding sx={{ width: '100%' }}>
+        <List
+          disablePadding
+          sx={{
+            width: '100%',
+            padding: '8px'
+          }}
+        >
           {clientMenuItems.map((item, index) => {
             const isActive = isMenuItemActive(item)
             const hasChildren = !!item.children
             const isExpanded = expandedMenus.includes(item.label)
-            // Map the read key to the corresponding permission value
             const permissionValue = item.read ? getPermissionRenderConfig()[item.read] || '' : ''
 
             return (
-              <div key={`${item.label}-${index}`}>
+              <Box key={`${item.label}-${index}`} sx={{ mb: '4px' }}>
                 {/* Main menu item */}
-                <ListItem disablePadding sx={{ width: '100%' }}>
+                <ListItem
+                  disablePadding
+                  sx={{
+                    width: '100%',
+                    borderRadius: '6px',
+                    alignItems: 'center',
+                    backgroundColor: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit',
+                    color: isActive ? custom_theme_settings?.theme?.colors.buttonText : 'inherit'
+                  }}
+                >
                   <MenuItemWithPermission
                     icon={<i className={item.iconClass} />}
-                    active={isActive}
+                    selected={isActive}
                     individualPermission={permissionValue}
+                    // sx={{
+                    //   marginLeft: 'auto',
+                    //   color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
+                    // }}
                     suffix={
                       hasChildren ? (
                         <IconButton
+                          size='small'
                           onClick={e => {
-                            e.stopPropagation() // Prevent navigation when clicking the icon
+                            e.stopPropagation()
                             toggleMenu(item.label)
+                          }}
+                          sx={{
+                            marginLeft: 'auto',
+                            color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
                           }}
                         >
                           {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
@@ -407,12 +451,19 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     }
                     onClick={() => {
                       if (hasChildren) {
-                        toggleMenu(item.label) // Toggle submenu on click
+                        toggleMenu(item.label)
                       } else {
-                        handleNavigation(item.path) // Navigate if it's a leaf item
+                        handleNavigation(item.path)
                       }
                     }}
-                    sx={{ width: '100%' }}
+                    sx={{
+                      width: '100%',
+                      '&:hover': {
+                        backgroundColor: isActive
+                          ? custom_theme_settings?.theme?.primaryColor
+                          : theme.palette.action.hover
+                      }
+                    }}
                   >
                     {item.label}
                   </MenuItemWithPermission>
@@ -421,7 +472,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 {/* Submenu (if any) */}
                 {hasChildren && (
                   <Collapse in={isExpanded} timeout='auto' unmountOnExit>
-                    <List disablePadding sx={{ pl: 4, width: '100%' }}>
+                    <List disablePadding sx={{ pl: 3, width: '100%' }}>
                       {item.children?.map((child, childIndex) => {
                         const childIsActive = isMenuItemActive(child)
                         const childHasChildren = !!child.children
@@ -429,19 +480,24 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                         const childPermissionValue = child.read ? getPermissionRenderConfig()[child.read] || '' : ''
 
                         return (
-                          <div key={`${child.label}-${childIndex}`}>
+                          <Box key={`${child.label}-${childIndex}`} sx={{ mb: '4px' }}>
                             {/* Submenu item (Level 1) */}
                             <ListItem disablePadding sx={{ width: '100%' }}>
                               <MenuItemWithPermission
                                 icon={<i className={child.iconClass} />}
-                                active={childIsActive}
+                                selected={childIsActive}
                                 individualPermission={childPermissionValue}
                                 suffix={
                                   childHasChildren ? (
                                     <IconButton
+                                      size='small'
                                       onClick={e => {
                                         e.stopPropagation()
                                         toggleMenu(child.label)
+                                      }}
+                                      sx={{
+                                        marginLeft: 'auto',
+                                        color: childIsActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
                                       }}
                                     >
                                       {childIsExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
@@ -450,21 +506,28 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                 }
                                 onClick={() => {
                                   if (childHasChildren) {
-                                    toggleMenu(child.label) // Toggle nested submenu on click
+                                    toggleMenu(child.label)
                                   } else {
-                                    handleNavigation(child.path) // Navigate if it's a leaf item
+                                    handleNavigation(child.path)
                                   }
                                 }}
-                                sx={{ width: '100%' }}
+                                sx={{
+                                  width: '100%',
+                                  '&:hover': {
+                                    backgroundColor: childIsActive
+                                      ? theme.palette.primary.dark
+                                      : theme.palette.action.hover
+                                  }
+                                }}
                               >
                                 {child.label}
                               </MenuItemWithPermission>
                             </ListItem>
 
-                            {/* Nested submenu (Level 2, e.g., under X-Factor) */}
+                            {/* Nested submenu (Level 2) */}
                             {childHasChildren && (
                               <Collapse in={childIsExpanded} timeout='auto' unmountOnExit>
-                                <List disablePadding sx={{ pl: 4, width: '100%' }}>
+                                <List disablePadding sx={{ pl: 3, width: '100%' }}>
                                   {child.children?.map((nestedChild, nestedIndex) => {
                                     const nestedIsActive = isMenuItemActive(nestedChild)
                                     const nestedPermissionValue = nestedChild.read
@@ -479,10 +542,17 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                       >
                                         <MenuItemWithPermission
                                           icon={<i className={nestedChild.iconClass} />}
-                                          active={nestedIsActive}
+                                          selected={nestedIsActive}
                                           individualPermission={nestedPermissionValue}
                                           onClick={() => handleNavigation(nestedChild.path)}
-                                          sx={{ width: '100%' }}
+                                          sx={{
+                                            width: '100%',
+                                            '&:hover': {
+                                              backgroundColor: nestedIsActive
+                                                ? theme.palette.primary.dark
+                                                : theme.palette.action.hover
+                                            }
+                                          }}
                                         >
                                           {nestedChild.label}
                                         </MenuItemWithPermission>
@@ -492,13 +562,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                 </List>
                               </Collapse>
                             )}
-                          </div>
+                          </Box>
                         )
                       })}
                     </List>
                   </Collapse>
                 )}
-              </div>
+              </Box>
             )
           })}
         </List>

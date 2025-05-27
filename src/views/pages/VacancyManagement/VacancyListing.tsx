@@ -44,6 +44,7 @@ import type { ViewMode, Vacancy, SelectedTabs } from '@/types/vacancy' //Vacancy
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import VacancyListingTableView from './VacancyTableView'
+import { ROUTES } from '@/utils/routes'
 
 // import {
 //   getVacancyManagementFiltersFromCookie,
@@ -57,7 +58,9 @@ import VacancyListingTableView from './VacancyTableView'
 const VacancyListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { vacancies, totalCount, loading, error } = useAppSelector(state => state.vacancyManagementReducer)
+  const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
+    state => state.vacancyManagementReducer
+  )
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
@@ -119,7 +122,10 @@ const VacancyListingPage = () => {
         .unwrap()
         .then(result => {
           console.log('fetchVacancies result:', result) // Debug API response
-          setVisibleVacancies(result.data || []) // Reset visibleVacancies with new data
+          const newVacancies = result.data || []
+          setVisibleVacancies(newVacancies) // Reset visibleVacancies with new data
+          // Initialize selectedTabs for all new vacancies
+          setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
           setPage(1) // Reset to page 1
         })
         .catch(err => console.error('Search failed:', err)) // Log errors
@@ -135,27 +141,35 @@ const VacancyListingPage = () => {
 
   // Update visibleVacancies with unique items from API
   useEffect(() => {
-    if (vacancies?.length && viewMode === 'grid') {
-      console.log('Appending vacancies:', vacancies) // Debug log
+    if (vacancyListData?.length && viewMode === 'grid') {
+      console.log('Appending vacancies:', vacancyListData) // Debug log
       setVisibleVacancies((prev: Vacancy[]) => {
-        const newVacancies = vacancies.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+        const newVacancies = vacancyListData.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+        const updatedVacancies = [...prev, ...newVacancies]
 
-        return [...prev, ...newVacancies]
+        // Update selectedTabs for all vacancies in updatedVacancies, preserving existing selections
+        setSelectedTabs(prevTabs => {
+          const updatedTabs = { ...prevTabs }
+          updatedVacancies.forEach(vacancy => {
+            if (!(vacancy.id in updatedTabs)) {
+              updatedTabs[vacancy.id] = 0 // Default to tab 0 if not already set
+            }
+          })
+          return updatedTabs
+        })
+
+        return updatedVacancies
       })
-      setSelectedTabs(prev => ({
-        ...prev,
-        ...vacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs)
-      }))
-    } else if (!vacancies?.length && viewMode === 'grid' && !loading && page === 1) {
-      // Clear visibleVacancies only on initial empty results
+    } else if (!vacancyListData?.length && viewMode === 'grid' && !vacancyListLoading && page === 1) {
+      // Clear visibleVacancies and selectedTabs only on initial empty results
       console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
       setVisibleVacancies([])
       setSelectedTabs({}) // Clear selectedTabs when no vacancies
     }
-  }, [vacancies, viewMode, loading, page])
+  }, [vacancyListData, viewMode, vacancyListLoading, page])
 
   const loadMoreVacancies = useCallback(() => {
-    if (loading || visibleVacancies.length >= totalCount) return
+    if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal) return
     const nextPage = page + 1
 
     console.log('Loading more vacancies for page:', nextPage) // Debug log
@@ -166,14 +180,14 @@ const VacancyListingPage = () => {
         console.log('Loaded more vacancies:', result) // Debug log
       })
       .catch(err => console.error('Load more failed:', err))
-  }, [loading, visibleVacancies.length, totalCount, page, dispatch, limit, searchQuery])
+  }, [vacancyListLoading, visibleVacancies.length, vacancyListTotal, page, dispatch, limit, searchQuery])
 
   useEffect(() => {
-    if (viewMode !== 'grid' || visibleVacancies.length >= totalCount) return
+    if (viewMode !== 'grid' || visibleVacancies.length >= vacancyListTotal) return
 
     observerRef.current = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && !loading) {
+        if (entries[0].isIntersecting && !vacancyListLoading) {
           loadMoreVacancies()
         }
       },
@@ -189,12 +203,12 @@ const VacancyListingPage = () => {
         observerRef.current.unobserve(loadMoreRef.current)
       }
     }
-  }, [loadMoreVacancies, viewMode, visibleVacancies.length, totalCount, loading])
+  }, [loadMoreVacancies, viewMode, visibleVacancies.length, vacancyListTotal, vacancyListLoading])
 
   const handleTabChange = (vacancyId: any, newValue: number) =>
     setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
 
-  console.log('Vacancies', visibleVacancies, error)
+  console.log('Vacancies', visibleVacancies, vacancyListFailureMessage)
 
   // const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }: DebouncedInputProps) => {
   //   const [value, setValue] = useState(initialValue)
@@ -452,15 +466,15 @@ const VacancyListingPage = () => {
         </Box> */}
       </Card>
 
-      {error && (
+      {vacancyListFailureMessage && (
         <Box sx={{ mb: 4, mx: 6, justifyContent: 'center', alignItems: 'center' }}>
           <Typography variant='h6' color='secondary'>
-            {error}
+            {vacancyListFailureMessage}
           </Typography>
         </Box>
       )}
 
-      {/* {viewMode === 'grid' && loading && (
+      {/* {viewMode === 'grid' && vacancyListLoading && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='text.secondary'>
             Searching...
@@ -468,7 +482,7 @@ const VacancyListingPage = () => {
         </Box>
       )} */}
 
-      {/* {viewMode === 'grid' && error && (
+      {/* {viewMode === 'grid' && vacancyListFailureMessage && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='text.secondary'>
             {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
@@ -480,7 +494,8 @@ const VacancyListingPage = () => {
         {viewMode === 'grid' ? (
           visibleVacancies?.map(vacancy => (
             <Box
-              onClick={() => router.push(`/vacancy-management/view/vacancy-details?id=${vacancy.id}`)}
+              // onClick={() => router.push(`/hiring-management/vacancy-management/view/vacancy-details?id=${vacancy.id}`)}
+              onClick={() => router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(vacancy.id))}
               key={vacancy.id}
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}
@@ -856,9 +871,9 @@ const VacancyListingPage = () => {
         )}
       </Box>
 
-      {viewMode === 'grid' && visibleVacancies.length < totalCount && (
+      {viewMode === 'grid' && visibleVacancies.length < vacancyListTotal && (
         <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography>{loading ? 'Loading more...' : 'Scroll to load more'}</Typography>
+          <Typography>{vacancyListLoading ? 'Loading more...' : 'Scroll to load more'}</Typography>
         </Box>
       )}
     </Box>

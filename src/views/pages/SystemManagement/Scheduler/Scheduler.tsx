@@ -1,35 +1,49 @@
-import { useEffect, useMemo, useState } from 'react'
+'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import {
-  Accordion,
-  AccordionDetails,
-  Autocomplete,
   Box,
-  Button,
   Card,
   IconButton,
   InputAdornment,
   TextField,
-  Tooltip,
   Typography,
   Drawer,
-  Divider
+  Divider,
+  Autocomplete,
+  Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination,
+  CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-
 import { createColumnHelper } from '@tanstack/react-table'
-
 import { useFormik } from 'formik'
-
-import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
-import DynamicButton from '@/components/Button/dynamicButton'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import type { RootState } from '@/redux/store'
+import {
+  getSchedulerConfigList,
+  updateSchedulerConfig,
+  toggleSchedulerConfig,
+  SchedulerManagementState
+} from '@/redux/Scheduler/schedulerSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
+import DynamicButton from '@/components/Button/dynamicButton'
 
 interface SchedulerFormDrawerProps {
   open: boolean
   onClose: () => void
-  editData: { typeofdata: string; frequency: string; frequencyCount: number } | null
-  onSubmit: (values: { typeofdata: string; frequency: string; frequencyCount: string }) => void
+  editData: { id: string; typeofdata: string; frequency: string; frequencyCount: number; isActive: boolean } | null
+  onSubmit: (values: {
+    id?: string
+    typeofdata: string
+    frequency: string
+    frequencyCount: string
+    isActive: boolean
+  }) => void
 }
 
 const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose, editData, onSubmit }) => {
@@ -42,11 +56,10 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
   ]
 
   const frequencyOptions = [
-    { name: 'Daily' },
-    { name: 'Weekly' },
-    { name: 'Monthly' },
-    { name: 'Quarterly' },
-    { name: 'Annually' }
+    { name: 'Daily', value: 'd' },
+    { name: 'Weekly', value: 'w' },
+    { name: 'Monthly', value: 'm' },
+    { name: 'Yearly', value: 'y' }
   ]
 
   const validate = (values: { typeofdata: string; frequency: string; frequencyCount: string }) => {
@@ -74,11 +87,18 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
     initialValues: {
       typeofdata: editData?.typeofdata || '',
       frequency: editData?.frequency || '',
-      frequencyCount: editData?.frequencyCount?.toString() || ''
+      frequencyCount: editData?.frequencyCount?.toString() || '',
+      isActive: editData?.isActive ?? false
     },
     validate,
     onSubmit: values => {
-      onSubmit(values)
+      onSubmit({
+        id: editData?.id,
+        typeofdata: values.typeofdata,
+        frequency: values.frequency,
+        frequencyCount: values.frequencyCount,
+        isActive: values.isActive
+      })
       onClose()
     }
   })
@@ -95,22 +115,20 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: 'column', // Changed to column to stack fields vertically
-                alignItems: 'flex-start', // Align items to the start for better spacing
+                flexDirection: 'column',
+                alignItems: 'flex-start',
                 width: '100%',
-                gap: '16px' // Increased gap for better spacing between fields
+                gap: '16px'
               }}
             >
               <Box sx={{ width: '100%', boxShadow: 'none' }}>
                 <div className='flex flex-col gap-4' style={{ zIndex: 999 }}>
                   <div className='flex flex-col gap-4'>
-                    {' '}
-                    {/* Changed to flex-col to stack fields */}
                     <div>
                       <Autocomplete
                         disablePortal
                         options={options}
-                        getOptionLabel={option => option.name} // Ensures label is shown correctly
+                        getOptionLabel={option => option.name}
                         value={
                           options.find(
                             opt => opt.name === (SchedulerFormik.values.typeofdata || editData?.typeofdata)
@@ -130,7 +148,7 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
                       <Autocomplete
                         disablePortal
                         options={frequencyOptions}
-                        getOptionLabel={option => option.name} // Ensures label is shown correctly
+                        getOptionLabel={option => option.name}
                         value={
                           frequencyOptions.find(
                             opt => opt.name === (SchedulerFormik.values.frequency || editData?.frequency)
@@ -152,7 +170,7 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
                         label='Frequency Count'
                         value={SchedulerFormik.values.frequencyCount}
                         onChange={e => SchedulerFormik.setFieldValue('frequencyCount', e.target.value)}
-                        sx={{ width: 300 }} // Match width with Autocomplete fields for consistency
+                        sx={{ width: 300 }}
                       />
                       {SchedulerFormik.touched.frequencyCount && SchedulerFormik.errors.frequencyCount && (
                         <Typography color='error'>{SchedulerFormik.errors.frequencyCount}</Typography>
@@ -184,27 +202,127 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
 }
 
 const SchedulerPage = () => {
+  const dispatch = useAppDispatch()
+  const {
+    schedulerConfigListLoading: loading,
+    schedulerConfigListData: schedulerConfigs,
+    schedulerConfigListTotal: totalCount,
+    schedulerConfigListFailure: failure,
+    schedulerConfigListFailureMessage: failureMessage
+  } = useAppSelector((state: RootState) => state.schedulerManagementSliceReducer) as SchedulerManagementState
+
+  // Debug the state to inspect schedulerConfigs
+  console.log('Scheduler Configs State:', {
+    loading,
+    schedulerConfigs,
+    totalCount,
+    failure,
+    failureMessage
+  })
+
   const [searchQuery, setSearchQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [editData, setEditData] = useState<{
+    id: string
     typeofdata: string
     frequency: string
     frequencyCount: number
+    isActive: boolean
   } | null>(null)
+  const [pagination, setPagination] = useState({
+    pageIndex: 0, // 0-based index for table compatibility
+    pageSize: 5
+  })
 
-  const handleButtonClick = () => {
-    setEditData(null) // Clear edit data if opening normally
-    setIsOpen(true)
-  }
+  // Fetch scheduler configs on mount and when pagination or search changes
+  useEffect(() => {
+    dispatch(
+      getSchedulerConfigList({
+        page: pagination.pageIndex + 1, // Convert to 1-based index for API
+        limit: pagination.pageSize,
+        search: searchQuery || undefined
+      })
+    )
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchQuery])
 
   const handleClose = () => {
     setEditData(null)
     setIsOpen(false)
   }
 
-  const handleSubmit = (values: { typeofdata: string; frequency: string; frequencyCount: string }) => {
-    alert(JSON.stringify(values, null, 2))
+  const handleSubmit = (values: {
+    id?: string
+    typeofdata: string
+    frequency: string
+    frequencyCount: string
+    isActive: boolean
+  }) => {
+    const frequencyMap: { [key: string]: string } = {
+      Daily: 'd',
+      Weekly: 'w',
+      Monthly: 'm',
+      Yearly: 'y'
+    }
+
+    dispatch(
+      updateSchedulerConfig({
+        id: values.id || '',
+        functionName: values.typeofdata,
+        schedule: frequencyMap[values.frequency] || 'd',
+        duration: Number(values.frequencyCount),
+        isActive: values.isActive,
+        params: { key: 'value' } // Include params as specified
+      })
+    )
+      .unwrap()
+      .then(() => {
+        // Refetch the scheduler configs to update the table
+        dispatch(
+          getSchedulerConfigList({
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            search: searchQuery || undefined
+          })
+        )
+      })
+      .catch(err => console.error('Update scheduler config failed:', err))
   }
+
+  const handleToggleActive = (id: string, isActive: boolean) => {
+    dispatch(toggleSchedulerConfig({ id, isActive: !isActive }))
+      .unwrap()
+      .then(() => {
+        // Refetch the scheduler configs to update the table
+        dispatch(
+          getSchedulerConfigList({
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            search: searchQuery || undefined
+          })
+        )
+      })
+      .catch(err => console.error('Toggle scheduler config failed:', err))
+  }
+
+  // Map schedule values to display names
+  const scheduleDisplayMap: { [key: string]: string } = {
+    d: 'Daily',
+    w: 'Weekly',
+    m: 'Monthly',
+    y: 'Yearly'
+  }
+
+  // Ensure schedulerConfigs is an array before mapping
+  const tableData = useMemo(() => {
+    const configsArray = Array.isArray(schedulerConfigs?.data) ? schedulerConfigs?.data : []
+    return configsArray.map(config => ({
+      id: config.id,
+      typeofdata: config.functionName,
+      frequency: scheduleDisplayMap[config.schedule] || config.schedule,
+      frequencyCount: config.duration,
+      isActive: config.isActive
+    }))
+  }, [schedulerConfigs])
 
   const columnHelper = createColumnHelper<any>()
 
@@ -222,38 +340,60 @@ const SchedulerPage = () => {
         header: 'Frequency Count',
         cell: ({ row }) => <Typography>{row.original.frequencyCount}</Typography>
       }),
+      columnHelper.accessor('isActive', {
+        header: 'Active',
+        cell: ({ row }) => (
+          <Typography color={row.original.isActive ? 'success.main' : 'error.main'}>
+            {row.original.isActive ? 'Active' : 'Inactive'}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('Action', {
         header: 'Action',
         cell: ({ row }) => (
-          <IconButton
-            title='Edit'
-            sx={{ fontSize: '30px' }}
-            onClick={() => {
-              setIsOpen(true)
-              setEditData(row.original)
-            }}
-          >
-            <i className='tabler-edit w-5 h-5' />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton
+              title='Edit'
+              sx={{ fontSize: '30px' }}
+              onClick={e => {
+                e.stopPropagation()
+                setIsOpen(true)
+                setEditData(row.original)
+              }}
+            >
+              <i className='tabler-edit w-5 h-5' />
+            </IconButton>
+            <Switch
+              checked={row.original.isActive}
+              onChange={() => handleToggleActive(row.original.id, row.original.isActive)}
+              onClick={e => e.stopPropagation()}
+              color='primary'
+            />
+          </Box>
         )
       })
     ],
     []
   )
 
-  const data = useMemo(
-    () => [
-      { typeofdata: 'Employment Data', frequency: 'Monthly', frequencyCount: 12 },
-      { typeofdata: 'Resignation Data', frequency: 'Annually', frequencyCount: 1 },
-      { typeofdata: 'Branch Data', frequency: 'Weekly', frequencyCount: 52 },
-      { typeofdata: 'Branch Budget Data', frequency: 'Quarterly', frequencyCount: 4 },
-      { typeofdata: 'Department Budget Data', frequency: 'Monthly', frequencyCount: 12 }
-    ],
-    []
-  )
+  const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
+    setPagination(prev => ({
+      ...prev,
+      [key]: key === 'pageIndex' ? value - 1 : value, // Convert to 0-based index for table
+      pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
+    }))
+  }
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    handlePaginationChange('pageIndex', value)
+  }
+
+  const handleChangeLimit = (value: number) => {
+    handlePaginationChange('pageSize', value)
+  }
 
   return (
-    <div style={{ overflow: 'visible' }}>
+    <Box sx={{ overflow: 'visible' }}>
       <Card
         sx={{
           mb: 4,
@@ -268,7 +408,7 @@ const SchedulerPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
             <TextField
-              label='Search by File Name'
+              label='Search by Type of Data'
               variant='outlined'
               size='small'
               value={searchQuery}
@@ -284,27 +424,75 @@ const SchedulerPage = () => {
             />
           </Box>
           <Box className='flex items-center mt-2'>
-            {/* <Tooltip title='Add Schedule'> */}
-            <Button
-              onClick={handleButtonClick}
-              variant='contained'
-              color='primary'
+            {/* Commented out as requested */}
+            {/* <Button
+              onClick={() => {
+                setEditData(null)
+                setIsOpen(true)
+              }}
+              variant="contained"
+              color="primary"
               sx={{ minWidth: '80px', textTransform: 'none' }}
-              size='small'
+              size="small"
             >
               New Schedule
-            </Button>
-            {/* </Tooltip> */}
+            </Button> */}
           </Box>
         </Box>
       </Card>
 
       <SchedulerFormDrawer open={isOpen} onClose={handleClose} editData={editData} onSubmit={handleSubmit} />
 
-      <div>
-        <DynamicTable tableName='Schedule List' columns={columns} data={data} />
-      </div>
-    </div>
+      {loading && !tableData.length && (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {failure && (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography color='error'>Error: {failureMessage}</Typography>
+        </Box>
+      )}
+
+      {!loading && tableData.length > 0 && (
+        <>
+          <DynamicTable
+            columns={columns}
+            data={tableData}
+            totalCount={schedulerConfigs?.totalCount}
+            pagination={pagination}
+            tableName='Schedule List'
+          />
+          {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
+            <FormControl size='small' sx={{ minWidth: 70 }}>
+              <InputLabel>Count</InputLabel>
+              <Select
+                value={pagination.pageSize}
+                onChange={e => handleChangeLimit(Number(e.target.value))}
+                label='Limit per page'
+              >
+                {[5, 10, 25, 50, 100].map(option => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Typography>{totalCount}</Typography>
+            <Pagination
+              color='primary'
+              shape='rounded'
+              showFirstButton
+              showLastButton
+              count={Math.ceil(totalCount / pagination.pageSize)}
+              page={pagination.pageIndex + 1} // Convert back to 1-based index for pagination
+              onChange={handlePageChange}
+            />
+          </Box> */}
+        </>
+      )}
+    </Box>
   )
 }
 

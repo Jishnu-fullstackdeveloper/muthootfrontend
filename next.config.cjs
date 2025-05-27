@@ -8,6 +8,8 @@ const nextConfig = withBundleAnalyzer({
   basePath: process.env.BASEPATH,
   reactStrictMode: false,
   pageExtensions: ['ts', 'tsx'],
+  fastRefresh: true,
+  concurrentFeatures: true,
   redirects: async () => [
     {
       source: '/',

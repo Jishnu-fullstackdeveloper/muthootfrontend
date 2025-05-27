@@ -1,11 +1,8 @@
 'use client'
+
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-
 import { useRouter } from 'next/navigation'
-
 import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
-
-//import SearchIcon from '@mui/icons-material/Search'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined'
@@ -13,25 +10,28 @@ import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
+import SyncIcon from '@mui/icons-material/Sync'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import type { RootState, AppDispatch } from '@/redux/store'
-import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
+import {
+  fetchResignedEmployees,
+  syncResignedEmployees
+} from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
 import L2ManagerDashboard from './L2ManagerDashboard'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
-  const { employees, loading, error, totalCount } = useAppSelector(
+  const { employees, loading, error, totalCount, syncLoading, syncError, syncProcessId } = useAppSelector(
     (state: RootState) => state.resignationDataListingReducer
   )
 
@@ -39,15 +39,13 @@ const ResignationDataListingPage = () => {
   const [visibleEmployees, setVisibleEmployees] = useState<ResignedEmployee[]>([])
   const [page, setPage] = useState(1)
   const [limit] = useState(6)
-
-  //const [searchQuery, setSearchQuery] = useState<string>('')
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const [noMoreData, setNoMoreData] = useState<boolean>(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  // Consolidated useEffect for fetching employees with debounced search and filters
+  // Fetch employees with debounced filters
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current)
@@ -65,8 +63,6 @@ const ResignationDataListingPage = () => {
           limit,
           isResigned: true,
           resignationDateFrom: formattedFromDate
-
-          //search: searchQuery.trim()
         })
       )
     }, 300)
@@ -83,7 +79,6 @@ const ResignationDataListingPage = () => {
     if (employees?.length && viewMode === 'grid') {
       setVisibleEmployees((prev: ResignedEmployee[]) => {
         const newEmployees = employees.filter(employee => !prev.some(existing => existing.id === employee.id))
-
         return [...prev, ...newEmployees]
       })
       setNoMoreData(false)
@@ -107,8 +102,6 @@ const ResignationDataListingPage = () => {
         limit,
         isResigned: true,
         resignationDateFrom: formattedFromDate
-
-        //search: searchQuery.trim()
       })
     )
   }, [loading, visibleEmployees.length, totalCount, noMoreData, page, dispatch, limit, fromDate])
@@ -138,8 +131,49 @@ const ResignationDataListingPage = () => {
     router.push(`/user-management/resigned-employee/view/detail?id=${id}`)
   }
 
+  // Handle sync button click
+  const handleSync = () => {
+    dispatch(syncResignedEmployees())
+      .unwrap()
+      .then(response => {
+        toast.success(response.message || 'Sync initiated successfully', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+        // console.log('Sync initiated successfully:', response.message, 'Process ID:', response.processId)
+      })
+      .catch(err => {
+        toast.error(err || 'Sync failed', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+        // console.error('Sync failed:', err)
+      })
+  }
+
   return (
-    <Box className=''>
+    <Box>
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Card
         sx={{
           mb: 4,
@@ -153,21 +187,6 @@ const ResignationDataListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
-            {/* <TextField
-              label='Search by Employee Name'
-              variant='outlined'
-              size='small'
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              sx={{ width: '400px', mr: 2, mt: 3 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <SearchIcon />
-                  </InputAdornment>
-                )
-              }}
-            /> */}
             <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
               Resignation Data Listing
             </Typography>
@@ -194,12 +213,30 @@ const ResignationDataListingPage = () => {
                   }}
                 />
               }
-              popperProps={{
-                strategy: 'fixed'
-              }}
+              popperProps={{ strategy: 'fixed' }}
               popperClassName='date-picker-popper'
               portalId='date-picker-portal'
             />
+            <Tooltip title='Sync Resigned Employees'>
+              <Button
+                variant='contained'
+                size='small'
+                onClick={handleSync}
+                disabled={syncLoading}
+                startIcon={<SyncIcon />}
+                sx={{
+                  backgroundColor: '#e3f2fd', // Light blue background
+                  color: '#1976d2', // Blue text/icon color
+                  '&:hover': {
+                    backgroundColor: '#bbdefb' // Slightly darker on hover
+                  },
+                  textTransform: 'none',
+                  mr: 2
+                }}
+              >
+                {syncLoading ? 'Syncing...' : 'Sync'}
+              </Button>
+            </Tooltip>
             <Box
               sx={{
                 display: 'flex',
@@ -250,14 +287,6 @@ const ResignationDataListingPage = () => {
         </Box>
       )}
 
-      {/* {error && !error.includes('No resigned employees found') && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='error'>
-            Error: {error}
-          </Typography>
-        </Box>
-      )} */}
-
       {error && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='secondary'>
@@ -266,13 +295,21 @@ const ResignationDataListingPage = () => {
         </Box>
       )}
 
-      {/* {viewMode === 'grid' && !loading && visibleEmployees.length === 0 && !error && (
+      {/* {syncError && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='text.secondary'>
-            {searchQuery ? `No resigned employees match "${searchQuery}"` : 'No resigned employees found'}
+          <Typography variant='h6' color='error'>
+            Sync Error: {syncError}
           </Typography>
         </Box>
       )} */}
+
+      {syncProcessId && !syncError && (
+        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+          <Typography variant='h6' color='success.main'>
+            Sync Initiated Successfully - Process ID: {syncProcessId}
+          </Typography>
+        </Box>
+      )}
 
       <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
@@ -317,7 +354,7 @@ const ResignationDataListingPage = () => {
                   </Tooltip>
                   <Tooltip title='Last Working Day'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayOutlinedIcon fontSize='small' />: {employee.resignationDetails.lwd.split('T')[0]}
+                      <CalendarTodayOutlinedIcon fontSize='small' />:{employee.resignationDetails.lwd.split('T')[0]}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Notice Period'>
@@ -327,7 +364,7 @@ const ResignationDataListingPage = () => {
                   </Tooltip>
                   <Tooltip title='Relieving Date'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <EventOutlinedIcon fontSize='small' />:{' '}
+                      <EventOutlinedIcon fontSize='small' />:
                       {employee.resignationDetails.relievingDateAsPerNotice?.split('T')[0]}
                     </Typography>
                   </Tooltip>
@@ -335,50 +372,6 @@ const ResignationDataListingPage = () => {
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <NoteOutlinedIcon fontSize='small' />: {employee.resignationDetails.notes || '-'}
                     </Typography>
-                  </Tooltip>
-                </Box>
-                <Box className='mt-4 flex justify-end gap-2'>
-                  <Tooltip title='Approve'>
-                    <Button
-                      variant='tonal'
-                      color='success'
-                      size='small'
-                      startIcon={<CheckCircleOutlineIcon />}
-                      onClick={e => {
-                        e.stopPropagation()
-                        console.log(`Approve resignation for ${employee.employeeCode}`)
-                      }}
-                    >
-                      Approve
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title='Reject'>
-                    <Button
-                      variant='tonal'
-                      color='error'
-                      size='small'
-                      startIcon={<CancelOutlinedIcon />}
-                      onClick={e => {
-                        e.stopPropagation()
-                        console.log(`Reject resignation for ${employee.employeeCode}`)
-                      }}
-                    >
-                      Reject
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title='Freeze'>
-                    <Button
-                      variant='tonal'
-                      color='info'
-                      size='small'
-                      startIcon={<PauseCircleOutlineIcon />}
-                      onClick={e => {
-                        e.stopPropagation()
-                        console.log(`Freeze resignation for ${employee.employeeCode}`)
-                      }}
-                    >
-                      Freeze
-                    </Button>
                   </Tooltip>
                 </Box>
               </Box>

@@ -16,6 +16,7 @@ import DynamicTable from '@/components/Table/dynamicTable'
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchEmployees } from '@/redux/EmployeeManagement/employeeManagementSlice' // Import the employee slice
+import { ROUTES } from '@/utils/routes'
 
 const EmployeeTable = () => {
   const router = useRouter()
@@ -179,7 +180,8 @@ const EmployeeTable = () => {
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton
-                onClick={() => router.push(`/user-management/employee/view/profile-?id=${row.original.id}`)}
+                // onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
+                onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))}
                 sx={{ fontSize: 18 }}
               >
                 {/* <i className='tabler-eye text-textSecondary' /> */}

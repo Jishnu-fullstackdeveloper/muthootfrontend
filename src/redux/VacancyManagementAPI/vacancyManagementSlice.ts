@@ -1,10 +1,11 @@
 'use client'
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-import AxiosLib from '@/lib/AxiosLib' // Custom Axios utility
-import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls' // API endpoint definitions
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import AxiosLib from '@/lib/AxiosLib'
+import { handleAsyncThunkStates } from '@/utils/functions'
+import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls'
 
-// Define the Vacancy type based on API response
+// Define types for API responses and state
 export interface Vacancy {
   status: string
   territory: string
@@ -46,155 +47,423 @@ export interface Vacancy {
   deletedAt: string | null
 }
 
-interface VacancyState {
-  vacancies: Vacancy[]
+export interface VacancyListResponse {
+  success: boolean
+  message: string
+  data: Vacancy[]
   totalCount: number
   currentPage: number
   limit: number
-  loading: boolean
-  error: string | null
-  selectedVacancy: Vacancy | null // Add state for single vacancy
-  selectedVacancyLoading: boolean // Loading state for single vacancy
-  selectedVacancyError: string | null // Error state for single vacancy
 }
 
-const initialState: VacancyState = {
-  vacancies: [],
-  totalCount: 0,
-  currentPage: 1,
-  limit: 6,
-  loading: false,
-  error: null,
-  selectedVacancy: null,
-  selectedVacancyLoading: false,
-  selectedVacancyError: null
+export interface VacancyDetailsResponse {
+  success: boolean
+  message: string
+  data: Vacancy
 }
 
-// Async thunk to fetch vacancies
-export const fetchVacancies = createAsyncThunk(
+export interface VacancyRequest {
+  id: string
+  deletedBy: string | null
+  employeeId: string
+  designationId: string
+  departmentId: string
+  branchId: string
+  status: string
+  origin: string
+  approvalId: string
+  approverId: string
+  approvalStatus: Array<{ [key: string]: { status: string; approverId: string } }>
+  autoApprovalDate: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  employees: {
+    id: string
+    deletedBy: string | null
+    employeeCode: string
+    title: string
+    firstName: string
+    middleName: string | null
+    lastName: string
+    officeEmailAddress: string
+    personalEmailAddress: string
+    mobileNumber: string
+    businessUnitId: string
+    departmentId: string
+    gradeId: string
+    bandId: string
+    designationId: string
+    employeeDetails: {
+      band: string
+      grade: string
+      groupDOJ: string
+      designation: string
+      dateOfJoining: string
+      employmentType: string
+      confirmationDate: string
+      employmentStatus: string
+      confirmationStatus: string
+    }
+    companyStructure: {
+      areaId: string
+      zoneId: string
+      company: string
+      branchId: string
+      regionId: string
+      clusterId: string
+      branchCode: string
+      department: string
+      territoryId: string
+      businessUnitFunction: string
+    }
+    managementHierarchy: {
+      hrManager: string
+      l1Manager: string
+      l2Manager: string
+      functionHead: string
+      practiceHead: string
+      hrManagerCode: string
+      l1ManagerCode: string
+      l2ManagerCode: string
+      functionalManager: string
+      matrixManagerCode: string
+      functionalManagerCode: string
+    }
+    payrollDetails: {
+      esiNo: string
+      panNo: string
+      bankName: string
+      ifscCode: string
+      uanNumber: string
+      foodCardNo: string
+      pfAccountNo: string
+      npsAccountNo: string
+      pfApplicable: boolean
+      pfGrossLimit: string
+      bankAccountNo: string
+      esiApplicable: boolean
+      lwfApplicable: boolean
+    }
+    address: {
+      state: string
+      permanentCity: string
+      residenceCity: string
+      residenceState: string
+      permanentCountry: string
+      residenceCountry: string
+      permanentLandline: string
+      residenceLandline: string
+      cityClassification: string
+      permanentPostalCode: string
+      residencePostalCode: string
+      permanentAddressLine1: string
+      permanentAddressLine2: string
+      permanentAddressLine3: string
+      permanentAddressLine4: string
+      permanentAddressLine5: string
+      residenceAddressLine1: string
+      residenceAddressLine2: string
+      residenceAddressLine3: string
+      residenceAddressLine4: string
+      residenceAddressLine5: string
+    }
+    emergencyContact: {
+      emergencyContactName: string
+      emergencyContactMobilePhone: string
+      emergencyContactRelationship: string
+    }
+    experienceDetails: {
+      ageYYMM: string
+      retirementDate: string
+      totalExperience: string
+      currentCompanyExperience: string
+    }
+    personalDetails: {
+      gender: string
+      adharNo: string
+      religion: string
+      birthPlace: string
+      bloodGroup: string
+      citizenShip: string
+      dateOfBirth: string
+      isDisability: boolean
+      marriageDate: string
+      maritalStatus: string
+      nameAsPerAdhaar: string
+      typeOfDisability: string
+    }
+    jobRoleId: string
+    resignationDetails: {
+      lwd: string
+      notes: string
+      noticePeriod: string
+      dateOfResignation: string
+      relievingDateAsPerNotice: string
+    }
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  designations: {
+    id: string
+    deletedBy: string | null
+    name: string
+    departmentId: string
+    type: string | null
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  departments: {
+    id: string
+    deletedBy: string | null
+    name: string
+    employeeCategoryTypeId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  branches: {
+    id: string
+    deletedBy: string | null
+    name: string
+    branchCode: string
+    bucketName: string
+    clusterId: string
+    districtId: string
+    stateId: string
+    cityId: string
+    createdAt: string
+    updatedAt: string
+  }
+}
+
+export interface VacancyRequestListResponse {
+  success: boolean
+  message: string
+  data: VacancyRequest[]
+  totalCount: number
+  page: number
+  limit: number
+}
+
+export interface UpdateVacancyRequestStatusResponse {
+  success: boolean
+  message: string
+  data: any // Assuming the response data structure is not specified
+}
+
+export interface AutoApproveVacancyRequestsResponse {
+  success: boolean
+  message: string
+  data: any[]
+}
+
+export interface VacancyManagementState {
+  vacancyListLoading: boolean
+  vacancyListSuccess: boolean
+  vacancyListData: Vacancy[] | null
+  vacancyListTotal: number
+  vacancyListFailure: boolean
+  vacancyListFailureMessage: string
+  vacancyDetailsLoading: boolean
+  vacancyDetailsSuccess: boolean
+  vacancyDetailsData: Vacancy | null
+  vacancyDetailsFailure: boolean
+  vacancyDetailsFailureMessage: string
+  vacancyRequestListLoading: boolean
+  vacancyRequestListSuccess: boolean
+  vacancyRequestListData: VacancyRequest[] | null
+  vacancyRequestListTotal: number
+  vacancyRequestListFailure: boolean
+  vacancyRequestListFailureMessage: string
+  updateVacancyRequestStatusLoading: boolean
+  updateVacancyRequestStatusSuccess: boolean
+  updateVacancyRequestStatusData: any | null
+  updateVacancyRequestStatusFailure: boolean
+  updateVacancyRequestStatusFailureMessage: string
+  autoApproveVacancyRequestsLoading: boolean
+  autoApproveVacancyRequestsSuccess: boolean
+  autoApproveVacancyRequestsData: any[] | null
+  autoApproveVacancyRequestsFailure: boolean
+  autoApproveVacancyRequestsFailureMessage: string
+}
+
+// Thunk for fetching vacancy list
+export const fetchVacancies = createAsyncThunk<VacancyListResponse, { page: number; limit: number; search?: string }>(
   'vacancyManagement/fetchVacancies',
-  async ({ page, limit, search = '' }: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
+  async ({ page, limit, search }, { rejectWithValue }) => {
     try {
-      console.log('Sending API request with params:', { page, limit, search }) // Debug log
+      const params: { page: number; limit: number; search?: string } = { page, limit }
+      if (search) params.search = search.trim()
 
-      const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, {
-        params: { page, limit, search: search.trim() || undefined } // Ensure empty search is not sent
-      })
+      console.log('Sending API request for vacancies with params:', params)
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, { params })
 
-      console.log('API Response:', response.data) // Debug API response
-      const data = response.data
-
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid API response: No data received')
-      }
-
-      const vacancies = Array.isArray(data.data) ? data.data : []
-      const totalCount = Number.isInteger(data.totalCount) ? data.totalCount : 0
-      const currentPage = Number.isInteger(parseInt(data.currentPage, 10)) ? parseInt(data.currentPage, 10) : page
-      const responseLimit = Number.isInteger(parseInt(data.limit, 10)) ? parseInt(data.limit, 10) : limit
-
-      return {
-        data: vacancies as Vacancy[],
-        totalCount,
-        currentPage,
-        limit: responseLimit
-      }
+      console.log('API Response for vacancies:', response.data)
+      return response.data
     } catch (error: any) {
       console.error('Fetch Vacancies Error:', error)
-
-      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch vacancies')
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancies')
     }
   }
 )
 
-// Async thunk to fetch a single vacancy by ID
-// export const fetchVacancyById = createAsyncThunk(
-//   'vacancyManagement/fetchVacancyById',
-//   async (id: string, { rejectWithValue }) => {
-//     try {
-//       const response = await AxiosLib.get(`/vacancy/${id}`)
-
-//       console.log('API Response for ID', id, ':', response.data) // Debug API response
-//       const data = response.data
-
-//       if (data.status !== 'Success' || !data.data) {
-//         throw new Error(data.message || 'Invalid API response')
-//       }
-
-//       return data.data // Return the vacancy object
-//     } catch (error: any) {
-//       console.error('API Error for ID', id, ':', error.message) // Debug API error
-
-//       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy')
-//     }
-//   }
-// )
-
-export const fetchVacancyById = createAsyncThunk(
+// Thunk for fetching a single vacancy by ID
+export const fetchVacancyById = createAsyncThunk<VacancyDetailsResponse, { id: string }>(
   'vacancyManagement/fetchVacancyById',
-  async (id: string, { rejectWithValue }) => {
+  async ({ id }, { rejectWithValue }) => {
     try {
+      console.log('Sending API request for vacancy ID:', id)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingById.replace(':id', id))
 
-      console.log('API Response for ID', id, ':', response.data) // Debug API response
-      const data = response.data
-
-      if (!data.success || !data.data) {
-        throw new Error(data.message || 'Invalid API response')
-      }
-
-      return data.data // Return the vacancy object
+      console.log('API Response for vacancy ID', id, ':', response.data)
+      return response.data
     } catch (error: any) {
-      console.error('API Error for ID', id, ':', error.message) // Debug API error
-
+      console.error('API Error for vacancy ID', id, ':', error.message)
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy')
     }
   }
 )
 
-// Slice
-const vacancyManagementSlice = createSlice({
-  name: 'vacancyManagement',
-  initialState,
-  reducers: {},
-  extraReducers: builder => {
-    // Existing fetchVacancies cases
-    builder
-      .addCase(fetchVacancies.pending, state => {
-        state.loading = true
-        state.error = null
-      })
-      .addCase(fetchVacancies.fulfilled, (state, action) => {
-        state.loading = false
-        state.vacancies = action.payload.data
-        state.totalCount = action.payload.totalCount
-        state.currentPage = action.payload.currentPage
-        state.limit = action.payload.limit
-      })
-      .addCase(fetchVacancies.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload as string
-        state.vacancies = [] // Clear vacancies on error
-        state.totalCount = 0
-      })
+// Thunk for fetching vacancy requests
+export const fetchVacancyRequests = createAsyncThunk<
+  VacancyRequestListResponse,
+  {
+    page: number
+    limit: number
+    search?: string
+    employeeId?: string
+    id?: string
+    designationId?: string
+    departmentId?: string
+    branchId?: string
+    status?: string
+    approvalId?: string
+    approverId?: string
+  }
+>(
+  'vacancyManagement/fetchVacancyRequests',
+  async (
+    { page, limit, search, employeeId, id, designationId, departmentId, branchId, status, approvalId, approverId },
+    { rejectWithValue }
+  ) => {
+    try {
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        employeeId?: string
+        id?: string
+        designationId?: string
+        departmentId?: string
+        branchId?: string
+        status?: string
+        approvalId?: string
+        approverId?: string
+      } = { page, limit }
 
-      // New fetchVacancyById cases
-      .addCase(fetchVacancyById.pending, state => {
-        state.selectedVacancyLoading = true
-        state.selectedVacancyError = null
-        console.log('Fetching vacancy...') // Debug pending state
-      })
-      .addCase(fetchVacancyById.fulfilled, (state, action) => {
-        state.selectedVacancyLoading = false
-        state.selectedVacancy = action.payload
-        console.log('Selected Vacancy Updated:', action.payload) // Debug fulfilled state
-      })
-      .addCase(fetchVacancyById.rejected, (state, action) => {
-        state.selectedVacancyLoading = false
-        state.selectedVacancyError = action.payload as string
-        console.log('Fetch Vacancy Failed:', action.payload) // Debug rejected state
-      })
+      if (search) params.search = search.trim()
+      if (employeeId) params.employeeId = employeeId
+      if (id) params.id = id
+      if (designationId) params.designationId = designationId
+      if (departmentId) params.departmentId = departmentId
+      if (branchId) params.branchId = branchId
+      if (status) params.status = status
+      if (approvalId) params.approvalId = approvalId
+      if (approverId) params.approverId = approverId
+
+      console.log('Sending API request for vacancy requests with params:', params)
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyRequestUrl, { params })
+
+      console.log('API Response for vacancy requests:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('Fetch Vacancy Requests Error:', error)
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy requests')
+    }
+  }
+)
+
+// Thunk for updating vacancy request status
+export const updateVacancyRequestStatus = createAsyncThunk<
+  UpdateVacancyRequestStatusResponse,
+  { id: string; approverId: string; status: string }
+>('vacancyManagement/updateVacancyRequestStatus', async ({ id, approverId, status }, { rejectWithValue }) => {
+  try {
+    const requestBody = { approverId, status }
+    console.log('Sending API request to update vacancy request status for ID:', id, 'with body:', requestBody)
+    const response = await AxiosLib.put(API_ENDPOINTS.updateVacancyRequestStatusUrl(id), requestBody)
+
+    console.log('API Response for updating vacancy request status:', response.data)
+    return response.data
+  } catch (error: any) {
+    console.error('Update Vacancy Request Status Error:', error)
+    return rejectWithValue(error.response?.data?.message || 'Failed to update vacancy request status')
   }
 })
 
+// Thunk for auto-approving vacancy requests
+export const autoApproveVacancyRequests = createAsyncThunk<AutoApproveVacancyRequestsResponse, void>(
+  'vacancyManagement/autoApproveVacancyRequests',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('Sending API request to auto-approve vacancy requests')
+      const response = await AxiosLib.get(API_ENDPOINTS.autoApproveVacancyRequestsUrl)
+
+      console.log('API Response for auto-approve vacancy requests:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('Auto-Approve Vacancy Requests Error:', error)
+      return rejectWithValue(error.response?.data?.message || 'Failed to auto-approve vacancy requests')
+    }
+  }
+)
+
+// Create the slice
+export const vacancyManagementSlice = createSlice({
+  name: 'vacancyManagement',
+  initialState: {
+    vacancyListLoading: false,
+    vacancyListSuccess: false,
+    vacancyListData: null,
+    vacancyListTotal: 0,
+    vacancyListFailure: false,
+    vacancyListFailureMessage: '',
+    vacancyDetailsLoading: false,
+    vacancyDetailsSuccess: false,
+    vacancyDetailsData: null,
+    vacancyDetailsFailure: false,
+    vacancyDetailsFailureMessage: '',
+    vacancyRequestListLoading: false,
+    vacancyRequestListSuccess: false,
+    vacancyRequestListData: null,
+    vacancyRequestListTotal: 0,
+    vacancyRequestListFailure: false,
+    vacancyRequestListFailureMessage: '',
+    updateVacancyRequestStatusLoading: false,
+    updateVacancyRequestStatusSuccess: false,
+    updateVacancyRequestStatusData: null,
+    updateVacancyRequestStatusFailure: false,
+    updateVacancyRequestStatusFailureMessage: '',
+    autoApproveVacancyRequestsLoading: false,
+    autoApproveVacancyRequestsSuccess: false,
+    autoApproveVacancyRequestsData: null,
+    autoApproveVacancyRequestsFailure: false,
+    autoApproveVacancyRequestsFailureMessage: ''
+  } as VacancyManagementState,
+  reducers: {
+    // Define any additional reducers if needed
+  },
+  extraReducers: builder => {
+    handleAsyncThunkStates(builder, fetchVacancies, 'vacancyList')
+    handleAsyncThunkStates(builder, fetchVacancyById, 'vacancyDetails')
+    handleAsyncThunkStates(builder, fetchVacancyRequests, 'vacancyRequestList')
+    handleAsyncThunkStates(builder, updateVacancyRequestStatus, 'updateVacancyRequestStatus')
+    handleAsyncThunkStates(builder, autoApproveVacancyRequests, 'autoApproveVacancyRequests')
+  }
+})
+
+export const {} = vacancyManagementSlice.actions
 export default vacancyManagementSlice.reducer

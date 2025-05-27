@@ -25,7 +25,7 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
-import L2ManagerDashboard from './L2ManagerDashboard'
+// import L2ManagerDashboard from './L2ManagerDashboard'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
@@ -238,9 +238,9 @@ const ResignationDataListingPage = () => {
         </Box>
       </Card>
 
-      <Box>
+      {/* <Box>
         <L2ManagerDashboard />
-      </Box>
+      </Box> */}
 
       {loading && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
@@ -312,7 +312,7 @@ const ResignationDataListingPage = () => {
                   <Tooltip title='Date of Resignation'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CalendarMonthOutlinedIcon fontSize='small' />:
-                      {employee.resignationDetails.dateOfResignation.split('T')[0]}
+                      {employee.resignationDetails?.dateOfResignation.split('T')[0]}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Last Working Day'>
@@ -337,7 +337,7 @@ const ResignationDataListingPage = () => {
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box className='mt-4 flex justify-end gap-2'>
+                {/* <Box className='mt-4 flex justify-end gap-2'>
                   <Tooltip title='Approve'>
                     <Button
                       variant='tonal'
@@ -380,7 +380,7 @@ const ResignationDataListingPage = () => {
                       Freeze
                     </Button>
                   </Tooltip>
-                </Box>
+                </Box> */}
               </Box>
             </Box>
           ))

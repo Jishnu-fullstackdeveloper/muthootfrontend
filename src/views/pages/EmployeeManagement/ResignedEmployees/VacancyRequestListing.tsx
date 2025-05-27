@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -12,9 +13,7 @@ import {
   Button,
   Chip,
   Tabs,
-  Tab,
-  Snackbar,
-  Alert
+  Tab
 } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
@@ -32,7 +31,6 @@ import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined'
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined'
 import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined'
 import StoreOutlinedIcon from '@mui/icons-material/StoreOutlined'
-import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined'
 import { toast, ToastContainer } from 'react-toastify'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -48,8 +46,6 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { getUserId } from '@/utils/functions'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import L2ManagerDashboard from './L2ManagerDashboard'
-
-// Define types from vacancyManagementSlice
 import type { VacancyRequest } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 
 interface ViewMode {
@@ -68,11 +64,9 @@ const ResignationDataListingPage = () => {
     vacancyRequestListLoading: loading,
     vacancyRequestListData: vacancyRequests,
     vacancyRequestListTotal: totalCount,
-    vacancyRequestListFailureMessage: error,
-    autoApproveVacancyRequestsSuccess,
-    autoApproveVacancyRequestsData,
-    autoApproveVacancyRequestsFailureMessage
+    vacancyRequestListFailureMessage: error
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer)
+  const approverId = getUserId()
 
   const [viewMode, setViewMode] = useState<ViewMode['view']>('grid')
   const [visibleRequests, setVisibleRequests] = useState<VacancyRequest[]>([])
@@ -81,9 +75,6 @@ const ResignationDataListingPage = () => {
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const [noMoreData, setNoMoreData] = useState<boolean>(false)
   const [selectedTabs, setSelectedTabs] = useState<SelectedTabs>({})
-  const [toastOpen, setToastOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState('')
-  const [toastSeverity, setToastSeverity] = useState<'success' | 'error'>('success')
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
@@ -104,8 +95,9 @@ const ResignationDataListingPage = () => {
       dispatch(
         fetchVacancyRequests({
           page: 1,
-          limit,
-          createdAt: formattedFromDate
+          limit: visibleRequests.length || limit,
+          approverId: approverId
+          // createdAt: formattedFromDate
         })
       )
         .unwrap()
@@ -162,9 +154,10 @@ const ResignationDataListingPage = () => {
 
     dispatch(
       fetchVacancyRequests({
-        page: nextPage,
-        limit,
-        createdAt: formattedFromDate
+        page: 1,
+        limit: visibleRequests.length || limit,
+        approverId: approverId
+        // createdAt: formattedFromDate
       })
     )
       .unwrap()
@@ -202,31 +195,66 @@ const ResignationDataListingPage = () => {
     setSelectedTabs(prev => ({ ...prev, [requestId]: newValue }))
   }
 
-  // Handle status update (Approve, Reject, Freeze)
+  // Handle status update (Approve, Reject, Freeze) with toast
   const handleStatusUpdate = (requestId: string, status: 'APPROVED' | 'REJECTED' | 'FREEZE') => {
     const approverId = getUserId()
     if (!approverId) {
-      console.error('No logged-in user ID found')
+      toast.error('No logged-in user ID found', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      })
       return
     }
 
     dispatch(updateVacancyRequestStatus({ id: requestId, approverId, status }))
       .unwrap()
       .then(() => {
+        toast.success(`Vacancy request ${status.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
+
         // Refetch the vacancy requests to update the UI
         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
         dispatch(
           fetchVacancyRequests({
             page: 1,
-            limit: visibleRequests.length,
-            createdAt: formattedFromDate
+            limit: visibleRequests.length || limit,
+            approverId: approverId
+            // createdAt: formattedFromDate
           })
         )
+          .unwrap()
+          .then(result => {
+            const newRequests = result.data || []
+            setVisibleRequests(newRequests)
+            setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
+            setPage(1)
+            setNoMoreData(false)
+          })
+          .catch(err => console.error('Refetch after status update failed:', err))
       })
-      .catch(err => console.error(`Failed to update status to ${status}:`, err))
+      .catch(err => {
+        toast.error(`Failed to update status to ${status}: ${err}`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
+      })
   }
 
-  // Handle auto-approve
+  // Handle auto-approve with updated list
   const handleAutoApprove = () => {
     dispatch(autoApproveVacancyRequests())
       .unwrap()
@@ -237,21 +265,29 @@ const ResignationDataListingPage = () => {
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
-          draggable: true,
-          progress: undefined
+          draggable: true
         })
-        // setToastMessage(result.message || 'Vacancy requests auto-approved successfully')
-        // setToastSeverity('success')
-        // setToastOpen(true)
+
         // Refetch the vacancy requests to update the UI
         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+        const approverId = getUserId()
         dispatch(
           fetchVacancyRequests({
             page: 1,
-            limit: visibleRequests.length
+            limit: visibleRequests.length || limit,
+            approverId: approverId
             // createdAt: formattedFromDate
           })
         )
+          .unwrap()
+          .then(fetchResult => {
+            const newRequests = fetchResult.data || []
+            setVisibleRequests(newRequests)
+            setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
+            setPage(1)
+            setNoMoreData(false)
+          })
+          .catch(err => console.error('Refetch after auto-approve failed:', err))
       })
       .catch(err => {
         toast.error(err || 'Failed to auto-approve vacancy requests', {
@@ -260,18 +296,9 @@ const ResignationDataListingPage = () => {
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
-          draggable: true,
-          progress: undefined
+          draggable: true
         })
-        // setToastMessage(err || 'Failed to auto-approve vacancy requests')
-        // setToastSeverity('error')
-        // setToastOpen(true)
       })
-  }
-
-  // Handle toast close
-  const handleToastClose = () => {
-    setToastOpen(false)
   }
 
   const handleCardClick = (requestId: string) => {
@@ -279,18 +306,7 @@ const ResignationDataListingPage = () => {
   }
 
   return (
-    <Box className=''>
-      {/* Toast Notification */}
-      {/* <Snackbar
-        open={toastOpen}
-        autoHideDuration={6000}
-        onClose={handleToastClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleToastClose} severity={toastSeverity} sx={{ width: '100%' }}>
-          {toastMessage}
-        </Alert>
-      </Snackbar> */}
+    <Box>
       <ToastContainer
         position='top-right'
         autoClose={5000}
@@ -322,32 +338,6 @@ const ResignationDataListingPage = () => {
           </Box>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
-            {/* <AppReactDatepicker
-              selected={fromDate}
-              onChange={(date: Date | null) => setFromDate(date)}
-              placeholderText='Select from date'
-              isClearable
-              customInput={
-                <TextField
-                  label='Filter by date'
-                  variant='outlined'
-                  size='small'
-                  sx={{ width: '160px', mr: 2 }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <CalendarTodayOutlinedIcon />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-              }
-              popperProps={{
-                strategy: 'fixed'
-              }}
-              popperClassName='date-picker-popper'
-              portalId='date-picker-portal'
-            /> */}
             <Button variant='contained' color='primary' onClick={handleAutoApprove} disabled={loading}>
               Auto Approve
             </Button>
@@ -429,7 +419,7 @@ const ResignationDataListingPage = () => {
                   size='small'
                   variant='tonal'
                   color={
-                    request.status === 'APPROVED'
+                    request.status === 'APPROVED' || request.status === 'AUTO APPROVED'
                       ? 'success'
                       : request.status === 'REJECTED'
                         ? 'error'
@@ -579,7 +569,7 @@ const ResignationDataListingPage = () => {
                     alignItems: 'center'
                   }}
                 >
-                  {request.status !== 'APPROVED' && request.status !== 'REJECTED' && (
+                  {request.status === 'PENDING' && (
                     <>
                       <Tooltip title='Approve'>
                         <Button

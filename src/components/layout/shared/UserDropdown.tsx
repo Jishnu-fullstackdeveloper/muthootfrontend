@@ -54,6 +54,8 @@ const BadgeContentSpan = styled('span')({
 interface Permission {
   role: string
   permissions: string[]
+  groupRoles: string
+  name: string
 }
 
 type CurrentPermissions = Permission[]
@@ -146,7 +148,14 @@ const UserDropdown = () => {
   const getFilteredRoles = (permissions: CurrentPermissions): string => {
     const filteredRoles = permissions
       .filter(permission => permission.role !== 'default-roles-hrms')
-      .map(permission => permission.role)
+      .map(permission => permission.groupRoles)
+
+    return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
+  }
+  const getFilteredDesignation = (permissions: CurrentPermissions): string => {
+    const filteredRoles = permissions
+      .filter(permission => permission.role !== 'default-roles-hrms')
+      .map(permission => permission.name)
 
     return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
   }
@@ -286,7 +295,8 @@ const UserDropdown = () => {
                           whiteSpace: 'pre-line'
                         }}
                       >
-                        {getFilteredRoles(currentPermissions)}
+                        {getFilteredRoles(currentPermissions)} <br />
+                        {getFilteredDesignation(currentPermissions)}
                       </Typography>
                     </div>
                   </div>

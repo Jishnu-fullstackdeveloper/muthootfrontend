@@ -53,12 +53,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
-  // Log the current pathname for debugging
-  // console.log('Current pathname:', pathname)
-
-  // Get the permission mapping
-  const permissionConfig = getPermissionRenderConfig()
-
   // Static menu items definition
   const staticMenuItems = useMemo(
     () => [
@@ -295,40 +289,26 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const isMenuItemActive = useCallback(
     (item: MenuItemType): boolean => {
       if (!pathname) {
-        // console.log('Pathname is null for item:', item.label)
         return false
       }
 
       // Special case for recruitment-management overview
       if (item.path === '/recruitment-management/overview') {
-        const isActive = pathname.startsWith('/recruitment-management')
-        // console.log('Item:', item.label, 'Path:', item.path, 'Is Active:', isActive)
-        return isActive
+        return pathname.startsWith('/recruitment-management')
       }
 
       // For items with children (e.g., "User Management", "Hiring Management")
       if (item.children) {
-        // Check if the current URL starts with any child's path
-        const isActive = item.children.some(child => {
+        return item.children.some(child => {
           if (child.path) {
-            const matches = pathname === child.path || pathname.startsWith(child.path)
-            // console.log('Child Item:', child.label, 'Child Path:', child.path, 'Matches:', matches)
-            return matches
+            return pathname === child.path || pathname.startsWith(child.path)
           }
           return false
         })
-        // console.log('Item:', item.label, 'Path:', item.path, 'Is Active (has children):', isActive)
-
-        if (isActive) {
-          return isActive
-        }
       }
 
-      // For leaf items (e.g., "Home", "JD Management"), check if the URL matches exactly or starts with the path
-      const isActive = pathname === item.path || pathname.startsWith(item.path)
-      // console.log('Item:', item.label, 'Path:', item.path, 'Is Active (leaf):', isActive)
-      // console.log('Path:', pathname, item.path)
-      return true
+      // For leaf items (e.g., "Home", "JD Management")
+      return pathname === item.path || pathname.startsWith(item.path)
     },
     [pathname]
   )
@@ -350,7 +330,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
   // Early return if loading
   if (clientMenuItems.length === 0) {
-    console.log('Client menu items are empty, returning null')
     return null
   }
 
@@ -370,35 +349,46 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     >
       <Menu
         popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
+        menuItemStyles={{
+          ...menuItemStyles(verticalNavOptions, theme, settings),
+          // Override the menu item styles to ensure full-width hover
+          button: {
+            width: '100%',
+            justifyContent: 'flex-start',
+            padding: '3px 5px',
+            borderRadius: 0,
+            '&:hover': {
+              backgroundColor: theme.palette.action.hover,
+              width: '100%',
+              borderRadius: 0
+            },
+            '&.Mui-selected': {
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.common.white,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark
+              }
+            }
+          }
+        }}
         renderExpandIcon={({ open }) => (
           <RenderExpandIcon open={open} transitionDuration={verticalNavOptions.transitionDuration ?? 0} />
         )}
         renderExpandedMenuItemIcon={{ icon: <ChevronRightIcon fontSize='small' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        <List disablePadding>
+        <List disablePadding sx={{ width: '100%' }}>
           {clientMenuItems.map((item, index) => {
             const isActive = isMenuItemActive(item)
             const hasChildren = !!item.children
             const isExpanded = expandedMenus.includes(item.label)
             // Map the read key to the corresponding permission value
-            const permissionValue = item.read ? permissionConfig[item.read] || '' : ''
-            // console.log(
-            //   'Main Menu Item:',
-            //   item.label,
-            //   'Path:',
-            //   item.path,
-            //   'Is Active:',
-            //   isActive,
-            //   'Permission Value:',
-            //   permissionValue
-            // )
+            const permissionValue = item.read ? getPermissionRenderConfig()[item.read] || '' : ''
 
             return (
               <div key={`${item.label}-${index}`}>
                 {/* Main menu item */}
-                <ListItem disablePadding>
+                <ListItem disablePadding sx={{ width: '100%' }}>
                   <MenuItemWithPermission
                     icon={<i className={item.iconClass} />}
                     active={isActive}
@@ -416,10 +406,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                       ) : null
                     }
                     onClick={() => {
-                      if (!hasChildren) {
+                      if (hasChildren) {
+                        toggleMenu(item.label) // Toggle submenu on click
+                      } else {
                         handleNavigation(item.path) // Navigate if it's a leaf item
                       }
                     }}
+                    sx={{ width: '100%' }}
                   >
                     {item.label}
                   </MenuItemWithPermission>
@@ -428,31 +421,20 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 {/* Submenu (if any) */}
                 {hasChildren && (
                   <Collapse in={isExpanded} timeout='auto' unmountOnExit>
-                    <List disablePadding sx={{ pl: 4 }}>
+                    <List disablePadding sx={{ pl: 4, width: '100%' }}>
                       {item.children?.map((child, childIndex) => {
                         const childIsActive = isMenuItemActive(child)
                         const childHasChildren = !!child.children
                         const childIsExpanded = expandedMenus.includes(child.label)
-                        // Map the read key to the corresponding permission value for child
-                        const childPermissionValue = child.read ? permissionConfig[child.read] || '' : ''
-                        // console.log(
-                        //   'Submenu Item (Level 1):',
-                        //   child.label,
-                        //   'Path:',
-                        //   child.path,
-                        //   'Is Active:',
-                        //   childIsActive,
-                        //   'Permission Value:',
-                        //   childPermissionValue
-                        // )
+                        const childPermissionValue = child.read ? getPermissionRenderConfig()[child.read] || '' : ''
 
                         return (
                           <div key={`${child.label}-${childIndex}`}>
                             {/* Submenu item (Level 1) */}
-                            <ListItem disablePadding>
+                            <ListItem disablePadding sx={{ width: '100%' }}>
                               <MenuItemWithPermission
                                 icon={<i className={child.iconClass} />}
-                                active={false} // Submenu items are not highlighted
+                                active={childIsActive}
                                 individualPermission={childPermissionValue}
                                 suffix={
                                   childHasChildren ? (
@@ -467,10 +449,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                   ) : null
                                 }
                                 onClick={() => {
-                                  if (!childHasChildren) {
+                                  if (childHasChildren) {
+                                    toggleMenu(child.label) // Toggle nested submenu on click
+                                  } else {
                                     handleNavigation(child.path) // Navigate if it's a leaf item
                                   }
                                 }}
+                                sx={{ width: '100%' }}
                               >
                                 {child.label}
                               </MenuItemWithPermission>
@@ -479,31 +464,25 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                             {/* Nested submenu (Level 2, e.g., under X-Factor) */}
                             {childHasChildren && (
                               <Collapse in={childIsExpanded} timeout='auto' unmountOnExit>
-                                <List disablePadding sx={{ pl: 4 }}>
+                                <List disablePadding sx={{ pl: 4, width: '100%' }}>
                                   {child.children?.map((nestedChild, nestedIndex) => {
                                     const nestedIsActive = isMenuItemActive(nestedChild)
-                                    // Map the read key to the corresponding permission value for nested child
                                     const nestedPermissionValue = nestedChild.read
-                                      ? permissionConfig[nestedChild.read] || ''
+                                      ? getPermissionRenderConfig()[nestedChild.read] || ''
                                       : ''
-                                    // console.log(
-                                    //   'Nested Submenu Item (Level 2):',
-                                    //   nestedChild.label,
-                                    //   'Path:',
-                                    //   nestedChild.path,
-                                    //   'Is Active:',
-                                    //   nestedIsActive,
-                                    //   'Permission Value:',
-                                    //   nestedPermissionValue
-                                    // )
 
                                     return (
-                                      <ListItem key={`${nestedChild.label}-${nestedIndex}`} disablePadding>
+                                      <ListItem
+                                        key={`${nestedChild.label}-${nestedIndex}`}
+                                        disablePadding
+                                        sx={{ width: '100%' }}
+                                      >
                                         <MenuItemWithPermission
                                           icon={<i className={nestedChild.iconClass} />}
-                                          active={false} // Nested submenu items are not highlighted
+                                          active={nestedIsActive}
                                           individualPermission={nestedPermissionValue}
                                           onClick={() => handleNavigation(nestedChild.path)}
+                                          sx={{ width: '100%' }}
                                         >
                                           {nestedChild.label}
                                         </MenuItemWithPermission>

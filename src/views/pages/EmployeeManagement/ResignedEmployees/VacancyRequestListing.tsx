@@ -33,10 +33,12 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined'
 import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined'
 import StoreOutlinedIcon from '@mui/icons-material/StoreOutlined'
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined'
+import { toast, ToastContainer } from 'react-toastify'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import 'react-toastify/dist/ReactToastify.css'
 import {
   fetchVacancyRequests,
   updateVacancyRequestStatus,
@@ -229,23 +231,41 @@ const ResignationDataListingPage = () => {
     dispatch(autoApproveVacancyRequests())
       .unwrap()
       .then(result => {
-        setToastMessage(result.message || 'Vacancy requests auto-approved successfully')
-        setToastSeverity('success')
-        setToastOpen(true)
+        toast.success(result.message || 'Vacancy requests auto-approved successfully', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+        // setToastMessage(result.message || 'Vacancy requests auto-approved successfully')
+        // setToastSeverity('success')
+        // setToastOpen(true)
         // Refetch the vacancy requests to update the UI
         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
         dispatch(
           fetchVacancyRequests({
             page: 1,
-            limit: visibleRequests.length,
-            createdAt: formattedFromDate
+            limit: visibleRequests.length
+            // createdAt: formattedFromDate
           })
         )
       })
       .catch(err => {
-        setToastMessage(err || 'Failed to auto-approve vacancy requests')
-        setToastSeverity('error')
-        setToastOpen(true)
+        toast.error(err || 'Failed to auto-approve vacancy requests', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+        // setToastMessage(err || 'Failed to auto-approve vacancy requests')
+        // setToastSeverity('error')
+        // setToastOpen(true)
       })
   }
 
@@ -261,7 +281,7 @@ const ResignationDataListingPage = () => {
   return (
     <Box className=''>
       {/* Toast Notification */}
-      <Snackbar
+      {/* <Snackbar
         open={toastOpen}
         autoHideDuration={6000}
         onClose={handleToastClose}
@@ -270,7 +290,18 @@ const ResignationDataListingPage = () => {
         <Alert onClose={handleToastClose} severity={toastSeverity} sx={{ width: '100%' }}>
           {toastMessage}
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <Card
         sx={{
@@ -291,7 +322,7 @@ const ResignationDataListingPage = () => {
           </Box>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
-            <AppReactDatepicker
+            {/* <AppReactDatepicker
               selected={fromDate}
               onChange={(date: Date | null) => setFromDate(date)}
               placeholderText='Select from date'
@@ -316,7 +347,7 @@ const ResignationDataListingPage = () => {
               }}
               popperClassName='date-picker-popper'
               portalId='date-picker-portal'
-            />
+            /> */}
             <Button variant='contained' color='primary' onClick={handleAutoApprove} disabled={loading}>
               Auto Approve
             </Button>

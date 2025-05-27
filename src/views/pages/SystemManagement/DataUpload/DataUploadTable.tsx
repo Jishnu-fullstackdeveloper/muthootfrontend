@@ -24,17 +24,17 @@ const DataUploadTableList = () => {
   useEffect(() => {
     dispatch(
       fetchDataUploads({
-        page: pagination.pageIndex + 1, // API uses 1-based indexing
-        limit: pagination.pageSize,
+        page: pagination?.pageIndex + 1, // API uses 1-based indexing
+        limit: pagination?.pageSize,
         search: ''
       })
     )
-  }, [dispatch, pagination.pageIndex, pagination.pageSize])
+  }, [dispatch, pagination?.pageIndex, pagination?.pageSize])
 
   // Map API data to table format
   const tableData = useMemo(() => {
-    const mappedData = uploads.map((upload, index) => ({
-      slno: index + 1 + pagination.pageIndex * pagination.pageSize, // Serial number based on index and page
+    const mappedData = uploads?.map((upload, index) => ({
+      slno: index + 1 + pagination?.pageIndex * pagination?.pageSize, // Serial number based on index and page
       id: upload?.id,
       fileName: upload?.processData?.originalname || '-',
       fileType: upload?.processData?.type || '-',
@@ -85,28 +85,28 @@ const DataUploadTableList = () => {
     () => [
       columnHelper.accessor('slno', {
         header: 'SLNO',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.slno}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.slno}</Typography>
       }),
       columnHelper.accessor('fileName', {
         header: 'FILE NAME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileName}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileName}</Typography>
       }),
       columnHelper.accessor('fileType', {
         header: 'TYPE/CATEGORY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileType}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileType}</Typography>
       }),
       columnHelper.accessor('fileSize', {
         header: 'FILE SIZE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileSize}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileSize}</Typography>
       }),
       columnHelper.accessor('time', {
         header: 'TIME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.time}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'STATUS',
         cell: ({ row }) => {
-          const status = row.original.status
+          const status = row?.original?.status
           let color: 'success' | 'error' | 'warning' = 'warning' // Default to yellow (warning)
 
           if (status === 'COMPLETED')
@@ -180,7 +180,7 @@ const DataUploadTableList = () => {
   return (
     <>
       {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: {error}</Typography>}
+      {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable
           columns={columns}

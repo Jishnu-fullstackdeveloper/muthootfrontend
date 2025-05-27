@@ -16,7 +16,8 @@ import Fade from '@mui/material/Fade'
 import Paper from '@mui/material/Paper'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import MenuList from '@mui/material/MenuList'
-import Typography from '@mui/material/Typography'
+import { Typography, Tooltip, Box } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
@@ -296,7 +297,12 @@ const UserDropdown = () => {
                         }}
                       >
                         {getFilteredRoles(currentPermissions)} <br />
-                        {getFilteredDesignation(currentPermissions)}
+                        <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                          Designation: {getFilteredDesignation(currentPermissions)}
+                          <Tooltip title="This is the user's designation" arrow>
+                            <InfoOutlinedIcon fontSize='small' sx={{ ml: 0.5, cursor: 'pointer' }} />
+                          </Tooltip>
+                        </Box>
                       </Typography>
                     </div>
                   </div>

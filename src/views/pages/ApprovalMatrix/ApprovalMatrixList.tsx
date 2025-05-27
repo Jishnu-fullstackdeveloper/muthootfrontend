@@ -16,7 +16,7 @@ import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalCategories, fetchApprovalMatrices } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
+import { fetchApprovalCategories } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
 //import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
@@ -26,7 +26,8 @@ const ApprovalMatrixList = () => {
   const router = useRouter()
   const columnHelper = createColumnHelper<any>()
 
-  const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
+  //const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
+  const { approvalCategories, status } = useAppSelector(state => state.approvalMatrixReducer)
 
   // Pagination state (0-based for table)
   const [pagination, setPagination] = useState({
@@ -46,6 +47,68 @@ const ApprovalMatrixList = () => {
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
+  // useEffect(() => {
+  //   // Clear the previous timeout
+  //   if (debounceTimeout.current) {
+  //     clearTimeout(debounceTimeout.current)
+  //   }
+
+  //   // Set a new timeout
+  //   debounceTimeout.current = setTimeout(() => {
+  //     if (searchQuery.trim() === '') {
+  //       // Fetch all matrices when search is cleared
+  //       dispatch(
+  //         fetchApprovalMatrices({
+  //           page: 1,
+  //           limit: 1000
+  //         })
+  //       )
+  //     } else {
+  //       // Fetch categories for search
+  //       dispatch(
+  //         fetchApprovalCategories({
+  //           page: 1,
+  //           limit: 1000,
+  //           search: searchQuery
+  //         })
+  //       )
+  //     }
+  //   }, 300) // 300ms delay - adjust as needed
+
+  //   // Cleanup function to clear timeout if component unmounts
+  //   return () => {
+  //     if (debounceTimeout.current) {
+  //       clearTimeout(debounceTimeout.current)
+  //     }
+  //   }
+  // }, [searchQuery, dispatch])
+
+  // useEffect(() => {
+  //   // Clear the previous timeout
+  //   if (debounceTimeout.current) {
+  //     clearTimeout(debounceTimeout.current)
+  //   }
+
+  //   // Set a new timeout
+  //   debounceTimeout.current = setTimeout(() => {
+  //     // Fetch categories with or without search query
+  //     dispatch(
+  //       fetchApprovalCategories({
+  //         page: 1,
+  //         limit: 1000,
+  //         search: searchQuery.trim() === '' ? undefined : searchQuery
+  //       })
+  //     )
+  //   }, 300) // 300ms delay - adjust as needed
+
+  //   // Cleanup function to clear timeout if component unmounts
+  //   return () => {
+  //     if (debounceTimeout.current) {
+  //       clearTimeout(debounceTimeout.current)
+  //     }
+  //   }
+  // }, [searchQuery, dispatch])
+
   useEffect(() => {
     // Clear the previous timeout
     if (debounceTimeout.current) {
@@ -54,25 +117,15 @@ const ApprovalMatrixList = () => {
 
     // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
-      if (searchQuery.trim() === '') {
-        // Fetch all matrices when search is cleared
-        dispatch(
-          fetchApprovalMatrices({
-            page: 1,
-            limit: 1000
-          })
-        )
-      } else {
-        // Fetch categories for search
-        dispatch(
-          fetchApprovalCategories({
-            page: 1,
-            limit: 1000,
-            search: searchQuery
-          })
-        )
-      }
-    }, 300) // 300ms delay - adjust as needed
+      // Fetch categories with or without search query
+      dispatch(
+        fetchApprovalCategories({
+          page: 1,
+          limit: 1000,
+          search: searchQuery.trim() === '' ? undefined : searchQuery
+        })
+      )
+    }, 300)
 
     // Cleanup function to clear timeout if component unmounts
     return () => {
@@ -80,47 +133,79 @@ const ApprovalMatrixList = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [searchQuery, dispatch])
+  }, [searchQuery, dispatch, router]) // Add router to trigger fetch on navigation
 
-  // Process the approvalMatrixData to group by approvalCategoryId and filter based on search query
+  // Process the approvalCategories to format data for the table and filter based on search query
+  // const groupedData = React.useMemo(() => {
+  //   // If approvalCategories is not an array, return an empty array
+  //   if (!Array.isArray(approvalCategories)) {
+  //     return []
+  //   }
+
+  //   // Map the approvalCategories data to the required format
+  //   const formattedData = approvalCategories.map(category => ({
+  //     id: category.id,
+  //     approvalCategories: {
+  //       id: category.id,
+  //       name: category.name,
+  //       description: category.description
+  //     },
+  //     approver: category.ApprovalMatrices.map((matrix: any) => matrix.approver),
+  //     grades: category.ApprovalMatrices.map((matrix: any) => matrix.grade),
+  //     level:
+  //       category.ApprovalMatrices.length > 0
+  //         ? Math.max(...category.ApprovalMatrices.map((matrix: any) => matrix.level))
+  //         : 0,
+  //     matrixIds: category.ApprovalMatrices.map((matrix: any) => matrix.id)
+  //   }))
+
+  //   // Filter based on search query (already handled by API, but keeping for consistency)
+  //   if (searchQuery.trim() === '') {
+  //     return formattedData
+  //   }
+
+  //   return formattedData.filter((group: any) =>
+  //     group.approvalCategories.name.toLowerCase().includes(searchQuery.toLowerCase())
+  //   )
+  // }, [approvalCategories, searchQuery])
+
+  // Process the approvalCategories to format data for the table and filter based on search query
   const groupedData = React.useMemo(() => {
-    const grouped = approvalMatrixData.reduce(
-      (acc, item) => {
-        const categoryId = item.approvalCategoryId
+    // If approvalCategories is not an array, return an empty array
+    if (!Array.isArray(approvalCategories)) {
+      return []
+    }
 
-        if (!acc[categoryId]) {
-          acc[categoryId] = {
-            id: item.id, // Use the first item's ID for simplicity
-            approvalCategories: item.approvalCategories,
-            designations: [],
-            grades: [],
-            level: 0, // We'll use the max level as numberOfLevels
-            matrixIds: [] // Store all matrix IDs for this category
-          }
-        }
-
-        acc[categoryId].designations.push(item.designation)
-        acc[categoryId].grades.push(item.grade)
-        acc[categoryId].level = Math.max(acc[categoryId].level, item.level) // Update max level
-        acc[categoryId].matrixIds.push(item.id) // Collect matrix ID
-
-        return acc
+    // Map the approvalCategories data to the required format
+    const formattedData = approvalCategories.map(category => ({
+      id: category.id,
+      approvalCategories: {
+        id: category.id,
+        name: category.name,
+        description: category.description
       },
-      {} as Record<string, any>
-    )
-
-    const groupedArray = Object.values(grouped)
+      approver: category.ApprovalMatrices
+        ? category.ApprovalMatrices.map((matrix: any) => matrix.approver || 'No Approver')
+        : [],
+      grades: category.ApprovalMatrices
+        ? category.ApprovalMatrices.map((matrix: any) => matrix.grade || 'No Grade')
+        : [],
+      level:
+        category.ApprovalMatrices && category.ApprovalMatrices.length > 0
+          ? Math.max(...category.ApprovalMatrices.map((matrix: any) => matrix.level || 0))
+          : 0,
+      matrixIds: category.ApprovalMatrices ? category.ApprovalMatrices.map((matrix: any) => matrix.id) : []
+    }))
 
     // Filter based on search query
     if (searchQuery.trim() === '') {
-      return groupedArray
+      return formattedData
     }
 
-    // Filter approvalMatrixData based on approvalCategories.name
-    return groupedArray.filter((group: any) =>
+    return formattedData.filter((group: any) =>
       group.approvalCategories.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  }, [approvalMatrixData, searchQuery])
+  }, [approvalCategories, searchQuery])
 
   // Slice the grouped data for client-side pagination
   const paginatedGroupedData = React.useMemo(() => {
@@ -204,43 +289,104 @@ const ApprovalMatrixList = () => {
           <Typography color='text.primary'>{row.original.level === 0 ? 1 : row.original?.level}</Typography>
         )
       }),
-      columnHelper.accessor('designations', {
-        header: 'DESIGNATION',
-        cell: ({ row }) =>
-          Array.isArray(row.original.designations) && row.original.designations.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              {row.original.designations.map((designation: string, index: number) => (
-                <li key={index}>
+
+      columnHelper.accessor('approver', {
+        header: 'APPROVER',
+        cell: ({ row }) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const [showAll, setShowAll] = useState(false)
+          const approvers = Array.isArray(row.original.approver) ? row.original.approver : []
+          const displayedApprovers = showAll ? approvers : approvers.slice(0, 2)
+
+          return (
+            <Box>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {displayedApprovers.length > 0 ? (
+                  displayedApprovers.map((approver: string, index: number) => (
+                    <li key={index}>
+                      <Typography color='text.primary' variant='body2'>
+                        {approver}
+                      </Typography>
+                    </li>
+                  ))
+                ) : (
                   <Typography color='text.primary' variant='body2'>
-                    {designation}
+                    No Designation
                   </Typography>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Typography color='text.primary' variant='body2'>
-              No Designation
-            </Typography>
+                )}
+                {approvers.length > 2 && (
+                  <Typography
+                    color='primary'
+                    variant='body2'
+                    sx={{ cursor: 'pointer', mt: 1 }}
+                    onClick={() => setShowAll(!showAll)}
+                  >
+                    {showAll ? 'Show Less' : 'Show More'}
+                  </Typography>
+                )}
+              </ul>
+              {/* {approvers.length > 2 && (
+                <Typography
+                  color='primary'
+                  variant='body2'
+                  sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1 }}
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? 'Show Less' : 'Show More'}
+                </Typography>
+              )} */}
+            </Box>
           )
+        }
       }),
       columnHelper.accessor('grades', {
         header: 'GRADE',
-        cell: ({ row }) =>
-          Array.isArray(row.original.grades) && row.original.grades.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              {row.original.grades.map((grade: string, index: number) => (
-                <li key={index}>
+        cell: ({ row }) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const [showAll, setShowAll] = useState(false)
+          const grades = Array.isArray(row.original.grades) ? row.original.grades : []
+          const displayedGrades = showAll ? grades : grades.slice(0, 2)
+
+          return (
+            <Box>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {displayedGrades.length > 0 ? (
+                  displayedGrades.map((grade: string, index: number) => (
+                    <li key={index}>
+                      <Typography color='text.primary' variant='body2'>
+                        {grade}
+                      </Typography>
+                    </li>
+                  ))
+                ) : (
                   <Typography color='text.primary' variant='body2'>
-                    {grade}
+                    No Grade
                   </Typography>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Typography color='text.primary' variant='body2'>
-              No Grade
-            </Typography>
+                )}
+                {grades.length > 2 && (
+                  <Typography
+                    color='primary'
+                    variant='body2'
+                    sx={{ cursor: 'pointer', mt: 1 }}
+                    onClick={() => setShowAll(!showAll)}
+                  >
+                    {showAll ? 'Show Less' : 'Show More'}
+                  </Typography>
+                )}
+              </ul>
+              {/* {grades.length > 2 && (
+                <Typography
+                  color='primary'
+                  variant='body2'
+                  sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1, ml: 5 }}
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? 'Show Less' : 'Show More'}
+                </Typography>
+              )} */}
+            </Box>
           )
+        }
       })
 
       // columnHelper.accessor('action', {
@@ -348,7 +494,7 @@ const ApprovalMatrixList = () => {
       </Box>
 
       {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: Failed to load data</Typography>}
+      {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable
           columns={columns}

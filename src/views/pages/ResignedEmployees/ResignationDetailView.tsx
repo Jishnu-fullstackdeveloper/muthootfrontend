@@ -58,28 +58,28 @@ const ResignationDetailsPage = () => {
   const [tabValue, setTabValue] = useState(0)
 
   // Fetch employee details by ID
-  useEffect(() => {
-    if (id) {
-      // Assuming fetchResignedEmployees can fetch a single employee by ID
-      dispatch(fetchResignedEmployees({ id: id as string }))
-        .unwrap()
-        .then(response => {
-          // Assuming the response contains the employee data
-          const fetchedEmployee = response.employees?.find((emp: ResignedEmployee) => emp.id === id)
+  // useEffect(() => {
+  //   if (id) {
+  //     // Assuming fetchResignedEmployees can fetch a single employee by ID
+  //     dispatch(fetchResignedEmployees({ id: id as string }))
+  //       .unwrap()
+  //       .then(response => {
+  //         // Assuming the response contains the employee data
+  //         const fetchedEmployee = response.employees?.find((emp: ResignedEmployee) => emp.id === id)
 
-          if (fetchedEmployee) {
-            setEmployee(fetchedEmployee)
-          } else {
-            console.error('Employee not found')
-            setEmployee(null)
-          }
-        })
-        .catch(err => {
-          console.error('Error fetching employee details:', err)
-          setEmployee(null)
-        })
-    }
-  }, [dispatch, id])
+  //         if (fetchedEmployee) {
+  //           setEmployee(fetchedEmployee)
+  //         } else {
+  //           console.error('Employee not found')
+  //           setEmployee(null)
+  //         }
+  //       })
+  //       .catch(err => {
+  //         console.error('Error fetching employee details:', err)
+  //         setEmployee(null)
+  //       })
+  //   }
+  // }, [dispatch, id])
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -575,3 +575,11 @@ const ResignationDetailsPage = () => {
 }
 
 export default ResignationDetailsPage
+
+// 'use client'
+
+// const Page = () => {
+//   return <div>Hello</div>
+// }
+
+// export default Page

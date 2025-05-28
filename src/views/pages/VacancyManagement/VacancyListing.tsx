@@ -58,6 +58,7 @@ import { ROUTES } from '@/utils/routes'
 const VacancyListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+
   const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
   )
@@ -123,6 +124,7 @@ const VacancyListingPage = () => {
         .then(result => {
           console.log('fetchVacancies result:', result) // Debug API response
           const newVacancies = result.data || []
+
           setVisibleVacancies(newVacancies) // Reset visibleVacancies with new data
           // Initialize selectedTabs for all new vacancies
           setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
@@ -150,11 +152,13 @@ const VacancyListingPage = () => {
         // Update selectedTabs for all vacancies in updatedVacancies, preserving existing selections
         setSelectedTabs(prevTabs => {
           const updatedTabs = { ...prevTabs }
+
           updatedVacancies.forEach(vacancy => {
             if (!(vacancy.id in updatedTabs)) {
               updatedTabs[vacancy.id] = 0 // Default to tab 0 if not already set
             }
           })
+
           return updatedTabs
         })
 
@@ -871,6 +875,11 @@ const VacancyListingPage = () => {
         )}
       </Box>
 
+      {viewMode === 'grid' && visibleVacancies.length === 0 && (
+        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
+          {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
+        </Box>
+      )}
       {viewMode === 'grid' && visibleVacancies.length < vacancyListTotal && (
         <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
           <Typography>{vacancyListLoading ? 'Loading more...' : 'Scroll to load more'}</Typography>

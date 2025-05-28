@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
@@ -12,6 +14,8 @@ import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import SyncIcon from '@mui/icons-material/Sync'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
@@ -24,8 +28,7 @@ import {
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
 import L2ManagerDashboard from './L2ManagerDashboard'
-import { toast, ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { ROUTES } from '@/utils/routes'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
@@ -79,6 +82,7 @@ const ResignationDataListingPage = () => {
     if (employees?.length && viewMode === 'grid') {
       setVisibleEmployees((prev: ResignedEmployee[]) => {
         const newEmployees = employees.filter(employee => !prev.some(existing => existing.id === employee.id))
+
         return [...prev, ...newEmployees]
       })
       setNoMoreData(false)
@@ -128,7 +132,7 @@ const ResignationDataListingPage = () => {
   }, [loadMoreEmployees])
 
   const handleCardClick = (id: string) => {
-    router.push(`/user-management/resigned-employee/view/detail?id=${id}`)
+    router.push(ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE_DETAIL(id))
   }
 
   // Handle sync button click
@@ -145,6 +149,23 @@ const ResignationDataListingPage = () => {
           draggable: true,
           progress: undefined
         })
+
+        debounceTimeout.current = setTimeout(() => {
+          const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+
+          setVisibleEmployees([])
+          setPage(1)
+          setNoMoreData(false)
+          dispatch(
+            fetchResignedEmployees({
+              page: 1,
+              limit,
+              isResigned: true,
+              resignationDateFrom: formattedFromDate
+            })
+          )
+        }, 300)
+
         // console.log('Sync initiated successfully:', response.message, 'Process ID:', response.processId)
       })
       .catch(err => {
@@ -157,6 +178,7 @@ const ResignationDataListingPage = () => {
           draggable: true,
           progress: undefined
         })
+
         // console.error('Sync failed:', err)
       })
   }
@@ -288,9 +310,19 @@ const ResignationDataListingPage = () => {
       )}
 
       {error && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+        <Box
+          sx={{
+            mb: 4,
+            mx: 6,
+            height: '30vh',
+            textAlign: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
           <Typography variant='h6' color='secondary'>
-            {error.includes('No resigned employees found') ? 'No resigned employees found' : `Error: ${error}`}
+            No resigned employees found
           </Typography>
         </Box>
       )}
@@ -303,13 +335,13 @@ const ResignationDataListingPage = () => {
         </Box>
       )} */}
 
-      {syncProcessId && !syncError && (
+      {/* {syncProcessId && !syncError && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
           <Typography variant='h6' color='success.main'>
             Sync Initiated Successfully - Process ID: {syncProcessId}
           </Typography>
         </Box>
-      )}
+      )} */}
 
       <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (

@@ -17,6 +17,7 @@ export const ROUTES = {
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
+    RESIGNED_EMPLOYEE_DETAIL: (id: string) => `/hiring-management/resigned-employee/view/detail?id=${id}`,
     VACANCY_MANAGEMENT: {
       VACANCY_LIST: '/hiring-management/vacancy-management/vacancy-list',
       VACANCY_LIST_VIEW: (id: string) =>

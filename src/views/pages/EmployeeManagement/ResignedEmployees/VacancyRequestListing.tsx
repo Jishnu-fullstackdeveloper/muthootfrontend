@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -66,6 +69,7 @@ const ResignationDataListingPage = () => {
     vacancyRequestListTotal: totalCount,
     vacancyRequestListFailureMessage: error
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer)
+
   const approverId = getUserId()
 
   const [viewMode, setViewMode] = useState<ViewMode['view']>('grid')
@@ -97,12 +101,14 @@ const ResignationDataListingPage = () => {
           page: 1,
           limit: visibleRequests.length || limit,
           approverId: approverId
+
           // createdAt: formattedFromDate
         })
       )
         .unwrap()
         .then(result => {
           const newRequests = result.data || []
+
           setVisibleRequests(newRequests)
           setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
         })
@@ -126,11 +132,13 @@ const ResignationDataListingPage = () => {
         // Update selectedTabs for all requests, preserving existing selections
         setSelectedTabs(prevTabs => {
           const updatedTabs = { ...prevTabs }
+
           updatedRequests.forEach(request => {
             if (!(request.id in updatedTabs)) {
               updatedTabs[request.id] = 0 // Default to tab 0 if not already set
             }
           })
+
           return updatedTabs
         })
 
@@ -157,6 +165,7 @@ const ResignationDataListingPage = () => {
         page: 1,
         limit: visibleRequests.length || limit,
         approverId: approverId
+
         // createdAt: formattedFromDate
       })
     )
@@ -198,6 +207,7 @@ const ResignationDataListingPage = () => {
   // Handle status update (Approve, Reject, Freeze) with toast
   const handleStatusUpdate = (requestId: string, status: 'APPROVED' | 'REJECTED' | 'FREEZE') => {
     const approverId = getUserId()
+
     if (!approverId) {
       toast.error('No logged-in user ID found', {
         position: 'top-right',
@@ -207,6 +217,7 @@ const ResignationDataListingPage = () => {
         pauseOnHover: true,
         draggable: true
       })
+
       return
     }
 
@@ -224,17 +235,20 @@ const ResignationDataListingPage = () => {
 
         // Refetch the vacancy requests to update the UI
         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+
         dispatch(
           fetchVacancyRequests({
             page: 1,
             limit: visibleRequests.length || limit,
             approverId: approverId
+
             // createdAt: formattedFromDate
           })
         )
           .unwrap()
           .then(result => {
             const newRequests = result.data || []
+
             setVisibleRequests(newRequests)
             setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
             setPage(1)
@@ -271,17 +285,20 @@ const ResignationDataListingPage = () => {
         // Refetch the vacancy requests to update the UI
         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
         const approverId = getUserId()
+
         dispatch(
           fetchVacancyRequests({
             page: 1,
             limit: visibleRequests.length || limit,
             approverId: approverId
+
             // createdAt: formattedFromDate
           })
         )
           .unwrap()
           .then(fetchResult => {
             const newRequests = fetchResult.data || []
+
             setVisibleRequests(newRequests)
             setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
             setPage(1)
@@ -392,9 +409,37 @@ const ResignationDataListingPage = () => {
       )}
 
       {error && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+        <Box
+          sx={{
+            mb: 4,
+            mx: 6,
+            height: '30vh',
+            textAlign: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
           <Typography variant='h6' color='secondary'>
-            {error.includes('No vacancy requests found') ? 'No vacancy requests found' : `Error: ${error}`}
+            No vacancy requests found
+          </Typography>
+        </Box>
+      )}
+
+      {visibleRequests.length === 0 && (
+        <Box
+          sx={{
+            mb: 4,
+            mx: 6,
+            height: '30vh',
+            textAlign: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant='h6' color='secondary'>
+            No vacancy requests found
           </Typography>
         </Box>
       )}

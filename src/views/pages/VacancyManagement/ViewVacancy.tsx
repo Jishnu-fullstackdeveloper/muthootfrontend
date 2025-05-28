@@ -59,8 +59,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
 
   // Log vacancyDetailsData.data changes for debugging
   useEffect(() => {
-    console.log('Current vacancyDetailsData.data:', vacancyDetailsData.data)
-  }, [vacancyDetailsData.data])
+    console.log('Current vacancyDetailsData.data:', vacancyDetailsData?.data)
+  }, [vacancyDetailsData?.data])
 
   // const handleTabChange2 = (event: React.SyntheticEvent, newValue: number) => {
   //   setTabValue(newValue)
@@ -96,9 +96,9 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
     )
   }
 
-  console.log('Vacancy Details Data:', vacancyDetailsData.data)
+  console.log('Vacancy Details Data:', vacancyDetailsData?.data)
 
-  if (!vacancyDetailsData.data) {
+  if (!vacancyDetailsData?.data) {
     return (
       <Box sx={{ p: 4 }}>
         <Typography variant='h6'>No vacancy data available for ID: {id}</Typography>
@@ -116,7 +116,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
           {/* Tabs for Job Title and Job Details */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant='h4' fontWeight='bold' color='primary' gutterBottom>
-              {vacancyDetailsData.data?.jobTitle}
+              {vacancyDetailsData?.data?.jobTitle}
             </Typography>
             <Chip
               label={vacancyDetailsData.data?.status}

@@ -1,6 +1,7 @@
 'use client'
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
 import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls'
@@ -296,15 +297,18 @@ export const fetchVacancies = createAsyncThunk<VacancyListResponse, { page: numb
   async ({ page, limit, search }, { rejectWithValue }) => {
     try {
       const params: { page: number; limit: number; search?: string } = { page, limit }
+
       if (search) params.search = search.trim()
 
       console.log('Sending API request for vacancies with params:', params)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, { params })
 
       console.log('API Response for vacancies:', response.data)
+
       return response.data
     } catch (error: any) {
       console.error('Fetch Vacancies Error:', error)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancies')
     }
   }
@@ -319,9 +323,11 @@ export const fetchVacancyById = createAsyncThunk<VacancyDetailsResponse, { id: s
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingById.replace(':id', id))
 
       console.log('API Response for vacancy ID', id, ':', response.data)
+
       return response.data
     } catch (error: any) {
       console.error('API Error for vacancy ID', id, ':', error.message)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy')
     }
   }
@@ -374,13 +380,15 @@ export const fetchVacancyRequests = createAsyncThunk<
       if (approvalId) params.approvalId = approvalId
       if (approverId) params.approverId = approverId
 
-      console.log('Sending API request for vacancy requests with params:', params)
+      // console.log('Sending API request for vacancy requests with params:', params)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyRequestUrl, { params })
 
-      console.log('API Response for vacancy requests:', response.data)
+      // console.log('API Response for vacancy requests:', response.data)
+
       return response.data
     } catch (error: any) {
-      console.error('Fetch Vacancy Requests Error:', error)
+      // console.error('Fetch Vacancy Requests Error:', error)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy requests')
     }
   }
@@ -393,13 +401,16 @@ export const updateVacancyRequestStatus = createAsyncThunk<
 >('vacancyManagement/updateVacancyRequestStatus', async ({ id, approverId, status }, { rejectWithValue }) => {
   try {
     const requestBody = { approverId, status }
+
     console.log('Sending API request to update vacancy request status for ID:', id, 'with body:', requestBody)
     const response = await AxiosLib.put(API_ENDPOINTS.updateVacancyRequestStatusUrl(id), requestBody)
 
     console.log('API Response for updating vacancy request status:', response.data)
+
     return response.data
   } catch (error: any) {
     console.error('Update Vacancy Request Status Error:', error)
+
     return rejectWithValue(error.response?.data?.message || 'Failed to update vacancy request status')
   }
 })
@@ -413,9 +424,11 @@ export const autoApproveVacancyRequests = createAsyncThunk<AutoApproveVacancyReq
       const response = await AxiosLib.get(API_ENDPOINTS.autoApproveVacancyRequestsUrl)
 
       console.log('API Response for auto-approve vacancy requests:', response.data)
+
       return response.data
     } catch (error: any) {
       console.error('Auto-Approve Vacancy Requests Error:', error)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to auto-approve vacancy requests')
     }
   }

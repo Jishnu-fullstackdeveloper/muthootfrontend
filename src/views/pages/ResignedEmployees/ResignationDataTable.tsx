@@ -1,12 +1,16 @@
 'use client'
 import React, { useEffect, useState, useMemo } from 'react'
 
-import { Box, Button, Tooltip, Typography } from '@mui/material'
+import { useRouter } from 'next/navigation'
+
+import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 
 import type { ResignedEmployee } from '@/types/resignationDataListing'
 
@@ -14,6 +18,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTable from '@/components/Table/dynamicTable'
 import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
+import { ROUTES } from '@/utils/routes'
 
 interface ResignedEmployeesTableViewProps {
   fromDate?: string
@@ -21,6 +26,7 @@ interface ResignedEmployeesTableViewProps {
 
 const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProps) => {
   const dispatch = useAppDispatch<AppDispatch>()
+  const router = useRouter()
 
   const { employees, loading, error, totalCount } = useAppSelector(
     (state: RootState) => state.resignationDataListingReducer
@@ -120,7 +126,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (
           <Box className='flex items-center gap-2'>
-            <Tooltip title='Approve'>
+            {/* <Tooltip title='Approve'>
               <Button
                 variant='text'
                 color='success'
@@ -164,6 +170,15 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
               >
                 Freeze
               </Button>
+            </Tooltip> */}
+            <Tooltip title='View'>
+              <IconButton
+                onClick={() => {
+                  router.push(ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE_DETAIL(row.original.id))
+                }}
+              >
+                <VisibilityOutlinedIcon />
+              </IconButton>
             </Tooltip>
           </Box>
         ),

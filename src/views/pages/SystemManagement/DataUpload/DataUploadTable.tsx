@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useMemo, useEffect } from 'react'
 
-import { Box, Typography, Chip } from '@mui/material'
+import { Box, Typography, Chip, CircularProgress } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -113,9 +113,7 @@ const DataUploadTableList = () => {
             color = 'success' // Green
           else if (status === 'FAILED') color = 'error' // Red
 
-          return (
-            <Chip size='small' variant='tonal' label={status} color={color} sx={{ fontWeight: 500, color: '#fff' }} />
-          )
+          return <Chip variant='tonal' size='small' label={status} color={color} sx={{ borderRadius: 1 }} />
         }
       })
 
@@ -179,7 +177,11 @@ const DataUploadTableList = () => {
 
   return (
     <>
-      {status === 'loading' && <Typography>Loading...</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
       {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable

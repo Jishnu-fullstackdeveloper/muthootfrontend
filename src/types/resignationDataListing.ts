@@ -37,6 +37,7 @@ export interface ResignedEmployee {
   id: string
   name: string
   resignationDate: string
+
   // Add other fields as needed
 }
 

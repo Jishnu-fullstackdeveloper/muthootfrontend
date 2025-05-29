@@ -12,8 +12,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-
-  //TablePagination,
   FormControlLabel,
   Box,
   Drawer,
@@ -23,11 +21,11 @@ import {
   Typography,
   Tooltip,
   Card,
-  Pagination,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Pagination,
   PaginationItem
 } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
@@ -36,31 +34,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import CloseIcon from '@mui/icons-material/Close'
 import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
 
-// New Client-Side TablePagination Component
-// const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
-//   const [isMounted, setIsMounted] = useState(false)
-
-//   useEffect(() => {
-//     setIsMounted(true)
-//   }, [])
-
-//   if (!isMounted) {
-//     return null // Prevent rendering on server
-//   }
-
-//   return (
-//     <TablePagination
-//       rowsPerPageOptions={[5, 10, 25]}
-//       count={totalCount || 0}
-//       rowsPerPage={pagination?.pageSize ?? 10}
-//       page={pagination?.pageIndex ?? 0}
-//       onPageChange={(_, page) => onPageChange(page)}
-//       onRowsPerPageChange={e => onRowsPerPageChange(Number(e.target.value))}
-//     />
-//   )
-// }
-
-const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }) => {
+const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }: any) => {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -86,31 +60,16 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
           size='small'
         >
           {[5, 10, 25, 100].map(option => (
-            // eslint-disable-next-line react/jsx-no-undef
             <MenuItem key={option} value={option}>
               {option}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
-      {/* Display current page range (e.g., "1 to 10") */}
-      {/* <Typography variant='body2' sx={{ whiteSpace: 'nowrap' }}>
-        {currentPage} - {totalPages} of {totalCount}
-      </Typography> */}
       <Typography variant='body2' sx={{ color: 'text.secondary' }}>
         {(currentPage - 1) * pagination?.pageSize + 1}-{Math.min(currentPage * pagination?.pageSize, totalCount)} of{' '}
         {totalCount}
       </Typography>
-      {/* <Pagination
-        color='primary'
-        shape='rounded'
-        showFirstButton
-        showLastButton
-        count={Math.ceil(totalCount / pagination?.pageSize) || 0}
-        page={(pagination?.pageIndex ?? 0) + 1} // Adjust for 1-based indexing
-        onChange={(_, page) => onPageChange(page - 1)} // Adjust for 0-based indexing
-      /> */}
-
       <Pagination
         color='primary'
         shape='rounded'
@@ -155,9 +114,22 @@ const DynamicTable = ({
   pagination,
   onPageChange,
   onRowsPerPageChange,
-  onPageCountChange, // Added
-  tableName // New prop for table name
-}: any) => {
+  onPageCountChange,
+  tableName,
+  isRowCheckbox, // New prop to enable/disable row checkboxes
+  onRowSelectionChange // New prop to send selected rows to parent
+}: {
+  columns: ColumnDef<any>[]
+  data: any[]
+  totalCount: number
+  pagination: { pageIndex: number; pageSize: number }
+  onPageChange: (page: number) => void
+  onRowsPerPageChange: (pageSize: number) => void
+  onPageCountChange?: (pageCount: number) => void
+  tableName?: string
+  isRowCheckbox?: boolean // Optional prop to enable row checkboxes
+  onRowSelectionChange?: (selectedRows: any[]) => void // Optional prop to send selected rows to parent
+}) => {
   // Load initial column state from localStorage or use first 7 columns as default
   const [columns, setColumns] = useState<ColumnDef<any>[]>(() => {
     const savedColumns = localStorage.getItem(`${tableName}_columns`)
@@ -174,8 +146,6 @@ const DynamicTable = ({
   })
 
   const [sorting, setSorting] = useState<SortingState>([{ id: initialColumns[0]?.id, desc: false }])
-
-  //const [dense, setDense] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [openColumnDrawer, setOpenColumnDrawer] = useState(false)
   const [pageIndex, setPageIndex] = useState(0)
@@ -258,6 +228,39 @@ const DynamicTable = ({
     })
   }, [columns, tableName, initialColumns])
 
+  // Add checkbox column if isRowCheckbox is true
+  const tableColumns = useMemo(() => {
+    if (!isRowCheckbox) {
+      return columns
+    }
+
+    const checkboxColumn: ColumnDef<any> = {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={table.getIsSomeRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />,
+      enableSorting: false
+    }
+
+    return [checkboxColumn, ...columns]
+  }, [columns, isRowCheckbox])
+
+  // Send selected rows to parent whenever rowSelection changes
+  useEffect(() => {
+    if (onRowSelectionChange) {
+      const selectedRows = Object.keys(rowSelection)
+        .filter(rowId => rowSelection[rowId])
+        .map(rowId => data[Number(rowId)])
+
+      onRowSelectionChange(selectedRows)
+    }
+  }, [rowSelection, data, onRowSelectionChange])
+
   const pageCount = useMemo(() => Math.ceil((totalCount || 0) / pagination?.pageSize), [totalCount, pagination])
 
   useMemo(() => {
@@ -267,7 +270,7 @@ const DynamicTable = ({
   }, [pageCount, onPageCountChange])
 
   const table = useReactTable({
-    columns,
+    columns: tableColumns,
     data: data || [],
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -279,7 +282,8 @@ const DynamicTable = ({
       rowSelection
     },
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: isRowCheckbox // Enable row selection only if isRowCheckbox is true
   })
 
   const handleColumnSelect = (columnKey: string) => {
@@ -413,16 +417,12 @@ const DynamicTable = ({
               }
             }}
           >
-            {/* <Typography variant='subtitle2' sx={{ fontSize: 12, mr: 1 }}>
-              More columns
-            </Typography> */}
             <DoubleArrowOutlinedIcon className='size-4' />
           </IconButton>
         </Tooltip>
       </Box>
       <TableContainer component={Paper}>
         <Table>
-          {/* size={dense ? 'small' : 'medium'} */}
           <TableHead>
             <TableRow>
               {table.getHeaderGroups()[0].headers.map(header => {
@@ -436,15 +436,16 @@ const DynamicTable = ({
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                      {isSorted ? (
-                        isSorted.desc ? (
-                          <ArrowDropDownIcon sx={{ color: '#1976d2' }} />
+                      {header.column.id !== 'select' && // Don't show sort icon for checkbox column
+                        (isSorted ? (
+                          isSorted.desc ? (
+                            <ArrowDropDownIcon sx={{ color: '#1976d2' }} />
+                          ) : (
+                            <ArrowDropUpIcon sx={{ color: '#1976d2' }} />
+                          )
                         ) : (
-                          <ArrowDropUpIcon sx={{ color: '#1976d2' }} />
-                        )
-                      ) : (
-                        <i className='tabler-arrows-up-down size-3' />
-                      )}
+                          <i className='tabler-arrows-up-down size-3' />
+                        ))}
                     </div>
                   </TableCell>
                 )
@@ -464,31 +465,6 @@ const DynamicTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      {/* <Box
-        sx={{
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 1,
-          backgroundColor: 'white',
-          borderTop: '1px solid rgba(224, 224, 224, 1)',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          p: 1,
-          mt: 1,
-          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
-          width: '100%',
-          boxSizing: 'border-box',
-          borderRadius: 1
-        }}
-      >
-        <ClientSideTablePagination
-          totalCount={totalCount}
-          pagination={pagination}
-          onPageChange={onPageChange}
-          onRowsPerPageChange={onRowsPerPageChange}
-        />
-      </Box> */}
-
       <Box
         sx={{
           position: 'sticky',

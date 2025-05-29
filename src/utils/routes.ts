@@ -22,7 +22,9 @@ export const ROUTES = {
       VACANCY_LIST: '/hiring-management/vacancy-management/vacancy-list',
       VACANCY_LIST_VIEW: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-list/view/vacancy-details?id=${id}`,
-      VACANCY_REQUEST: '/hiring-management/vacancy-management/vacancy-request'
+      VACANCY_REQUEST: '/hiring-management/vacancy-management/vacancy-request',
+      VACANCY_REQUEST_DETAIL: (id: string) =>
+        `/hiring-management/vacancy-management/vacancy-request/view/Detail?id=${id}`
     },
     BUDGET: '/hiring-management/budget-management',
     BUDGET_ADD: '/hiring-management/budget-management/add/new',

@@ -2,9 +2,18 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+
 import { usePathname, useRouter } from 'next/navigation'
+
 import { useTheme } from '@mui/material/styles'
 import PerfectScrollbar from 'react-perfect-scrollbar'
+
+import { List, ListItem, Collapse, IconButton, Box } from '@mui/material'
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+
 import { Menu, MenuItem } from '@menu/vertical-menu'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import { useSettings } from '@core/hooks/useSettings'
@@ -13,9 +22,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 import { ROUTES } from '@/utils/routes'
-import { List, ListItem, Collapse, IconButton, Box } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+
 import withPermission from '@/hocs/withPermission'
 import { getPermissionRenderConfig } from '@/utils/functions'
 
@@ -86,7 +93,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
           },
           {
             path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
-            label: 'Employee Management',
+            label: 'Employee',
             iconClass: 'tabler-users-group',
             permission: 'employeeManagement',
             read: 'USER_EMPLOYEE_READ'
@@ -295,6 +302,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
       // Check if current path starts with item path (for nested routes)
       if (item.path && pathname.startsWith(item.path)) return true
+
       // Check children recursively
       if (item.children) {
         return item.children.some(child => isMenuItemActive(child))
@@ -331,8 +339,10 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
 
           if (item.children) {
             const childActive = findParents(item.children)
+
             if (childActive) {
               parents.push(item.label)
+
               return true
             }
           }
@@ -342,11 +352,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       }
 
       findParents(items)
+
       return parents
     }
 
     if (pathname) {
       const activeParents = findActiveParents(clientMenuItems, pathname)
+
       setExpandedMenus(prev => [...new Set([...prev, ...activeParents])])
     }
   }, [pathname, clientMenuItems])
@@ -379,6 +391,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             justifyContent: 'flex-start',
             padding: '1px 2px',
             borderRadius: '6px',
+
             // margin: '2px 8px',
             '&:hover': {
               backgroundColor: theme.palette.action.hover
@@ -530,6 +543,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                 <List disablePadding sx={{ pl: 3, width: '100%' }}>
                                   {child.children?.map((nestedChild, nestedIndex) => {
                                     const nestedIsActive = isMenuItemActive(nestedChild)
+
                                     const nestedPermissionValue = nestedChild.read
                                       ? getPermissionRenderConfig()[nestedChild.read] || ''
                                       : ''

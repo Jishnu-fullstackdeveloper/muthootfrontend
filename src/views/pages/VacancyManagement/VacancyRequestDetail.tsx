@@ -546,11 +546,12 @@ const VacancyRequestDetail = () => {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
+            width: '60%',
             gap: 2,
             alignItems: { md: 'center' }
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: '30%' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: '40%' } }}>
             <TextField
               label='Search by Designation'
               variant='outlined'
@@ -581,7 +582,7 @@ const VacancyRequestDetail = () => {
               <FilterListIcon />
             </IconButton>
           </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: { xs: 2, md: 0 } }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, whiteSpace: 'nowrap', mt: { xs: 2, md: 0 } }}>
             {filterOptions.map(option => (
               <Chip
                 key={option}

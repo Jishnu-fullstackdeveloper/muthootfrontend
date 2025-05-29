@@ -1,0 +1,737 @@
+'use client'
+
+import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
+import {
+  Box,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Drawer,
+  Typography,
+  Autocomplete,
+  Button,
+  Tooltip,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+import { createColumnHelper } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
+import DynamicTable from '@/components/Table/dynamicTable'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import type { RootState } from '@/redux/store'
+import type { VacancyManagementState, VacancyRequest } from '@/types/vacancyManagement'
+import {
+  fetchVacancyRequests,
+  updateVacancyRequestStatus,
+  autoApproveVacancyRequests
+} from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import type { BudgetManagementState } from '@/types/budget'
+import {
+  fetchBranch,
+  fetchTerritory,
+  fetchArea,
+  fetchRegion,
+  fetchZone
+} from '@/redux/BudgetManagement/BudgetManagementSlice'
+import { ROUTES } from '@/utils/routes'
+
+const filterOptions = ['Branch', 'Area', 'Region', 'Zone', 'Territory']
+
+const VacancyRequestDetail = () => {
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+
+  // State for search, filters, and pagination
+  const [searchDesignation, setSearchDesignation] = useState<string>('')
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false)
+  const [selectedFilterType, setSelectedFilterType] = useState<string | null>(null)
+  const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>([])
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5
+  })
+
+  // State for confirmation dialog
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+
+  const [selectedAction, setSelectedAction] = useState<
+    'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
+  >(null)
+
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [notes, setNotes] = useState<string>('')
+
+  // Selectors for vacancy management state
+  const {
+    vacancyRequestListLoading = false,
+    vacancyRequestListSuccess = false,
+    vacancyRequestListData = null,
+    vacancyRequestListTotal = 0,
+    vacancyRequestListFailure = false,
+    vacancyRequestListFailureMessage = '',
+    updateVacancyRequestStatusLoading = false,
+    autoApproveVacancyRequestsLoading = false
+  } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
+
+  // Selectors for budget management state (filter values)
+  const {
+    fetchBranchData,
+    fetchBranchLoading,
+    fetchTerritoryData,
+    fetchTerritoryLoading,
+    fetchAreaData,
+    fetchAreaLoading,
+    fetchRegionData,
+    fetchRegionLoading,
+    fetchZoneData,
+    fetchZoneLoading
+  } = useAppSelector((state: RootState) => state.budgetManagementReducer) as BudgetManagementState
+
+  // Fetch vacancy requests
+  useEffect(() => {
+    const params: {
+      page: number
+      limit: number
+      search?: string
+      employeeId?: string
+      id?: string
+      designationId?: string
+      departmentId?: string
+      branchIds?: string[]
+      status?: string
+      approvalIds?: string
+      approverIds?: string
+      areaIds?: string[]
+      regionIds?: string[]
+      zoneIds?: string[]
+      territoryIds?: string[]
+    } = {
+      page: pagination.pageIndex + 1, // API expects 1-based page index
+      limit: pagination.pageSize
+    }
+
+    if (searchDesignation) params.search = searchDesignation
+
+    // Add filter IDs based on selected filter type and values
+    if (selectedFilterType && selectedFilterValues.length > 0) {
+      if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+      else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+      else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+      else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+      else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+    }
+
+    dispatch(fetchVacancyRequests(params))
+  }, [dispatch, searchDesignation, selectedFilterType, selectedFilterValues, pagination])
+
+  // Fetch filter values
+  useEffect(() => {
+    dispatch(fetchBranch({ page: 1, limit: 100 }))
+    dispatch(fetchTerritory({ page: 1, limit: 100 }))
+    dispatch(fetchArea({ page: 1, limit: 100 }))
+    dispatch(fetchRegion({ page: 1, limit: 100 }))
+    dispatch(fetchZone({ page: 1, limit: 100 }))
+  }, [dispatch])
+
+  // Map fetched filter values
+  const filterValuesMap = useMemo(() => {
+    return {
+      Branch: fetchBranchData?.data?.map(branch => ({ id: branch.id, name: branch.name })) || [],
+      Area: fetchAreaData?.data?.map(area => ({ id: area.id, name: area.name })) || [],
+      Region: fetchRegionData?.data?.map(region => ({ id: region.id, name: region.name })) || [],
+      Zone: fetchZoneData?.data?.map(zone => ({ id: zone.id, name: zone.name })) || [],
+      Territory: fetchTerritoryData?.data?.map(territory => ({ id: territory.id, name: territory.name })) || []
+    }
+  }, [fetchBranchData, fetchAreaData, fetchRegionData, fetchZoneData, fetchTerritoryData])
+
+  const columnHelper = createColumnHelper<VacancyRequest>()
+
+  const handleFilterDrawerToggle = (filterType?: string) => {
+    if (filterType) {
+      setSelectedFilterType(filterType)
+      setSelectedFilterValues([])
+    }
+
+    setIsFilterDrawerOpen(!isFilterDrawerOpen)
+  }
+
+  const handleViewDetails = (designationId: string) => {
+    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST_DETAIL(designationId))
+    console.log(`Viewing details for designationId: ${designationId}`)
+  }
+
+  const handleViewEmployeeDetails = (employeeId: string) => {
+    console.log(`Employee ID: ${employeeId}`)
+  }
+
+  // Handle opening the confirmation dialog
+  const handleOpenDialog = (id: string, action: 'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER') => {
+    setSelectedId(id)
+    setSelectedAction(action)
+    setNotes('') // Reset notes when opening the dialog
+    setIsDialogOpen(true)
+  }
+
+  // Handle closing the confirmation dialog
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+    setSelectedId(null)
+    setSelectedAction(null)
+    setNotes('')
+  }
+
+  // Consolidated handler for all status actions
+  const handleConfirmAction = () => {
+    if (!selectedId || !selectedAction) return
+
+    // if (selectedAction === 'TRANSFER') {
+    //   console.log(`Transferring request with ID: ${selectedId}`)
+    //   toast.info('Transfer action initiated', {
+    //     position: 'top-right',
+    //     autoClose: 5000,
+    //     hideProgressBar: false,
+    //     closeOnClick: true,
+    //     pauseOnHover: true,
+    //     draggable: true
+    //   })
+    //   handleCloseDialog()
+
+    //   return
+    // }
+
+    const newStatus = selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction
+
+    dispatch(
+      updateVacancyRequestStatus({
+        id: selectedId,
+        approverId: '71d82781-4cd1-4260-abdb-a4955e789bea', // Replace with actual approverId
+        status: newStatus,
+        notes // Include the notes from the text field
+      })
+    )
+      .then(() => {
+        // Refresh the list after updating status
+        dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+        toast.success(`Vacancy request ${newStatus.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
+        handleCloseDialog()
+      })
+      .catch((err: any) => {
+        toast.error(`Failed to update status to ${newStatus}: ${err}`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
+        handleCloseDialog()
+      })
+  }
+
+  const handleApproveAll = () => {
+    dispatch(autoApproveVacancyRequests()).then(() => {
+      dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+      toast.success('All vacancy requests approved successfully', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      })
+    })
+  }
+
+  const handleRejectAll = () => {
+    if (vacancyRequestListData?.data) {
+      Promise.all(
+        vacancyRequestListData.data
+          .filter(request => request.status === 'PENDING')
+          .map(request =>
+            dispatch(
+              updateVacancyRequestStatus({
+                id: request.id,
+                approverId: '71d82781-4cd1-4260-abdb-a4955e789bea',
+                status: 'REJECTED',
+                notes: `Bulk rejection on ${new Date().toISOString()}` // Default notes for bulk action
+              })
+            )
+          )
+      )
+        .then(() => {
+          dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+          toast.success('All vacancy requests rejected successfully', {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+        })
+        .catch((err: any) => {
+          toast.error(`Failed to reject all requests: ${err}`, {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+        })
+    }
+  }
+
+  const handleFreezeAll = () => {
+    if (vacancyRequestListData?.data) {
+      Promise.all(
+        vacancyRequestListData.data
+          .filter(request => request.status === 'PENDING')
+          .map(request =>
+            dispatch(
+              updateVacancyRequestStatus({
+                id: request.id,
+                approverId: '71d82781-4cd1-4260-abdb-a4955e789bea',
+                status: 'FROZEN',
+                notes: `Bulk freeze on ${new Date().toISOString()}` // Default notes for bulk action
+              })
+            )
+          )
+      )
+        .then(() => {
+          dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+          toast.success('All vacancy requests frozen successfully', {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+        })
+        .catch((err: any) => {
+          toast.error(`Failed to freeze all requests: ${err}`, {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+        })
+    }
+  }
+
+  const handleApplyFilters = () => {
+    setIsFilterDrawerOpen(false)
+    setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page on filter apply
+  }
+
+  const handleResetFilters = () => {
+    setSelectedFilterType(null)
+    setSelectedFilterValues([])
+    setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page on filter reset
+  }
+
+  const filteredData = useMemo(() => {
+    return vacancyRequestListData?.data || []
+  }, [vacancyRequestListData])
+
+  const columns = useMemo<ColumnDef<VacancyRequest, any>[]>(
+    () => [
+      columnHelper.accessor('employees.employeeCode', {
+        header: 'EMPLOYEE CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.employees.employeeCode}</Typography>
+      }),
+      columnHelper.accessor('employees.firstName', {
+        header: 'EMPLOYEE NAME',
+        cell: ({ row }) => (
+          <Typography color='text.primary'>
+            {row.original.employees.firstName} {row.original.employees.middleName || ''}{' '}
+            {row.original.employees.lastName}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('designations.name', {
+        header: 'DESIGNATION',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.designations.name}</Typography>
+      }),
+      columnHelper.accessor('departments.name', {
+        header: 'DEPARTMENT',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.departments.name}</Typography>
+      }),
+      columnHelper.accessor('branches.name', {
+        header: 'BRANCH',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.branches.name}</Typography>
+      }),
+      columnHelper.accessor('branches.cluster.area.name', {
+        header: 'AREA',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.branches.cluster.area.name}</Typography>
+      }),
+      columnHelper.accessor('branches.cluster.area.region.name', {
+        header: 'REGION',
+        cell: ({ row }) => (
+          <Typography color='text.primary'>{row.original.branches.cluster.area.region.name}</Typography>
+        )
+      }),
+      columnHelper.accessor('status', {
+        header: 'STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
+      }),
+      columnHelper.accessor('id', {
+        header: 'ACTIONS',
+        cell: ({ row }) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {row.original.status === 'PENDING' && (
+              <>
+                <Tooltip title='Approve'>
+                  <IconButton
+                    color='success'
+                    onClick={() => handleOpenDialog(row.original.id, 'APPROVED')}
+                    disabled={updateVacancyRequestStatusLoading}
+                  >
+                    <CheckCircleOutlineIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Reject'>
+                  <IconButton
+                    color='error'
+                    onClick={() => handleOpenDialog(row.original.id, 'REJECTED')}
+                    disabled={updateVacancyRequestStatusLoading}
+                  >
+                    <CancelOutlinedIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Freeze'>
+                  <IconButton
+                    color='info'
+                    onClick={() => handleOpenDialog(row.original.id, 'FREEZED')}
+                    disabled={updateVacancyRequestStatusLoading}
+                  >
+                    <PauseCircleOutlineIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Transfer'>
+                  <IconButton
+                    color='primary'
+                    onClick={() => handleOpenDialog(row.original.id, 'TRANSFER')}
+                    disabled={updateVacancyRequestStatusLoading}
+                  >
+                    <SwapHorizIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+            {row.original.status === 'FREEZED' && (
+              <Tooltip title='Un-Freeze'>
+                <IconButton
+                  color='warning'
+                  onClick={() => handleOpenDialog(row.original.id, 'UNFREEZED')}
+                  disabled={updateVacancyRequestStatusLoading}
+                >
+                  <PlayCircleOutlineIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title='View Employee Details'>
+              <IconButton color='primary' onClick={() => handleViewEmployeeDetails(row.original.employeeId)}>
+                <VisibilityIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+        enableSorting: false
+      })
+    ],
+    [columnHelper, updateVacancyRequestStatusLoading]
+  )
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, pageIndex: newPage }))
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPagination({ pageIndex: 0, pageSize: newPageSize })
+  }
+
+  const isFilterLoading =
+    fetchBranchLoading || fetchTerritoryLoading || fetchAreaLoading || fetchRegionLoading || fetchZoneLoading
+
+  return (
+    <Box>
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      {/* Confirmation Dialog */}
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          {/* {selectedAction && (
+            <Typography color='warning.main' gutterBottom>
+              This is ok for {selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction}?
+            </Typography>
+          )} */}
+          {/* {selectedAction !== 'TRANSFER' && ( */}
+          <TextField
+            label='Reason/Notes'
+            variant='outlined'
+            fullWidth
+            multiline
+            rows={3}
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          {/* )} */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color='secondary'>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmAction} color='primary' disabled={updateVacancyRequestStatusLoading}>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Box
+        sx={{
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: 1,
+          p: 5,
+          mb: 4,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 2,
+            alignItems: { md: 'center' }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: '30%' } }}>
+            <TextField
+              label='Search by Designation'
+              variant='outlined'
+              size='small'
+              value={searchDesignation}
+              onChange={e => {
+                setSearchDesignation(e.target.value)
+                setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page on search
+              }}
+              sx={{ flex: 1 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <IconButton
+              color='primary'
+              onClick={() => handleFilterDrawerToggle()}
+              sx={{
+                borderRadius: '8px',
+                p: 1,
+                '&:hover': { bgcolor: 'primary.main' }
+              }}
+            >
+              <FilterListIcon />
+            </IconButton>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: { xs: 2, md: 0 } }}>
+            {filterOptions.map(option => (
+              <Chip
+                key={option}
+                label={option}
+                onClick={() => handleFilterDrawerToggle(option)}
+                color={selectedFilterType === option ? 'primary' : 'default'}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: selectedFilterType === option ? 'primary.dark' : 'action.hover'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Button
+            variant='outlined'
+            color='success'
+            onClick={handleApproveAll}
+            disabled={
+              autoApproveVacancyRequestsLoading || !vacancyRequestListData?.data?.some(req => req.status === 'PENDING')
+            }
+            sx={{
+              borderColor: 'success.main',
+              '&:hover': {
+                backgroundColor: 'success.main'
+              }
+            }}
+          >
+            Approve All
+          </Button>
+          {/* <Button
+            variant='outlined'
+            color='error'
+            onClick={handleRejectAll}
+            disabled={
+              updateVacancyRequestStatusLoading || !vacancyRequestListData?.data?.some(req => req.status === 'PENDING')
+            }
+            sx={{
+              borderColor: 'error.main',
+              '&:hover': {
+                backgroundColor: 'error.main'
+              }
+            }}
+          >
+            Reject All
+          </Button> */}
+          <Button
+            variant='outlined'
+            color='info'
+            onClick={handleFreezeAll}
+            disabled={
+              updateVacancyRequestStatusLoading || !vacancyRequestListData?.data?.some(req => req.status === 'PENDING')
+            }
+            sx={{
+              borderColor: 'info.main',
+              '&:hover': {
+                backgroundColor: 'info.main'
+              }
+            }}
+          >
+            Freeze All
+          </Button>
+        </Box>
+      </Box>
+
+      <Drawer
+        anchor='right'
+        open={isFilterDrawerOpen}
+        onClose={() => handleFilterDrawerToggle()}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: '80%', sm: 400 }, p: 3 } }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='h6' fontWeight='bold'>
+            Filter Options
+          </Typography>
+        </Box>
+        <Autocomplete
+          options={filterOptions}
+          value={selectedFilterType}
+          onChange={(event, newValue) => {
+            setSelectedFilterType(newValue)
+            setSelectedFilterValues([])
+          }}
+          renderInput={params => <TextField {...params} label='Choose Filter Type' variant='outlined' size='small' />}
+          sx={{ mb: 3 }}
+        />
+        {isFilterLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Autocomplete
+            multiple
+            options={selectedFilterType ? filterValuesMap[selectedFilterType].map(item => item.id) : ['Choose Filter']}
+            getOptionLabel={option =>
+              selectedFilterType
+                ? filterValuesMap[selectedFilterType].find(item => item.id === option)?.name || option
+                : option
+            }
+            value={selectedFilterValues}
+            onChange={(event, newValue) => setSelectedFilterValues(newValue)}
+            disabled={!selectedFilterType}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label='Filter Values'
+                variant='outlined'
+                size='small'
+                sx={{
+                  '& .MuiInputBase-input': {
+                    color: !selectedFilterType ? 'text.disabled' : 'text.primary'
+                  }
+                }}
+              />
+            )}
+            sx={{ mb: 3 }}
+          />
+        )}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant='contained' color='primary' onClick={handleApplyFilters} fullWidth>
+            Apply Filters
+          </Button>
+          <Button variant='outlined' color='secondary' onClick={handleResetFilters} fullWidth>
+            Reset
+          </Button>
+        </Box>
+      </Drawer>
+
+      {vacancyRequestListFailure ? (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>No Data</Box>
+      ) : (
+        <DynamicTable
+          columns={columns}
+          data={filteredData}
+          totalCount={vacancyRequestListTotal}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          tableName='Resignation Approvals'
+          isRowCheckbox={true}
+          onRowSelectionChange={selectedRows => {
+            console.log('Selected Rows:', selectedRows)
+          }}
+          loading={vacancyRequestListLoading}
+        />
+      )}
+    </Box>
+  )
+}
+
+export default VacancyRequestDetail

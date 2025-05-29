@@ -180,7 +180,7 @@ const VacancyRequestDetail = () => {
   }
 
   const handleViewEmployeeDetails = (employeeId: string) => {
-    console.log(`Employee ID: ${employeeId}`)
+    router.push(ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE_DETAIL(employeeId))
   }
 
   // Handle opening the confirmation dialog

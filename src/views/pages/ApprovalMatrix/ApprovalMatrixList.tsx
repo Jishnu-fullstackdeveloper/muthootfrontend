@@ -3,11 +3,22 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, Button, Card, TextField, InputAdornment } from '@mui/material' //IconButton //Tooltip
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  TextField,
+  InputAdornment,
+  Tooltip,
+  IconButton,
+  CircularProgress
+} from '@mui/material' //IconButton //Tooltip
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 
 //import EditIcon from '@mui/icons-material/Edit'
 //import DeleteIcon from '@mui/icons-material/Delete'
@@ -16,21 +27,33 @@ import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalCategories } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
+import { fetchApprovalMatrices } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
 //import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
+import { ROUTES } from '@/utils/routes'
+
+// Import types from the new file
+import type {
+  ApprovalMatrix,
+  GroupedCategory,
+  FormattedData,
+  PaginatedGroupedData,
+  PaginationState
+} from '@/types/approvalMatrix' // Adjust the path as needed
 
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const columnHelper = createColumnHelper<any>()
+  const columnHelper = createColumnHelper<FormattedData>()
 
-  //const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
-  const { approvalCategories, status } = useAppSelector(state => state.approvalMatrixReducer)
+  const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
+  // const { approvalMatrixData, status } = useAppSelector(
+  //   (state: { approvalMatrixReducer: ApprovalMatrixState }) => state.approvalMatrixReducer
+  // )
 
   // Pagination state (0-based for table)
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0, // Changed to 0-based index for table compatibility
     pageSize: 5
   })
@@ -117,12 +140,11 @@ const ApprovalMatrixList = () => {
 
     // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
-      // Fetch categories with or without search query
+      // Fetch matrices with or without search query
       dispatch(
-        fetchApprovalCategories({
+        fetchApprovalMatrices({
           page: 1,
-          limit: 1000,
-          search: searchQuery.trim() === '' ? undefined : searchQuery
+          limit: 1000
         })
       )
     }, 300)
@@ -135,66 +157,48 @@ const ApprovalMatrixList = () => {
     }
   }, [searchQuery, dispatch, router]) // Add router to trigger fetch on navigation
 
-  // Process the approvalCategories to format data for the table and filter based on search query
-  // const groupedData = React.useMemo(() => {
-  //   // If approvalCategories is not an array, return an empty array
-  //   if (!Array.isArray(approvalCategories)) {
-  //     return []
-  //   }
-
-  //   // Map the approvalCategories data to the required format
-  //   const formattedData = approvalCategories.map(category => ({
-  //     id: category.id,
-  //     approvalCategories: {
-  //       id: category.id,
-  //       name: category.name,
-  //       description: category.description
-  //     },
-  //     approver: category.ApprovalMatrices.map((matrix: any) => matrix.approver),
-  //     grades: category.ApprovalMatrices.map((matrix: any) => matrix.grade),
-  //     level:
-  //       category.ApprovalMatrices.length > 0
-  //         ? Math.max(...category.ApprovalMatrices.map((matrix: any) => matrix.level))
-  //         : 0,
-  //     matrixIds: category.ApprovalMatrices.map((matrix: any) => matrix.id)
-  //   }))
-
-  //   // Filter based on search query (already handled by API, but keeping for consistency)
-  //   if (searchQuery.trim() === '') {
-  //     return formattedData
-  //   }
-
-  //   return formattedData.filter((group: any) =>
-  //     group.approvalCategories.name.toLowerCase().includes(searchQuery.toLowerCase())
-  //   )
-  // }, [approvalCategories, searchQuery])
-
-  // Process the approvalCategories to format data for the table and filter based on search query
-  const groupedData = React.useMemo(() => {
-    // If approvalCategories is not an array, return an empty array
-    if (!Array.isArray(approvalCategories)) {
+  // Process the approvalMatrices to format data for the table and filter based on search query
+  const groupedData = React.useMemo((): FormattedData[] => {
+    // If approvalMatrixData is not an array, return an empty array
+    if (!Array.isArray(approvalMatrixData)) {
       return []
     }
 
-    // Map the approvalCategories data to the required format
-    const formattedData = approvalCategories.map(category => ({
-      id: category.id,
-      approvalCategories: {
-        id: category.id,
-        name: category.name,
-        description: category.description
+    // Group approval matrices by approvalCategoryId
+    const groupedByCategory = approvalMatrixData.reduce(
+      (acc: Record<string, GroupedCategory>, matrix: ApprovalMatrix) => {
+        const categoryId = matrix.approvalCategoryId
+
+        if (!acc[categoryId]) {
+          acc[categoryId] = {
+            id: categoryId,
+            approvalCategories: matrix.approvalCategories,
+            matrices: []
+          }
+        }
+
+        acc[categoryId].matrices.push(matrix)
+
+        return acc
       },
-      approver: category.ApprovalMatrices
-        ? category.ApprovalMatrices.map((matrix: any) => matrix.approver || 'No Approver')
-        : [],
-      grades: category.ApprovalMatrices
-        ? category.ApprovalMatrices.map((matrix: any) => matrix.grade || 'No Grade')
-        : [],
+      {}
+    )
+
+    // Convert grouped data into the format required by the table
+    const formattedData: FormattedData[] = Object.values(groupedByCategory).map((group: GroupedCategory) => ({
+      id: group.id,
+      approvalCategories: {
+        id: group?.approvalCategories?.id,
+        name: group?.approvalCategories?.name,
+        description: group?.approvalCategories?.description
+      },
+      approver: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.approver || 'No Approver') : [],
+      grades: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.grade || 'No Grade') : [],
       level:
-        category.ApprovalMatrices && category.ApprovalMatrices.length > 0
-          ? Math.max(...category.ApprovalMatrices.map((matrix: any) => matrix.level || 0))
+        group.matrices && group.matrices.length > 0
+          ? Math.max(...group.matrices.map((matrix: ApprovalMatrix) => matrix.level || 0))
           : 0,
-      matrixIds: category.ApprovalMatrices ? category.ApprovalMatrices.map((matrix: any) => matrix.id) : []
+      matrixIds: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.id) : []
     }))
 
     // Filter based on search query
@@ -202,13 +206,13 @@ const ApprovalMatrixList = () => {
       return formattedData
     }
 
-    return formattedData.filter((group: any) =>
+    return formattedData.filter((group: FormattedData) =>
       group.approvalCategories.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  }, [approvalCategories, searchQuery])
+  }, [approvalMatrixData, searchQuery])
 
   // Slice the grouped data for client-side pagination
-  const paginatedGroupedData = React.useMemo(() => {
+  const paginatedGroupedData = React.useMemo((): PaginatedGroupedData => {
     const startIndex = pagination.pageIndex * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
 
@@ -240,8 +244,96 @@ const ApprovalMatrixList = () => {
   //     grade: JSON.stringify(grades)
   //   }).toString()
 
-  //   router.push(`/approval-matrix/edit/edit-approval?${queryParams}`)
+  //   router.push(`/system-management/approval-matrix/edit/edit-approval?${queryParams}`)
   // }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const handleEdit = (rowData: FormattedData) => {
+  //   // Map the approvers to the designation or level format expected by the form
+  //   const designations = rowData.approver.map((approver: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique designation ID
+  //     name: approver === 'No Approver' ? '' : approver
+  //   }))
+
+  //   const grades = rowData.grades.map((grade: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique grade ID
+  //     name: grade === 'No Grade' ? '' : grade
+  //   }))
+
+  //   const queryParams = new URLSearchParams({
+  //     id: rowData.matrixIds.join(','), // Pass all matrix IDs as a comma-separated string
+  //     approvalCategoryId: rowData.approvalCategories.id,
+  //     approvalCategory: rowData.approvalCategories.name,
+  //     numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+  //     description: rowData.approvalCategories.description,
+  //     designationName: JSON.stringify(designations), // Pass approvers as designations
+  //     grade: JSON.stringify(grades)
+  //   }).toString()
+
+  //   router.push(`/system-management/approval-matrix/edit/edit-approval?${queryParams}`)
+  // }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleEdit = async (rowData: FormattedData) => {
+    try {
+      // Fetch approval category details to get the approverType
+      const response = await dispatch(fetchApprovalCategoryById(rowData.approvalCategories.id)).unwrap()
+      const approverType = response.approverType || 'Designation' // Default to 'Designation' if not found
+
+      // Map the approvers to the format expected by the form
+      const approvers = rowData.approver.map((approver: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique ID
+        name: approver === 'No Approver' ? '' : approver
+      }))
+
+      const grades = rowData.grades.map((grade: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique grade ID
+        name: grade === 'No Grade' ? '' : grade
+      }))
+
+      const queryParams = new URLSearchParams({
+        id: rowData.matrixIds.join(','), // Pass all matrix IDs as a comma-separated string
+        approvalCategoryId: rowData?.approvalCategories?.id,
+        approvalCategory: rowData?.approvalCategories?.name,
+        numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+        description: rowData?.approvalCategories?.description,
+
+        // Conditionally pass either designationName or level based on approverType
+        ...(approverType === 'Level'
+          ? { level: JSON.stringify(approvers) }
+          : { designationName: JSON.stringify(approvers) }),
+        grade: JSON.stringify(grades)
+      }).toString()
+
+      router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_EDIT(queryParams))
+    } catch (error) {
+      console.error('Error fetching approval category details:', error)
+
+      // Fallback behavior in case of error
+      const approvers = rowData.approver.map((approver: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`,
+        name: approver === 'No Approver' ? '' : approver
+      }))
+
+      const grades = rowData.grades.map((grade: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`,
+        name: grade === 'No Grade' ? '' : grade
+      }))
+
+      const queryParams = new URLSearchParams({
+        id: rowData.matrixIds.join(','),
+        approvalCategoryId: rowData.approvalCategories.id,
+        approvalCategory: rowData.approvalCategories.name,
+        numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+        description: rowData.approvalCategories.description,
+        designationName: JSON.stringify(approvers),
+        level: JSON.stringify(approvers),
+        grade: JSON.stringify(grades)
+      }).toString()
+
+      router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_EDIT(queryParams))
+    }
+  }
 
   // // Handle delete action (open modal)
   // // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -272,7 +364,7 @@ const ApprovalMatrixList = () => {
   // }
 
   // Define columns for the table
-  const columns = React.useMemo<ColumnDef<any, any>[]>(
+  const columns = React.useMemo<ColumnDef<FormattedData, any>[]>(
     () => [
       columnHelper.accessor('approvalCategories.name', {
         header: 'APPROVAL CATEGORY',
@@ -387,53 +479,53 @@ const ApprovalMatrixList = () => {
             </Box>
           )
         }
-      })
+      }),
 
-      // columnHelper.accessor('action', {
-      //   header: 'ACTIONS',
-      //   meta: { className: 'sticky right-0' },
-      //   cell: ({ row }) => (
-      //     <Box className='flex items-center'>
-      //       {/* <Tooltip title='View' placement='top'>
-      //         <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
-      //           <VisibilityIcon />
-      //         </IconButton>
-      //       </Tooltip> */}
-      //       <Tooltip title='Edit' placement='top'>
-      //         <IconButton
-      //           onClick={e => {
-      //             e.stopPropagation()
-      //             handleEdit(row.original)
-      //           }}
-      //           sx={{ fontSize: 18 }}
-      //           aria-label='edit'
-      //         >
-      //           <EditIcon />
-      //         </IconButton>
-      //       </Tooltip>
-      //       <Tooltip title='Delete' placement='top'>
-      //         <IconButton
-      //           onClick={e => {
-      //             e.stopPropagation()
-      //             handleDelete(row.original)
-      //           }}
-      //           sx={{ fontSize: 18 }}
-      //           aria-label='delete'
-      //         >
-      //           <DeleteIcon />
-      //         </IconButton>
-      //       </Tooltip>
-      //     </Box>
-      //   ),
-      //   enableSorting: false
-      // })
+      columnHelper.accessor('action', {
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            {/* <Tooltip title='View' placement='top'>
+              <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip> */}
+            <Tooltip title='Edit' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleEdit(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='edit'
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            {/* <Tooltip title='Delete' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleDelete(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='delete'
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip> */}
+          </Box>
+        ),
+        enableSorting: false
+      })
     ],
-    [columnHelper]
+    [columnHelper, handleEdit]
   )
 
   // Pagination handlers for DynamicTable
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({
+    setPagination((prev: PaginationState) => ({
       ...prev,
       pageIndex: newPage
     }))
@@ -471,8 +563,8 @@ const ApprovalMatrixList = () => {
             variant='outlined'
             size='small' // Reduces the height to a smaller predefined size
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            sx={{ width: '400px', mr: 2 }} // Margin-right to separate from the button
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            sx={{ width: '300px', mr: 2 }} // Margin-right to separate from the button
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -484,7 +576,7 @@ const ApprovalMatrixList = () => {
           <Button
             variant='contained'
             size='small' // Reduces the height to a smaller predefined size
-            onClick={() => router.push(`/system-management/approval-matrix/add/new-approval`)}
+            onClick={() => router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_ADD)}
             sx={{ padding: '6px 16px' }} // Optional: Fine-tune padding to match TextField height
           >
             <AddIcon sx={{ mr: 1, width: 16 }} /> {/* Reduced icon size slightly */}
@@ -493,7 +585,11 @@ const ApprovalMatrixList = () => {
         </Card>
       </Box>
 
-      {status === 'loading' && <Typography>Loading...</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
       {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable

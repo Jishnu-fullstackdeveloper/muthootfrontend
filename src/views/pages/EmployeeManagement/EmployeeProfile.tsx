@@ -15,7 +15,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
-  Alert,
   Tooltip
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -162,21 +161,16 @@ const EmployeeProfilePage = () => {
 
   if (selectedEmployeeStatus === 'loading') {
     return (
-      <Box sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center', bgcolor: '#ffffff', minHeight: '100vh' }}>
+      <Box sx={{ textAlign: 'center' }}>
         <CircularProgress color='primary' />
-        <Typography variant='body1' color='text.secondary' sx={{ mt: 2 }}>
-          Loading employee profile...
-        </Typography>
       </Box>
     )
   }
 
   if (selectedEmployeeStatus === 'failed' || !employee) {
     return (
-      <Box sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center', bgcolor: '#ffffff', minHeight: '100vh' }}>
-        <Alert severity='error' sx={{ maxWidth: 600, mx: 'auto', mb: 2 }}>
-          {selectedEmployeeError || 'Employee not found'}
-        </Alert>
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography>{selectedEmployeeError || 'Employee not found'}</Typography>
       </Box>
     )
   }

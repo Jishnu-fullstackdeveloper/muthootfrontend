@@ -191,11 +191,12 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
       if (isUpdateMode) {
         try {
-          // Update the approval category first
+          // Update the approval category first, including approverType
           await dispatch(
             updateApprovalCategory({
               id: categoryIdFromUrl,
               name: values.approvalCategory?.name || '',
+              approverType: approverType || '', // Pass the approverType
               description: values.description
             })
           ).unwrap()
@@ -214,7 +215,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     id: existingMatrixIds[index],
                     approvalMatrix: {
                       approvalCategoryId: matrix.approvalCategoryId,
-                      designation: matrix.designation,
+                      approver: matrix.approver,
                       grade: matrix.grade,
                       level: matrix.level
                     }
@@ -352,13 +353,64 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const fetchOptions = async (_id: number, _p0: string) => {
+  //   try {
+  //     const tableId = searchParams.get('id') || ''
+  //     const approvalCategory = searchParams.get('approvalCategory') || ''
+  //     const numberOfLevels = searchParams.get('numberOfLevels') || '1'
+  //     const description = searchParams.get('description') || ''
+  //     const designationName = searchParams.get('designationName') || '[]'
+  //     const grade = searchParams.get('grade') || '[]'
+  //     const categoryId = searchParams.get('approvalCategoryId') || '' // Get approvalCategoryId from URL
+
+  //     if (isUpdateMode) {
+  //       ApprovalMatrixFormik.setFieldValue('id', tableId)
+
+  //       // Set approvalCategory as an object for Autocomplete
+  //       ApprovalMatrixFormik.setFieldValue('approvalCategory', { id: categoryId, name: approvalCategory })
+  //       ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10))
+  //       ApprovalMatrixFormik.setFieldValue('description', description)
+  //       setApprovalCategoryId(categoryId) // Set approvalCategoryId for use in submission
+
+  //       // Fetch approval category details to get approverType
+  //       if (categoryId) {
+  //         try {
+  //           const response = await dispatch(fetchApprovalCategoryById(categoryId)).unwrap()
+
+  //           setApproverType(response.approverType || null) // Set approverType in edit mode
+  //         } catch (error) {
+  //           console.error('Error fetching approval category details in edit mode:', error)
+  //           setApproverType(null)
+  //         }
+  //       }
+
+  //       const parsedDesignations = JSON.parse(designationName)
+  //       const parsedGrades = JSON.parse(grade)
+
+  //       // Generate sections based on numberOfLevels, pre-filling designation or level and grade
+  //       const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => ({
+  //         designationName: approverType === 'Level' ? null : parsedDesignations[index] || null,
+  //         level: approverType === 'Level' ? parsedDesignations[index] || null : null, // Use designation as level in edit mode if approverType is "Level"
+  //         grade: parsedGrades[index] || null
+  //       }))
+
+  //       ApprovalMatrixFormik.setFieldValue('sections', sections)
+  //       setSectionsVisible(true) // Show sections immediately in edit mode
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching options:', error)
+  //   }
+  // }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchOptions = async (_id: number, _p0: string) => {
     try {
       const tableId = searchParams.get('id') || ''
       const approvalCategory = searchParams.get('approvalCategory') || ''
       const numberOfLevels = searchParams.get('numberOfLevels') || '1'
       const description = searchParams.get('description') || ''
-      const designationName = searchParams.get('designationName') || '[]'
+      const designationName = searchParams.get('designationName') || '[]' // For Designation approverType
+      const level = searchParams.get('level') || '[]' // For Level approverType
       const grade = searchParams.get('grade') || '[]'
       const categoryId = searchParams.get('approvalCategoryId') || '' // Get approvalCategoryId from URL
 
@@ -372,26 +424,38 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         setApprovalCategoryId(categoryId) // Set approvalCategoryId for use in submission
 
         // Fetch approval category details to get approverType
+        let fetchedApproverType: string | null = null
+
         if (categoryId) {
           try {
             const response = await dispatch(fetchApprovalCategoryById(categoryId)).unwrap()
 
-            setApproverType(response.approverType || null) // Set approverType in edit mode
+            fetchedApproverType = response.approverType || null
+            setApproverType(fetchedApproverType) // Set approverType in edit mode
           } catch (error) {
             console.error('Error fetching approval category details in edit mode:', error)
             setApproverType(null)
           }
         }
 
-        const parsedDesignations = JSON.parse(designationName)
+        // Parse the approver data based on approverType
+        const parsedApprovers = fetchedApproverType === 'Level' ? JSON.parse(level) : JSON.parse(designationName)
         const parsedGrades = JSON.parse(grade)
 
         // Generate sections based on numberOfLevels, pre-filling designation or level and grade
-        const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => ({
-          designationName: approverType === 'Level' ? null : parsedDesignations[index] || null,
-          level: approverType === 'Level' ? parsedDesignations[index] || null : null, // Use designation as level in edit mode if approverType is "Level"
-          grade: parsedGrades[index] || null
-        }))
+        const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => {
+          const approverEntry = parsedApprovers[index] || { id: '', name: '' }
+          const gradeEntry = parsedGrades[index] || { id: '', name: '' }
+
+          return {
+            designationName: fetchedApproverType === 'Level' ? null : approverEntry,
+            level:
+              fetchedApproverType === 'Level'
+                ? levelOptions.find(option => option.name === approverEntry.name) || null
+                : null,
+            grade: gradeEntry
+          }
+        })
 
         ApprovalMatrixFormik.setFieldValue('sections', sections)
         setSectionsVisible(true) // Show sections immediately in edit mode

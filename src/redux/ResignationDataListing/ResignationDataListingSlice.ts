@@ -1,10 +1,43 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
-import type { ResignedEmployeesState, FetchResignedEmployeesParams } from '@/types/resignationDataListing'
-import { API_ENDPOINTS } from '../ApiUrls/employeeApiUrls'
+import { API_ENDPOINTS } from '@/redux/ApiUrls/employeeApiUrls'
+import type { ResignedEmployee } from '@/types/resignationDataListing'
 
-// Async thunk to fetch resigned employees
+// Define params interface for fetching resigned employees
+interface FetchResignedEmployeesParams {
+  page: number
+  limit: number
+  isResigned?: boolean
+  search?: string
+  resignationDateFrom?: string
+}
+
+// Define the state interface
+interface ResignationDataListingState {
+  employees: ResignedEmployee[]
+  loading: boolean
+  error: string | null
+  totalCount: number
+  syncLoading: boolean
+  syncError: string | null
+  syncProcessId: string | null
+  selectedEmployee: ResignedEmployee | null // Add selectedEmployee to store the fetched employee
+}
+
+// Define initial state
+const initialState: ResignationDataListingState = {
+  employees: [],
+  loading: false,
+  error: null,
+  totalCount: 0,
+  syncLoading: false,
+  syncError: null,
+  syncProcessId: null,
+  selectedEmployee: null // Initialize selectedEmployee
+}
+
+// Existing thunk to fetch resigned employees (unchanged)
 export const fetchResignedEmployees = createAsyncThunk(
   'resignedEmployees/fetchResignedEmployees',
   async (
@@ -36,22 +69,38 @@ export const fetchResignedEmployees = createAsyncThunk(
   }
 )
 
-// Async thunk to sync resigned employees
+// New thunk to fetch a single employee by ID
+export const fetchResignedEmployeeById = createAsyncThunk(
+  'resignedEmployees/fetchResignedEmployeeById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`${API_ENDPOINTS.EMPLOYEES}/${id}`)
+
+      if (!response.data.success) {
+        return rejectWithValue(response.data.message || 'Failed to fetch employee details')
+      }
+
+      return response.data.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'An error occurred while fetching employee details')
+    }
+  }
+)
+
+// Existing thunk for syncing resigned employees (unchanged)
 export const syncResignedEmployees = createAsyncThunk(
   'resignedEmployees/syncResignedEmployees',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.post(API_ENDPOINTS.SYNC_EMPLOYEES, {
-        mode: 'MANUAL'
-      })
+      const response = await AxiosLib.post(API_ENDPOINTS.SYNC_RESIGNED_EMPLOYEES)
 
       if (!response.data.success) {
-        return rejectWithValue(response.data.message || 'Failed to initiate employee sync process')
+        return rejectWithValue(response.data.message || 'Failed to sync resigned employees')
       }
 
       return {
-        processId: response.data.processId,
-        message: response.data.message
+        message: response.data.message,
+        processId: response.data.processId
       }
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'An error occurred while syncing resigned employees')
@@ -59,20 +108,13 @@ export const syncResignedEmployees = createAsyncThunk(
   }
 )
 
-const resignedEmployeesSlice = createSlice({
-  name: 'resignedEmployees',
-  initialState: {
-    employees: [],
-    loading: false,
-    error: null,
-    totalCount: 0,
-    syncLoading: false, // Initialize sync loading state
-    syncError: null, // Initialize sync error state
-    syncProcessId: null // Initialize sync process ID
-  } as ResignedEmployeesState,
+// Create the slice
+const resignationDataListingSlice = createSlice({
+  name: 'resignationDataListing',
+  initialState,
   reducers: {},
   extraReducers: builder => {
-    // Handlers for fetchResignedEmployees
+    // Fetch resigned employees
     builder
       .addCase(fetchResignedEmployees.pending, state => {
         state.loading = true
@@ -86,9 +128,28 @@ const resignedEmployeesSlice = createSlice({
       .addCase(fetchResignedEmployees.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+        state.employees = []
+        state.totalCount = 0
       })
 
-    // Handlers for syncResignedEmployees
+    // Fetch single employee by ID
+    builder
+      .addCase(fetchResignedEmployeeById.pending, state => {
+        state.loading = true
+        state.error = null
+        state.selectedEmployee = null
+      })
+      .addCase(fetchResignedEmployeeById.fulfilled, (state, action) => {
+        state.loading = false
+        state.selectedEmployee = action.payload
+      })
+      .addCase(fetchResignedEmployeeById.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+        state.selectedEmployee = null
+      })
+
+    // Sync resigned employees
     builder
       .addCase(syncResignedEmployees.pending, state => {
         state.syncLoading = true
@@ -102,9 +163,8 @@ const resignedEmployeesSlice = createSlice({
       .addCase(syncResignedEmployees.rejected, (state, action) => {
         state.syncLoading = false
         state.syncError = action.payload as string
-        state.syncProcessId = null
       })
   }
 })
 
-export default resignedEmployeesSlice.reducer
+export default resignationDataListingSlice.reducer

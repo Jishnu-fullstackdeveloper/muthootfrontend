@@ -100,12 +100,39 @@ export const createApprovalCategory = createAsyncThunk(
   }
 )
 
-// Async thunk for updating an approval category
+// // Async thunk for updating an approval category
+// export const updateApprovalCategory = createAsyncThunk(
+//   'apphrms/updateApprovalCategory',
+//   async (
+//     { id, name, approverType, description }: { id: string; name: string; approverTye: string; description: string },
+//     { rejectWithValue }
+//   ) => {
+//     try {
+//       const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id), {
+//         name,
+//         description,
+//         approverType
+//       })
+
+//       return response.data.data // Return the updated category data
+//     } catch (error: any) {
+//       return rejectWithValue(error.response?.data?.message || 'Failed to update approval category')
+//     }
+//   }
+// )
+
 export const updateApprovalCategory = createAsyncThunk(
   'apphrms/updateApprovalCategory',
-  async ({ id, name, description }: { id: string; name: string; description: string }, { rejectWithValue }) => {
+  async (
+    { id, name, approverType, description }: { id: string; name: string; approverType: string; description: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id), { name, description })
+      const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id), {
+        name,
+        description,
+        approverType
+      })
 
       return response.data.data // Return the updated category data
     } catch (error: any) {

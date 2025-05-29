@@ -40,6 +40,7 @@ export const ROUTES = {
     ORGANIZATIONAL_MAPPING: '/system-management/organizational-mapping',
     APPROVAL_MATRIX: '/system-management/approval-matrix',
     APPROVAL_MATRIX_ADD: '/system-management/approval-matrix/add/new',
+    APPROVAL_MATRIX_EDIT: (queryParams: any) => `/system-management/approval-matrix/edit/edit-approval?${queryParams}`,
     SCHEDULER: '/system-management/scheduler',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
   }

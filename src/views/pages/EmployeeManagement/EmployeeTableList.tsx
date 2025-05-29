@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -499,8 +499,16 @@ const EmployeeTable = () => {
 
   return (
     <>
-      {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: {error}</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {status === 'failed' && (
+        <Typography color='secondary' align='center'>
+          No Employee Data
+        </Typography>
+      )}
       {status === 'succeeded' && (
         <DynamicTable
           columns={columns}

@@ -15,7 +15,8 @@ import {
   Autocomplete
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
+
+import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
 
 import DataUploadTableList from './DataUploadTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -146,7 +147,7 @@ const DataUploadListingPage = () => {
               size='small'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              sx={{ width: '400px' }}
+              sx={{ width: '300px' }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
@@ -162,9 +163,15 @@ const DataUploadListingPage = () => {
                 variant='contained'
                 color='primary'
                 onClick={handleUploadClick}
-                sx={{ minWidth: '70px', textTransform: 'none' }}
+                sx={{
+                  minWidth: '70px',
+                  textTransform: 'none',
+                  boxShadow: 3,
+                  border: '2px solid white',
+                  borderRadius: 2
+                }}
                 size='small'
-                startIcon={<FileUploadOutlinedIcon fontSize='medium' />}
+                startIcon={<UploadOutlinedIcon fontSize='large' />}
               >
                 Upload
               </Button>

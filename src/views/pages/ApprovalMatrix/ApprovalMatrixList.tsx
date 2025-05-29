@@ -3,7 +3,17 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, Button, Card, TextField, InputAdornment, Tooltip, IconButton } from '@mui/material' //IconButton //Tooltip
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  TextField,
+  InputAdornment,
+  Tooltip,
+  IconButton,
+  CircularProgress
+} from '@mui/material' //IconButton //Tooltip
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
@@ -554,7 +564,7 @@ const ApprovalMatrixList = () => {
             size='small' // Reduces the height to a smaller predefined size
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-            sx={{ width: '400px', mr: 2 }} // Margin-right to separate from the button
+            sx={{ width: '300px', mr: 2 }} // Margin-right to separate from the button
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -566,7 +576,7 @@ const ApprovalMatrixList = () => {
           <Button
             variant='contained'
             size='small' // Reduces the height to a smaller predefined size
-            onClick={() => router.push(`/system-management/approval-matrix/add/new-approval`)}
+            onClick={() => router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_ADD)}
             sx={{ padding: '6px 16px' }} // Optional: Fine-tune padding to match TextField height
           >
             <AddIcon sx={{ mr: 1, width: 16 }} /> {/* Reduced icon size slightly */}
@@ -575,7 +585,11 @@ const ApprovalMatrixList = () => {
         </Card>
       </Box>
 
-      {status === 'loading' && <Typography>Loading...</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
       {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable

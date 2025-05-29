@@ -4,7 +4,18 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
+import {
+  Box,
+  Card,
+  IconButton,
+  Tooltip,
+  Typography,
+  TextField,
+  InputAdornment,
+  Button,
+  Chip,
+  CircularProgress
+} from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined'
@@ -301,11 +312,12 @@ const ResignationDataListingPage = () => {
         <L2ManagerDashboard />
       </Box>
 
-      {loading && (
+      {loading && viewMode === 'grid' && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='text.secondary'>
+          {/* <Typography variant='h6' color='text.secondary'>
             Loading...
-          </Typography>
+          </Typography> */}
+          <CircularProgress color='primary' />
         </Box>
       )}
 

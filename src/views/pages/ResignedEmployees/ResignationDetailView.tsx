@@ -20,7 +20,8 @@ import {
   Chip,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -156,12 +157,20 @@ const ResignationDetailsPage = () => {
     }
   ]
 
+  // if (loading) {
+  //   return (
+  //     <Box sx={{ textAlign: 'center', mt: 4 }}>
+  //       <Typography variant='h6' color='text.secondary'>
+  //         Loading...
+  //       </Typography>
+  //     </Box>
+  //   )
+  // }
+
   if (loading) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant='h6' color='text.secondary'>
-          Loading...
-        </Typography>
+        <CircularProgress color='primary' />
       </Box>
     )
   }
@@ -169,8 +178,8 @@ const ResignationDetailsPage = () => {
   if (error || !employee) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant='h6' color='error'>
-          {error || 'No data found'}
+        <Typography variant='h6' color='secondary'>
+          {error || 'No resigned employee data found'}
         </Typography>
       </Box>
     )

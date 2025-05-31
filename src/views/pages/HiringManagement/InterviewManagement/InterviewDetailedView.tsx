@@ -157,17 +157,15 @@ const InterviewDetailedPage = () => {
   if (!candidate) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant='h6' color='error'>
-          Candidate not found
-        </Typography>
-        <Button
+        <Typography variant='h6'>Candidate not found</Typography>
+        {/* <Button
           variant='outlined'
           startIcon={<ArrowBackIcon />}
           onClick={() => router.push('/hiring-management/interview-listing')}
           sx={{ mt: 2 }}
         >
           Back to Listing
-        </Button>
+        </Button> */}
       </Box>
     )
   }

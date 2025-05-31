@@ -12,7 +12,7 @@ import TotalVacancies from './Reports/TotalVacanciesChart'
 const Page = () => {
   return (
     <Box>
-      <Typography variant='h3' color='primary' fontWeight='bold'>
+      <Typography variant='h4' color='primary' fontWeight='bold' sx={{ mb: 2 }}>
         Dashboard
       </Typography>
       <Grid container spacing={6}>

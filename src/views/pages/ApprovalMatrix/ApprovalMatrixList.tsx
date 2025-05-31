@@ -3,17 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  TextField,
-  InputAdornment,
-  Tooltip,
-  IconButton,
-  CircularProgress
-} from '@mui/material' //IconButton //Tooltip
+import { Box, Typography, Card, TextField, InputAdornment, Tooltip, IconButton, CircularProgress } from '@mui/material' //IconButton //Tooltip
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
@@ -41,6 +31,7 @@ import type {
   PaginatedGroupedData,
   PaginationState
 } from '@/types/approvalMatrix' // Adjust the path as needed
+import DynamicButton from '@/components/Button/dynamicButton'
 
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
@@ -216,6 +207,8 @@ const ApprovalMatrixList = () => {
     const startIndex = pagination.pageIndex * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
 
+    console.log(groupedData)
+
     return {
       data: groupedData.slice(startIndex, endIndex),
       totalCount: groupedData.length
@@ -382,13 +375,117 @@ const ApprovalMatrixList = () => {
         )
       }),
 
+      // columnHelper.accessor('approver', {
+      //   header: 'APPROVER',
+      //   cell: ({ row }) => {
+      //     // eslint-disable-next-line react-hooks/rules-of-hooks
+      //     const [showAll, setShowAll] = useState(false)
+      //     const approvers = Array.isArray(row.original.approver) ? row.original.approver : []
+      //     const displayedApprovers = showAll ? approvers : approvers.slice(0, 2)
+
+      //     return (
+      //       <Box>
+      //         <ul style={{ margin: 0, paddingLeft: '20px' }}>
+      //           {displayedApprovers.length > 0 ? (
+      //             displayedApprovers.map((approver: string, index: number) => (
+      //               <li key={index}>
+      //                 <Typography color='text.primary' variant='body2'>
+      //                   {approver}
+      //                 </Typography>
+      //               </li>
+      //             ))
+      //           ) : (
+      //             <Typography color='text.primary' variant='body2'>
+      //               No Designation
+      //             </Typography>
+      //           )}
+      //           {approvers.length > 2 && (
+      //             <Typography
+      //               color='primary'
+      //               variant='body2'
+      //               sx={{ cursor: 'pointer', mt: 1 }}
+      //               onClick={() => setShowAll(!showAll)}
+      //             >
+      //               {showAll ? 'Show Less' : 'Show More'}
+      //             </Typography>
+      //           )}
+      //         </ul>
+      //         {/* {approvers.length > 2 && (
+      //           <Typography
+      //             color='primary'
+      //             variant='body2'
+      //             sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1 }}
+      //             onClick={() => setShowAll(!showAll)}
+      //           >
+      //             {showAll ? 'Show Less' : 'Show More'}
+      //           </Typography>
+      //         )} */}
+      //       </Box>
+      //     )
+      //   }
+      // }),
+
+      // columnHelper.accessor('grades', {
+      //   header: 'GRADE',
+      //   cell: ({ row }) => {
+      //     // eslint-disable-next-line react-hooks/rules-of-hooks
+      //     const [showAll, setShowAll] = useState(false)
+      //     const grades = Array.isArray(row.original.grades) ? row.original.grades : []
+      //     const displayedGrades = showAll ? grades : grades.slice(0, 2)
+
+      //     return (
+      //       <Box>
+      //         <ul style={{ margin: 0, paddingLeft: '20px' }}>
+      //           {displayedGrades.length > 0 ? (
+      //             displayedGrades.map((grade: string, index: number) => (
+      //               <li key={index}>
+      //                 <Typography color='text.primary' variant='body2'>
+      //                   {grade}
+      //                 </Typography>
+      //               </li>
+      //             ))
+      //           ) : (
+      //             <Typography color='text.primary' variant='body2'>
+      //               No Grade
+      //             </Typography>
+      //           )}
+      //           {grades.length > 2 && (
+      //             <Typography
+      //               color='primary'
+      //               variant='body2'
+      //               sx={{ cursor: 'pointer', mt: 1 }}
+      //               onClick={() => setShowAll(!showAll)}
+      //             >
+      //               {showAll ? 'Show Less' : 'Show More'}
+      //             </Typography>
+      //           )}
+      //         </ul>
+      //         {/* {grades.length > 2 && (
+      //           <Typography
+      //             color='primary'
+      //             variant='body2'
+      //             sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1, ml: 5 }}
+      //             onClick={() => setShowAll(!showAll)}
+      //           >
+      //             {showAll ? 'Show Less' : 'Show More'}
+      //           </Typography>
+      //         )} */}
+      //       </Box>
+      //     )
+      //   }
+      // }),
+
       columnHelper.accessor('approver', {
         header: 'APPROVER',
         cell: ({ row }) => {
           // eslint-disable-next-line react-hooks/rules-of-hooks
           const [showAll, setShowAll] = useState(false)
           const approvers = Array.isArray(row.original.approver) ? row.original.approver : []
-          const displayedApprovers = showAll ? approvers : approvers.slice(0, 2)
+
+          // Transform approvers to remove underscores for display
+          const displayedApprovers = (showAll ? approvers : approvers.slice(0, 2)).map(approver =>
+            approver === 'No Approver' ? approver : approver.replace(/_/g, ' ')
+          )
 
           return (
             <Box>
@@ -417,65 +514,6 @@ const ApprovalMatrixList = () => {
                   </Typography>
                 )}
               </ul>
-              {/* {approvers.length > 2 && (
-                <Typography
-                  color='primary'
-                  variant='body2'
-                  sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1 }}
-                  onClick={() => setShowAll(!showAll)}
-                >
-                  {showAll ? 'Show Less' : 'Show More'}
-                </Typography>
-              )} */}
-            </Box>
-          )
-        }
-      }),
-      columnHelper.accessor('grades', {
-        header: 'GRADE',
-        cell: ({ row }) => {
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          const [showAll, setShowAll] = useState(false)
-          const grades = Array.isArray(row.original.grades) ? row.original.grades : []
-          const displayedGrades = showAll ? grades : grades.slice(0, 2)
-
-          return (
-            <Box>
-              <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {displayedGrades.length > 0 ? (
-                  displayedGrades.map((grade: string, index: number) => (
-                    <li key={index}>
-                      <Typography color='text.primary' variant='body2'>
-                        {grade}
-                      </Typography>
-                    </li>
-                  ))
-                ) : (
-                  <Typography color='text.primary' variant='body2'>
-                    No Grade
-                  </Typography>
-                )}
-                {grades.length > 2 && (
-                  <Typography
-                    color='primary'
-                    variant='body2'
-                    sx={{ cursor: 'pointer', mt: 1 }}
-                    onClick={() => setShowAll(!showAll)}
-                  >
-                    {showAll ? 'Show Less' : 'Show More'}
-                  </Typography>
-                )}
-              </ul>
-              {/* {grades.length > 2 && (
-                <Typography
-                  color='primary'
-                  variant='body2'
-                  sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1, ml: 5 }}
-                  onClick={() => setShowAll(!showAll)}
-                >
-                  {showAll ? 'Show Less' : 'Show More'}
-                </Typography>
-              )} */}
             </Box>
           )
         }
@@ -573,15 +611,15 @@ const ApprovalMatrixList = () => {
               )
             }}
           />
-          <Button
+
+          <DynamicButton
+            label='New Approval'
             variant='contained'
-            size='small' // Reduces the height to a smaller predefined size
+            icon={<AddIcon />}
+            position='start'
             onClick={() => router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_ADD)}
-            sx={{ padding: '6px 16px' }} // Optional: Fine-tune padding to match TextField height
-          >
-            <AddIcon sx={{ mr: 1, width: 16 }} /> {/* Reduced icon size slightly */}
-            New Approval
-          </Button>
+            children='New Approval'
+          />
         </Card>
       </Box>
 

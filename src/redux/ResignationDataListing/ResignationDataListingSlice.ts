@@ -70,8 +70,8 @@ export const fetchResignedEmployees = createAsyncThunk(
 )
 
 // New thunk to fetch a single employee by ID
-export const fetchResignedEmployeeById = createAsyncThunk(
-  'resignedEmployees/fetchResignedEmployeeById',
+export const fetchEmployeeById = createAsyncThunk(
+  'resignedEmployees/fetchEmployeeById',
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(`${API_ENDPOINTS.EMPLOYEES}/${id}`)
@@ -134,16 +134,16 @@ const resignationDataListingSlice = createSlice({
 
     // Fetch single employee by ID
     builder
-      .addCase(fetchResignedEmployeeById.pending, state => {
+      .addCase(fetchEmployeeById.pending, state => {
         state.loading = true
         state.error = null
         state.selectedEmployee = null
       })
-      .addCase(fetchResignedEmployeeById.fulfilled, (state, action) => {
+      .addCase(fetchEmployeeById.fulfilled, (state, action) => {
         state.loading = false
         state.selectedEmployee = action.payload
       })
-      .addCase(fetchResignedEmployeeById.rejected, (state, action) => {
+      .addCase(fetchEmployeeById.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
         state.selectedEmployee = null

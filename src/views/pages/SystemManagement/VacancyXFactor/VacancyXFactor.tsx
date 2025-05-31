@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useMemo, useState, useEffect } from 'react'
 
 import {
@@ -52,6 +53,10 @@ const VacancyXFactor = ({ formik }) => {
 
     return () => clearTimeout(timer)
   }, [searchTerm])
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setLimit(newPageSize)
+  }
 
   useEffect(() => {
     dispatch(fetchVacancyXFactor({ page, limit, search: debouncedSearch }))
@@ -170,8 +175,8 @@ const VacancyXFactor = ({ formik }) => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                 gap: 4,
-                
+                  gap: 4,
+
                   p: 2,
                   border: '1px solid',
                   borderColor: 'grey.300',
@@ -229,13 +234,8 @@ const VacancyXFactor = ({ formik }) => {
                   sx={{ width: '120px' }}
                   inputProps={{ min: 0, 'aria-label': `Days for designation ${index + 1}` }}
                 />
-
-              
               </Box>
             ))}
-
-           
-          
           </Box>
 
           {/* Action Buttons */}
@@ -309,6 +309,7 @@ const VacancyXFactor = ({ formik }) => {
         pagination={{ pageIndex: page - 1, pageSize: limit }}
         page={page}
         limit={limit}
+        onRowsPerPageChange={handleRowsPerPageChange}
         totalCount={totalCount}
         onPageChange={newPage => {
           setPage(newPage + 1)

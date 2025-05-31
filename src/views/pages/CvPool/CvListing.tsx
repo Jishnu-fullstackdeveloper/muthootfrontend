@@ -906,8 +906,8 @@ const CvListingTableView = ({
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
       <Typography sx={{ color: '#000' }}>
-        Showing {pagination.pageIndex * paginationState.pageSize + 1}-
-        {Math.min((pagination.pageIndex + 1) * paginationState.pageSize, totalCount)} of {totalCount}
+        Showing {pagination.pageIndex * pagination.pageSize + 1}-
+        {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)} of {totalCount}
       </Typography>
       <Button
         onClick={() => onPageChange(pagination.pageIndex - 1)}
@@ -919,7 +919,7 @@ const CvListingTableView = ({
       </Button>
       <Button
         onClick={() => onPageChange(pagination.pageIndex + 1)}
-        disabled={(pagination.pageIndex + 1) * paginationState.pageSize >= totalCount}
+        disabled={(pagination.pageIndex + 1) * pagination.pageSize >= totalCount}
         sx={{ color: '#000', borderColor: '#000', borderRadius: 2 }}
         variant='outlined'
       >

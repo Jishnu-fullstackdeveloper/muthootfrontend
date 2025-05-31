@@ -179,7 +179,7 @@ const ResignationDetailsPage = () => {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
         <Typography variant='h6' color='secondary'>
-          {error || 'No resigned employee data found'}
+          {'No resigned employee data found'}
         </Typography>
       </Box>
     )
@@ -217,11 +217,13 @@ const ResignationDetailsPage = () => {
           bgcolor: 'white'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <CalendarTodayIcon sx={{ mr: 1, color: 'primary.main', fontSize: 'medium' }} />
-          <Typography variant='h5' sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-            Resignation Information
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <CalendarTodayIcon sx={{ mr: 1, color: 'primary.main', fontSize: 'medium' }} />
+            <Typography variant='h5' sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              Resignation Information
+            </Typography>
+          </Box>
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 3, mt: 3 }}>
@@ -238,7 +240,7 @@ const ResignationDetailsPage = () => {
               Creation Date
             </Typography>
             <Typography variant='body1' fontWeight='bold' sx={{ color: 'text.primary', mt: 0.5 }}>
-              {employee?.resignationDetails.dateOfResignation?.split('T')[0] || '-'}
+              {employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-'}
             </Typography>
           </Box>
           <Box>

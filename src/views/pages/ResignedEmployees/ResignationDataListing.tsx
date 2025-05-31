@@ -250,7 +250,7 @@ const ResignationDataListingPage = () => {
               popperClassName='date-picker-popper'
               portalId='date-picker-portal'
             />
-            <Tooltip title='Sync Resigned Employees'>
+            {/* <Tooltip title='Sync Resigned Employees'>
               <Button
                 variant='contained'
                 size='small'
@@ -269,7 +269,7 @@ const ResignationDataListingPage = () => {
               >
                 {syncLoading ? 'Syncing...' : 'Sync'}
               </Button>
-            </Tooltip>
+            </Tooltip> */}
             <Box
               sx={{
                 display: 'flex',

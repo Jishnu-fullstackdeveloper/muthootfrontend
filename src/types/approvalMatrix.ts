@@ -1,21 +1,47 @@
-export type Section = {
-  level: any
-  designationName: { id: string; name: string } | null // Updated id to string to match API
-  grade: { id: string; name: string } | null // Updated id to string to match API
+export interface LevelOption {
+  id: string
+  name: string
 }
 
-export type ApprovalMatrixFormValues = {
+export interface ApprovalCategory {
   id: string
-  approvalCategory: string
+  name: string
+  description: string
+  approverType?: string
+  createdBy?: string | null
+  updatedBy?: string | null
+  deletedBy?: string | null
+  context?: string
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string | null
+}
+
+export interface Designation {
+  id: string
+  name: string
+}
+
+export interface Grade {
+  id: string
+  name: string
+}
+
+export interface Section {
+  designationName: Designation | null
+  level: LevelOption | null
+  grade: Grade | null
+}
+
+export interface ApprovalMatrixFormValues {
+  id: string
+  approvalCategory: ApprovalCategory | null
   numberOfLevels: number
   description: string
   sections: Section[]
   draggingIndex: number | null
 }
 
-// approvalMatrixTypes.ts
-
-// Type for the Approval Matrix data (based on the API response structure)
 export interface ApprovalMatrix {
   id: string
   createdBy: string | null
@@ -28,29 +54,15 @@ export interface ApprovalMatrix {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
-  approvalCategories: {
-    id: string
-    createdBy: string | null
-    updatedBy: string | null
-    deletedBy: string | null
-    name: string
-    description: string
-    approverType: string
-    context: string
-    createdAt: string
-    updatedAt: string
-    deletedAt: string | null
-  }
+  approvalCategories: ApprovalCategory
 }
 
-// Type for the grouped structure by approvalCategoryId
 export interface GroupedCategory {
   id: string
   approvalCategories: ApprovalMatrix['approvalCategories']
   matrices: ApprovalMatrix[]
 }
 
-// Type for the formatted data used in the table
 export interface FormattedData {
   id: string
   approvalCategories: {
@@ -64,20 +76,31 @@ export interface FormattedData {
   matrixIds: string[]
 }
 
-// Type for the Redux state slice
-export interface ApprovalMatrixState {
-  approvalMatrixData: ApprovalMatrix[]
-  status: 'loading' | 'failed' | 'succeeded'
-}
-
-// Type for the paginated grouped data
 export interface PaginatedGroupedData {
   data: FormattedData[]
   totalCount: number
 }
 
-// Type for pagination state
 export interface PaginationState {
   pageIndex: number
   pageSize: number
+}
+
+export interface ApprovalMatrixState {
+  approvalCategories: ApprovalCategory[]
+  approvalMatrixData: ApprovalMatrix[]
+  status: 'idle' | 'loading' | 'succeeded' | 'failed'
+  error: string | null
+  totalItems: number
+  options: Array<{ id: number; name: string }>
+  designations: Designation[]
+  grades: Grade[]
+  page: number
+  limit: number
+  totalPages: number
+  message: string
+  createApprovalCategoryResponse: any
+  updateApprovalCategoryResponse: any
+  createApprovalMatrixResponse: any
+  updateApprovalMatrixResponse: any
 }

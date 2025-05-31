@@ -14,6 +14,7 @@ interface ApprovalMatrixState {
   options: Array<{ id: number; name: string }>
   designations: Array<{ id: string; name: string }> // Store designations for autocomplete
   grades: Array<{ id: string; name: string }> // Store grades for autocomplete
+  levels: Array<{ id: string; name: string }> // Store levels for autocomplete
   page: number
   limit: number
   totalPages: number
@@ -34,6 +35,7 @@ const initialState: ApprovalMatrixState = {
   options: [],
   designations: [], // Initialize designations
   grades: [], // Initialize grades
+  levels: [], // Initialize levels
   page: 1,
   limit: 10,
   totalPages: 10,
@@ -99,27 +101,6 @@ export const createApprovalCategory = createAsyncThunk(
     }
   }
 )
-
-// // Async thunk for updating an approval category
-// export const updateApprovalCategory = createAsyncThunk(
-//   'apphrms/updateApprovalCategory',
-//   async (
-//     { id, name, approverType, description }: { id: string; name: string; approverTye: string; description: string },
-//     { rejectWithValue }
-//   ) => {
-//     try {
-//       const response = await AxiosLib.put(API_ENDPOINTS.APPROVAL_CATEGORIES_BY_ID(id), {
-//         name,
-//         description,
-//         approverType
-//       })
-
-//       return response.data.data // Return the updated category data
-//     } catch (error: any) {
-//       return rejectWithValue(error.response?.data?.message || 'Failed to update approval category')
-//     }
-//   }
-// )
 
 export const updateApprovalCategory = createAsyncThunk(
   'apphrms/updateApprovalCategory',
@@ -238,6 +219,25 @@ export const fetchGrades = createAsyncThunk(
     }
   }
 )
+
+// Async thunk for fetching levels
+export const fetchLevels = createAsyncThunk('apphrms/fetchLevels', async (_, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.get(API_ENDPOINTS.LEVELS) // Ensure API_ENDPOINTS.LEVELS is defined
+    const levelsData = response.data.data
+
+    // Transform the API response into the format { id: string, name: string, displayName: string }[]
+    const formattedLevels = Object.entries(levelsData).map(([key, value]) => ({
+      id: key,
+      name: value as string,
+      displayName: (value as string).replace(/_/g, ' ') // Remove underscores for display
+    }))
+
+    return formattedLevels // Return the array of levels
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch levels')
+  }
+})
 
 // Slice definition
 const approvalMatrixSlice = createSlice({
@@ -411,6 +411,19 @@ const approvalMatrixSlice = createSlice({
       .addCase(fetchGrades.rejected, (state, action) => {
         state.status = 'failed'
         state.error = (action.payload as string) || 'Failed to fetch grades'
+      })
+
+      // Fetch levels
+      .addCase(fetchLevels.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(fetchLevels.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.levels = action.payload // Store the fetched levels
+      })
+      .addCase(fetchLevels.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = (action.payload as string) || 'Failed to fetch levels'
       })
   }
 })

@@ -191,7 +191,7 @@ const DataUploadTableList = () => {
           pagination={pagination}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          tableName='Data Upload Listing'
+          tableName='Data Upload List'
         />
       )}
       {/* <ConfirmModal

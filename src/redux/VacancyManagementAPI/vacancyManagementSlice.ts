@@ -24,15 +24,10 @@ export const fetchVacancies = createAsyncThunk<VacancyListResponse, { page: numb
 
       if (search) params.search = search.trim()
 
-      console.log('Sending API request for vacancies with params:', params)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, { params })
-
-      console.log('API Response for vacancies:', response.data)
 
       return response.data
     } catch (error: any) {
-      console.error('Fetch Vacancies Error:', error)
-
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancies')
     }
   }
@@ -43,15 +38,10 @@ export const fetchVacancyById = createAsyncThunk<VacancyDetailsResponse, { id: s
   'vacancyManagement/fetchVacancyById',
   async ({ id }, { rejectWithValue }) => {
     try {
-      console.log('Sending API request for vacancy ID:', id)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingById.replace(':id', id))
-
-      console.log('API Response for vacancy ID', id, ':', response.data)
 
       return response.data
     } catch (error: any) {
-      console.error('API Error for vacancy ID', id, ':', error.message)
-
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy')
     }
   }
@@ -134,8 +124,6 @@ export const fetchVacancyRequests = createAsyncThunk<
 
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyRequestUrl, { params })
 
-      console.log(params, 'ssss')
-
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy requests')
@@ -178,15 +166,10 @@ export const fetchVacancyRequestsGroupByDesignation = createAsyncThunk<
       if (zoneIds && zoneIds.length > 0) params.zoneIds = zoneIds
       if (territoryIds && territoryIds.length > 0) params.territoryIds = territoryIds
 
-      console.log('Sending API request for vacancy requests grouped by designation with params:', params)
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyRequestGroupByDesignation, { params })
-
-      console.log('API Response for vacancy requests grouped by designation:', response.data)
 
       return response.data
     } catch (error: any) {
-      console.error('Fetch Vacancy Requests Group By Designation Error:', error)
-
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancy requests grouped by designation')
     }
   }
@@ -200,16 +183,11 @@ export const updateVacancyRequestStatus = createAsyncThunk<
   try {
     const requestBody = { approverId, status, notes }
 
-    console.log('Sending API request to update vacancy request status for ID:', id, 'with body:', requestBody)
     const response = await AxiosLib.put(API_ENDPOINTS.updateVacancyRequestStatusUrl(id), requestBody)
-
-    console.log('API Response for updating vacancy request status:', response.data)
 
     return response.data
   } catch (error: any) {
-    console.error('Update Vacancy Request Status Error:', error)
-
-    return rejectWithValue(error.response?.data?.message || 'Failed to update vacancy request status')
+    return rejectWithValue(error.response?.data?.error?.message || 'Failed to update vacancy request status')
   }
 })
 
@@ -218,15 +196,10 @@ export const autoApproveVacancyRequests = createAsyncThunk<AutoApproveVacancyReq
   'vacancyManagement/autoApproveVacancyRequests',
   async (_, { rejectWithValue }) => {
     try {
-      console.log('Sending API request to auto-approve vacancy requests')
       const response = await AxiosLib.get(API_ENDPOINTS.autoApproveVacancyRequestsUrl)
-
-      console.log('API Response for auto-approve vacancy requests:', response.data)
 
       return response.data
     } catch (error: any) {
-      console.error('Auto-Approve Vacancy Requests Error:', error)
-
       return rejectWithValue(error.response?.data?.message || 'Failed to auto-approve vacancy requests')
     }
   }

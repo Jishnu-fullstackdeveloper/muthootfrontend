@@ -57,6 +57,10 @@ const ResignedXFactor = ({ formik }) => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setLimit(newPageSize)
+  }
+
   useEffect(() => {
     dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
   }, [page, limit, debouncedSearch, dispatch])
@@ -301,6 +305,7 @@ const ResignedXFactor = ({ formik }) => {
         pagination={{ pageIndex: page - 1, pageSize: limit }}
         page={page}
         limit={limit}
+        onRowsPerPageChange={handleRowsPerPageChange}
         totalCount={totalCount}
         onPageChange={newPage => {
           setPage(newPage + 1)

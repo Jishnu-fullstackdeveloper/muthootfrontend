@@ -65,7 +65,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           </Tooltip>
         </>
       )}
-      {row.original.status === 'FROZEN' && (
+      {row.original.status === 'FREEZED' && (
         <Tooltip title='Un-Freeze'>
           <IconButton
             color='warning'
@@ -76,6 +76,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           </IconButton>
         </Tooltip>
       )}
+
       <Tooltip title='View Employee Details'>
         <IconButton color='primary' onClick={() => handleViewEmployeeDetails(row.original.employeeId)}>
           <VisibilityIcon fontSize='small' />

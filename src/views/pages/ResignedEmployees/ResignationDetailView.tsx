@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Box,
+  TextField,
   Card,
   Typography,
   Tabs,
@@ -21,25 +22,39 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  CircularProgress
+  CircularProgress,
+  Stepper,
+  Step,
+  StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
-
-//import PersonIcon from '@mui/icons-material/Person'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
-
-//import InfoIcon from '@mui/icons-material/Info'
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-
-//import AssignmentIcon from '@mui/icons-material/Assignment'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import HistoryIcon from '@mui/icons-material/History'
 
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { getPermissionRenderConfig } from '@/utils/functions'
+import withPermission from '@/hocs/withPermission'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState, AppDispatch } from '@/redux/store'
-import { fetchResignedEmployeeById } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
+import { fetchEmployeeById } from '@/redux/ResignationDataListing/ResignationDataListingSlice' // Still needed for main employee
+import { fetchUserById } from '@/redux/UserManagment/userManagementSlice' // New import for approver details
 import type { ResignedEmployee } from '@/types/resignationDataListing'
+import type { VacancyManagementState, VacancyRequest } from '@/types/vacancyManagement'
+import { fetchVacancyRequests, updateVacancyRequestStatus } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 
 // Interface for approval history entries (updated to use API data where possible)
 interface ApprovalHistoryEntry {
@@ -59,12 +74,29 @@ interface ApprovalHistoryEntry {
   actionName: string
 }
 
+// Interface for approver details (to store fetched user data)
+interface ApproverDetails {
+  approverId: string
+  name: string
+  employeeCode: string
+}
+
 const ResignationDetailsPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
   const searchParams = useSearchParams()
-  const id = searchParams.get('id') // Get the employee ID from the URL query params
+  const employeeId = searchParams.get('id') // Get the employee ID from the URL query params
+  const permissions = getPermissionRenderConfig()
+
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+
+  const [selectedAction, setSelectedAction] = useState<
+    'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
+  >(null)
+
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [notes, setNotes] = useState<string>('')
 
   const {
     selectedEmployee: employee,
@@ -72,18 +104,187 @@ const ResignationDetailsPage = () => {
     error
   } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
 
-  const [tabValue, setTabValue] = useState(0)
+  const {
+    vacancyRequestListLoading = false,
+    vacancyRequestListSuccess = false,
+    vacancyRequestListData = null,
+    vacancyRequestListTotal = 0,
+    vacancyRequestListFailure = false,
+    vacancyRequestListFailureMessage = '',
+    updateVacancyRequestStatusLoading = false,
+    autoApproveVacancyRequestsLoading = false
+  } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
 
-  // Fetch employee details by ID
+  // Add selector for userManagementReducer to access fetchUserById state (though not directly used here)
+  const { userManagementData, isUserManagementLoading } = useAppSelector(
+    (state: RootState) => state.UserManagementReducer
+  )
+
+  const vacancyRequestList = vacancyRequestListData?.data[0] || {}
+
+  const [tabValue, setTabValue] = useState(0)
+  const [approverDetails, setApproverDetails] = useState<ApproverDetails[]>([])
+
+  // Fetch employee details by ID (this still uses fetchResignedEmployeeById)
   useEffect(() => {
-    if (id) {
-      dispatch(fetchResignedEmployeeById(id))
+    if (employeeId) {
+      dispatch(fetchEmployeeById(employeeId))
     }
-  }, [dispatch, id])
+  }, [dispatch, employeeId])
+
+  // Fetch vacancy requests with employeeId
+  useEffect(() => {
+    if (employeeId) {
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        employeeId?: string
+      } = {
+        page: 1, // Fixed page
+        limit: 10, // Fixed limit
+        employeeId: employeeId,
+        search: '' // Empty search as not needed
+      }
+
+      dispatch(fetchVacancyRequests(params))
+    }
+  }, [dispatch, employeeId])
+
+  // Fetch approver details for each approverId in approvalStatus using fetchUserById
+  useEffect(() => {
+    if (vacancyRequestListData?.data?.length) {
+      const approvalStatusArray = vacancyRequestListData.data[0]?.approvalStatus || []
+
+      const approverIds = approvalStatusArray.map((status: any, index: number) => {
+        const level = Object.keys(status)[0]
+
+        return status[level].approverId
+      })
+
+      // Fetch user details for each approverId using fetchUserById
+      const fetchApprovers = async () => {
+        const details: ApproverDetails[] = []
+
+        for (const approverId of approverIds) {
+          try {
+            const res = await dispatch(fetchUserById(approverId)).unwrap()
+            const userData = res.data
+
+            // Assuming fetchUserById returns user data with firstName, lastName, and employeeCode
+            details.push({
+              approverId,
+              name: `${userData.firstName} ${userData.lastName || ''}`,
+              employeeCode: userData.employeeCode || 'N/A'
+            })
+          } catch (err) {
+            console.error(`Failed to fetch user details for approverId ${approverId}:`, err)
+            details.push({
+              approverId,
+              name: 'Unknown',
+              employeeCode: 'N/A'
+            })
+          }
+        }
+
+        setApproverDetails(details)
+      }
+
+      fetchApprovers()
+    }
+  }, [dispatch, vacancyRequestListData])
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)
+  }
+
+  // Handle opening the confirmation dialog
+  const handleOpenDialog = (id: string, action: 'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER') => {
+    setSelectedId(id)
+    setSelectedAction(action)
+    setNotes('') // Reset notes when opening the dialog
+    setIsDialogOpen(true)
+  }
+
+  // Handle closing the confirmation dialog
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+    setSelectedId(null)
+    setSelectedAction(null)
+    setNotes('')
+  }
+
+  // Consolidated handler for all status actions
+  const handleConfirmAction = async () => {
+    if (!selectedId || !selectedAction) return
+
+    if (selectedAction === 'TRANSFER') {
+      toast.info('Transfer action initiated', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      })
+      handleCloseDialog()
+
+      return
+    }
+
+    // const newStatus = selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction
+    const newStatus = selectedAction
+
+    try {
+      await dispatch(
+        updateVacancyRequestStatus({
+          id: selectedId,
+          approverId: '71d82781-4cd1-4260-abdb-a4955e789bea', // Replace with actual approverId
+          status: newStatus,
+          notes // Include the notes from the text field
+        })
+      ).unwrap()
+
+      // If the dispatch is successful, refresh the list and show success toast
+      if (employeeId) {
+        const params: {
+          page: number
+          limit: number
+          search?: string
+          employeeId?: string
+        } = {
+          page: 1, // Fixed page
+          limit: 10, // Fixed limit
+          employeeId: employeeId,
+          search: '' // Empty search as not needed
+        }
+
+        dispatch(fetchVacancyRequests(params))
+      }
+
+      toast.success(`Vacancy request ${newStatus.toLowerCase()} successfully`, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      })
+      handleCloseDialog()
+    } catch (err: any) {
+      // If the dispatch fails, show error toast
+      console.log('Error updating status:', err)
+      toast.error(`Failed to update status to ${newStatus}: ${err}`, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      })
+      handleCloseDialog()
+    }
   }
 
   // Map API data to tab content (use API data where available, simulate the rest)
@@ -157,16 +358,6 @@ const ResignationDetailsPage = () => {
     }
   ]
 
-  // if (loading) {
-  //   return (
-  //     <Box sx={{ textAlign: 'center', mt: 4 }}>
-  //       <Typography variant='h6' color='text.secondary'>
-  //         Loading...
-  //       </Typography>
-  //     </Box>
-  //   )
-  // }
-
   if (loading) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
@@ -185,8 +376,46 @@ const ResignationDetailsPage = () => {
     )
   }
 
+  // Prepare approval status data for the stepper and approver details
+  const approvalStatus = vacancyRequestListData?.data?.[0]?.approvalStatus || []
+
+  const budget = {
+    approvalStatusLevel: approvalStatus.map((status: any, index: number) => {
+      const level = Object.keys(status)[0]
+      const approverInfo = status[level]
+      const approverDetail = approverDetails.find(detail => detail.approverId === approverInfo.approverId)
+
+      return {
+        label: approverInfo.approver,
+        status: approverInfo.status,
+        designation: `${approverInfo.approver} Approval`,
+        approverName: approverDetail?.name || 'Unknown',
+        employeeCode: approverDetail?.employeeCode || 'N/A'
+      }
+    })
+  }
+
+  // Calculate activeStep based on the approval status
+  const activeStep =
+    budget.approvalStatusLevel?.reduce((acc: number, step: any, index: number) => {
+      if (step.status === 'PENDING') return acc
+
+      return index + 1
+    }, 0) || 0
+
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       {/* Back Button */}
       {/* <Box sx={{ mb: 3 }}>
         <Tooltip title='Back to Listing'>
@@ -207,6 +436,38 @@ const ResignationDetailsPage = () => {
         </Typography>
       </Box> */}
 
+      {/* Confirmation Dialog */}
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          {/* {selectedAction && (
+                 <Typography color='warning.main' gutterBottom>
+                   This is ok for {selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction}?
+                 </Typography>
+               )} */}
+          {/* {selectedAction !== 'TRANSFER' && ( */}
+          <TextField
+            label='Reason/Notes'
+            variant='outlined'
+            fullWidth
+            multiline
+            rows={3}
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          {/* )} */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color='secondary'>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmAction} color='primary' disabled={updateVacancyRequestStatusLoading}>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* 1. Resignation Information */}
       <Card
         sx={{
@@ -224,6 +485,61 @@ const ResignationDetailsPage = () => {
               Resignation Information
             </Typography>
           </Box>
+          {withPermission(() => (
+            <Box>
+              {vacancyRequestList?.status === 'PENDING' && (
+                <>
+                  <Tooltip title='Approve'>
+                    <IconButton
+                      color='success'
+                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'APPROVED')}
+                      disabled={updateVacancyRequestStatusLoading}
+                    >
+                      <CheckCircleOutlineIcon fontSize='small' />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Reject'>
+                    <IconButton
+                      color='error'
+                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'REJECTED')}
+                      disabled={updateVacancyRequestStatusLoading}
+                    >
+                      <CancelOutlinedIcon fontSize='small' />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Freeze'>
+                    <IconButton
+                      color='info'
+                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'FREEZED')}
+                      disabled={updateVacancyRequestStatusLoading}
+                    >
+                      <PauseCircleOutlineIcon fontSize='small' />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Transfer'>
+                    <IconButton
+                      color='primary'
+                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'TRANSFER')}
+                      disabled={updateVacancyRequestStatusLoading}
+                    >
+                      <SwapHorizIcon fontSize='small' />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+              {vacancyRequestList?.status === 'FREEZED' && (
+                <Tooltip title='Un-Freeze'>
+                  <IconButton
+                    color='warning'
+                    onClick={() => handleOpenDialog(vacancyRequestList?.id, 'UNFREEZED')}
+                    disabled={updateVacancyRequestStatusLoading}
+                  >
+                    <PlayCircleOutlineIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          ))({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 3, mt: 3 }}>
@@ -259,16 +575,18 @@ const ResignationDetailsPage = () => {
               variant='body1'
               sx={{
                 color:
-                  (employee?.resignationDetails?.status || 'Approved') === 'Approved'
+                  (vacancyRequestList?.status || 'APPROVED') === 'APPROVED'
                     ? 'success.main'
-                    : (employee?.resignationDetails?.status || 'Approved') === 'Rejected'
-                      ? 'error.main'
-                      : 'warning.main',
+                    : (vacancyRequestList?.status || 'AUTO APPROVED') === 'AUTO APPROVED'
+                      ? 'success.main'
+                      : (vacancyRequestList?.status || 'REJECTED') === 'REJECTED'
+                        ? 'error.main'
+                        : 'warning.main',
                 mt: 0.5
               }}
               fontWeight='bold'
             >
-              {employee?.resignationDetails?.status || 'Approved'} {/* API doesn't provide, simulate */}
+              {vacancyRequestList?.status || 'Approved'} {/* API doesn't provide, simulate */}
             </Typography>
           </Box>
         </Box>
@@ -471,7 +789,7 @@ const ResignationDetailsPage = () => {
                 employee?.address?.residenceCity,
                 employee?.address?.residenceState,
                 employee?.address?.residenceCountry,
-                employee?.address?.residencePostalCode // Fixed typo: resignationPostalCode to residencePostalCode
+                employee?.address?.residencePostalCode
               ]
                 .filter(Boolean)
                 .join(', ') || '-'}
@@ -620,27 +938,108 @@ const ResignationDetailsPage = () => {
             <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.9rem' }}>
               View Link
             </Typography>
-            <Button
-              // variant='contained'
-              // color='primary'
-              href={surveyInfo.viewLink}
-
-              // sx={{
-              //   mt: 0.5,
-              //   textTransform: 'none',
-              //   borderRadius: 1,
-              //   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              //   '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }
-              // }}
-            >
-              View Survey
-            </Button>
+            <Button href={surveyInfo.viewLink}>View Survey</Button>
           </Box>
         </Box>
       </Card>
 
-      {/* 5. Approval History Table */}
-      <Card
+      {/* 5. Approval Status Section */}
+
+      {budget?.approvalStatusLevel?.length > 0 &&
+        withPermission(() => (
+          <Card
+            sx={{
+              p: 3,
+              mb: 4,
+              borderRadius: 2,
+              boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'white'
+            }}
+          >
+            <Typography variant='h6' sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
+              Approval Status
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            <Box sx={{ px: { xs: 2, md: 5 }, py: 3 }}>
+              <Stepper activeStep={activeStep} alternativeLabel>
+                {budget?.approvalStatusLevel?.map((step: any, index: number) => (
+                  <Step key={index}>
+                    <StepLabel
+                      error={step.status === 'Rejected'}
+                      sx={{
+                        '& .MuiStepLabel-label': {
+                          color:
+                            step.status === 'Completed'
+                              ? 'success.main'
+                              : step.status === 'Rejected'
+                                ? 'error.main'
+                                : 'warning.main',
+                          fontWeight: 500
+                        }
+                      }}
+                    >
+                      Level {index + 1}: {step.label} - {step.status}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+
+            {/* Approver Details */}
+            <Box
+              sx={{
+                mt: 4,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(250px, 1fr))' },
+                gap: 2
+              }}
+            >
+              {budget?.approvalStatusLevel?.map((approver: any, index: number) => (
+                <Card
+                  key={index}
+                  sx={{
+                    p: 2,
+                    borderRadius: 1,
+                    boxShadow: '0px 1px 5px rgba(0, 0, 0, 0.05)',
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography variant='subtitle1' sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                    Level {index + 1}: {approver.designation}
+                  </Typography>
+                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                    <strong>Name:</strong> {approver.approverName}
+                  </Typography>
+                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                    <strong>Employee Code:</strong> {approver.employeeCode}
+                  </Typography>
+                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                    <strong>Status:</strong>{' '}
+                    <span
+                      style={{
+                        color:
+                          approver.status === 'Rejected'
+                            ? '#d32f2f'
+                            : approver.status === 'Completed'
+                              ? '#2e7d32'
+                              : '#ed6c02',
+                        fontWeight: 500
+                      }}
+                    >
+                      {approver.status}
+                    </span>
+                  </Typography>
+                </Card>
+              ))}
+            </Box>
+          </Card>
+        ))({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}
+
+      {/* 6. Approval History Table (Commented Out) */}
+      {/* <Card
         sx={{
           p: 3,
           borderRadius: 1,
@@ -695,7 +1094,6 @@ const ResignationDetailsPage = () => {
                       size='small'
                       sx={{
                         color: 'white', // Set the text color to white
-                        // Ensure the background color contrast is maintained
                         bgcolor:
                           entry.status === 'Approved'
                             ? 'success.main'
@@ -745,7 +1143,7 @@ const ResignationDetailsPage = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </Card>
+      </Card> */}
     </Box>
   )
 }

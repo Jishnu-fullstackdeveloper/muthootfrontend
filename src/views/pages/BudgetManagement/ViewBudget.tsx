@@ -26,13 +26,13 @@ import {
 import { ArrowBack, Business, People, CalendarToday, Work } from '@mui/icons-material'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
 import {
   fetchBudgetIncreaseRequestById,
   approveRejectBudgetIncreaseRequest
 } from '@/redux/BudgetManagement/BudgetManagementSlice'
 import { fetchUser } from '@/redux/Approvals/approvalsSlice'
 import type { RootState } from '@/redux/store'
-import { getUserId } from '@/utils/functions'
 
 // MUI Imports
 
@@ -56,6 +56,8 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
   const pathname = usePathname()
 
   jobTitle
+
+  const permissions = getPermissionRenderConfig()
 
   // Redux State
   const {
@@ -231,50 +233,47 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
               }}
             />
           </Box>
-          {withPermission(
-            () => (
-              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
-                <Tooltip title='Approve Budget Request'>
-                  <Button
-                    variant='outlined'
-                    color='success'
-                    onClick={handleApprove}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      borderRadius: 1,
-                      px: 3,
-                      py: 1,
-                      boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)'
-                    }}
-                    startIcon={<i className='tabler-check' />}
-                  >
-                    Approve
-                  </Button>
-                </Tooltip>
-                <Tooltip title='Reject Budget Request'>
-                  <Button
-                    variant='outlined'
-                    color='error'
-                    onClick={handleReject}
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      borderRadius: 1,
-                      px: 3,
-                      py: 1,
-                      borderWidth: 2,
-                      '&:hover': { borderWidth: 2 }
-                    }}
-                    startIcon={<i className='tabler-playstation-x' />}
-                  >
-                    Reject
-                  </Button>
-                </Tooltip>
-              </Box>
-            ),
-            'budgetManagement'
-          )({ individualPermission: 'budget_approval' })}
+          {withPermission(() => (
+            <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
+              <Tooltip title='Approve Budget Request'>
+                <Button
+                  variant='outlined'
+                  color='success'
+                  onClick={handleApprove}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderRadius: 1,
+                    px: 3,
+                    py: 1,
+                    boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)'
+                  }}
+                  startIcon={<i className='tabler-check' />}
+                >
+                  Approve
+                </Button>
+              </Tooltip>
+              <Tooltip title='Reject Budget Request'>
+                <Button
+                  variant='outlined'
+                  color='error'
+                  onClick={handleReject}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderRadius: 1,
+                    px: 3,
+                    py: 1,
+                    borderWidth: 2,
+                    '&:hover': { borderWidth: 2 }
+                  }}
+                  startIcon={<i className='tabler-playstation-x' />}
+                >
+                  Reject
+                </Button>
+              </Tooltip>
+            </Box>
+          ))({ individualPermission: permissions?.HIRING_BUDGET_APPROVAL })}
         </Box>
       </Card>
 
@@ -591,4 +590,4 @@ const ViewBudget: React.FC<Props> = ({ mode, id, jobTitle }) => {
   )
 }
 
-export default withPermission(ViewBudget, 'budgetManagement')
+export default ViewBudget

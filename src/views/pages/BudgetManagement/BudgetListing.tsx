@@ -37,7 +37,9 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined' // starting date
 import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined' // closing date
 
-import { getUserId } from '@/utils/functions'
+import withPermission from '@/hocs/withPermission'
+import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
+
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { fetchUser } from '@/redux/Approvals/approvalsSlice'
 import {

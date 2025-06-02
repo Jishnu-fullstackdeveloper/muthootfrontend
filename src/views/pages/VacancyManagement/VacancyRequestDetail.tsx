@@ -52,7 +52,7 @@ import {
   fetchZone
 } from '@/redux/BudgetManagement/BudgetManagementSlice'
 import { ROUTES } from '@/utils/routes'
-import { getPermissionRenderConfig } from '@/utils/functions'
+import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
 import ActionButtons from './ActionButtons'
 import withPermission from '@/hocs/withPermission'
 
@@ -62,6 +62,9 @@ const VacancyRequestDetail = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Get current user ID
+  const userId = getUserId()
 
   // State for search, filters, and pagination
   const [searchDesignation, setSearchDesignation] = useState<string>('')
@@ -78,11 +81,9 @@ const VacancyRequestDetail = () => {
 
   // State for confirmation dialog
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
-
   const [selectedAction, setSelectedAction] = useState<
     'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
   >(null)
-
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>('')
   const permissions = getPermissionRenderConfig()
@@ -233,20 +234,47 @@ const VacancyRequestDetail = () => {
       await dispatch(
         updateVacancyRequestStatus({
           id: selectedId,
-          approverId: '71d82781-4cd1-4260-abdb-a4955e789bea', // Replace with actual approverId
+          approverId: userId, // Use current userId as approverId
           status: newStatus,
           notes // Include the notes from the text field
         })
       ).unwrap()
 
-      // If the dispatch is successful, refresh the list and show success toast
-      dispatch(
-        fetchVacancyRequests({
-          page: pagination.pageIndex + 1,
-          limit: pagination.pageSize,
-          designationId: designationId || ''
-        })
-      )
+      // Refresh the list with current filters, search, and pagination
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        employeeId?: string
+        id?: string
+        designationId?: string
+        departmentId?: string
+        branchIds?: string[]
+        status?: string
+        approvalIds?: string
+        approverIds?: string
+        areaIds?: string[]
+        regionIds?: string[]
+        zoneIds?: string[]
+        territoryIds?: string[]
+      } = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        designationId: designationId || ''
+      }
+
+      if (searchDesignation) params.search = searchDesignation
+
+      if (selectedFilterType && selectedFilterValues.length > 0) {
+        if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+        else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+        else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+        else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+        else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+      }
+
+      dispatch(fetchVacancyRequests(params))
+
       toast.success(`Vacancy request ${newStatus.toLowerCase()} successfully`, {
         position: 'top-right',
         autoClose: 5000,
@@ -257,7 +285,6 @@ const VacancyRequestDetail = () => {
       })
       handleCloseDialog()
     } catch (err: any) {
-      // If the dispatch fails, show error toast
       console.log('Error updating status:', err)
       toast.error(`Failed to update status to ${newStatus}: ${err}`, {
         position: 'top-right',
@@ -273,7 +300,33 @@ const VacancyRequestDetail = () => {
 
   const handleApproveAll = () => {
     dispatch(autoApproveVacancyRequests()).then(() => {
-      dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        designationId?: string
+        branchIds?: string[]
+        areaIds?: string[]
+        regionIds?: string[]
+        zoneIds?: string[]
+        territoryIds?: string[]
+      } = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        designationId: designationId || ''
+      }
+
+      if (searchDesignation) params.search = searchDesignation
+
+      if (selectedFilterType && selectedFilterValues.length > 0) {
+        if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+        else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+        else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+        else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+        else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+      }
+
+      dispatch(fetchVacancyRequests(params))
       toast.success('All vacancy requests approved successfully', {
         position: 'top-right',
         autoClose: 5000,
@@ -294,15 +347,41 @@ const VacancyRequestDetail = () => {
             dispatch(
               updateVacancyRequestStatus({
                 id: request.id,
-                approverId: '71d82781-4cd1-4260-abdb-a4955e789bea',
+                approverId: userId, // Use current userId
                 status: 'REJECTED',
-                notes: `Bulk rejection on ${new Date().toISOString()}` // Default notes for bulk action
+                notes: `Bulk rejection on ${new Date().toISOString()}`
               })
             )
           )
       )
         .then(() => {
-          dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+          const params: {
+            page: number
+            limit: number
+            search?: string
+            designationId?: string
+            branchIds?: string[]
+            areaIds?: string[]
+            regionIds?: string[]
+            zoneIds?: string[]
+            territoryIds?: string[]
+          } = {
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            designationId: designationId || ''
+          }
+
+          if (searchDesignation) params.search = searchDesignation
+
+          if (selectedFilterType && selectedFilterValues.length > 0) {
+            if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+            else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+            else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+            else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+            else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+          }
+
+          dispatch(fetchVacancyRequests(params))
           toast.success('All vacancy requests rejected successfully', {
             position: 'top-right',
             autoClose: 5000,
@@ -334,15 +413,41 @@ const VacancyRequestDetail = () => {
             dispatch(
               updateVacancyRequestStatus({
                 id: request.id,
-                approverId: '71d82781-4cd1-4260-abdb-a4955e789bea',
+                approverId: userId, // Use current userId
                 status: 'FREEZED',
-                notes: `Bulk freeze on ${new Date().toISOString()}` // Default notes for bulk action
+                notes: `Bulk freeze on ${new Date().toISOString()}`
               })
             )
           )
       )
         .then(() => {
-          dispatch(fetchVacancyRequests({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+          const params: {
+            page: number
+            limit: number
+            search?: string
+            designationId?: string
+            branchIds?: string[]
+            areaIds?: string[]
+            regionIds?: string[]
+            zoneIds?: string[]
+            territoryIds?: string[]
+          } = {
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            designationId: designationId || ''
+          }
+
+          if (searchDesignation) params.search = searchDesignation
+
+          if (selectedFilterType && selectedFilterValues.length > 0) {
+            if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+            else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+            else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+            else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+            else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+          }
+
+          dispatch(fetchVacancyRequests(params))
           toast.success('All vacancy requests FREEZED successfully', {
             position: 'top-right',
             autoClose: 5000,
@@ -421,79 +526,56 @@ const VacancyRequestDetail = () => {
         header: 'STATUS',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
       }),
+      // Approver Status Column
+      columnHelper.accessor('approvalStatus', {
+        header: 'APPROVER STATUS',
+        cell: ({ row }) => {
+          const approvalStatus = row.original.approvalStatus || []
+          // Find the current approver's status where approverId matches userId
+          const currentApprover = approvalStatus.find((status: any) => {
+            const level = status.id ? status : Object.values(status)[0]
+            return level.approverId === userId
+          })
+
+          if (!currentApprover) {
+            return <Typography color='text.secondary'>Not Assigned</Typography>
+          }
+
+          const status = currentApprover.id ? currentApprover.approvalStatus : Object.values(currentApprover)[0].status
+
+          return (
+            <Typography
+              color={
+                status === 'APPROVED'
+                  ? 'success.main'
+                  : status === 'REJECTED'
+                    ? 'error.main'
+                    : status === 'PENDING'
+                      ? 'warning.main'
+                      : 'text.primary'
+              }
+            >
+              {status}
+            </Typography>
+          )
+        }
+      }),
       columnHelper.accessor('id', {
         header: 'ACTIONS',
         cell: ({ row }) => (
-          // <Box sx={{ display: 'flex', gap: 1 }}>
-          //   {row.original.status === 'PENDING' && (
-          //     <>
-          //       <Tooltip title='Approve'>
-          //         <IconButton
-          //           color='success'
-          //           onClick={() => handleOpenDialog(row.original.id, 'APPROVED')}
-          //           disabled={updateVacancyRequestStatusLoading}
-          //         >
-          //           <CheckCircleOutlineIcon fontSize='small' />
-          //         </IconButton>
-          //       </Tooltip>
-          //       <Tooltip title='Reject'>
-          //         <IconButton
-          //           color='error'
-          //           onClick={() => handleOpenDialog(row.original.id, 'REJECTED')}
-          //           disabled={updateVacancyRequestStatusLoading}
-          //         >
-          //           <CancelOutlinedIcon fontSize='small' />
-          //         </IconButton>
-          //       </Tooltip>
-          //       <Tooltip title='Freeze'>
-          //         <IconButton
-          //           color='info'
-          //           onClick={() => handleOpenDialog(row.original.id, 'FREEZED')}
-          //           disabled={updateVacancyRequestStatusLoading}
-          //         >
-          //           <PauseCircleOutlineIcon fontSize='small' />
-          //         </IconButton>
-          //       </Tooltip>
-          //       <Tooltip title='Transfer'>
-          //         <IconButton
-          //           color='primary'
-          //           onClick={() => handleOpenDialog(row.original.id, 'TRANSFER')}
-          //           disabled={updateVacancyRequestStatusLoading}
-          //         >
-          //           <SwapHorizIcon fontSize='small' />
-          //         </IconButton>
-          //       </Tooltip>
-          //     </>
-          //   )}
-          //   {row.original.status === 'FREEZED' && (
-          //     <Tooltip title='Un-Freeze'>
-          //       <IconButton
-          //         color='warning'
-          //         onClick={() => handleOpenDialog(row.original.id, 'UNFREEZED')}
-          //         disabled={updateVacancyRequestStatusLoading}
-          //       >
-          //         <PlayCircleOutlineIcon fontSize='small' />
-          //       </IconButton>
-          //     </Tooltip>
-          //   )}
-          //   <Tooltip title='View Employee Details'>
-          //     <IconButton color='primary' onClick={() => handleViewEmployeeDetails(row.original.employeeId)}>
-          //       <VisibilityIcon fontSize='small' />
-          //     </IconButton>
-          //   </Tooltip>
-          // </Box>
           <ActionButtonsWithPermission
             row={row}
             handleOpenDialog={handleOpenDialog}
             handleViewEmployeeDetails={handleViewEmployeeDetails}
             updateVacancyRequestStatusLoading={updateVacancyRequestStatusLoading}
+            userId={userId} // Pass userId to ActionButtons
             individualPermission={permissions.HIRING_VACANCY_VACANCYREQUEST_APPROVAL}
           />
         ),
         enableSorting: false
       })
     ],
-    [columnHelper, updateVacancyRequestStatusLoading]
+    [columnHelper, updateVacancyRequestStatusLoading, userId]
   )
 
   const handlePageChange = (newPage: number) => {
@@ -564,12 +646,6 @@ const VacancyRequestDetail = () => {
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
-          {/* {selectedAction && (
-            <Typography color='warning.main' gutterBottom>
-              This is ok for {selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction}?
-            </Typography>
-          )} */}
-          {/* {selectedAction !== 'TRANSFER' && ( */}
           <TextField
             label='Reason/Notes'
             variant='outlined'
@@ -580,7 +656,6 @@ const VacancyRequestDetail = () => {
             onChange={e => setNotes(e.target.value)}
             sx={{ mt: 2 }}
           />
-          {/* )} */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color='secondary'>
@@ -675,22 +750,6 @@ const VacancyRequestDetail = () => {
               </Button>
             }
           />
-          {/* <Button
-            variant='outlined'
-            color='error'
-            onClick={handleRejectAll}
-            disabled={
-              updateVacancyRequestStatusLoading || !vacancyRequestListData?.data?.some(req => req.status === 'PENDING')
-            }
-            sx={{
-              borderColor: 'error.main',
-              '&:hover': {
-                backgroundColor: 'error.main'
-              }
-            }}
-          >
-            Reject All
-          </Button> */}
           <FreezeAllButtonWithPermission
             onClick={handleFreezeAll}
             disabled={
@@ -775,14 +834,14 @@ const VacancyRequestDetail = () => {
         <DynamicTable
           columns={columns}
           data={filteredData}
-          totalCount={vacancyRequestListTotal}
+          totalCount={vacancyRequestListData?.totalCount}
           pagination={pagination}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Resignation Approvals'
           isRowCheckbox={true}
           onRowSelectionChange={selectedRows => {}}
-          loading={vacancyRequestListLoading}
+          loading={vacancyRequestListLoading || updateVacancyRequestStatusLoading}
         />
       )}
     </Box>

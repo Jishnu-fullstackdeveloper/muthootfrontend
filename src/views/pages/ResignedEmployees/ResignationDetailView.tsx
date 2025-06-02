@@ -45,13 +45,13 @@ import HistoryIcon from '@mui/icons-material/History'
 
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { getPermissionRenderConfig } from '@/utils/functions'
+import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
 import withPermission from '@/hocs/withPermission'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState, AppDispatch } from '@/redux/store'
-import { fetchEmployeeById } from '@/redux/ResignationDataListing/ResignationDataListingSlice' // Still needed for main employee
-import { fetchUserById } from '@/redux/UserManagment/userManagementSlice' // New import for approver details
+import { fetchEmployeeById } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
+import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
 import type { ResignedEmployee } from '@/types/resignationDataListing'
 import type { VacancyManagementState, VacancyRequest } from '@/types/vacancyManagement'
 import { fetchVacancyRequests, updateVacancyRequestStatus } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
@@ -89,12 +89,13 @@ const ResignationDetailsPage = () => {
   const employeeId = searchParams.get('id') // Get the employee ID from the URL query params
   const permissions = getPermissionRenderConfig()
 
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+  // Get current user ID
+  const userId = getUserId()
 
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [selectedAction, setSelectedAction] = useState<
     'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
   >(null)
-
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>('')
 
@@ -115,17 +116,17 @@ const ResignationDetailsPage = () => {
     autoApproveVacancyRequestsLoading = false
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
 
-  // Add selector for userManagementReducer to access fetchUserById state (though not directly used here)
+  // Add selector for userManagementReducer to access fetchUserById state
   const { userManagementData, isUserManagementLoading } = useAppSelector(
     (state: RootState) => state.UserManagementReducer
   )
 
-  const vacancyRequestList = vacancyRequestListData?.data[0] || {}
+  const vacancyRequestList = vacancyRequestListData?.data?.[0] || {}
 
   const [tabValue, setTabValue] = useState(0)
   const [approverDetails, setApproverDetails] = useState<ApproverDetails[]>([])
 
-  // Fetch employee details by ID (this still uses fetchResignedEmployeeById)
+  // Fetch employee details by ID
   useEffect(() => {
     if (employeeId) {
       dispatch(fetchEmployeeById(employeeId))
@@ -156,11 +157,7 @@ const ResignationDetailsPage = () => {
     if (vacancyRequestListData?.data?.length) {
       const approvalStatusArray = vacancyRequestListData.data[0]?.approvalStatus || []
 
-      const approverIds = approvalStatusArray.map((status: any, index: number) => {
-        const level = Object.keys(status)[0]
-
-        return status[level].approverId
-      })
+      const approverIds = approvalStatusArray.map((status: any) => status.approverId)
 
       // Fetch user details for each approverId using fetchUserById
       const fetchApprovers = async () => {
@@ -229,24 +226,22 @@ const ResignationDetailsPage = () => {
         draggable: true
       })
       handleCloseDialog()
-
       return
     }
 
-    // const newStatus = selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction
-    const newStatus = selectedAction
+    const newStatus = selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction
 
     try {
       await dispatch(
         updateVacancyRequestStatus({
           id: selectedId,
-          approverId: '71d82781-4cd1-4260-abdb-a4955e789bea', // Replace with actual approverId
+          approverId: userId, // Use current userId as approverId
           status: newStatus,
           notes // Include the notes from the text field
         })
       ).unwrap()
 
-      // If the dispatch is successful, refresh the list and show success toast
+      // Refresh the vacancy request list
       if (employeeId) {
         const params: {
           page: number
@@ -254,12 +249,11 @@ const ResignationDetailsPage = () => {
           search?: string
           employeeId?: string
         } = {
-          page: 1, // Fixed page
-          limit: 10, // Fixed limit
+          page: 1,
+          limit: 10,
           employeeId: employeeId,
-          search: '' // Empty search as not needed
+          search: ''
         }
-
         dispatch(fetchVacancyRequests(params))
       }
 
@@ -273,7 +267,6 @@ const ResignationDetailsPage = () => {
       })
       handleCloseDialog()
     } catch (err: any) {
-      // If the dispatch fails, show error toast
       console.log('Error updating status:', err)
       toast.error(`Failed to update status to ${newStatus}: ${err}`, {
         position: 'top-right',
@@ -287,7 +280,7 @@ const ResignationDetailsPage = () => {
     }
   }
 
-  // Map API data to tab content (use API data where available, simulate the rest)
+  // Map API data to tab content
   const relievingInfo = {
     relievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
     noticePeriodServed: employee?.resignationDetails?.noticePeriod || '-',
@@ -312,7 +305,7 @@ const ResignationDetailsPage = () => {
       date: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '2025-05-01',
       by: 'Employee'
     },
-    { action: 'Resignation Approved', date: '2025-05-05', by: 'L1 Manager' }, // Simulate remaining entries
+    { action: 'Resignation Approved', date: '2025-05-05', by: 'L1 Manager' },
     { action: 'Final Settlement Processed', date: '2025-06-01', by: 'HR' }
   ]
 
@@ -333,11 +326,11 @@ const ResignationDetailsPage = () => {
       approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
       actionDate: '2025-05-05',
       resignationType: 'Voluntary',
-      reasonForSeparation: 'Personal Reasons', // Simulate as API doesn't provide this
+      reasonForSeparation: 'Personal Reasons',
       absconding: false,
       comment: 'Approved without issues',
-      attachment: 'attachment1.pdf', // Simulate
-      attachmentCRIF: 'crif1.pdf', // Simulate
+      attachment: 'attachment1.pdf',
+      attachmentCRIF: 'crif1.pdf',
       actionName: 'Approve'
     },
     {
@@ -348,12 +341,12 @@ const ResignationDetailsPage = () => {
       resignationDate: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-',
       approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
       actionDate: '2025-05-10',
-      resignationType: 'Voluntary',
-      reasonForSeparation: 'Personal Reasons', // Simulate as API doesn't provide this
+      resignationType: 'Vol 1:1',
+      reasonForSeparation: 'Personal Reasons',
       absconding: false,
       comment: 'Pending no-dues clearance',
-      attachment: 'attachment2.pdf', // Simulate
-      attachmentCRIF: 'crif2.pdf', // Simulate
+      attachment: 'attachment2.pdf',
+      attachmentCRIF: 'crif2.pdf',
       actionName: 'Hold'
     }
   ]
@@ -379,16 +372,18 @@ const ResignationDetailsPage = () => {
   // Prepare approval status data for the stepper and approver details
   const approvalStatus = vacancyRequestListData?.data?.[0]?.approvalStatus || []
 
-  const budget = {
-    approvalStatusLevel: approvalStatus.map((status: any, index: number) => {
-      const level = Object.keys(status)[0]
-      const approverInfo = status[level]
-      const approverDetail = approverDetails.find(detail => detail.approverId === approverInfo.approverId)
+  // Sort approvalStatus by level in ascending order
+  const sortedApprovalStatus = [...approvalStatus].sort((a: any, b: any) => a.level - b.level)
 
+  const budget = {
+    approvalStatusLevel: sortedApprovalStatus.map((status: any, index: number) => {
+      const approverDetail = approverDetails.find(detail => detail.approverId === status.approverId)
+      // Replace underscores with spaces in the approver field for display
+      const formattedApprover = status.approver.replace(/_/g, ' ')
       return {
-        label: approverInfo.approver,
-        status: approverInfo.status,
-        designation: `${approverInfo.approver} Approval`,
+        label: `Level ${status.level}: ${formattedApprover}`,
+        status: status.approvalStatus,
+        designation: `${formattedApprover} Approval`,
         approverName: approverDetail?.name || 'Unknown',
         employeeCode: approverDetail?.employeeCode || 'N/A'
       }
@@ -399,9 +394,20 @@ const ResignationDetailsPage = () => {
   const activeStep =
     budget.approvalStatusLevel?.reduce((acc: number, step: any, index: number) => {
       if (step.status === 'PENDING') return acc
-
       return index + 1
     }, 0) || 0
+
+  // Determine if actions should be enabled
+  const currentApprover = approvalStatus.find((status: any) => status.approverId === userId)
+  const approverStatus = currentApprover ? currentApprover.approvalStatus : null
+  const canTakeAction =
+    approverStatus === 'PENDING' &&
+    (vacancyRequestList?.status === 'PENDING' ||
+      (vacancyRequestList?.status === 'FREEZED' && approverStatus === 'PENDING'))
+
+  // Check if any level has "PENDING" status to decide which buttons to show
+  const showPendingActions = approvalStatus.some((status: any) => status.approvalStatus === 'PENDING')
+  const showUnfreezeAction = vacancyRequestList?.status === 'FREEZED'
 
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -440,12 +446,6 @@ const ResignationDetailsPage = () => {
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
-          {/* {selectedAction && (
-                 <Typography color='warning.main' gutterBottom>
-                   This is ok for {selectedAction === 'UNFREEZED' ? 'PENDING' : selectedAction}?
-                 </Typography>
-               )} */}
-          {/* {selectedAction !== 'TRANSFER' && ( */}
           <TextField
             label='Reason/Notes'
             variant='outlined'
@@ -456,7 +456,6 @@ const ResignationDetailsPage = () => {
             onChange={e => setNotes(e.target.value)}
             sx={{ mt: 2 }}
           />
-          {/* )} */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color='secondary'>
@@ -487,55 +486,67 @@ const ResignationDetailsPage = () => {
           </Box>
           {withPermission(() => (
             <Box>
-              {vacancyRequestList?.status === 'PENDING' && (
+              {/* Show Approve, Reject, Freeze, and Transfer buttons if any level is PENDING */}
+              {showPendingActions && (
                 <>
                   <Tooltip title='Approve'>
-                    <IconButton
-                      color='success'
-                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'APPROVED')}
-                      disabled={updateVacancyRequestStatusLoading}
-                    >
-                      <CheckCircleOutlineIcon fontSize='small' />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        color='success'
+                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'APPROVED')}
+                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                      >
+                        <CheckCircleOutlineIcon fontSize='small' />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title='Reject'>
-                    <IconButton
-                      color='error'
-                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'REJECTED')}
-                      disabled={updateVacancyRequestStatusLoading}
-                    >
-                      <CancelOutlinedIcon fontSize='small' />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        color='error'
+                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'REJECTED')}
+                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                      >
+                        <CancelOutlinedIcon fontSize='small' />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title='Freeze'>
-                    <IconButton
-                      color='info'
-                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'FREEZED')}
-                      disabled={updateVacancyRequestStatusLoading}
-                    >
-                      <PauseCircleOutlineIcon fontSize='small' />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        color='info'
+                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'FREEZED')}
+                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                      >
+                        <PauseCircleOutlineIcon fontSize='small' />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title='Transfer'>
-                    <IconButton
-                      color='primary'
-                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'TRANSFER')}
-                      disabled={updateVacancyRequestStatusLoading}
-                    >
-                      <SwapHorizIcon fontSize='small' />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        color='primary'
+                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'TRANSFER')}
+                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                      >
+                        <SwapHorizIcon fontSize='small' />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </>
               )}
-              {vacancyRequestList?.status === 'FREEZED' && (
+              {/* Show Un-Freeze button if status is FREEZED */}
+              {showUnfreezeAction && (
                 <Tooltip title='Un-Freeze'>
-                  <IconButton
-                    color='warning'
-                    onClick={() => handleOpenDialog(vacancyRequestList?.id, 'UNFREEZED')}
-                    disabled={updateVacancyRequestStatusLoading}
-                  >
-                    <PlayCircleOutlineIcon fontSize='small' />
-                  </IconButton>
+                  <span>
+                    <IconButton
+                      color='warning'
+                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'UNFREEZED')}
+                      disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                    >
+                      <PlayCircleOutlineIcon fontSize='small' />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               )}
             </Box>
@@ -548,7 +559,7 @@ const ResignationDetailsPage = () => {
               Resignation Code
             </Typography>
             <Typography variant='body1' fontWeight='bold' sx={{ color: 'text.primary', mt: 0.5 }}>
-              {employee?.resignationDetails?.resignationCode || 'RES-001'} {/* API doesn't provide, simulate */}
+              {employee?.resignationDetails?.resignationCode || 'RES-001'}
             </Typography>
           </Box>
           <Box>
@@ -564,7 +575,7 @@ const ResignationDetailsPage = () => {
               Stage
             </Typography>
             <Typography variant='body1' fontWeight='bold' sx={{ color: 'text.primary', mt: 0.5 }}>
-              {employee?.resignationDetails?.stage || 'In Process'} {/* API doesn't provide, simulate */}
+              {employee?.resignationDetails?.stage || 'In Process'}
             </Typography>
           </Box>
           <Box>
@@ -586,7 +597,7 @@ const ResignationDetailsPage = () => {
               }}
               fontWeight='bold'
             >
-              {vacancyRequestList?.status || 'Approved'} {/* API doesn't provide, simulate */}
+              {vacancyRequestList?.status || 'Approved'}
             </Typography>
           </Box>
         </Box>
@@ -655,7 +666,7 @@ const ResignationDetailsPage = () => {
               Spurious
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.employeeDetails?.employmentType === 'ESI No' ? 'No' : 'Yes'} {/* Based on employmentType */}
+              {employee?.employeeDetails?.employmentType === 'ESI No' ? 'No' : 'Yes'}
             </Typography>
           </Box>
           <Box>
@@ -687,7 +698,7 @@ const ResignationDetailsPage = () => {
               Location
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.companyStructure?.branchCode || '-'} {/* Using branchCode as location */}
+              {employee?.companyStructure?.branchCode || '-'}
             </Typography>
           </Box>
           <Box>
@@ -703,7 +714,7 @@ const ResignationDetailsPage = () => {
               L1 Manager
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.managementHierarchy?.l1Manager || '-'}
+              {employee?.managementHierarchy?.l1Manager?.replace(/_/g, ' ') || '-'}
             </Typography>
           </Box>
           <Box>
@@ -711,7 +722,7 @@ const ResignationDetailsPage = () => {
               L2 Manager
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.managementHierarchy?.l2Manager || '-'}
+              {employee?.managementHierarchy?.l2Manager?.replace(/_/g, ' ') || '-'}
             </Typography>
           </Box>
           <Box>
@@ -719,7 +730,7 @@ const ResignationDetailsPage = () => {
               HR Manager
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.managementHierarchy?.hrManager || '-'}
+              {employee?.managementHierarchy?.hrManager?.replace(/_/g, ' ') || '-'}
             </Typography>
           </Box>
           <Box>
@@ -759,7 +770,7 @@ const ResignationDetailsPage = () => {
               Leave Balance on LWD
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.leaveBalanceOnLWD || '10 days'} {/* API doesn't provide, simulate */}
+              {employee?.leaveBalanceOnLWD || '10 days'}
             </Typography>
           </Box>
           <Box>
@@ -767,7 +778,7 @@ const ResignationDetailsPage = () => {
               Correspondence Email
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold', color: 'text.primary', mt: 0.5 }}>
-              {employee?.personalEmailAddress || '-'} {/* Use personalEmailAddress as correspondence */}
+              {employee?.personalEmailAddress || '-'}
             </Typography>
           </Box>
           <Box>
@@ -944,7 +955,6 @@ const ResignationDetailsPage = () => {
       </Card>
 
       {/* 5. Approval Status Section */}
-
       {budget?.approvalStatusLevel?.length > 0 &&
         withPermission(() => (
           <Card
@@ -967,20 +977,20 @@ const ResignationDetailsPage = () => {
                 {budget?.approvalStatusLevel?.map((step: any, index: number) => (
                   <Step key={index}>
                     <StepLabel
-                      error={step.status === 'Rejected'}
+                      error={step.status === 'REJECTED'} // Updated to match API status
                       sx={{
                         '& .MuiStepLabel-label': {
                           color:
-                            step.status === 'Completed'
+                            step.status === 'APPROVED'
                               ? 'success.main'
-                              : step.status === 'Rejected'
+                              : step.status === 'REJECTED'
                                 ? 'error.main'
                                 : 'warning.main',
                           fontWeight: 500
                         }
                       }}
                     >
-                      Level {index + 1}: {step.label} - {step.status}
+                      {step.label} - {step.status}
                     </StepLabel>
                   </Step>
                 ))}
@@ -1008,7 +1018,7 @@ const ResignationDetailsPage = () => {
                   }}
                 >
                   <Typography variant='subtitle1' sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                    Level {index + 1}: {approver.designation}
+                    {approver.designation}
                   </Typography>
                   <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
                     <strong>Name:</strong> {approver.approverName}
@@ -1021,9 +1031,9 @@ const ResignationDetailsPage = () => {
                     <span
                       style={{
                         color:
-                          approver.status === 'Rejected'
+                          approver.status === 'REJECTED'
                             ? '#d32f2f'
-                            : approver.status === 'Completed'
+                            : approver.status === 'APPROVED'
                               ? '#2e7d32'
                               : '#ed6c02',
                         fontWeight: 500
@@ -1093,7 +1103,7 @@ const ResignationDetailsPage = () => {
                       }
                       size='small'
                       sx={{
-                        color: 'white', // Set the text color to white
+                        color: 'white',
                         bgcolor:
                           entry.status === 'Approved'
                             ? 'success.main'

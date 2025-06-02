@@ -350,7 +350,7 @@ const VacancyRequestListing = () => {
         <DynamicTable
           columns={columns}
           data={filteredData}
-          totalCount={vacancyRequestGroupByDesignationTotal}
+          totalCount={vacancyRequestGroupByDesignationData?.totalCount}
           pagination={pagination}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}

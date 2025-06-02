@@ -214,8 +214,8 @@ const EmployeeProfilePage = () => {
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
             }}
           >
-            {employee.firstName[0]}
-            {employee.lastName[0]}
+            {(employee?.firstName?.charAt(0)?.toUpperCase() || '') +
+              (employee?.lastName?.charAt(0)?.toUpperCase() || '')}
           </Avatar>
           <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
             {employee.title} {employee.firstName} {employee.middleName !== '-' ? employee.middleName : ''}{' '}

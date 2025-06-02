@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
 import {
   Box,
@@ -84,10 +84,13 @@ interface ApproverDetails {
 const ResignationDetailsPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
+  const pathname = usePathname()
 
   const searchParams = useSearchParams()
   const employeeId = searchParams.get('id') // Get the employee ID from the URL query params
   const permissions = getPermissionRenderConfig()
+  const isResignationDetailPage =
+    pathname === '/hiring-management/vacancy-management/vacancy-request/resignation-detail'
 
   // Get current user ID
   const userId = getUserId()
@@ -484,73 +487,73 @@ const ResignationDetailsPage = () => {
               Resignation Information
             </Typography>
           </Box>
-          {withPermission(() => (
-            <Box>
-              {/* Show Approve, Reject, Freeze, and Transfer buttons if any level is PENDING */}
-              {showPendingActions && (
-                <>
-                  <Tooltip title='Approve'>
+          {withPermission(() =>
+            isResignationDetailPage ? (
+              <Box>
+                {showPendingActions && (
+                  <>
+                    <Tooltip title='Approve'>
+                      <span>
+                        <IconButton
+                          color='success'
+                          onClick={() => handleOpenDialog(vacancyRequestList?.id, 'APPROVED')}
+                          disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                        >
+                          <CheckCircleOutlineIcon fontSize='small' />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title='Reject'>
+                      <span>
+                        <IconButton
+                          color='error'
+                          onClick={() => handleOpenDialog(vacancyRequestList?.id, 'REJECTED')}
+                          disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                        >
+                          <CancelOutlinedIcon fontSize='small' />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title='Freeze'>
+                      <span>
+                        <IconButton
+                          color='info'
+                          onClick={() => handleOpenDialog(vacancyRequestList?.id, 'FREEZED')}
+                          disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                        >
+                          <PauseCircleOutlineIcon fontSize='small' />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title='Transfer'>
+                      <span>
+                        <IconButton
+                          color='primary'
+                          onClick={() => handleOpenDialog(vacancyRequestList?.id, 'TRANSFER')}
+                          disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+                        >
+                          <SwapHorizIcon fontSize='small' />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </>
+                )}
+                {showUnfreezeAction && (
+                  <Tooltip title='Un-Freeze'>
                     <span>
                       <IconButton
-                        color='success'
-                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'APPROVED')}
+                        color='warning'
+                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'UNFREEZED')}
                         disabled={updateVacancyRequestStatusLoading || !canTakeAction}
                       >
-                        <CheckCircleOutlineIcon fontSize='small' />
+                        <PlayCircleOutlineIcon fontSize='small' />
                       </IconButton>
                     </span>
                   </Tooltip>
-                  <Tooltip title='Reject'>
-                    <span>
-                      <IconButton
-                        color='error'
-                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'REJECTED')}
-                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
-                      >
-                        <CancelOutlinedIcon fontSize='small' />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title='Freeze'>
-                    <span>
-                      <IconButton
-                        color='info'
-                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'FREEZED')}
-                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
-                      >
-                        <PauseCircleOutlineIcon fontSize='small' />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title='Transfer'>
-                    <span>
-                      <IconButton
-                        color='primary'
-                        onClick={() => handleOpenDialog(vacancyRequestList?.id, 'TRANSFER')}
-                        disabled={updateVacancyRequestStatusLoading || !canTakeAction}
-                      >
-                        <SwapHorizIcon fontSize='small' />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </>
-              )}
-              {/* Show Un-Freeze button if status is FREEZED */}
-              {showUnfreezeAction && (
-                <Tooltip title='Un-Freeze'>
-                  <span>
-                    <IconButton
-                      color='warning'
-                      onClick={() => handleOpenDialog(vacancyRequestList?.id, 'UNFREEZED')}
-                      disabled={updateVacancyRequestStatusLoading || !canTakeAction}
-                    >
-                      <PlayCircleOutlineIcon fontSize='small' />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-            </Box>
-          ))({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}
+                )}
+              </Box>
+            ) : null
+          )({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 3, mt: 3 }}>

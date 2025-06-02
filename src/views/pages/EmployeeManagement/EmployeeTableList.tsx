@@ -48,7 +48,7 @@ const EmployeeTable = () => {
     const mappedData = employees?.map(employee => ({
       id: employee.id,
       employeeCode: employee.employeeCode,
-      fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName}`, // Combine firstName, middleName, lastName
+      fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName ? ` ${employee.lastName}` : ''}`, // Combine firstName, middleName, lastName
       employeeType: employee.employeeDetails.employmentType,
       status: employee.employeeDetails.employmentStatus,
       company: employee.companyStructure.company,

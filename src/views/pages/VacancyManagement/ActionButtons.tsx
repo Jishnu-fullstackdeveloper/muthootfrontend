@@ -15,70 +15,116 @@ interface ActionButtonsProps {
   handleOpenDialog: (id: string, action: 'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER') => void
   handleViewEmployeeDetails: (employeeId: string) => void
   updateVacancyRequestStatusLoading: boolean
+  userId: string
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
   row,
   handleOpenDialog,
   handleViewEmployeeDetails,
-  updateVacancyRequestStatusLoading
+  updateVacancyRequestStatusLoading,
+  userId
 }) => {
+  const { status, approvalStatus, id, employeeId } = row.original
+
+  // Find the current approver's status where approverId matches userId
+  const currentApprover = (approvalStatus || []).find((status: any) => {
+    const level = status.id ? status : Object.values(status)[0]
+    return level.approverId === userId
+  })
+
+  const approverStatus = currentApprover
+    ? currentApprover.id
+      ? currentApprover.approvalStatus
+      : Object.values(currentApprover)[0].status
+    : null
+
+  // Determine if actions should be enabled:
+  // - approverStatus must be "PENDING"
+  // - Overall status must be "PENDING" for Approve/Reject/Freeze/Transfer, or "FREEZED" for Un-Freeze
+  const canTakeAction =
+    approverStatus === 'PENDING' && (status === 'PENDING' || (status === 'FREEZED' && approverStatus === 'PENDING'))
+
+  // Check if the first level of approval is pending (to decide which buttons to show)
+  const firstLevelStatus = approvalStatus?.[0]
+    ? approvalStatus[0].id
+      ? approvalStatus[0].approvalStatus
+      : Object.values(approvalStatus[0])[0].status
+    : null
+
+  const showPendingActions = firstLevelStatus === 'PENDING' || status === 'PENDING'
+  const showUnfreezeAction = status === 'FREEZED'
+
   return (
     <Box sx={{ display: 'flex', gap: 1 }}>
-      {row.original.status === 'PENDING' && (
+      {/* Always show Approve, Reject, Freeze, and Transfer buttons if first level is PENDING or status is PENDING */}
+      {showPendingActions && (
         <>
           <Tooltip title='Approve'>
-            <IconButton
-              color='success'
-              onClick={() => handleOpenDialog(row.original.id, 'APPROVED')}
-              disabled={updateVacancyRequestStatusLoading}
-            >
-              <CheckCircleOutlineIcon fontSize='small' />
-            </IconButton>
+            <span>
+              <IconButton
+                color='success'
+                onClick={() => handleOpenDialog(id, 'APPROVED')}
+                disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+              >
+                <CheckCircleOutlineIcon fontSize='small' />
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title='Reject'>
-            <IconButton
-              color='error'
-              onClick={() => handleOpenDialog(row.original.id, 'REJECTED')}
-              disabled={updateVacancyRequestStatusLoading}
-            >
-              <CancelOutlinedIcon fontSize='small' />
-            </IconButton>
+            <span>
+              <IconButton
+                color='error'
+                onClick={() => handleOpenDialog(id, 'REJECTED')}
+                disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+              >
+                <CancelOutlinedIcon fontSize='small' />
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title='Freeze'>
-            <IconButton
-              color='info'
-              onClick={() => handleOpenDialog(row.original.id, 'FREEZED')}
-              disabled={updateVacancyRequestStatusLoading}
-            >
-              <PauseCircleOutlineIcon fontSize='small' />
-            </IconButton>
+            <span>
+              <IconButton
+                color='info'
+                onClick={() => handleOpenDialog(id, 'FREEZED')}
+                disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+              >
+                <PauseCircleOutlineIcon fontSize='small' />
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title='Transfer'>
-            <IconButton
-              color='primary'
-              onClick={() => handleOpenDialog(row.original.id, 'TRANSFER')}
-              disabled={updateVacancyRequestStatusLoading}
-            >
-              <SwapHorizIcon fontSize='small' />
-            </IconButton>
+            <span>
+              <IconButton
+                color='primary'
+                onClick={() => handleOpenDialog(id, 'TRANSFER')}
+                disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+              >
+                <SwapHorizIcon fontSize='small' />
+              </IconButton>
+            </span>
           </Tooltip>
         </>
       )}
-      {row.original.status === 'FREEZED' && (
+
+      {/* Always show Un-Freeze button if status is FREEZED */}
+      {showUnfreezeAction && (
         <Tooltip title='Un-Freeze'>
-          <IconButton
-            color='warning'
-            onClick={() => handleOpenDialog(row.original.id, 'UNFREEZED')}
-            disabled={updateVacancyRequestStatusLoading}
-          >
-            <PlayCircleOutlineIcon fontSize='small' />
-          </IconButton>
+          <span>
+            <IconButton
+              color='warning'
+              onClick={() => handleOpenDialog(id, 'UNFREEZED')}
+              disabled={updateVacancyRequestStatusLoading || !canTakeAction}
+            >
+              <PlayCircleOutlineIcon fontSize='small' />
+            </IconButton>
+          </span>
         </Tooltip>
       )}
 
+      {/* Always show View Employee Details button */}
       <Tooltip title='View Employee Details'>
-        <IconButton color='primary' onClick={() => handleViewEmployeeDetails(row.original.employeeId)}>
+        <IconButton color='primary' onClick={() => handleViewEmployeeDetails(employeeId)}>
           <VisibilityIcon fontSize='small' />
         </IconButton>
       </Tooltip>

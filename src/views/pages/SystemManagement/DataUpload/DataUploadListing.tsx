@@ -18,9 +18,14 @@ import SearchIcon from '@mui/icons-material/Search'
 
 import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
 
+import { toast, ToastContainer } from 'react-toastify'
+
 import DataUploadTableList from './DataUploadTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchDataUploads, createDataUpload, fetchUploadCategories } from '@/redux/DataUpload/dataUploadSlice'
+
+// Import react-toastify for toast messages
+import 'react-toastify/dist/ReactToastify.css'
 
 //import DataUploadTable from './DataUploadTable'
 
@@ -108,6 +113,17 @@ const DataUploadListingPage = () => {
 
         console.log('File uploaded successfully:', result)
 
+        // Show success toast message
+        toast.success(result.message || 'File uploaded successfully!', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+
         // Refresh the data after successful upload
         dispatch(
           fetchDataUploads({
@@ -116,13 +132,35 @@ const DataUploadListingPage = () => {
             search: searchQuery.trim() || undefined
           })
         )
-      } catch (error) {
+      } catch (error: any) {
         console.error('File upload failed:', error)
+
+        // Show error toast message
+        toast.error(error || 'Failed to upload file. Please try again.', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
       }
 
       handleDialogClose()
     } else {
       console.log('Please select a file and category')
+
+      // Show warning toast if file or category is missing
+      toast.warn('Please select a file and category', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined
+      })
     }
   }
 
@@ -228,6 +266,19 @@ const DataUploadListingPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add ToastContainer for toast messages */}
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   )
 }

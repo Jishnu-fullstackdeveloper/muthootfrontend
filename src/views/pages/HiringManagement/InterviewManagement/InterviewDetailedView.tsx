@@ -184,7 +184,7 @@ const InterviewDetailedPage = () => {
   return (
     <Box>
       {/* First Section: Candidate Summary Card */}
-      <Card sx={{ p: 4, mb: 4, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ p: 4, mb: 4, boxShadow: 3, borderRadius: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           {/* <IconButton onClick={() => router.push('/hiring-management/interview-listing')} sx={{ mr: 2 }}>
             <ArrowBackIcon />
@@ -261,14 +261,14 @@ const InterviewDetailedPage = () => {
                 {/* Profile Complete Circular Progress */}
                 <Tooltip title='Profile complete'>
                   <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                    <CircularProgress
+                    {/* <CircularProgress
                       variant='determinate'
                       value={candidate.profileComplete || 0}
                       size={40}
                       thickness={5}
                       sx={{ color: 'success.main' }}
                       aria-label={`Profile Complete: ${candidate.profileComplete || 0}%`}
-                    />
+                    /> */}
                     <Box
                       sx={{
                         top: 0,
@@ -281,9 +281,9 @@ const InterviewDetailedPage = () => {
                         justifyContent: 'center'
                       }}
                     >
-                      <Typography variant='caption' component='div' color='text.secondary'>
+                      {/* <Typography variant='caption' component='div' color='text.secondary'>
                         {`${Math.round(candidate.profileComplete || 0)}%`}
-                      </Typography>
+                      </Typography> */}
                     </Box>
                     {/* <Typography variant='body2' fontSize='10px' sx={{ textAlign: 'center', mt: 0.5 }}>
                     <strong>Profile Complete</strong>
@@ -294,7 +294,7 @@ const InterviewDetailedPage = () => {
                 {/* Profile Match Circular Progress */}
                 <Tooltip title='Profile match'>
                   <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                    <CircularProgress
+                    {/* <CircularProgress
                       variant='determinate'
                       value={candidate.profileMatchPercent || 0}
                       size={40}
@@ -308,7 +308,7 @@ const InterviewDetailedPage = () => {
                               : 'error.main'
                       }}
                       aria-label={`Profile Match: ${candidate.profileMatchPercent || 0}%`}
-                    />
+                    /> */}
                     <Box
                       sx={{
                         top: 0,
@@ -321,9 +321,9 @@ const InterviewDetailedPage = () => {
                         justifyContent: 'center'
                       }}
                     >
-                      <Typography variant='caption' component='div' color='text.secondary'>
+                      {/* <Typography variant='caption' component='div' color='text.secondary'>
                         {`${Math.round(candidate.profileMatchPercent || 0)}%`}
-                      </Typography>
+                      </Typography> */}
                     </Box>
                     {/* <Typography variant='body2' fontSize='10px' sx={{ textAlign: 'center', mt: 0.5 }}>
                     <strong>Profile Match</strong>
@@ -350,11 +350,12 @@ const InterviewDetailedPage = () => {
       </Card>
 
       {/* Second Section: Stepper for Hiring Process */}
-      <Card sx={{ p: 3, mb: 4, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ p: 3, mb: 4, boxShadow: 3, borderRadius: 1 }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant='h5' sx={{ fontWeight: 'bold', mb: 2 }}>
             Hiring Process Timeline
           </Typography>
+          <Divider sx={{ mb: 3 }} />
           <Stepper activeStep={activeStep} alternativeLabel>
             {steps.map((label, index) => (
               <Step
@@ -384,7 +385,7 @@ const InterviewDetailedPage = () => {
       </Card>
 
       {/* Third Section: Tabs */}
-      <Card sx={{ mt: 4, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 4, boxShadow: 1, borderRadius: 1 }}>
         <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 2 }}>
           <Tab label='Candidate Overview' />
           <Tab label='Hiring Process' />
@@ -394,7 +395,7 @@ const InterviewDetailedPage = () => {
 
         {/* Tab Content */}
         {tabValue === 0 && (
-          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ p: 4, boxShadow: 1, borderRadius: 1 }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
               Candidate Overview
             </Typography>
@@ -406,14 +407,14 @@ const InterviewDetailedPage = () => {
         )}
 
         {tabValue === 1 && (
-          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ p: 4, boxShadow: 1, borderRadius: 1 }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
               Hiring Process Details
             </Typography>
 
             {/* Conditionally render sections based on activeStep */}
             {activeStep === 0 && (
-              <Paper elevation={2} sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+              <Paper elevation={2} sx={{ p: 2, mb: 3, borderRadius: 1 }}>
                 <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
                   Screening
                 </Typography>
@@ -447,7 +448,7 @@ const InterviewDetailedPage = () => {
             )}
 
             {activeStep === 1 && (
-              <Card sx={{ mb: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: 2 }}>
+              <Card sx={{ mb: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: 1 }}>
                 <CardContent>
                   <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
                     Interview Round 1
@@ -460,7 +461,7 @@ const InterviewDetailedPage = () => {
             )}
 
             {activeStep === 2 && (
-              <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', border: 0.5, borderRadius: 2 }}>
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', border: 0.5, borderRadius: 1 }}>
                 <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
                   Interview Feedback Form
                 </Typography>
@@ -516,7 +517,7 @@ const InterviewDetailedPage = () => {
                 <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
                   Interview Round 2
                 </Typography>
-                <List sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 1 }}>
+                <List sx={{ bgcolor: 'background.paper', borderRadius: 1, p: 1 }}>
                   <ListItem>
                     <Typography variant='body1'>
                       <strong>Status:</strong> {candidate.round2Status || 'Pending'}
@@ -550,10 +551,10 @@ const InterviewDetailedPage = () => {
                           Download Test Result
                         </Button>
                       )}
-                      <Button variant='outlined' component='label' startIcon={<UploadFileIcon />}>
+                      {/* <Button variant='outlined' component='label' startIcon={<UploadFileIcon />}>
                         Upload Test Result
                         <input type='file' hidden onChange={e => handleFileUpload(e, 'aptitude')} />
-                      </Button>
+                      </Button> */}
                     </Box>
                   </Grid>
                 </Grid>
@@ -570,7 +571,7 @@ const InterviewDetailedPage = () => {
                   <input type='file' hidden onChange={e => handleFileUpload(e, 'preOffer')} />
                 </Button>
                 {candidate.preOfferDocuments && candidate.preOfferDocuments.length > 0 ? (
-                  <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                  <TableContainer component={Paper} sx={{ borderRadius: 1 }}>
                     <Table>
                       <TableHead>
                         <TableRow>
@@ -613,7 +614,7 @@ const InterviewDetailedPage = () => {
                 <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
                   Salary Offer
                 </Typography>
-                <Stack spacing={2} sx={{ p: 2, border: '1px solid', borderColor: 'grey.200', borderRadius: 2 }}>
+                <Stack spacing={2} sx={{ p: 2, border: '1px solid', borderColor: 'grey.200', borderRadius: 1 }}>
                   <Typography variant='body1'>
                     <strong>Proposed Salary:</strong> {candidate.proposedSalary || 'Not specified'}
                   </Typography>
@@ -637,7 +638,7 @@ const InterviewDetailedPage = () => {
             )}
 
             {activeStep === 7 && (
-              <Card sx={{ mb: 3, boxShadow: 3, borderRadius: 2 }}>
+              <Card sx={{ mb: 3, boxShadow: 3, borderRadius: 1 }}>
                 <CardContent>
                   <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
                     Offer Letter Creation
@@ -665,7 +666,7 @@ const InterviewDetailedPage = () => {
         )}
 
         {tabValue === 2 && (
-          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 1 }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
               Workflow History
             </Typography>
@@ -676,7 +677,7 @@ const InterviewDetailedPage = () => {
         )}
 
         {tabValue === 3 && (
-          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ p: 4, boxShadow: 3, borderRadius: 1 }}>
             <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2 }}>
               Candidate History
             </Typography>
@@ -686,10 +687,33 @@ const InterviewDetailedPage = () => {
             </Typography>
           </Card>
         )}
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4, mb: 2, mr: 2 }}>
+          <Tooltip title='Shortlist'>
+            <Button
+              variant='contained'
+              color='success'
+              startIcon={<CheckCircleOutlineIcon />}
+              onClick={() => console.log(`Shortlist candidate ${candidate.candidateName}`)}
+            >
+              Shortlist
+            </Button>
+          </Tooltip>
+          <Tooltip title='Reject'>
+            <Button
+              variant='contained'
+              color='error'
+              startIcon={<CancelOutlinedIcon />}
+              onClick={() => console.log(`Reject candidate ${candidate.candidateName}`)}
+            >
+              Reject
+            </Button>
+          </Tooltip>
+        </Box>
       </Card>
 
       {/* Actions */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
         <Tooltip title='Shortlist'>
           <Button
             variant='contained'
@@ -710,7 +734,7 @@ const InterviewDetailedPage = () => {
             Reject
           </Button>
         </Tooltip>
-      </Box>
+      </Box> */}
     </Box>
   )
 }

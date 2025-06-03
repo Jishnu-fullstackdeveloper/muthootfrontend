@@ -101,7 +101,7 @@ export const xFactorSlice = createSlice({
       .addCase(fetchResignedXFactor.rejected, (state, action) => {
         state.isResignedXFactorLoading = false
         state.resignedXFactorFailure = true
-        state.resignedXFactorFailureMessage = action.payload || 'Failed to fetch X-Factor data'
+        state.resignedXFactorFailureMessage = (action.payload as string) || 'Failed to fetch X-Factor data'
       })
 
       .addCase(fetchDesignation.pending, state => {
@@ -119,25 +119,25 @@ export const xFactorSlice = createSlice({
       .addCase(fetchDesignation.rejected, (state, action) => {
         state.isDesignationLoading = false
         state.designationFailure = true
-        state.designationFailureMessage = action.payload || 'Failed to fetch Designation data'
+        state.designationFailureMessage = (action.payload as string) || 'Failed to fetch Designation data'
       })
 
-      // .addCase(createXFactor.pending, state => {
-      //   state.isCreatingXFactor = true
-      //   state.createXFactorSuccess = false
-      //   state.createXFactorFailure = false
-      //   state.createXFactorFailureMessage = ''
-      // })
-      // .addCase(createXFactor.fulfilled, (state, action) => {
-      //   state.isCreatingXFactor = false
-      //   state.createXFactorSuccess = true
-      //   state.resignedXFactorData.push(action.payload) // Add the new X-Factor to the list
-      // })
-      // .addCase(createXFactor.rejected, (state, action) => {
-      //   state.isCreatingXFactor = false
-      //   state.createXFactorFailure = true
-      //   state.createXFactorFailureMessage = action.payload || 'Failed to create X-Factor'
-      // })
+    // .addCase(createXFactor.pending, state => {
+    //   state.isCreatingXFactor = true
+    //   state.createXFactorSuccess = false
+    //   state.createXFactorFailure = false
+    //   state.createXFactorFailureMessage = ''
+    // })
+    // .addCase(createXFactor.fulfilled, (state, action) => {
+    //   state.isCreatingXFactor = false
+    //   state.createXFactorSuccess = true
+    //   state.resignedXFactorData.push(action.payload) // Add the new X-Factor to the list
+    // })
+    // .addCase(createXFactor.rejected, (state, action) => {
+    //   state.isCreatingXFactor = false
+    //   state.createXFactorFailure = true
+    //   state.createXFactorFailureMessage = action.payload || 'Failed to create X-Factor'
+    // })
   }
 })
 

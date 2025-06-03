@@ -159,7 +159,8 @@ const organizationalMappingSlice = createSlice({
         state.isDesignationLoading = false
         state.designationData = null
         state.designationFailure = true
-        state.designationFailureMessage = action.payload?.message || 'Fetching Designations Failed'
+        state.designationFailureMessage =
+          (action.payload as { message?: string })?.message || 'Fetching Designations Failed'
       })
       .addCase(addDepartmentDesignation.pending, state => {
         state.isAddDepartmentDesignationLoading = true
@@ -185,7 +186,8 @@ const organizationalMappingSlice = createSlice({
         state.isDepartmentLoading = false
         state.departmentData = null
         state.departmentFailure = true
-        state.departmentFailureMessage = action.payload?.message || 'Fetching Departments Failed'
+        state.departmentFailureMessage =
+          (action.payload as { message?: string })?.message || 'Fetching Departments Failed'
       })
 
     // Department-Designation cases
@@ -206,7 +208,7 @@ const organizationalMappingSlice = createSlice({
         state.departmentDesignationData = null
         state.departmentDesignationFailure = true
         state.departmentDesignationFailureMessage =
-          action.payload?.message || 'Fetching Department-Designation Mappings Failed'
+          (action.payload as { message?: string })?.message || 'Fetching Department-Designation Mappings Failed'
       })
       .addCase(addDepartmentDesignation.fulfilled, (state, action) => {
         state.isAddDepartmentDesignationLoading = false

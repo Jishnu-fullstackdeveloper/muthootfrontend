@@ -180,6 +180,9 @@ const CandidateTableList = () => {
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         tableName='Candidate List'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
       <ConfirmModal
         open={deleteModalOpen}

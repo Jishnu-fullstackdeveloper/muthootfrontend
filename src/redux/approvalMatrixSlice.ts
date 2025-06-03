@@ -14,7 +14,11 @@ interface ApprovalMatrixState {
   options: Array<{ id: number; name: string }>
   designations: Array<{ id: string; name: string }> // Store designations for autocomplete
   grades: Array<{ id: string; name: string }> // Store grades for autocomplete
-  levels: Array<{ id: string; name: string }> // Store levels for autocomplete
+  levels: Array<{
+    displayName: string
+    id: string
+    name: string
+  }> // Store levels for autocomplete
   page: number
   limit: number
   totalPages: number

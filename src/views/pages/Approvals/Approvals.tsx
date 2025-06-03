@@ -15,28 +15,39 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUser, fetchApprovals, clearUser, clearApprovals } from '@/redux/Approvals/approvalsSlice'
 import { getUserId } from '@/utils/functions'
 
+interface ApprovalRow {
+  id: number
+  categoryName: string
+  description: string
+  approvedCount: number
+  pendingCount: number
+  rejectedCount: number
+  overdue?: string
+  moveTo?: any
+}
+
+interface ApprovalsState {
+  fetchUserLoading?: boolean
+  fetchUserSuccess?: boolean
+  fetchUserData?: { designation?: string | string[] } | null
+  fetchUserFailure?: boolean
+  fetchUserFailureMessage?: string
+  fetchApprovalsLoading?: boolean
+  fetchApprovalsSuccess?: boolean
+  fetchApprovalsData?: {
+    data?: ApprovalRow[]
+    approvalCount?: { approvedCount: number; rejectedCount: number; pendingCount: number }
+    totalCount?: number
+  }
+  fetchApprovalsTotalCount?: number
+  fetchApprovalsFailure?: boolean
+  fetchApprovalsFailureMessage?: string
+}
+
 const ApprovalManagement = () => {
   const dispatch = useAppDispatch()
 
-  interface ApprovalsState {
-    fetchUserLoading?: boolean
-    fetchUserSuccess?: boolean
-    fetchUserData?: { designation?: string | string[] } | null
-    fetchUserFailure?: boolean
-    fetchUserFailureMessage?: string
-    fetchApprovalsLoading?: boolean
-    fetchApprovalsSuccess?: boolean
-    fetchApprovalsData?: {
-      data?: any[]
-      approvalCount?: { approvedCount: number; rejectedCount: number; pendingCount: number }
-      totalCount?: number
-    }
-    fetchApprovalsTotalCount?: number
-    fetchApprovalsFailure?: boolean
-    fetchApprovalsFailureMessage?: string
-  }
-
-  const approvalsState: ApprovalsState = useAppSelector(state => state.approvalsReducer) || {}
+  const approvalsState = (useAppSelector(state => state.approvalsReducer) as ApprovalsState) || {}
 
   const {
     fetchUserSuccess = false,
@@ -58,7 +69,7 @@ const ApprovalManagement = () => {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
 
-  const columnHelper = createColumnHelper()
+  const columnHelper = createColumnHelper<ApprovalRow>()
 
   const statusColors = {
     Completed: '#059669',
@@ -67,7 +78,6 @@ const ApprovalManagement = () => {
     Rejected: '#F00'
   }
 
-  // Dynamic approval cards based on API approvalCount
   const approvals = useMemo(
     () => [
       {
@@ -84,13 +94,6 @@ const ApprovalManagement = () => {
         status: 'pending',
         note: `  ${fetchApprovalsData.approvalCount?.pendingCount || 0} Request Pending`
       },
-
-      // {
-      //   id: 3,
-      //   title: 'Overdue Approvals (0)', // Placeholder since API doesn't provide overdue
-      //   icon: <RunningWithErrorsIcon color='error' />,
-      //   status: 'overdue'
-      // },
       {
         id: 3,
         title: 'Rejected Approvals',
@@ -102,11 +105,10 @@ const ApprovalManagement = () => {
     [fetchApprovalsData.approvalCount]
   )
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm)
-      setPage(1) // Reset to the first page when search changes
+      setPage(1)
     }, 500)
 
     return () => clearTimeout(timer)
@@ -114,7 +116,6 @@ const ApprovalManagement = () => {
 
   const id = getUserId()
 
-  // Fetch user data
   useEffect(() => {
     if (id) {
       dispatch(fetchUser(id as string))
@@ -126,7 +127,6 @@ const ApprovalManagement = () => {
     }
   }, [id, dispatch])
 
-  // Fetch approvals when designation, page, limit, or debouncedSearch changes
   useEffect(() => {
     if (fetchUserSuccess && fetchUserData?.designation) {
       let normalizedDesignation: string
@@ -154,17 +154,6 @@ const ApprovalManagement = () => {
     }
   }, [fetchUserSuccess, fetchUserData?.designation, page, limit, debouncedSearch, dispatch])
 
-  // Define table columns
-  interface ApprovalRow {
-    id: number
-    categoryName: string
-    description: string
-    approvedCount: number
-    pendingCount: number
-    rejectedCount: number
-    overdue?: string
-  }
-
   const columns = useMemo(
     () => [
       columnHelper.accessor('id', {
@@ -173,15 +162,11 @@ const ApprovalManagement = () => {
       }),
       columnHelper.accessor('categoryName', {
         header: 'Approval Category',
-        cell: ({ row }: { row: { original: ApprovalRow } }) => (
-          <Typography>{row.original.categoryName || '-'}</Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.categoryName || '-'}</Typography>
       }),
       columnHelper.accessor('description', {
         header: 'Description',
-        cell: ({ row }: { row: { original: ApprovalRow } }) => (
-          <Typography>{row.original.description || '-'}</Typography>
-        )
+        cell: ({ row }) => <Typography>{row.original.description || '-'}</Typography>
       }),
       columnHelper.accessor('approvedCount', {
         header: 'Approved',
@@ -195,17 +180,16 @@ const ApprovalManagement = () => {
         header: 'Rejected',
         cell: ({ row }) => <Typography>{row.original.rejectedCount || '0'}</Typography>
       }),
-
-      columnHelper.accessor('Move to', {
+      columnHelper.accessor('moveTo', {
         header: 'Move to',
         cell: () => (
           <Typography>
-            <ExitToAppIcon></ExitToAppIcon>
+            <ExitToAppIcon />
           </Typography>
-        ) // Placeholder since API doesn't provide overdue
+        )
       })
     ],
-    []
+    [columnHelper]
   )
 
   if (fetchUserFailure) {
@@ -285,14 +269,21 @@ const ApprovalManagement = () => {
       <Box className='mt-5'>
         <DynamicTable
           columns={columns}
-          data={fetchApprovalsData.data || []} // Pass the data array
-          totalCount={fetchApprovalsData.totalCount || 0} // Use totalCount from API
+          data={fetchApprovalsData.data || []}
+          totalCount={fetchApprovalsData.totalCount || 0}
           page={page}
           limit={limit}
           onPageChange={setPage}
           onLimitChange={setLimit}
           tableName='Approval List'
           loading={fetchApprovalsLoading}
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
+          pagination={{
+            pageIndex: 0,
+            pageSize: 0
+          }}
         />
       </Box>
     </>

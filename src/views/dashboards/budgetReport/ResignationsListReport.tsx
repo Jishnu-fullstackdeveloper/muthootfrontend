@@ -256,6 +256,17 @@ const ResignationsListReport = ({ id }: { id: string }) => {
           onPageChange={(newPage: number) => handlePageChange(newPage + 1)}
           onRowsPerPageChange={handleRowsPerPageChange}
           onPageCountChange={handlePageCountChange}
+          tableName='Resignations List Report'
+          isRowCheckbox={false} // Disable row selection checkboxes
+          onRowSelectionChange={() => {
+            console.log('handleRowSelectionChange')
+          }} // Optional: Handle row selection changes
+          sorting={[]}
+          initialState={{ sorting: [] }} // Ensure no default sorting
+          onSortingChange={() => {
+            console.log('handleRowSelectionChange')
+          }} // Optional: Handle sorting changes
+          // eslint-disable-next-line react/jsx-no-duplicate-props
         />
       ) : (
         <Box sx={{ p: 4, textAlign: 'center' }}>

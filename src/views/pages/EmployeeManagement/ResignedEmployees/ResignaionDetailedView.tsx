@@ -58,8 +58,12 @@ const ResignationDetailsPage = () => {
   // Fetch employee details by ID
   useEffect(() => {
     if (id) {
-      // Assuming fetchResignedEmployees can fetch a single employee by ID
-      dispatch(fetchResignedEmployees({ id: id as string }))
+      const params = {
+        page: 1,
+        limit: 100
+      }
+
+      dispatch(fetchResignedEmployees(params))
         .unwrap()
         .then(response => {
           // Assuming the response contains the employee data

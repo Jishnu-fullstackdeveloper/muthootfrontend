@@ -125,6 +125,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       approvalCategory: null,
       numberOfLevels: 1,
       description: '',
+
       sections: [] as Section[],
       draggingIndex: null as number | null
     },
@@ -360,7 +361,10 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         }
 
         // Fetch levels if approverType is 'Level' and levels are not already fetched
-        let availableLevels: LevelOption[] = levels
+        let availableLevels: LevelOption[] = levels.map(lvl => ({
+          ...lvl,
+          displayName: lvl.displayName || lvl.name // Ensure displayName exists
+        }))
 
         if (fetchedApproverType === 'Level') {
           setLevelLoading(true)
@@ -436,7 +440,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     const errors = await ApprovalMatrixFormik.validateForm()
 
     if (errors.approvalCategory || errors.description) {
-      ApprovalMatrixFormik.setTouched({ approvalCategory: true, description: true })
+      ApprovalMatrixFormik.setTouched({ approvalCategory: { id: true, name: true }, description: true })
 
       return
     }

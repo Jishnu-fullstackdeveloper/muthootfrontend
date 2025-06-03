@@ -422,7 +422,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             const isActive = isMenuItemActive(item)
             const hasChildren = !!item.children
             const isExpanded = expandedMenus.includes(item.label)
-            const permissionValue = item.read ? getPermissionRenderConfig()[item.read] || '' : ''
+            const permissionValue = item.read ? getPermissionRenderConfig()?.[item.read] || '' : ''
 
             return (
               <Box key={`${item.label}-${index}`} sx={{ mb: '4px' }}>
@@ -486,7 +486,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                         const childIsActive = isMenuItemActive(child)
                         const childHasChildren = !!child.children
                         const childIsExpanded = expandedMenus.includes(child.label)
-                        const childPermissionValue = child.read ? getPermissionRenderConfig()[child.read] || '' : ''
+                        const childPermissionValue = child.read ? getPermissionRenderConfig()?.[child.read] || '' : ''
 
                         return (
                           <Box key={`${child.label}-${childIndex}`} sx={{ mb: '4px' }}>
@@ -541,7 +541,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                     const nestedIsActive = isMenuItemActive(nestedChild)
 
                                     const nestedPermissionValue = nestedChild.read
-                                      ? getPermissionRenderConfig()[nestedChild.read] || ''
+                                      ? getPermissionRenderConfig()?.[nestedChild.read] || ''
                                       : ''
 
                                     return (

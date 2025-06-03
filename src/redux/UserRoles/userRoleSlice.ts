@@ -73,7 +73,7 @@ export const fetchUserRole = createAsyncThunk(
 )
 export const getUserRoleDetails = createAsyncThunk(
   'userManagement/getUserRoleDetails',
-  async ({ id }, { rejectWithValue }) => {
+  async ({ id }: { id: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getUserRoleDetailsUrl(id))
 

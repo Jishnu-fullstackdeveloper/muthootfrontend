@@ -228,9 +228,12 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         columns={columns}
         data={branchData}
         pagination={pagination} // Pass pagination state
-        onPaginationChange={setPagination} // Pass pagination change handler
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        totalCount={0}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
       {/* Removed the duplicate DynamicTable call to avoid redundancy */}
     </div>

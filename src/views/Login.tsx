@@ -50,7 +50,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { fetchInitialLoginURL, fetchPermissionRenderConfig } from '@/redux/loginSlice'
 
-import { getAccessToken, setPermissionRenderConfig } from '@/utils/functions'
+import { getAccessToken } from '@/utils/functions'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -110,8 +110,9 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
   // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const { fetchInitialLoginURLData, loginErrorMessage, loginFailure, fetchPermissionRenderConfigData }: any =
-    useSelector((state: any) => state.loginReducer)
+  const { fetchInitialLoginURLData, loginErrorMessage, loginFailure }: any = useSelector(
+    (state: any) => state.loginReducer
+  )
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -149,6 +150,8 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       }
     }
   }, [])
+
+  isPasswordShown
 
   useEffect(() => {
     if (loginFailure) {

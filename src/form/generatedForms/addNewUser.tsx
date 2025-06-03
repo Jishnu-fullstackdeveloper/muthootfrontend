@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, Autocomplete, Grid, Box, Button } from '@mui/material'
+import { FormControl, TextField, Autocomplete, Grid, Box, Button, CircularProgress } from '@mui/material'
 import { ArrowBack } from '@mui/icons-material'
 
 import DynamicButton from '@/components/Button/dynamicButton'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addNewUser, updateUser, resetAddUserStatus, fetchEmployees } from '@/redux/UserManagment/userManagementSlice'
+import { addNewUser, updateUser, resetAddUserStatus, fetchUserById } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 type Props = {
@@ -25,10 +25,11 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   const searchParams = useSearchParams()
   const userId = mode === 'edit' ? searchParams.get('id') : null
 
-  const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage, userManagementData } =
-    useAppSelector((state: any) => state.UserManagementReducer || {})
+  const { isAddUserLoading, addUserSuccess, addUserFailure, addUserFailureMessage, selectedUser } = useAppSelector(
+    (state: any) => state.UserManagementReducer || {}
+  )
 
-  const { userRoleData } = useAppSelector((state: any) => state.UserRoleReducer || {})
+  const { userRoleData, isUserRoleLoading } = useAppSelector((state: any) => state.UserRoleReducer || {})
 
   const [apiErrors, setApiErrors] = useState<string[]>([])
 
@@ -46,10 +47,47 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
 
   const [isFormEdited, setIsFormEdited] = useState(false)
 
+  // State for lazy loading of group roles
+  const [groupRolesPage, setGroupRolesPage] = useState(1)
+  const [allGroupRoles, setAllGroupRoles] = useState<any[]>([]) // Store all fetched group roles
+  const [hasMoreGroupRoles, setHasMoreGroupRoles] = useState(true) // Flag to check if more roles are available
+  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set()) // Track which pages have been loaded
+
+  // Fetch user data and initial roles on component mount
   useEffect(() => {
-    dispatch(fetchEmployees({}))
-    dispatch(fetchUserRole({ page: 1, limit: 100 }))
-  }, [dispatch])
+    // Fetch user by ID if in edit mode
+    if (mode === 'edit' && userId) {
+      dispatch(fetchUserById(userId))
+    }
+
+    // Fetch initial roles if not already loaded
+    if (!loadedPages.has(1)) {
+      dispatch(fetchUserRole({ page: 1, limit: 100 }))
+      setLoadedPages(prev => new Set(prev).add(1))
+    }
+  }, [dispatch, mode, userId, loadedPages])
+
+  // Handle fetched roles and append to allGroupRoles
+  useEffect(() => {
+    if (userRoleData?.data) {
+      const newGroupRoles = userRoleData.data.flatMap((role: any) => role.groupRoles || []).filter(Boolean)
+
+      if (newGroupRoles.length === 0) {
+        setHasMoreGroupRoles(false)
+      } else {
+        setAllGroupRoles(prevRoles => {
+          // Create a map of existing roles for quick lookup
+          const existingRoles = new Map(prevRoles.map(role => [role.name, role]))
+
+          // Filter out duplicates from new roles
+          const uniqueNewRoles = newGroupRoles.filter((role: any) => !existingRoles.has(role.name))
+
+          return [...prevRoles, ...uniqueNewRoles]
+        })
+        setHasMoreGroupRoles(newGroupRoles.length === 100) // If we get 100 roles, there might be more
+      }
+    }
+  }, [userRoleData])
 
   useEffect(() => {
     if (addUserFailure && addUserFailureMessage) {
@@ -68,12 +106,17 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
       if (mode === 'add') {
         router.push('/user-management')
       } else {
+        // After successful update, refetch user data to reflect updated group roles
+        if (userId) {
+          dispatch(fetchUserById(userId))
+        }
+
         dispatch(resetAddUserStatus())
         setIsFormEdited(false)
         setApiErrors([])
       }
     }
-  }, [addUserSuccess, router, mode, dispatch])
+  }, [addUserSuccess, router, mode, dispatch, userId])
 
   useEffect(() => {
     return () => {
@@ -98,12 +141,6 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     onSubmit: async values => {
       const sanitizedGroupRoles = values.groupRoles.map(sanitizeRole).filter(role => role.length > 0)
       const backendGroupRoles = values.groupRoles.map(role => (role.startsWith('grp_') ? role : `grp_${role}`))
-
-      // if (backendGroupRoles.length === 0 && values.designationRole !== 'des_default_role') {
-      //   setApiErrors(['At least one valid group role is required'])
-
-      //   return
-      // }
 
       try {
         if (mode === 'edit' && userId) {
@@ -167,30 +204,27 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
     }
   })
 
+  // Update initial form values when selectedUser is available
   useEffect(() => {
-    if (mode === 'edit' && userId && userManagementData?.data?.length) {
-      const existingUser = userManagementData.data.find((user: any) => user.userId === userId)
-
-      if (existingUser) {
-        const newInitialValues = {
-          employeeCode: existingUser.employeeCode || '',
-          userId: existingUser.userId || '',
-          firstName: existingUser.firstName || '',
-          middleName: existingUser.middleName || '',
-          lastName: existingUser.lastName || '',
-          email: existingUser.email || '',
-          designation: existingUser.designation || '',
-          designationRole: existingUser.designationRole?.name || '',
-          groupRoles:
-            existingUser.designationRole?.groupRoles?.map((role: any) =>
-              typeof role === 'string' ? role.replace(/^grp_/, '') : role.name.replace(/^grp_/, '')
-            ) || []
-        }
-
-        setInitialFormValues(newInitialValues)
+    if (mode === 'edit' && userId && selectedUser) {
+      const newInitialValues = {
+        employeeCode: selectedUser.employeeCode || '',
+        userId: selectedUser.userId || '',
+        firstName: selectedUser.firstName || '',
+        middleName: selectedUser.middleName || '',
+        lastName: selectedUser.lastName || '',
+        email: selectedUser.email || '',
+        designation: selectedUser.designation || '',
+        designationRole: selectedUser.designationRole?.name || '',
+        groupRoles:
+          selectedUser.designationRole?.groupRoles?.map((role: any) =>
+            typeof role === 'string' ? role.replace(/^grp_/, '') : role.name.replace(/^grp_/, '')
+          ) || []
       }
+
+      setInitialFormValues(newInitialValues)
     }
-  }, [mode, userId, userManagementData])
+  }, [mode, userId, selectedUser])
 
   useEffect(() => {
     const hasChanges = Object.keys(userFormik.values).some(
@@ -221,22 +255,44 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
   }, [userRoleData])
 
   const groupRoleOptions = useMemo(() => {
-    const roleSet = new Set()
+    // Use a Set to ensure unique values
+    const uniqueRoles = new Map<string, { label: string; value: string }>()
 
-    const roles = (userRoleData?.data?.flatMap((role: any) => role.groupRoles || []) || [])
-      .filter((role: any) => {
-        if (roleSet.has(role.name)) return false
-        roleSet.add(role.name)
+    allGroupRoles.forEach((role: any) => {
+      const formattedName = role.name.replace(/^grp_/, '')
+      const formattedLabel = formattedName.replace(/_/g, ' ')
 
-        return true
-      })
-      .map((role: any) => ({
-        label: role.name.replace(/^grp_/, ''),
-        value: role.name.replace(/^grp_/, '')
-      }))
+      if (!uniqueRoles.has(formattedName)) {
+        uniqueRoles.set(formattedName, {
+          label: formattedLabel,
+          value: formattedName
+        })
+      }
+    })
 
-    return roles
-  }, [userRoleData])
+    return Array.from(uniqueRoles.values())
+  }, [allGroupRoles])
+
+  // Handle scroll to bottom of group roles Autocomplete
+  const handleGroupRolesScroll = useCallback(
+    (event: React.UIEvent<HTMLElement>) => {
+      const listboxNode = event.currentTarget
+      const scrollPosition = listboxNode.scrollTop + listboxNode.clientHeight
+      const scrollThreshold = listboxNode.scrollHeight - 50 // Trigger 50px before the bottom
+
+      if (scrollPosition >= scrollThreshold && !isUserRoleLoading && hasMoreGroupRoles) {
+        const nextPage = groupRolesPage + 1
+
+        // Only fetch if we haven't loaded this page before
+        if (!loadedPages.has(nextPage)) {
+          setGroupRolesPage(nextPage)
+          dispatch(fetchUserRole({ page: nextPage, limit: 100 }))
+          setLoadedPages(prev => new Set(prev).add(nextPage))
+        }
+      }
+    },
+    [isUserRoleLoading, hasMoreGroupRoles, groupRolesPage, dispatch, loadedPages]
+  )
 
   const handleCancel = () => {
     if (isFormEdited) {
@@ -324,12 +380,25 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
                 )
               }
               disabled={mode === 'edit' && isDesignationRoleEditable}
+              ListboxProps={{
+                onScroll: handleGroupRolesScroll,
+                style: { maxHeight: 200, overflow: 'auto' }
+              }}
               renderInput={params => (
                 <TextField
                   {...params}
                   label='Group Roles *'
                   error={userFormik.touched.groupRoles && Boolean(userFormik.errors.groupRoles)}
                   helperText={userFormik.touched.groupRoles && (userFormik.errors.groupRoles as string)}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {isUserRoleLoading && <CircularProgress color='inherit' size={20} />}
+                        {params.InputProps.endAdornment}
+                      </>
+                    )
+                  }}
                 />
               )}
             />

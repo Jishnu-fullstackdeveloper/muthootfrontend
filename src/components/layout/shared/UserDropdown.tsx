@@ -153,6 +153,7 @@ const UserDropdown = () => {
 
     return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
   }
+
   const getFilteredDesignation = (permissions: CurrentPermissions): string => {
     const filteredRoles = permissions
       .filter(permission => permission.role !== 'default-roles-hrms')

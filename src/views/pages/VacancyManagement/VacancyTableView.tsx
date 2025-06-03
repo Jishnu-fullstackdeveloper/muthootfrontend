@@ -15,7 +15,8 @@ import { ROUTES } from '@/utils/routes'
 const VacancyListingTableView = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
+
+  const { vacancyListData, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
   )
 

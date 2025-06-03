@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+
 import dynamic from 'next/dynamic'
+
 import {
   Box,
   Card,
@@ -55,12 +57,14 @@ const MyRequestCard = () => {
   const getStatusColor = (status: string) => {
     if (status === 'Approved') return green[500]
     if (status === 'Pending') return yellow[700]
+
     return red[500]
   }
 
   const getStatusIcon = (status: string) => {
     if (status === 'Approved') return <CheckIcon />
     if (status === 'Rejected') return <ClearIcon />
+
     return <CheckIcon />
   }
 

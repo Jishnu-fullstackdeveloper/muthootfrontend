@@ -35,9 +35,8 @@ const ViewUserRole = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { userRoleData, isUserRoleLoading, designationData, isDesignationLoading } = useAppSelector(
-    state => state.UserRoleReducer
-  )
+  //designationData
+  const { userRoleData, isUserRoleLoading, isDesignationLoading } = useAppSelector(state => state.UserRoleReducer)
 
   const roleId = searchParams.get('id')
   const [localRole, setLocalRole] = useState(null)
@@ -122,24 +121,24 @@ const ViewUserRole = () => {
     const parts = perm.split('_')
 
     if (parts.length < 3) return
-    const module = parts[1]
+    const permissionModule = parts[1]
     const feature = parts.slice(2, -1).join('_') || 'general'
     const action = parts[parts.length - 1]
 
-    if (!designationGroupedPermissions[module]) {
-      designationGroupedPermissions[module] = {}
+    if (!designationGroupedPermissions[permissionModule]) {
+      designationGroupedPermissions[permissionModule] = {}
     }
 
-    if (!designationGroupedPermissions[module][feature]) {
-      designationGroupedPermissions[module][feature] = {
+    if (!designationGroupedPermissions[permissionModule][feature]) {
+      designationGroupedPermissions[permissionModule][feature] = {
         name: feature,
         actions: [],
         description: `${feature} permissions`
       }
     }
 
-    if (!designationGroupedPermissions[module][feature].actions.includes(action)) {
-      designationGroupedPermissions[module][feature].actions.push(action)
+    if (!designationGroupedPermissions[permissionModule][feature].actions.includes(action)) {
+      designationGroupedPermissions[permissionModule][feature].actions.push(action)
     }
   })
 
@@ -151,24 +150,24 @@ const ViewUserRole = () => {
       const parts = perm.split('_')
 
       if (parts.length < 3) return
-      const module = parts[1]
+      const permissionModule = parts[1]
       const feature = parts.slice(2, -1).join('_') || 'general'
       const action = parts[parts.length - 1]
 
-      if (!groupPerms[module]) {
-        groupPerms[module] = {}
+      if (!groupPerms[permissionModule]) {
+        groupPerms[permissionModule] = {}
       }
 
-      if (!groupPerms[module][feature]) {
-        groupPerms[module][feature] = {
+      if (!groupPerms[permissionModule][feature]) {
+        groupPerms[permissionModule][feature] = {
           name: feature,
           actions: [],
           description: `${feature} permissions`
         }
       }
 
-      if (!groupPerms[module][feature].actions.includes(action)) {
-        groupPerms[module][feature].actions.push(action)
+      if (!groupPerms[permissionModule][feature].actions.includes(action)) {
+        groupPerms[permissionModule][feature].actions.push(action)
       }
     })
 
@@ -210,7 +209,6 @@ const ViewUserRole = () => {
         <CardContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
-             
               {cleanName(localRole?.name, 'des_').toUpperCase()}
             </Typography>
             <Typography variant='body1' sx={{ mt: 1 }}>
@@ -218,7 +216,7 @@ const ViewUserRole = () => {
             </Typography>
           </Box>
           <Divider sx={{ mb: 4 }} />
-         
+
           {Object.keys(designationGroupedPermissions).length > 0 ? (
             <Accordion sx={{ mb: 2 }} defaultExpanded={true}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -306,9 +304,7 @@ const ViewUserRole = () => {
               <Accordion key={groupRole.id} sx={{ mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <Typography variant='subtitle1'>
-                      {cleanName(groupRole.name, 'grp_')} 
-                    </Typography>
+                    <Typography variant='subtitle1'>{cleanName(groupRole.name, 'grp_')}</Typography>
                     <IconButton
                       onClick={e => {
                         e.stopPropagation()

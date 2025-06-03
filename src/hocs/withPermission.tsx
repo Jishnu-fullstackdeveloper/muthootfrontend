@@ -6,19 +6,18 @@ interface WithPermissionProps {
   fallback?: React.ReactNode
   buttonDisable?: boolean
   individualPermission?: string
+  selected?: any
+  sx?: any
 }
 
-const withPermission = <P extends object>(WrappedComponent: React.ComponentType<any>) => {
-  return (props: P & WithPermissionProps) => {
+function withPermission<P>(WrappedComponent: React.ComponentType<P>): React.FC<P & WithPermissionProps> {
+  return props => {
     const rolesAndPermissions = getCurrentPermissions()
 
-    // Handle individual permissions if provided
     const individualPermissions = props.individualPermission
       ? props.individualPermission.split(',').map(perm => perm.trim())
       : []
 
-    // Check if the user has all the required individual permissions
-    // If no permissions are specified, do not render (return null or fallback)
     const hasPermission =
       individualPermissions.length > 0 &&
       individualPermissions.every(permission =>
@@ -26,12 +25,16 @@ const withPermission = <P extends object>(WrappedComponent: React.ComponentType<
       )
 
     if (!hasPermission) {
-      // console.log('withPermission HOC initialized', props.individualPermission)
-      return props.fallback || null // Return fallback UI or null if not provided
+      return props.fallback || null
     }
 
-    // Pass all props to the wrapped component, ensuring correct typing
-    return <WrappedComponent {...props} />
+    const { individualPermission, fallback, buttonDisable, ...restProps } = props
+
+    individualPermission
+    fallback
+    buttonDisable
+
+    return <WrappedComponent {...(restProps as P)} />
   }
 }
 

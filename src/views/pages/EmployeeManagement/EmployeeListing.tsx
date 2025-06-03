@@ -1,10 +1,10 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
 
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 
 //import type { TextFieldProps } from '@mui/material'
-import { Box, Card, TextField, InputAdornment, Button } from '@mui/material'
+import { Box, Card, TextField, InputAdornment } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 //import CustomTextField from '@/@core/components/mui/TextField'
@@ -17,7 +17,8 @@ const EmployeeListingPage = () => {
   const dispatch = useAppDispatch()
   const [searchQuery, setSearchQuery] = useState('')
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
-  const router = useRouter()
+
+  // const router = useRouter()
 
   // const DebouncedInput = ({
   //   value: initialValue,

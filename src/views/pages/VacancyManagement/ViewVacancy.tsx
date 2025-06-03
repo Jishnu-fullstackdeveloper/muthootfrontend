@@ -1,9 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
-import { Box, Typography, Divider, Paper, Button, Tabs, Tab, Chip } from '@mui/material'
+import { Box, Typography, Divider, Paper, Button, Chip } from '@mui/material'
 
 //import { LocationOn, DateRange, Person, CheckCircle, ArrowBack } from '@mui/icons-material'
 
@@ -18,7 +18,7 @@ const tabMapping: { [key: string]: number } = {
 }
 
 const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
-  const router = useRouter()
+  // const router = useRouter()
 
   //const { id } = useParams() // Get the vacancy ID from the URL
   const params = useParams() // Get params object
@@ -35,13 +35,15 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   //const [tabValue, setTabValue] = useState(0) // State for tab value
   const [activeTab, setActiveTab] = useState<number>(tabMapping[vacancyTab] || 0)
 
-  // Tab change handler
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue)
-    const paths = ['vacancy-details', 'jd-details']
+  setActiveTab
 
-    router.push(`${paths[newValue]}?id=${id}`)
-  }
+  // Tab change handler
+  // const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  //   setActiveTab(newValue)
+  //   const paths = ['vacancy-details', 'jd-details']
+
+  //   router.push(`${paths[newValue]}?id=${id}`)
+  // }
 
   // Fetch vacancy data when component mounts or ID changes
   useEffect(() => {

@@ -2,7 +2,7 @@
 import type { ChangeEvent } from 'react'
 import React, { useEffect, useState } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import {
   Box,
@@ -10,7 +10,6 @@ import {
   Typography,
   Button,
   Divider,
-  IconButton,
   Tooltip,
   Select,
   MenuItem,
@@ -23,7 +22,6 @@ import {
   Tabs,
   Tab,
   Chip,
-  CircularProgress,
   Paper,
   CardContent,
   CardActions,
@@ -39,11 +37,13 @@ import {
   TableCell,
   Stack
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+
+// import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
+
+// import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import DownloadIcon from '@mui/icons-material/Download'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
@@ -80,7 +80,7 @@ export interface InterviewCandidate {
 }
 
 const InterviewDetailedPage = () => {
-  const router = useRouter()
+  // const router = useRouter()
   const searchParams = useSearchParams()
   const [candidate, setCandidate] = useState<InterviewCandidate | null>(null)
   const [updatedScreeningStatus, setUpdatedScreeningStatus] = useState<string>('')

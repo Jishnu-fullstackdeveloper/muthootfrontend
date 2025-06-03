@@ -1,16 +1,17 @@
 'use client'
 import React, { useState } from 'react'
 
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 
-import { Box, Card, TextField, InputAdornment, Button } from '@mui/material'
+import { Box, Card, TextField, InputAdornment } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 import InterviewCustomizationTable from './InterviewCustomTable'
 
 const InterviewCustomizationPage = () => {
   const [searchQuery, setSearchQuery] = useState('')
-  const router = useRouter()
+
+  // const router = useRouter()
 
   return (
     <>

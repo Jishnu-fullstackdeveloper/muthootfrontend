@@ -3,12 +3,9 @@ import React, { useEffect, useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 
@@ -28,9 +25,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
-  const { employees, loading, error, totalCount } = useAppSelector(
-    (state: RootState) => state.resignationDataListingReducer
-  )
+  const { employees, totalCount } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
 
   const columnHelper = createColumnHelper<ResignedEmployee & { fullName: string }>()
 

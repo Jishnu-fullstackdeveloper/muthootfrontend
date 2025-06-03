@@ -62,6 +62,8 @@ const UserRolesAndPermissionList: React.FC = () => {
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
 
+  setAppliedPermissionFilters
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
@@ -105,29 +107,29 @@ const UserRolesAndPermissionList: React.FC = () => {
   }
 
   // Handle navigation to edit role page
-  const handleEdit = (role: Role): void => {
-    const cleanedName = cleanName(role.name, 'DES_')
+  // const handleEdit = (role: Role): void => {
+  //   const cleanedName = cleanName(role.name, 'DES_')
 
-    const query = new URLSearchParams({
-      id: role.id,
-      name: role.name
-    }).toString()
+  //   const query = new URLSearchParams({
+  //     id: role.id,
+  //     name: role.name
+  //   }).toString()
 
-    // router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
-    router.push(ROUTES.USER_MANAGEMENT.ROLE_EDIT(query, role.name))
-  }
+  //   // router.push(`/user-role/edit/${role.name.replace(/\s+/g, '-')}?${query}`)
+  //   router.push(ROUTES.USER_MANAGEMENT.ROLE_EDIT(query, role.name))
+  // }
 
   // Handle navigation to view role page
-  const handleView = (role: Role): void => {
-    const cleanedName = cleanName(role.name, 'DES_')
+  // const handleView = (role: Role): void => {
+  //   const cleanedName = cleanName(role.name, 'DES_')
 
-    const query = new URLSearchParams({
-      id: role.id,
-      name: role.name
-    }).toString()
+  //   const query = new URLSearchParams({
+  //     id: role.id,
+  //     name: role.name
+  //   }).toString()
 
-    router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
-  }
+  //   router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
+  // }
 
   // Handle navigation to add role page
   const handleAdd = (): void => {

@@ -18,7 +18,8 @@ import {
 } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+
+// import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
@@ -26,12 +27,14 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import SearchIcon from '@mui/icons-material/Search' // Added for search bar
+
 import InterviewTableView from './InterviewListTable'
 
-import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
+// import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
-import { InterviewCandidate, staticCandidates } from '@/utils/sampleData/InterviewManagement/InterviewListData'
+import type { InterviewCandidate } from '@/utils/sampleData/InterviewManagement/InterviewListData'
+import { staticCandidates } from '@/utils/sampleData/InterviewManagement/InterviewListData'
 
 //import InterviewTableView from './InterviewTableView'
 
@@ -43,6 +46,8 @@ const InterviewListingPage = () => {
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
+
+  setFromDate
 
   // Filter candidates based on fromDate
   useEffect(() => {

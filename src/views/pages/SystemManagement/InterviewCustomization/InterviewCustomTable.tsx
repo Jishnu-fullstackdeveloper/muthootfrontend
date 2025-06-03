@@ -7,8 +7,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import EditIcon from '@mui/icons-material/Edit'
 
 import DynamicTable from '@/components/Table/dynamicTable'
+import type { InterviewCustomization } from '@/utils/sampleData/InterviewManagement/InterviewCustomData'
 import {
-  InterviewCustomization,
   sampleCustomizationData,
   bandOptions,
   departmentOptions,
@@ -70,6 +70,7 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             value={formData.band}
             onChange={(event, newValue) => {
               const filteredValues = newValue.filter(val => val !== 'Select All')
+
               if (newValue.includes('Select All')) {
                 handleChange('band', bandOptions.every(opt => formData.band.includes(opt)) ? [] : [...bandOptions])
               } else {
@@ -107,6 +108,7 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             value={formData.department}
             onChange={(event, newValue) => {
               const filteredValues = newValue.filter(val => val !== 'Select All')
+
               if (newValue.includes('Select All')) {
                 handleChange(
                   'department',
@@ -147,6 +149,7 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             value={formData.designation}
             onChange={(event, newValue) => {
               const filteredValues = newValue.filter(val => val !== 'Select All')
+
               if (newValue.includes('Select All')) {
                 handleChange(
                   'designation',
@@ -189,6 +192,7 @@ const EditInterviewForm: React.FC<EditInterviewFormProps> = ({ open, onClose, on
             value={formData.levels}
             onChange={(event, newValue) => {
               const filteredValues = newValue.filter(val => val !== 'Select All')
+
               if (newValue.includes('Select All')) {
                 handleChange(
                   'levels',
@@ -368,6 +372,7 @@ const InterviewCustomizationTable = ({
             color={row.original.aptitudeAvailable === 'Yes' ? 'success' : 'error'}
             onClick={() => {
               const newValue = row.original.aptitudeAvailable === 'Yes' ? 'No' : 'Yes'
+
               handleUpdate(row.original.id, 'aptitudeAvailable', newValue)
             }}
           >

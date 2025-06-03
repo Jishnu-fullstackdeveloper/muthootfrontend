@@ -41,6 +41,8 @@ import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
 import L2ManagerDashboard from './L2ManagerDashboard'
 import { ROUTES } from '@/utils/routes'
 
+import DatePicker from 'react-datepicker'
+
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
@@ -221,12 +223,12 @@ const ResignationDataListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
-              Resignation Data Listing
+              Resignation Data List
             </Typography>
           </Box>
 
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
-            <AppReactDatepicker
+          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 3, zIndex: 1100 }}>
+            <DatePicker
               selected={fromDate}
               onChange={(date: Date | null) => setFromDate(date)}
               placeholderText='Select from date'
@@ -236,11 +238,11 @@ const ResignationDataListingPage = () => {
                   label='Filter by date'
                   variant='outlined'
                   size='small'
-                  sx={{ width: '160px', mr: 2 }}
+                  sx={{ width: '160px' }}
                   InputProps={{
                     endAdornment: (
-                      <InputAdornment position='end'>
-                        <CalendarTodayOutlinedIcon />
+                      <InputAdornment position='start'>
+                        <CalendarTodayOutlinedIcon sx={{ mr: 1 }} />
                       </InputAdornment>
                     )
                   }}

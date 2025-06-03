@@ -46,7 +46,7 @@ const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRow
   }
 
   // Calculate total pages
-  const totalPages = Math.ceil(totalCount / pagination?.pageSize) || 0
+  // const totalPages = Math.ceil(totalCount / pagination?.pageSize) || 0
   const currentPage = (pagination?.pageIndex ?? 0) + 1 // Current page (1-based)
 
   return (
@@ -152,6 +152,10 @@ const DynamicTable = ({
   const [pageSize, setPageSize] = useState(10)
   const [isMounted, setIsMounted] = useState(false)
 
+  pageIndex
+  pageSize
+  isMounted
+
   // Function to extract headers from nested columns
   const extractHeaders = (cols: ColumnDef<any>[]) => {
     const headers: Record<string, boolean> = {}
@@ -221,6 +225,7 @@ const DynamicTable = ({
     localStorage.setItem(`${tableName}_columns`, JSON.stringify(headersToSave))
     setHeaderOrder(prev => {
       // Merge saved headers with all possible headers, preserving order
+      prev
       const allHeaders = Object.keys(extractHeaders(initialColumns))
       const unseenHeaders = allHeaders.filter(header => !headersToSave.includes(header))
 

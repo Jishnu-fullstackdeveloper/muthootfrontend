@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+
 import {
   Box,
   Card,
@@ -12,24 +13,22 @@ import {
   Divider,
   Autocomplete,
   Switch,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Pagination,
+
+  // FormControl,
+  // InputLabel,
+  // Select,
+  // MenuItem,
+  // Pagination,
   CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useFormik } from 'formik'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
-import {
-  getSchedulerConfigList,
-  updateSchedulerConfig,
-  toggleSchedulerConfig,
-  SchedulerManagementState
-} from '@/redux/Scheduler/schedulerSlice'
+import type { SchedulerManagementState } from '@/redux/Scheduler/schedulerSlice'
+import { getSchedulerConfigList, updateSchedulerConfig, toggleSchedulerConfig } from '@/redux/Scheduler/schedulerSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
 import DynamicButton from '@/components/Button/dynamicButton'
 
@@ -203,6 +202,7 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
 
 const SchedulerPage = () => {
   const dispatch = useAppDispatch()
+
   const {
     schedulerConfigListLoading: loading,
     schedulerConfigListData: schedulerConfigs,
@@ -222,6 +222,7 @@ const SchedulerPage = () => {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+
   const [editData, setEditData] = useState<{
     id: string
     typeofdata: string
@@ -229,10 +230,13 @@ const SchedulerPage = () => {
     frequencyCount: number
     isActive: boolean
   } | null>(null)
+
   const [pagination, setPagination] = useState({
     pageIndex: 0, // 0-based index for table compatibility
     pageSize: 5
   })
+
+  setPagination
 
   // Fetch scheduler configs on mount and when pagination or search changes
   useEffect(() => {
@@ -315,6 +319,7 @@ const SchedulerPage = () => {
   // Ensure schedulerConfigs is an array before mapping
   const tableData = useMemo(() => {
     const configsArray = Array.isArray(schedulerConfigs?.data) ? schedulerConfigs?.data : []
+
     return configsArray.map(config => ({
       id: config.id,
       typeofdata: config.functionName,
@@ -376,21 +381,21 @@ const SchedulerPage = () => {
     []
   )
 
-  const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
-    setPagination(prev => ({
-      ...prev,
-      [key]: key === 'pageIndex' ? value - 1 : value, // Convert to 0-based index for table
-      pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
-    }))
-  }
+  // const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
+  //   setPagination(prev => ({
+  //     ...prev,
+  //     [key]: key === 'pageIndex' ? value - 1 : value, // Convert to 0-based index for table
+  //     pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
+  //   }))
+  // }
 
-  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    handlePaginationChange('pageIndex', value)
-  }
+  // const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+  //   handlePaginationChange('pageIndex', value)
+  // }
 
-  const handleChangeLimit = (value: number) => {
-    handlePaginationChange('pageSize', value)
-  }
+  // const handleChangeLimit = (value: number) => {
+  //   handlePaginationChange('pageSize', value)
+  // }
 
   return (
     <Box sx={{ overflow: 'visible' }}>

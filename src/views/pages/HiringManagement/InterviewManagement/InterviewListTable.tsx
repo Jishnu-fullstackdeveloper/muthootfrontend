@@ -7,7 +7,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 
-import { interviewCandidates } from '@/utils/sampleData/InterviewManagement/InterviewDetailData'
+// import { interviewCandidates } from '@/utils/sampleData/InterviewManagement/InterviewDetailData'
 import type { InterviewCandidate } from './InterviewDetailedView'
 import DynamicTable from '@/components/Table/dynamicTable'
 

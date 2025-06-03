@@ -12,7 +12,6 @@ import {
   Checkbox,
   FormControlLabel,
   Box,
-  Button,
   Select,
   MenuItem,
   InputLabel,
@@ -52,8 +51,9 @@ const defaultPermissionsList: PermissionState[] = [
     features: [
       { name: 'User', actions: ['read', 'update', 'delete', 'create'] },
       { name: 'Role', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'Employee', actions: ['read'] },
-      { name: 'Resigned', actions: ['read', 'approval'] }
+      { name: 'Employee', actions: ['read'] }
+
+      // { name: 'Resigned', actions: ['read', 'approval'] }
     ]
   },
   {
@@ -81,7 +81,9 @@ const defaultPermissionsList: PermissionState[] = [
       { name: 'CVPool', actions: ['read'] },
       { name: 'Budget', actions: ['read', 'create', 'delete', 'approval'] },
       { name: 'Onboarding', actions: ['read', 'update', 'create'] },
-      { name: 'Vacancy', actions: ['read', 'update'] },
+      { name: 'Vacancy', actions: ['read'] },
+
+      // { name: 'Vacancy', actions: ['read', 'update'] },
       { name: 'JobPosting', actions: ['read', 'update'] },
       { name: 'Interview', actions: ['read', 'update'] }
     ]
@@ -168,7 +170,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }, [addUserRoleFailure, addUserRoleFailureMessage, designationFailure, designationFailureMessage])
   useEffect(() => {
-    if (addUserRoleSuccess ) {
+    if (addUserRoleSuccess) {
       router.push('/user-management/role')
     }
   }, [addUserRoleSuccess, router])
@@ -506,14 +508,23 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               id='groupDesignation'
               options={
                 userRoleData?.data?.flatMap(
-                  (d: any) => d.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/, '').trim()) || []
+                  (d: any) =>
+                    d.groupRoles?.map(
+                      (gr: any) =>
+                        gr.name
+                          .replace(/^grp_/, '') // Remove "grp_"
+                          .replace(/_/g, ' ') // Replace underscores with space
+                          .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize each word
+                    ) || []
                 ) || []
               }
               value={Array.isArray(roleFormik.values.groupDesignation) ? roleFormik.values.groupDesignation : []}
               onChange={(e, value) => roleFormik.setFieldValue('groupDesignation', value)}
               renderInput={params => <TextField {...params} label='Group Designations *' />}
               renderTags={(value, getTagProps) =>
-                value.map((option, index) => <Chip variant='outlined' label={option} {...getTagProps({ index })} />)
+                value.map((option, index) => (
+                  <Chip variant='outlined' key='' label={option} {...getTagProps({ index })} />
+                ))
               }
               multiple
             />
@@ -551,6 +562,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           </FormControl>
         )}
       </Box>
+
+      {/* ###### Permissions ###### */}
 
       <Box component='fieldset' className='border border-gray-300 rounded p-4 mb-6'>
         <legend className='text-lg font-semibold text-gray-700'>Permissions</legend>

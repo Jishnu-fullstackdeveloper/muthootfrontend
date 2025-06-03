@@ -1,6 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+
 import { useRouter, useParams } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -15,9 +17,11 @@ import {
   TableRow,
   Paper,
   Button,
-  Chip,
-  Divider
+  Chip
+
+  // Divider
 } from '@mui/material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
@@ -46,7 +50,7 @@ const ResignationDetailsPage = () => {
   const router = useRouter()
   const { id } = useParams() // Get the employee ID from the URL
 
-  const { employees, loading, error } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
+  const { loading, error } = useAppSelector((state: RootState) => state.resignationDataListingReducer) //employees
 
   const [employee, setEmployee] = useState<ResignedEmployee | null>(null)
   const [tabValue, setTabValue] = useState(0)
@@ -60,6 +64,7 @@ const ResignationDetailsPage = () => {
         .then(response => {
           // Assuming the response contains the employee data
           const fetchedEmployee = response.employees?.find((emp: ResignedEmployee) => emp.id === id)
+
           if (fetchedEmployee) {
             setEmployee(fetchedEmployee)
           } else {

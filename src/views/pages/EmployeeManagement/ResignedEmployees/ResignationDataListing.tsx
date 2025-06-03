@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
+import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Chip } from '@mui/material'
 
 //import SearchIcon from '@mui/icons-material/Search'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -13,9 +13,10 @@ import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+// import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -25,6 +26,7 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
+
 // import L2ManagerDashboard from './L2ManagerDashboard'
 
 const ResignationDataListingPage = () => {

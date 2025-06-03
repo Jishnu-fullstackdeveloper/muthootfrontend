@@ -441,10 +441,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     icon={<i className={item.iconClass} />}
                     selected={isActive}
                     individualPermission={permissionValue}
-                    // sx={{
-                    //   marginLeft: 'auto',
-                    //   color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
-                    // }}
                     suffix={
                       hasChildren ? (
                         <IconButton

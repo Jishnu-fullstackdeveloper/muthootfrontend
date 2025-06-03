@@ -205,6 +205,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   })
                 ).unwrap()
 
+                response
+
                 return existingMatrixIds[index]
               } else {
                 // Create new matrix for additional levels
@@ -214,6 +216,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
               }
             })
           )
+
+          updatedMatrixIds
 
           // Delete matrices for levels that were removed
           const matricesToDelete = existingMatrixIds.slice(values.sections.length)

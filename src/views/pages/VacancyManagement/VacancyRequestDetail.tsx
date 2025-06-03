@@ -13,7 +13,8 @@ import {
   Typography,
   Autocomplete,
   Button,
-  Tooltip,
+
+  // Tooltip,
   Chip,
   CircularProgress,
   Dialog,
@@ -23,12 +24,13 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import FilterListIcon from '@mui/icons-material/FilterList'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+
+// import VisibilityIcon from '@mui/icons-material/Visibility'
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+// import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+// import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
+// import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast, ToastContainer } from 'react-toastify'
@@ -81,9 +83,11 @@ const VacancyRequestDetail = () => {
 
   // State for confirmation dialog
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+
   const [selectedAction, setSelectedAction] = useState<
     'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
   >(null)
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>('')
   const permissions = getPermissionRenderConfig()
@@ -93,11 +97,8 @@ const VacancyRequestDetail = () => {
   // Selectors for vacancy management state
   const {
     vacancyRequestListLoading = false,
-    vacancyRequestListSuccess = false,
     vacancyRequestListData = null,
-    vacancyRequestListTotal = 0,
     vacancyRequestListFailure = false,
-    vacancyRequestListFailureMessage = '',
     updateVacancyRequestStatusLoading = false,
     autoApproveVacancyRequestsLoading = false
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
@@ -185,9 +186,9 @@ const VacancyRequestDetail = () => {
     setIsFilterDrawerOpen(!isFilterDrawerOpen)
   }
 
-  const handleViewDetails = (designationId: string) => {
-    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST_DETAIL(designationId))
-  }
+  // const handleViewDetails = (designationId: string) => {
+  //   router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST_DETAIL(designationId))
+  // }
 
   const handleViewEmployeeDetails = (employeeId: string) => {
     router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.RESIGNED_DETAILS(employeeId))
@@ -338,71 +339,71 @@ const VacancyRequestDetail = () => {
     })
   }
 
-  const handleRejectAll = () => {
-    if (vacancyRequestListData?.data) {
-      Promise.all(
-        vacancyRequestListData.data
-          .filter(request => request.status === 'PENDING')
-          .map(request =>
-            dispatch(
-              updateVacancyRequestStatus({
-                id: request.id,
-                approverId: userId, // Use current userId
-                status: 'REJECTED',
-                notes: `Bulk rejection on ${new Date().toISOString()}`
-              })
-            )
-          )
-      )
-        .then(() => {
-          const params: {
-            page: number
-            limit: number
-            search?: string
-            designationId?: string
-            branchIds?: string[]
-            areaIds?: string[]
-            regionIds?: string[]
-            zoneIds?: string[]
-            territoryIds?: string[]
-          } = {
-            page: pagination.pageIndex + 1,
-            limit: pagination.pageSize,
-            designationId: designationId || ''
-          }
+  // const handleRejectAll = () => {
+  //   if (vacancyRequestListData?.data) {
+  //     Promise.all(
+  //       vacancyRequestListData.data
+  //         .filter(request => request.status === 'PENDING')
+  //         .map(request =>
+  //           dispatch(
+  //             updateVacancyRequestStatus({
+  //               id: request.id,
+  //               approverId: userId, // Use current userId
+  //               status: 'REJECTED',
+  //               notes: `Bulk rejection on ${new Date().toISOString()}`
+  //             })
+  //           )
+  //         )
+  //     )
+  //       .then(() => {
+  //         const params: {
+  //           page: number
+  //           limit: number
+  //           search?: string
+  //           designationId?: string
+  //           branchIds?: string[]
+  //           areaIds?: string[]
+  //           regionIds?: string[]
+  //           zoneIds?: string[]
+  //           territoryIds?: string[]
+  //         } = {
+  //           page: pagination.pageIndex + 1,
+  //           limit: pagination.pageSize,
+  //           designationId: designationId || ''
+  //         }
 
-          if (searchDesignation) params.search = searchDesignation
+  //         if (searchDesignation) params.search = searchDesignation
 
-          if (selectedFilterType && selectedFilterValues.length > 0) {
-            if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
-            else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
-            else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
-            else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
-            else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
-          }
+  //         if (selectedFilterType && selectedFilterValues.length > 0) {
+  //           if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+  //         }
 
-          dispatch(fetchVacancyRequests(params))
-          toast.success('All vacancy requests rejected successfully', {
-            position: 'top-right',
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          })
-        })
-        .catch((err: any) => {
-          toast.error(`Failed to reject all requests: ${err}`, {
-            position: 'top-right',
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          })
-        })
-    }
-  }
+  //         dispatch(fetchVacancyRequests(params))
+  //         toast.success('All vacancy requests rejected successfully', {
+  //           position: 'top-right',
+  //           autoClose: 5000,
+  //           hideProgressBar: false,
+  //           closeOnClick: true,
+  //           pauseOnHover: true,
+  //           draggable: true
+  //         })
+  //       })
+  //       .catch((err: any) => {
+  //         toast.error(`Failed to reject all requests: ${err}`, {
+  //           position: 'top-right',
+  //           autoClose: 5000,
+  //           hideProgressBar: false,
+  //           closeOnClick: true,
+  //           pauseOnHover: true,
+  //           draggable: true
+  //         })
+  //       })
+  //   }
+  // }
 
   const handleFreezeAll = () => {
     if (vacancyRequestListData?.data) {
@@ -523,17 +524,20 @@ const VacancyRequestDetail = () => {
         )
       }),
       columnHelper.accessor('status', {
-        header: 'STATUS',
+        header: 'FINAL STATUS',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
       }),
+
       // Approver Status Column
       columnHelper.accessor('approvalStatus', {
         header: 'APPROVER STATUS',
         cell: ({ row }) => {
           const approvalStatus = row.original.approvalStatus || []
+
           // Find the current approver's status where approverId matches userId
           const currentApprover = approvalStatus.find((status: any) => {
             const level = status.id ? status : Object.values(status)[0]
+
             return level.approverId === userId
           })
 
@@ -840,7 +844,9 @@ const VacancyRequestDetail = () => {
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Resignation Approvals'
           isRowCheckbox={true}
-          onRowSelectionChange={selectedRows => {}}
+          onRowSelectionChange={selectedRows => {
+            console.log('Selected Rows:', selectedRows)
+          }}
           loading={vacancyRequestListLoading || updateVacancyRequestStatusLoading}
         />
       )}

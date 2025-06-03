@@ -58,11 +58,8 @@ const VacancyRequestListing = () => {
   // Selectors for vacancy management state
   const {
     vacancyRequestGroupByDesignationLoading = false,
-    vacancyRequestGroupByDesignationSuccess = false,
     vacancyRequestGroupByDesignationData = null,
-    vacancyRequestGroupByDesignationTotal = 0,
-    vacancyRequestGroupByDesignationFailure = false,
-    vacancyRequestGroupByDesignationFailureMessage = ''
+    vacancyRequestGroupByDesignationFailure = false
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
 
   // Selectors for budget management state (filter values)

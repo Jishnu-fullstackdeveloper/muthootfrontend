@@ -1,5 +1,5 @@
 // Third-party Imports
-import { Suspense } from 'react'
+// import { Suspense } from 'react'
 import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // Type Imports

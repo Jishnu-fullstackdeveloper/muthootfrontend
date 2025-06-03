@@ -23,7 +23,7 @@ const EmployeeTable = () => {
   const dispatch = useAppDispatch()
   const columnHelper = createColumnHelper<any>()
 
-  const { employees, totalCount, status, error } = useAppSelector(state => state.employeeManagementReducer)
+  const { employees, totalCount, status } = useAppSelector(state => state.employeeManagementReducer)
 
   //const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   //const [employeeIdToDelete, setEmployeeIdToDelete] = useState<string | number | null>(null)
@@ -180,8 +180,7 @@ const EmployeeTable = () => {
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton
-                // onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
-                onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))}
+                onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))} // onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
                 sx={{ fontSize: 18 }}
               >
                 {/* <i className='tabler-eye text-textSecondary' /> */}

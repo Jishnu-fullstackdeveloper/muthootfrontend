@@ -10,15 +10,7 @@ import {
   Typography,
   Tabs,
   Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Button,
-  Chip,
   Divider,
   IconButton,
   Tooltip,
@@ -35,15 +27,16 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
-import HistoryIcon from '@mui/icons-material/History'
+
+// import HistoryIcon from '@mui/icons-material/History'
 
 import { toast, ToastContainer } from 'react-toastify'
+
 import 'react-toastify/dist/ReactToastify.css'
 import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
 import withPermission from '@/hocs/withPermission'
@@ -52,27 +45,28 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchEmployeeById } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
-import type { ResignedEmployee } from '@/types/resignationDataListing'
-import type { VacancyManagementState, VacancyRequest } from '@/types/vacancyManagement'
+
+// import type { ResignedEmployee } from '@/types/resignationDataListing'
+import type { VacancyManagementState } from '@/types/vacancyManagement' //VacancyRequest
 import { fetchVacancyRequests, updateVacancyRequestStatus } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 
 // Interface for approval history entries (updated to use API data where possible)
-interface ApprovalHistoryEntry {
-  employeeName: string
-  stage: string
-  status: string
-  role: string
-  resignationDate: string
-  approvedRelievingDate: string
-  actionDate: string
-  resignationType: string
-  reasonForSeparation: string
-  absconding: boolean
-  comment: string
-  attachment: string
-  attachmentCRIF: string
-  actionName: string
-}
+// interface ApprovalHistoryEntry {
+//   employeeName: string
+//   stage: string
+//   status: string
+//   role: string
+//   resignationDate: string
+//   approvedRelievingDate: string
+//   actionDate: string
+//   resignationType: string
+//   reasonForSeparation: string
+//   absconding: boolean
+//   comment: string
+//   attachment: string
+//   attachmentCRIF: string
+//   actionName: string
+// }
 
 // Interface for approver details (to store fetched user data)
 interface ApproverDetails {
@@ -86,9 +80,12 @@ const ResignationDetailsPage = () => {
   const router = useRouter()
   const pathname = usePathname()
 
+  router
+
   const searchParams = useSearchParams()
   const employeeId = searchParams.get('id') // Get the employee ID from the URL query params
   const permissions = getPermissionRenderConfig()
+
   const isResignationDetailPage =
     pathname === '/hiring-management/vacancy-management/vacancy-request/resignation-detail'
 
@@ -96,9 +93,11 @@ const ResignationDetailsPage = () => {
   const userId = getUserId()
 
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+
   const [selectedAction, setSelectedAction] = useState<
     'APPROVED' | 'REJECTED' | 'FREEZED' | 'UNFREEZED' | 'TRANSFER' | null
   >(null)
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>('')
 
@@ -109,20 +108,15 @@ const ResignationDetailsPage = () => {
   } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
 
   const {
-    vacancyRequestListLoading = false,
-    vacancyRequestListSuccess = false,
     vacancyRequestListData = null,
-    vacancyRequestListTotal = 0,
-    vacancyRequestListFailure = false,
-    vacancyRequestListFailureMessage = '',
-    updateVacancyRequestStatusLoading = false,
-    autoApproveVacancyRequestsLoading = false
+
+    updateVacancyRequestStatusLoading = false
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
 
   // Add selector for userManagementReducer to access fetchUserById state
-  const { userManagementData, isUserManagementLoading } = useAppSelector(
-    (state: RootState) => state.UserManagementReducer
-  )
+  // const { userManagementData, isUserManagementLoading } = useAppSelector(
+  //   (state: RootState) => state.UserManagementReducer
+  // )
 
   const vacancyRequestList = vacancyRequestListData?.data?.[0] || {}
 
@@ -229,6 +223,7 @@ const ResignationDetailsPage = () => {
         draggable: true
       })
       handleCloseDialog()
+
       return
     }
 
@@ -257,6 +252,7 @@ const ResignationDetailsPage = () => {
           employeeId: employeeId,
           search: ''
         }
+
         dispatch(fetchVacancyRequests(params))
       }
 
@@ -319,40 +315,40 @@ const ResignationDetailsPage = () => {
     viewLink: '#' // Replace with actual survey link if available
   }
 
-  const approvalHistory: ApprovalHistoryEntry[] = [
-    {
-      employeeName: `${employee?.firstName} ${employee?.lastName || ''}`,
-      stage: 'Initiated',
-      status: 'Approved',
-      role: 'L1 Manager',
-      resignationDate: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-',
-      approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
-      actionDate: '2025-05-05',
-      resignationType: 'Voluntary',
-      reasonForSeparation: 'Personal Reasons',
-      absconding: false,
-      comment: 'Approved without issues',
-      attachment: 'attachment1.pdf',
-      attachmentCRIF: 'crif1.pdf',
-      actionName: 'Approve'
-    },
-    {
-      employeeName: `${employee?.firstName} ${employee?.lastName || ''}`,
-      stage: 'In Process',
-      status: 'On Hold',
-      role: 'HR Manager',
-      resignationDate: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-',
-      approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
-      actionDate: '2025-05-10',
-      resignationType: 'Vol 1:1',
-      reasonForSeparation: 'Personal Reasons',
-      absconding: false,
-      comment: 'Pending no-dues clearance',
-      attachment: 'attachment2.pdf',
-      attachmentCRIF: 'crif2.pdf',
-      actionName: 'Hold'
-    }
-  ]
+  // const approvalHistory: ApprovalHistoryEntry[] = [
+  //   {
+  //     employeeName: `${employee?.firstName} ${employee?.lastName || ''}`,
+  //     stage: 'Initiated',
+  //     status: 'Approved',
+  //     role: 'L1 Manager',
+  //     resignationDate: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-',
+  //     approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
+  //     actionDate: '2025-05-05',
+  //     resignationType: 'Voluntary',
+  //     reasonForSeparation: 'Personal Reasons',
+  //     absconding: false,
+  //     comment: 'Approved without issues',
+  //     attachment: 'attachment1.pdf',
+  //     attachmentCRIF: 'crif1.pdf',
+  //     actionName: 'Approve'
+  //   },
+  //   {
+  //     employeeName: `${employee?.firstName} ${employee?.lastName || ''}`,
+  //     stage: 'In Process',
+  //     status: 'On Hold',
+  //     role: 'HR Manager',
+  //     resignationDate: employee?.resignationDetails?.dateOfResignation?.split('T')[0] || '-',
+  //     approvedRelievingDate: employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0] || '-',
+  //     actionDate: '2025-05-10',
+  //     resignationType: 'Vol 1:1',
+  //     reasonForSeparation: 'Personal Reasons',
+  //     absconding: false,
+  //     comment: 'Pending no-dues clearance',
+  //     attachment: 'attachment2.pdf',
+  //     attachmentCRIF: 'crif2.pdf',
+  //     actionName: 'Hold'
+  //   }
+  // ]
 
   if (loading) {
     return (
@@ -379,10 +375,12 @@ const ResignationDetailsPage = () => {
   const sortedApprovalStatus = [...approvalStatus].sort((a: any, b: any) => a.level - b.level)
 
   const budget = {
-    approvalStatusLevel: sortedApprovalStatus.map((status: any, index: number) => {
+    approvalStatusLevel: sortedApprovalStatus.map((status: any) => {
       const approverDetail = approverDetails.find(detail => detail.approverId === status.approverId)
+
       // Replace underscores with spaces in the approver field for display
       const formattedApprover = status.approver.replace(/_/g, ' ')
+
       return {
         label: `Level ${status.level}: ${formattedApprover}`,
         status: status.approvalStatus,
@@ -397,12 +395,14 @@ const ResignationDetailsPage = () => {
   const activeStep =
     budget.approvalStatusLevel?.reduce((acc: number, step: any, index: number) => {
       if (step.status === 'PENDING') return acc
+
       return index + 1
     }, 0) || 0
 
   // Determine if actions should be enabled
   const currentApprover = approvalStatus.find((status: any) => status.approverId === userId)
   const approverStatus = currentApprover ? currentApprover.approvalStatus : null
+
   const canTakeAction =
     approverStatus === 'PENDING' &&
     (vacancyRequestList?.status === 'PENDING' ||

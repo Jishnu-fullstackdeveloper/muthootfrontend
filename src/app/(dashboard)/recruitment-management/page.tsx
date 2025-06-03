@@ -9,7 +9,7 @@ const page = () => {
 
   useEffect(() => {
     router.push('/recruitment-management/overview')
-  }, [])
+  }, [router])
 
   return <div></div>
 }

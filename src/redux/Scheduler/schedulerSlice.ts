@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
 import AxiosLib from '@/lib/AxiosLib'
 import { handleAsyncThunkStates } from '@/utils/functions'
 import { API_ENDPOINTS } from '../ApiUrls/schedulerUrls' // Adjust the path as needed
 
 // Import the interfaces
 import type {
-  SchedulerConfig,
   SchedulerConfigListResponse,
   UpdateSchedulerConfigResponse,
   ToggleSchedulerConfigResponse,
@@ -19,15 +19,18 @@ export const getSchedulerConfigList = createAsyncThunk<
 >('schedulerManagement/getSchedulerConfigList', async ({ page, limit, search }, { rejectWithValue }) => {
   try {
     const params: { page: number; limit: number; search?: string } = { page, limit }
+
     if (search) params.search = search.trim()
 
     console.log('Sending API request for scheduler configs with params:', params)
     const response = await AxiosLib.get(API_ENDPOINTS.getSchedulerConfigListUrl, { params })
 
     console.log('API Response for scheduler configs:', response.data)
+
     return response.data
   } catch (error: any) {
     console.error('Fetch Scheduler Configs Error:', error)
+
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch scheduler configs')
   }
 })
@@ -48,13 +51,16 @@ export const updateSchedulerConfig = createAsyncThunk<
   async ({ id, functionName, schedule, duration, isActive, params }, { rejectWithValue }) => {
     try {
       const requestBody = { functionName, schedule, duration, isActive, params }
+
       console.log('Sending API request to update scheduler config for ID:', id, 'with body:', requestBody)
       const response = await AxiosLib.put(API_ENDPOINTS.updateSchedulerConfigUrl(id), requestBody)
 
       console.log('API Response for updating scheduler config:', response.data)
+
       return response.data
     } catch (error: any) {
       console.error('Update Scheduler Config Error:', error)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to update scheduler config')
     }
   }
@@ -66,13 +72,16 @@ export const toggleSchedulerConfig = createAsyncThunk<ToggleSchedulerConfigRespo
   async ({ id, isActive }, { rejectWithValue }) => {
     try {
       const requestBody = { isActive }
+
       console.log('Sending API request to toggle scheduler config for ID:', id, 'with body:', requestBody)
       const response = await AxiosLib.put(API_ENDPOINTS.toggleSchedulerConfigUrl(id), requestBody)
 
       console.log('API Response for toggling scheduler config:', response.data)
+
       return response.data
     } catch (error: any) {
       console.error('Toggle Scheduler Config Error:', error)
+
       return rejectWithValue(error.response?.data?.message || 'Failed to toggle scheduler config')
     }
   }

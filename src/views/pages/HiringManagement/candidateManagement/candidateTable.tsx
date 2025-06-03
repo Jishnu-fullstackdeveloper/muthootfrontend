@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useMemo } from 'react'
+
 import { Typography, Card, MenuItem, Select } from '@mui/material'
 import type { TableMeta } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface Candidate {
@@ -79,6 +81,7 @@ const CandidateListing = ({
             value={statusOptions.includes(row.original.status) ? row.original.status : ''}
             onChange={e => {
               const newStatus = e.target.value
+
               updateCandidateStatus(row.original.id, newStatus)
             }}
             displayEmpty
@@ -111,6 +114,7 @@ const CandidateListing = ({
   const tableMeta: CandidateTableMeta = {
     updateData: (rowIndex: number, columnId: string, value: any) => {
       const candidateId = data[rowIndex].id
+
       updateCandidateStatus(candidateId, value)
     }
   }

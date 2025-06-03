@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 
 //import { useParams } from 'next/navigation'
 
-import { Box, Typography, Card, CardContent, Chip, Button, Divider, Stack, Avatar } from '@mui/material'
+import { Box, Typography, Card, CardContent, Chip, Button, Divider, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import DownloadIcon from '@mui/icons-material/Download'
 

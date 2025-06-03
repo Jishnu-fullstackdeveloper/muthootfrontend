@@ -12,7 +12,6 @@ import {
   Typography,
   TextField,
   InputAdornment,
-  Button,
   Chip,
   CircularProgress
 } from '@mui/material'
@@ -24,30 +23,28 @@ import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
-import SyncIcon from '@mui/icons-material/Sync'
-import { toast, ToastContainer } from 'react-toastify'
+
+// import SyncIcon from '@mui/icons-material/Sync'
+import { ToastContainer } from 'react-toastify' //toast
 import 'react-toastify/dist/ReactToastify.css'
+import DatePicker from 'react-datepicker'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
+
+// import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import type { RootState, AppDispatch } from '@/redux/store'
-import {
-  fetchResignedEmployees,
-  syncResignedEmployees
-} from '@/redux/ResignationDataListing/ResignationDataListingSlice'
+import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice' //syncResignedEmployees
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
 import L2ManagerDashboard from './L2ManagerDashboard'
 import { ROUTES } from '@/utils/routes'
 
-import DatePicker from 'react-datepicker'
-
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
-  const { employees, loading, error, totalCount, syncLoading, syncError, syncProcessId } = useAppSelector(
+  const { employees, loading, error, totalCount } = useAppSelector(
     (state: RootState) => state.resignationDataListingReducer
   )
 
@@ -149,52 +146,52 @@ const ResignationDataListingPage = () => {
   }
 
   // Handle sync button click
-  const handleSync = () => {
-    dispatch(syncResignedEmployees())
-      .unwrap()
-      .then(response => {
-        toast.success(response.message || 'Sync initiated successfully', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined
-        })
+  // const handleSync = () => {
+  //   dispatch(syncResignedEmployees())
+  //     .unwrap()
+  //     .then(response => {
+  //       toast.success(response.message || 'Sync initiated successfully', {
+  //         position: 'top-right',
+  //         autoClose: 5000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //         progress: undefined
+  //       })
 
-        debounceTimeout.current = setTimeout(() => {
-          const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+  //       debounceTimeout.current = setTimeout(() => {
+  //         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
 
-          setVisibleEmployees([])
-          setPage(1)
-          setNoMoreData(false)
-          dispatch(
-            fetchResignedEmployees({
-              page: 1,
-              limit,
-              isResigned: true,
-              resignationDateFrom: formattedFromDate
-            })
-          )
-        }, 300)
+  //         setVisibleEmployees([])
+  //         setPage(1)
+  //         setNoMoreData(false)
+  //         dispatch(
+  //           fetchResignedEmployees({
+  //             page: 1,
+  //             limit,
+  //             isResigned: true,
+  //             resignationDateFrom: formattedFromDate
+  //           })
+  //         )
+  //       }, 300)
 
-        // console.log('Sync initiated successfully:', response.message, 'Process ID:', response.processId)
-      })
-      .catch(err => {
-        toast.error(err || 'Sync failed', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined
-        })
+  //       // console.log('Sync initiated successfully:', response.message, 'Process ID:', response.processId)
+  //     })
+  //     .catch(err => {
+  //       toast.error(err || 'Sync failed', {
+  //         position: 'top-right',
+  //         autoClose: 5000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //         progress: undefined
+  //       })
 
-        // console.error('Sync failed:', err)
-      })
-  }
+  //       // console.error('Sync failed:', err)
+  //     })
+  // }
 
   return (
     <Box>

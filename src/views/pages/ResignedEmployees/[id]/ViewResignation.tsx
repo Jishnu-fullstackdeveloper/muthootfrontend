@@ -4,7 +4,7 @@ import React from 'react'
 
 import { usePathname } from 'next/navigation'
 
-import ResignationDataListingPage from '../ResignationDataListing'
+// import ResignationDataListingPage from '../ResignationDataListing'
 import ResignationDetailsPage from '../ResignationDetailView'
 
 const ViewResignationDetails = () => {

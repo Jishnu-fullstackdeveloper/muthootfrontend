@@ -13,7 +13,7 @@ import type { DataUploadTableRow } from '@/types/dataUpload'
 const DataUploadTableList = () => {
   const columnHelper = createColumnHelper<DataUploadTableRow>()
   const dispatch = useAppDispatch()
-  const { uploads, totalCount, status, error } = useAppSelector(state => state.dataUploadReducer)
+  const { uploads, totalCount, status } = useAppSelector(state => state.dataUploadReducer)
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,

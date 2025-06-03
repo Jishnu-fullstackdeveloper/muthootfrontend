@@ -30,6 +30,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   // Find the current approver's status where approverId matches userId
   const currentApprover = (approvalStatus || []).find((status: any) => {
     const level = status.id ? status : Object.values(status)[0]
+
     return level.approverId === userId
   })
 

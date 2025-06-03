@@ -1,20 +1,8 @@
 'use client'
 
 import React from 'react'
-import {
-  Typography,
-  Card,
-  MenuItem,
-  Select,
-  Grid,
-  Box,
-  Pagination,
-  FormControl,
-  InputLabel,
-  Tooltip,
-  Button,
-  Chip
-} from '@mui/material'
+
+import { Typography, Card, Grid, Box, Pagination, Tooltip, Button, Chip } from '@mui/material'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
@@ -46,7 +34,7 @@ interface CandidateGridProps {
 }
 
 const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCandidateStatus }: CandidateGridProps) => {
-  const statusOptions = ['Shortlisted', 'Rejected', 'L1']
+  // const statusOptions = ['Shortlisted', 'Rejected', 'L1']
   const limit = 6
   const totalPages = Math.ceil(totalCount / limit)
 
@@ -87,16 +75,24 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
                       candidate.status === 'Shortlisted'
                         ? 'success'
                         : candidate.status === 'Rejected'
-                        ? 'error'
-                        : candidate.status === 'L1'
-                        ? 'info'
-                        : 'default'
+                          ? 'error'
+                          : candidate.status === 'L1'
+                            ? 'info'
+                            : 'default'
                     }
                   />
                 </Tooltip>
               </Box>
               <Box sx={{ borderTop: '1px solid #e0e0e0', pt: 2 }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, fontSize: '10px', color: 'text.secondary' }}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 1,
+                    fontSize: '10px',
+                    color: 'text.secondary'
+                  }}
+                >
                   <Tooltip title='Email'>
                     <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <EmailOutlinedIcon fontSize='small' /> {candidate.email}
@@ -128,7 +124,6 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
                   </Typography>
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title='Shortlist'>
                       <Button
@@ -178,12 +173,7 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
         </Box>
       )}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_, newPage) => onLoadMore(newPage)}
-          color='primary'
-        />
+        <Pagination count={totalPages} page={page} onChange={(_, newPage) => onLoadMore(newPage)} color='primary' />
       </Box>
     </Box>
   )

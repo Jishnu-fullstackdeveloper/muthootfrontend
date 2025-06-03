@@ -1,12 +1,17 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
 import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
+import { addSerializer } from 'jest-snapshot'
+
+// import pretty from 'pretty'
+
+import { useAppSelector } from '@/lib/hooks' //useAppDispatch
 import { getBranchList } from '@/redux/BranchManagement/BranchManagementSlice'
 import BranchListing from '../BranchListing'
 import type { BranchManagementState } from '@/types/branch'
-import { addSerializer } from 'jest-snapshot'
-import pretty from 'pretty'
 
 // Custom serializer to ignore Material-UI dynamic IDs
 addSerializer({
@@ -17,6 +22,7 @@ addSerializer({
       .replace(/for=":[a-z0-9]+:"/g, 'for="[DYNAMIC_ID]"')
       .replace(/aria-controls=":[a-z0-9]+:"/g, 'aria-controls="[DYNAMIC_ID]"')
       .replace(/aria-labelledby=":[a-z0-9]+:"/g, 'aria-labelledby="[DYNAMIC_ID]"')
+
     return cleanedHtml
   }
 })
@@ -75,45 +81,47 @@ describe('BranchListing Component', () => {
 
   beforeEach(() => {
     ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
-    ;(useAppDispatch as jest.Mock).mockReturnValue(mockDispatch)
+
+    // ;(useAppDispatch as jest.Mock).mockReturnValue(mockDispatch)
     ;(useAppSelector as jest.Mock).mockImplementation(() => mockSelector())
-    // Default state to prevent undefined errors
-    mockSelector.mockReturnValue({
-      branchListData: {
-        data: [
-          {
-            id: '1',
-            name: 'Branch 1',
-            branchCode: 'B001',
-            branchStatus: 'ACTIVE',
-            area: { regionId: 'R1', name: 'Area 1' },
-            bucket: { name: 'Bucket 1' },
-            district: { name: 'District 1' },
-            state: { name: 'State 1' }
-          },
-          {
-            id: '2',
-            name: 'Branch 2',
-            branchCode: 'B002',
-            branchStatus: 'INACTIVE',
-            area: { regionId: 'R2', name: 'Area 2' },
-            bucket: { name: 'Bucket 2' },
-            district: { name: 'District 2' },
-            state: { name: 'State 2' }
-          }
-        ],
-        total: 20
-      },
-      branchListLoading: false,
-      branchListTotal: 20,
-      branchListFailure: false,
-      branchListFailureMessage: '',
-      branchDetailsData: null,
-      branchDetailsLoading: false,
-      branchDetailsSuccess: false,
-      branchDetailsFailure: false,
-      branchDetailsFailureMessage: ''
-    } as BranchManagementState)
+
+    // // Default state to prevent undefined errors
+    // mockSelector.mockReturnValue({
+    //   branchListData: {
+    //     data: [
+    //       {
+    //         id: '1',
+    //         name: 'Branch 1',
+    //         branchCode: 'B001',
+    //         branchStatus: 'ACTIVE',
+    //         area: { regionId: 'R1', name: 'Area 1' },
+    //         bucket: { name: 'Bucket 1' },
+    //         district: { name: 'District 1' },
+    //         state: { name: 'State 1' }
+    //       },
+    //       {
+    //         id: '2',
+    //         name: 'Branch 2',
+    //         branchCode: 'B002',
+    //         branchStatus: 'INACTIVE',
+    //         area: { regionId: 'R2', name: 'Area 2' },
+    //         bucket: { name: 'Bucket 2' },
+    //         district: { name: 'District 2' },
+    //         state: { name: 'State 2' }
+    //       }
+    //     ],
+    //     total: 20
+    //   },
+    //   branchListLoading: false,
+    //   branchListTotal: 20,
+    //   branchListFailure: false,
+    //   branchListFailureMessage: '',
+    //   branchDetailsData: null,
+    //   branchDetailsLoading: false,
+    //   branchDetailsSuccess: false,
+    //   branchDetailsFailure: false,
+    //   branchDetailsFailureMessage: ''
+    // } as BranchManagementState)
     jest.clearAllMocks()
   })
 
@@ -162,8 +170,10 @@ describe('BranchListing Component', () => {
 
   test('renders table view with branch data', async () => {
     render(<BranchListing />)
+
     // Verify grid view is initially present by checking for branch cards
     const branchCards = screen.getAllByText(/Branch [1-2]/)
+
     expect(branchCards).toHaveLength(2) // Two branches in grid view
 
     // Click to switch to table view
@@ -177,6 +187,7 @@ describe('BranchListing Component', () => {
       // Instead of checking for a specific class, check if the branch cards are gone
       // by ensuring the table view has replaced the grid view content
       const branchCardsAfterSwitch = screen.queryAllByText(/Branch [1-2]/)
+
       expect(branchCardsAfterSwitch).toHaveLength(0) // Grid view items should be gone
     })
   })
@@ -184,6 +195,7 @@ describe('BranchListing Component', () => {
   test('handles search input', async () => {
     render(<BranchListing />)
     const searchInput = screen.getByPlaceholderText('Search by Branch Name or Code...')
+
     fireEvent.change(searchInput, { target: { value: 'Branch 1' } })
     await waitFor(() => {
       expect(searchInput).toHaveValue('Branch 1')
@@ -194,6 +206,7 @@ describe('BranchListing Component', () => {
   test('handles pagination page change', async () => {
     render(<BranchListing />)
     const pagination = screen.getByRole('navigation')
+
     fireEvent.click(pagination.querySelector('button[aria-label="Go to next page"]')!)
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(getBranchList({ search: '', page: 2, limit: 10 }))
@@ -217,6 +230,7 @@ describe('BranchListing Component', () => {
   test('handles branch click', () => {
     render(<BranchListing />)
     const branchBox = screen.getByText('Branch 1').closest('div')!
+
     fireEvent.click(branchBox)
     expect(mockRouter.push).toHaveBeenCalledWith('/branch-management/view/employees-details?id=1')
   })
@@ -224,6 +238,7 @@ describe('BranchListing Component', () => {
   test('handles branch report dashboard click', () => {
     render(<BranchListing />)
     const button = screen.getByRole('button', { name: /Branch Report Dashboard/ })
+
     fireEvent.click(button)
     expect(mockRouter.push).toHaveBeenCalledWith('/branch-management/budget-report')
   })

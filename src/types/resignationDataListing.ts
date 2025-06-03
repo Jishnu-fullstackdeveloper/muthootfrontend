@@ -8,12 +8,32 @@ export interface ResignedEmployee {
   lastName: string
   designation: { name: string }
   department: { name: string }
+  dateOfJoining?: any
+  groupDateOfJoining?: any
+  spurious?: any
+  grade?: any
+  band?: any
+  location?: any
+  l1Manager?: any
+  l2Manager?: any
+  hrManager?: any
+  officialEmail?: any
+  personalEmail?: any
+  confirmationStatus?: any
+  leaveBalanceOnLWD?: any
+  correspondenceEmail?: any
+  correspondenceNumber?: any
+  correspondenceAddress?: any
+  actions?: any
   resignationDetails: {
     dateOfResignation: string
     lwd: string
     noticePeriod: string
     relievingDateAsPerNotice: string
     notes?: string
+    resignationCode?: any
+    stage?: any
+    status?: any
   }
 }
 

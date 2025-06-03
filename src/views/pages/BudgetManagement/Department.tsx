@@ -132,6 +132,9 @@ const Department = () => {
           onPageChange={onPageChange}
           onRowsPerPageChange={onRowsPerPageChange}
           tableName='Department Budget List'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
     </Box>

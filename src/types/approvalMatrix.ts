@@ -1,4 +1,5 @@
 export interface LevelOption {
+  displayName: string
   id: string
   name: string
 }
@@ -74,6 +75,8 @@ export interface FormattedData {
   grades: string[]
   level: number
   matrixIds: string[]
+  action?: any
+  sorting?: any
 }
 
 export interface PaginatedGroupedData {

@@ -517,6 +517,9 @@ const EmployeeTable = () => {
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Employee Listing'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
       {/* <ConfirmModal

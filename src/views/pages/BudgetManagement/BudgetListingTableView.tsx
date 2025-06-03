@@ -351,6 +351,9 @@ const BudgetListingTableView = ({
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         tableName='Budget Request List'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Box>
   )

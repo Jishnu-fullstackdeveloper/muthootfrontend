@@ -17,7 +17,7 @@ import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalMatrices } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
+import { fetchApprovalMatrices, fetchApprovalCategoryById } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
 //import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'

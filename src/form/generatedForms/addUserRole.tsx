@@ -31,10 +31,16 @@ import {
 } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 
+interface FeatureState {
+  name: string
+  actions: string[]
+  selectedActions?: string[]
+}
+
 interface PermissionState {
   module: string
   subModule?: string
-  features?: { name: string; selectedActions: string[] }[]
+  features?: FeatureState[]
   actions?: string[]
 }
 
@@ -142,7 +148,13 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       newPermissionNames: defaultPermissionsList.map(p => ({
         module: p.module,
         subModule: p.subModule,
-        features: p.features ? p.features.map(f => ({ name: f.name, selectedActions: [] as string[] })) : undefined,
+        features: p.features
+          ? p.features.map(f => ({
+              name: f.name,
+              actions: f.actions,
+              selectedActions: [] as string[]
+            }))
+          : undefined,
         actions: p.actions ? ([] as string[]) : undefined
       }))
     }),
@@ -223,6 +235,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           features: p.features
             ? p.features.map(f => ({
                 name: f.name,
+                actions: f.actions,
                 selectedActions:
                   permissions
                     .filter((perm: string) =>
@@ -288,7 +301,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                   newGroupDesignations: Array.isArray(values.groupDesignation)
                     ? values.groupDesignation
                     : [values.groupDesignation],
-                  newPermissionNames: permissions
+                  newPermissionNames: permissions,
+                  editType: 'designation'
                 }
               })
             ).unwrap()
@@ -303,7 +317,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 params: {
                   designation: values.designation,
                   targetGroupDesignation: groupDesignation,
-                  targetGroupPermissions: permissions
+                  targetGroupPermissions: permissions,
+                  editType: 'designation'
                 }
               })
             ).unwrap()
@@ -317,7 +332,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               designation: values.designation,
               group_designation: groupDesignation,
               grp_role_description: values.groupRoleDescription,
-              permissions
+              permissions,
+              des_role_description: ''
             })
           ).unwrap()
         }
@@ -387,6 +403,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     if (perm?.features) {
       permissions[moduleIndex].features = perm.features.map(f => ({
         name: f.name,
+        actions: f.actions,
         selectedActions: checked ? f.actions : []
       }))
     } else {
@@ -715,7 +732,16 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         </Box>
         {roleFormik.touched.newPermissionNames && roleFormik.errors.newPermissionNames && (
           <Typography color='error' variant='caption'>
-            {roleFormik.errors.newPermissionNames}
+            {Array.isArray(roleFormik.errors.newPermissionNames)
+              ? roleFormik.errors.newPermissionNames
+                  .filter(Boolean)
+                  .map(err =>
+                    typeof err === 'string' ? err : typeof err === 'object' && err ? JSON.stringify(err) : null
+                  )
+                  .join(', ')
+              : typeof roleFormik.errors.newPermissionNames === 'string'
+                ? roleFormik.errors.newPermissionNames
+                : JSON.stringify(roleFormik.errors.newPermissionNames)}
           </Typography>
         )}
       </Box>

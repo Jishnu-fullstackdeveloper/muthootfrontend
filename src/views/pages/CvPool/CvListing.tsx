@@ -194,8 +194,11 @@ const mockCvData: Cv[] = [
   }
 ]
 
-const SlideTransition = forwardRef(function SlideTransition(props, ref) {
-  return <Slide {...props} ref={ref} direction={props.direction as 'left' | 'right'} />
+const SlideTransition = forwardRef(function SlideTransition(
+  props: React.ComponentProps<typeof Slide> & { direction: 'left' | 'right' },
+  ref
+) {
+  return <Slide {...props} ref={ref} direction={props.direction} />
 })
 
 const CvListing = () => {
@@ -489,7 +492,7 @@ const CvListing = () => {
         maxWidth='lg'
         fullWidth
         TransitionComponent={SlideTransition}
-        TransitionProps={{ direction: dialogDirection, timeout: 400 }}
+        TransitionProps={{ timeout: 400 }} //  direction: dialogDirection,
       >
         <DialogContent sx={{ p: 0, height: '85vh' }}>
           {filteredData[currentCvIndex]?.resumeUrl ? (
@@ -531,7 +534,7 @@ const CvListing = () => {
         maxWidth='md'
         fullWidth
         TransitionComponent={SlideTransition}
-        TransitionProps={{ direction: dialogDirection, timeout: 400 }}
+        TransitionProps={{ timeout: 400 }} // direction: dialogDirection,
       >
         <DialogContent sx={{ p: 4 }}>
           <Typography variant='h6' sx={{ mb: 3, color: '#000', fontWeight: 600 }}>

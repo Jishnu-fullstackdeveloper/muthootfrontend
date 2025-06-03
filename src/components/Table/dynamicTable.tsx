@@ -122,9 +122,16 @@ const DynamicTable = ({
   columns: ColumnDef<any>[]
   data: any[]
   totalCount: number
+  sorting: any
+  onSortingChange: any
+  initialState: any
+  page?: any
+  limit?: any
+  onLimitChange?: any
+  loading?: any
   pagination: { pageIndex: number; pageSize: number }
-  onPageChange: (page: number) => void
-  onRowsPerPageChange: (pageSize: number) => void
+  onPageChange?: (page: number) => void
+  onRowsPerPageChange?: (pageSize: number) => void
   onPageCountChange?: (pageCount: number) => void
   tableName?: string
   isRowCheckbox?: boolean // Optional prop to enable row checkboxes
@@ -220,12 +227,15 @@ const DynamicTable = ({
 
   // Save columns and header order to localStorage whenever they change
   useEffect(() => {
-    const headersToSave = columns.map(col => col.header)
+    const headersToSave = columns
+      .map(col => (typeof col.header === 'string' ? col.header : undefined))
+      .filter((header): header is string => !!header)
 
     localStorage.setItem(`${tableName}_columns`, JSON.stringify(headersToSave))
     setHeaderOrder(prev => {
-      // Merge saved headers with all possible headers, preserving order
       prev
+
+      // Merge saved headers with all possible headers, preserving order
       const allHeaders = Object.keys(extractHeaders(initialColumns))
       const unseenHeaders = allHeaders.filter(header => !headersToSave.includes(header))
 

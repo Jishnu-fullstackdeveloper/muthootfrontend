@@ -17,7 +17,7 @@ export interface Employee {
   bandId: string
   designationId: string
   employeeDetails: {
-    noticePeriod: string
+    noticePeriod: number
     band: string
     grade: string
     groupDOJ: string

@@ -102,10 +102,10 @@ const EmployeeTable = () => {
       bankAccountNumber: employee.payrollDetails?.bankAccountNo || '-',
       ifscCode: employee.payrollDetails?.ifscCode || '-',
       uanNumber: employee.payrollDetails?.uanNumber || '-',
-      noticePeriod: employee.employeeDetails?.noticePeriod || '-',
+      noticePeriod: employee.resignationDetails?.noticePeriod || '-',
       mobileNumber: employee.mobileNumber || '-',
       dateOfResignation: employee.resignationDetails?.dateOfResignation || '-',
-      finalApprovalLWD: employee.resignationDetails?.finalApprovalLWD || '-',
+      lwd: employee.resignationDetails?.lwd || '-',
       foodCardNumber: employee.payrollDetails?.foodCardNo || '-',
       npsAccountNumber: employee.payrollDetails?.npsAccountNo || '-',
       esiNo: employee.payrollDetails?.esiNo || '-',
@@ -414,11 +414,11 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('dateOfResignation', {
         header: 'DATE OF RESIGNATION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation.split('T')[0]}</Typography>
       }),
       columnHelper.accessor('finalApprovalLWD', {
         header: 'FINAL APPROVAL LWD',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.finalApprovalLWD}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.lwd.split('T')[0]}</Typography>
       }),
       columnHelper.accessor('foodCardNumber', {
         header: 'FOOD CARD NUMBER',

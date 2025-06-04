@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { useSearchParams } from 'next/navigation'
 
@@ -57,23 +57,99 @@ import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined'
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchEmployeeById } from '@/redux/EmployeeManagement/employeeManagementSlice'
+import {
+  fetchEmployeeById,
+  fetchTerritoryById,
+  fetchZoneById,
+  fetchRegionById,
+  fetchAreaById,
+  fetchClusterById,
+  fetchBranchById
+} from '@/redux/EmployeeManagement/employeeManagementSlice'
 
 const EmployeeProfilePage = () => {
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
   const employeeId = searchParams.get('id')
 
-  const { selectedEmployee, selectedEmployeeStatus, selectedEmployeeError } = useAppSelector(
-    state => state.employeeManagementReducer
-  )
+  const {
+    selectedEmployee,
+    selectedEmployeeStatus,
+    selectedEmployeeError,
+    territory,
+    territoryStatus,
+    zone,
+    zoneStatus,
+    region,
+    regionStatus,
+    area,
+    areaStatus,
+    cluster,
+    clusterStatus,
+    branch,
+    branchStatus
+  } = useAppSelector(state => state.employeeManagementReducer)
 
-  // Fetch employee data on mount
+  // Track fetched IDs to prevent duplicate API calls
+  const fetchedIds = useRef({
+    employee: null,
+    territory: null,
+    zone: null,
+    region: null,
+    area: null,
+    cluster: null,
+    branch: null
+  })
+
+  // Fetch employee and related data
   useEffect(() => {
-    if (employeeId) {
+    // Fetch employee data if employeeId exists and hasn't been fetched
+    if (employeeId && fetchedIds.current.employee !== employeeId) {
       dispatch(fetchEmployeeById(employeeId))
+      fetchedIds.current.employee = employeeId
     }
-  }, [dispatch, employeeId])
+
+    // Fetch related data if selectedEmployee exists
+    if (selectedEmployee) {
+      const companyStructure = selectedEmployee.companyStructure
+
+      // Fetch territory if territoryId exists and hasn't been fetched
+      if (companyStructure.territoryId && fetchedIds.current.territory !== companyStructure.territoryId) {
+        dispatch(fetchTerritoryById(companyStructure.territoryId))
+        fetchedIds.current.territory = companyStructure.territoryId
+      }
+
+      // Fetch zone if zoneId exists and hasn't been fetched
+      if (companyStructure.zoneId && fetchedIds.current.zone !== companyStructure.zoneId) {
+        dispatch(fetchZoneById(companyStructure.zoneId))
+        fetchedIds.current.zone = companyStructure.zoneId
+      }
+
+      // Fetch region if regionId exists and hasn't been fetched
+      if (companyStructure.regionId && fetchedIds.current.region !== companyStructure.regionId) {
+        dispatch(fetchRegionById(companyStructure.regionId))
+        fetchedIds.current.region = companyStructure.regionId
+      }
+
+      // Fetch area if areaId exists and hasn't been fetched
+      if (companyStructure.areaId && fetchedIds.current.area !== companyStructure.areaId) {
+        dispatch(fetchAreaById(companyStructure.areaId))
+        fetchedIds.current.area = companyStructure.areaId
+      }
+
+      // Fetch cluster if clusterId exists and hasn't been fetched
+      if (companyStructure.clusterId && fetchedIds.current.cluster !== companyStructure.clusterId) {
+        dispatch(fetchClusterById(companyStructure.clusterId))
+        fetchedIds.current.cluster = companyStructure.clusterId
+      }
+
+      // Fetch branch if branchId exists and hasn't been fetched
+      if (companyStructure.branchId && fetchedIds.current.branch !== companyStructure.branchId) {
+        dispatch(fetchBranchById(companyStructure.branchId))
+        fetchedIds.current.branch = companyStructure.branchId
+      }
+    }
+  }, [dispatch, employeeId, selectedEmployee])
 
   // Map API data to UI format
   const employee = selectedEmployee
@@ -89,12 +165,12 @@ const EmployeeProfilePage = () => {
         company: selectedEmployee.companyStructure.company,
         businessUnit: selectedEmployee.businessUnit.name,
         department: selectedEmployee.department.name,
-        territory: selectedEmployee.companyStructure.territory || '-',
-        zone: selectedEmployee.companyStructure.zone || '-',
-        region: selectedEmployee.companyStructure.region || '-',
-        area: selectedEmployee.companyStructure.area || '-',
-        cluster: selectedEmployee.companyStructure.cluster || '-',
-        branch: selectedEmployee.companyStructure.branch || '-',
+        territory: territory?.name || selectedEmployee.companyStructure.territory || '-', // Use territory name from API if available
+        zone: zone?.name || selectedEmployee.companyStructure.zone || '-',
+        region: region?.name || selectedEmployee.companyStructure.region || '-',
+        area: area?.name || selectedEmployee.companyStructure.area || '-',
+        cluster: cluster?.name || selectedEmployee.companyStructure.cluster || '-',
+        branch: branch?.name || selectedEmployee.companyStructure.branch || '-',
         branchCode: selectedEmployee.companyStructure.branchCode || '-',
         cityClassification: selectedEmployee.address.cityClassification,
         state: selectedEmployee.address.state,
@@ -159,7 +235,16 @@ const EmployeeProfilePage = () => {
       }
     : null
 
-  if (selectedEmployeeStatus === 'loading') {
+  // Combine loading states for employee and related data
+  if (
+    selectedEmployeeStatus === 'loading' ||
+    territoryStatus === 'loading' ||
+    zoneStatus === 'loading' ||
+    regionStatus === 'loading' ||
+    areaStatus === 'loading' ||
+    clusterStatus === 'loading' ||
+    branchStatus === 'loading'
+  ) {
     return (
       <Box sx={{ textAlign: 'center' }}>
         <CircularProgress color='primary' />
@@ -167,6 +252,7 @@ const EmployeeProfilePage = () => {
     )
   }
 
+  // Combine error states for employee and related data
   if (selectedEmployeeStatus === 'failed' || !employee) {
     return (
       <Box sx={{ textAlign: 'center' }}>
@@ -194,8 +280,6 @@ const EmployeeProfilePage = () => {
           borderRadius: 3,
           overflow: 'hidden',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-
-          //background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
           background: 'linear-gradient(135deg, #1565c0 0%, #64b5f6 100%)',
           color: 'white'
         }}
@@ -731,7 +815,7 @@ const EmployeeProfilePage = () => {
               <Grid item xs={12} sm={6}>
                 <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <CardGiftcardOutlinedIcon fontSize='small' color='primary' />
-                  <strong>Food Card Number:</strong> {employee.foodCardNumber}
+                  <strong>File Card Number:</strong> {employee.foodCardNumber}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -755,7 +839,7 @@ const EmployeeProfilePage = () => {
               <Grid item xs={12} sm={6}>
                 <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AccountBalanceWalletOutlinedIcon fontSize='small' color='primary' />
-                  <strong>PF Gross Limit:</strong> {employee.pfGrossLimit}
+                  <strong>PF Gross Limit: {employee.pfGrossLimit}</strong>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>

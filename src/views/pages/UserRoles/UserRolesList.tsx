@@ -103,7 +103,7 @@ const UserRolesAndPermissionList: React.FC = () => {
   const cleanName = (name: string, prefix: 'DES_' | 'grp_'): string => {
     const regex = new RegExp(`^${prefix}`, 'i')
 
-    return name.replace(regex, '').replace(/\s+/g, '-')
+    return name?.replace(regex, '').replace(/\s+/g, '-')
   }
 
   // Handle navigation to edit role page
@@ -120,16 +120,16 @@ const UserRolesAndPermissionList: React.FC = () => {
   // }
 
   // Handle navigation to view role page
-  // const handleView = (role: Role): void => {
-  //   const cleanedName = cleanName(role.name, 'DES_')
+  const handleView = (role: Role): void => {
+    const cleanedName = cleanName(role.name, 'DES_')
 
-  //   const query = new URLSearchParams({
-  //     id: role.id,
-  //     name: role.name
-  //   }).toString()
+    const query = new URLSearchParams({
+      id: role.id,
+      name: role.name
+    }).toString()
 
-  //   router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
-  // }
+    router.push(ROUTES.USER_MANAGEMENT.ROLE_VIEW(query, role.name))
+  }
 
   // Handle navigation to add role page
   const handleAdd = (): void => {
@@ -148,7 +148,7 @@ const UserRolesAndPermissionList: React.FC = () => {
       columnHelper.accessor('name', {
         header: 'Role Name',
         cell: ({ row }) => (
-          <Typography variant='body2'>{cleanName(row.original.name, 'DES_').toUpperCase() || 'N/A'}</Typography>
+          <Typography variant='body2'>{cleanName(row.original.name, 'DES_')?.toUpperCase() || 'N/A'}</Typography>
         )
       }),
       columnHelper.accessor('description', {

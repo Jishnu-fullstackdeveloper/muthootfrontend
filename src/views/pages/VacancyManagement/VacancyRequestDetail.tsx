@@ -848,6 +848,9 @@ const VacancyRequestDetail = () => {
             console.log('Selected Rows:', selectedRows)
           }}
           loading={vacancyRequestListLoading || updateVacancyRequestStatusLoading}
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
     </Box>

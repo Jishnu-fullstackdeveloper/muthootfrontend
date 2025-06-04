@@ -26,7 +26,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUserRole, fetchDesignation } from '@/redux/UserRoles/userRoleSlice'
+import { getUserRoleDetails, fetchDesignation } from '@/redux/UserRoles/userRoleSlice'
 
 const ACTION_ORDER = ['read', 'create', 'update', 'delete', 'upload', 'approval']
 
@@ -35,8 +35,8 @@ const ViewUserRole = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  //designationData
-  const { userRoleData, isUserRoleLoading, isDesignationLoading } = useAppSelector(state => state.UserRoleReducer)
+  // Selectors for loading states and role data
+  const { isUserRoleLoading, isDesignationLoading } = useAppSelector(state => state.UserRoleReducer)
 
   const roleId = searchParams.get('id')
   const [localRole, setLocalRole] = useState(null)
@@ -52,30 +52,21 @@ const ViewUserRole = () => {
     if (!roleId) {
       setLocalRole(null)
       setHasFetched(true) // Mark as fetched to avoid infinite loading
-
       return
     }
 
-    // Check if role exists in userRoleData
-    const existingRole = userRoleData?.data?.find(role => role.id === roleId)
-
-    if (existingRole) {
-      setLocalRole(existingRole)
-      setHasFetched(true)
-    } else {
-      // Fetch role if not found in store
-      dispatch(fetchUserRole({ id: roleId }))
-        .unwrap()
-        .then(response => {
-          setLocalRole(response?.data || null)
-          setHasFetched(true)
-        })
-        .catch(() => {
-          setLocalRole(null)
-          setHasFetched(true)
-        })
-    }
-  }, [dispatch, roleId, userRoleData])
+    // Fetch role using getUserRoleDetails
+    dispatch(getUserRoleDetails({ id: roleId }))
+      .unwrap()
+      .then(response => {
+        setLocalRole(response?.data || null)
+        setHasFetched(true)
+      })
+      .catch(() => {
+        setLocalRole(null)
+        setHasFetched(true)
+      })
+  }, [dispatch, roleId])
 
   const handleEditDesignation = () => {
     const query = new URLSearchParams({
@@ -197,10 +188,27 @@ const ViewUserRole = () => {
 
   const isEditDisabled = ['DEFAULT-ROLE', 'DEFAULT-ROLES-HRMS', 'SUPER ADMIN'].includes(roleName.toUpperCase())
 
-  const cleanName = (name, prefix) => {
+  const cleanName = (name, prefix, isGroupRole = false) => {
     if (!name) return ''
 
-    return name.replace(new RegExp(`^${prefix}`), '').trim()
+    // Remove the prefix (des_ or grp_)
+    let cleaned = name.replace(new RegExp(`^${prefix}`), '').trim()
+
+    // Remove underscores and replace with spaces
+    cleaned = cleaned.replace(/_/g, ' ')
+
+    if (isGroupRole) {
+      // For group roles, capitalize the first word
+      cleaned = cleaned
+        .split(' ')
+        .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+        .join(' ')
+    } else {
+      // For designation, capitalize the entire string
+      cleaned = cleaned.toUpperCase()
+    }
+
+    return cleaned
   }
 
   return (
@@ -209,7 +217,7 @@ const ViewUserRole = () => {
         <CardContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
-              {cleanName(localRole?.name, 'des_').toUpperCase()}
+              {cleanName(localRole?.name, 'des_')}
             </Typography>
             <Typography variant='body1' sx={{ mt: 1 }}>
               {cleanName(roleDescription, 'des_')}
@@ -304,7 +312,7 @@ const ViewUserRole = () => {
               <Accordion key={groupRole.id} sx={{ mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <Typography variant='subtitle1'>{cleanName(groupRole.name, 'grp_')}</Typography>
+                    <Typography variant='subtitle1'>{cleanName(groupRole.name, 'grp_', true)}</Typography>
                     <IconButton
                       onClick={e => {
                         e.stopPropagation()

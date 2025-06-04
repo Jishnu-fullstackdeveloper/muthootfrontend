@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -12,9 +12,6 @@ import {
   Checkbox,
   FormControlLabel,
   Box,
-  Select,
-  MenuItem,
-  InputLabel,
   CircularProgress,
   Typography,
   Chip,
@@ -26,10 +23,12 @@ import {
   addNewUserRole,
   updateUserRole,
   resetAddUserRoleStatus,
-  fetchUserRole,
-  fetchDesignation
+  getUserRoleDetails,
+  fetchUserRole
 } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 interface FeatureState {
   name: string
@@ -58,8 +57,6 @@ const defaultPermissionsList: PermissionState[] = [
       { name: 'User', actions: ['read', 'update', 'delete', 'create'] },
       { name: 'Role', actions: ['read', 'update', 'delete', 'create'] },
       { name: 'Employee', actions: ['read'] }
-
-      // { name: 'Resigned', actions: ['read', 'approval'] }
     ]
   },
   {
@@ -88,8 +85,6 @@ const defaultPermissionsList: PermissionState[] = [
       { name: 'Budget', actions: ['read', 'create', 'delete', 'approval'] },
       { name: 'Onboarding', actions: ['read', 'update', 'create'] },
       { name: 'Vacancy', actions: ['read'] },
-
-      // { name: 'Vacancy', actions: ['read', 'update'] },
       { name: 'JobPosting', actions: ['read', 'update'] },
       { name: 'Interview', actions: ['read', 'update'] }
     ]
@@ -119,6 +114,10 @@ const defaultPermissionsList: PermissionState[] = [
 const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mode, id }) => {
   const [apiErrors, setApiErrors] = useState<string[]>([])
   const [isFormEdited, setIsFormEdited] = useState(false)
+  const [fetchedRoleData, setFetchedRoleData] = useState<any>(null)
+  const [groupRoleLimit, setGroupRoleLimit] = useState(100)
+  const [isGroupRoleLoading, setIsGroupRoleLoading] = useState(false)
+  const [hasMoreGroupRoles, setHasMoreGroupRoles] = useState(true)
 
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -126,6 +125,16 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const editType = searchParams.get('editType') || 'designation'
   const roleId = searchParams.get('id') || id || ''
   const groupRoleId = searchParams.get('groupRoleId')
+  const [activeSection, setActiveSection] = useState<'roleDetails' | 'permissions'>(
+    mode === 'edit' && (searchParams.get('editType') || 'designation') === 'designation' ? 'roleDetails' : 'permissions'
+  )
+  const rawDesignation = searchParams.get('name') || ''
+  const autocompleteRef = useRef<HTMLDivElement | null>(null)
+
+  // Clean up the designation
+  const currentDesignation = rawDesignation
+    .replace(/^des_/i, '') // Remove "Des_" or "des_"
+    .replace(/_/g, ' ') // Replace all underscores with spaces
 
   const {
     isAddUserRoleLoading,
@@ -133,16 +142,29 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     addUserRoleFailure,
     addUserRoleFailureMessage,
     userRoleData,
-    designationData,
-    isDesignationLoading,
-    designationFailure,
-    designationFailureMessage,
     isUserRoleLoading
   } = useAppSelector((state: any) => state.UserRoleReducer)
 
+  // Compute group designation options with proper formatting
+  const groupDesignationOptions = useMemo(() => {
+    const options =
+      userRoleData?.data?.flatMap(
+        (role: any) =>
+          role.groupRoles?.map(
+            (gr: any) =>
+              gr.name
+                .replace(/^grp_/i, '') // Remove "grp"
+                .replace(/_/g, ' ') // Replace underscores with spaces
+          ) || []
+      ) || []
+
+    // Remove duplicates
+    return [...new Set(options)]
+  }, [userRoleData])
+
   const initialFormValues: FormValues = useMemo(
     () => ({
-      designation: '',
+      designation: currentDesignation, // Pre-set the designation from search params
       groupDesignation: editType === 'designation' ? [] : '',
       groupRoleDescription: '',
       newPermissionNames: defaultPermissionsList.map(p => ({
@@ -158,56 +180,67 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         actions: p.actions ? ([] as string[]) : undefined
       }))
     }),
-    [editType]
+    [editType, currentDesignation]
   )
 
+  // Fetch user roles on mount
   useEffect(() => {
-    dispatch(fetchDesignation({}))
-    dispatch(fetchUserRole({ limit: 10, page: 1 }))
+    fetchGroupRoles()
   }, [dispatch])
 
+  // Fetch more group roles when limit changes
+  useEffect(() => {
+    if (groupRoleLimit > 100) {
+      fetchGroupRoles()
+    }
+  }, [groupRoleLimit])
+
+  const fetchGroupRoles = async () => {
+    setIsGroupRoleLoading(true)
+    try {
+      const response = await dispatch(fetchUserRole({ limit: groupRoleLimit, page: 1 })).unwrap()
+      const totalItems = response?.pagination?.totalCount || 0
+      setHasMoreGroupRoles(groupRoleLimit < totalItems)
+    } catch (error) {
+      console.error('Failed to fetch group roles:', error)
+      setApiErrors(['Failed to fetch group roles. Please try again.'])
+    } finally {
+      setIsGroupRoleLoading(false)
+    }
+  }
+
+  // Fetch role data when in edit mode
   useEffect(() => {
     if (mode === 'edit' && roleId) {
-      dispatch(fetchUserRole({ id: roleId }))
+      const fetchRoleData = async () => {
+        try {
+          const res = await dispatch(getUserRoleDetails({ id: roleId })).unwrap()
+          setFetchedRoleData(res.data)
+        } catch (error) {
+          console.error('Failed to fetch role data:', error)
+          setApiErrors(['Failed to fetch role data. Please try again.'])
+        }
+      }
+      fetchRoleData()
     }
   }, [mode, roleId, dispatch])
 
+  // Update form values when role data is fetched
   useEffect(() => {
-    if (addUserRoleFailure && addUserRoleFailureMessage) {
-      setApiErrors(Array.isArray(addUserRoleFailureMessage) ? addUserRoleFailureMessage : [addUserRoleFailureMessage])
-    } else if (designationFailure && designationFailureMessage) {
-      setApiErrors(Array.isArray(designationFailureMessage) ? designationFailureMessage : [designationFailureMessage])
-    } else {
-      setApiErrors([])
-    }
-  }, [addUserRoleFailure, addUserRoleFailureMessage, designationFailure, designationFailureMessage])
-  useEffect(() => {
-    if (addUserRoleSuccess) {
-      router.push('/user-management/role')
-    }
-  }, [addUserRoleSuccess, router])
+    if (mode !== 'edit' || !fetchedRoleData) return
 
-  useEffect(() => {
-    return () => {
-      dispatch(resetAddUserRoleStatus())
-    }
-  }, [dispatch])
-
-  useEffect(() => {
-    if (mode !== 'edit' || !userRoleData?.data || !designationData?.data) return
-
-    const matchedRole = userRoleData.data.find((role: any) => role.id === roleId)
+    const matchedRole = fetchedRoleData
 
     if (!matchedRole) {
       console.warn(`No role found for roleId: ${roleId}`)
-
       return
     }
 
-    const validDesignation =
-      matchedRole.name && designationData.data.some((d: any) => d.name === matchedRole.name)
-        ? matchedRole.name
-        : designationData.data[0]?.name || ''
+    const validDesignation = matchedRole.name
+      ? matchedRole.name
+          .replace(/^des_/i, '') // Remove "Des_" or "des_"
+          .replace(/_/g, ' ') // Replace all underscores with spaces
+      : currentDesignation || ''
 
     const groupRole =
       editType === 'groupRole' && groupRoleId
@@ -216,8 +249,15 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     const groupDesignation =
       editType === 'designation'
-        ? matchedRole.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/, '').trim()) || []
-        : groupRole.name?.replace(/^grp_/, '').trim() || ''
+        ? matchedRole.groupRoles?.map(
+            (gr: any) =>
+              gr.name
+                .replace(/^grp_/i, '') // Remove "grp"
+                .replace(/_/g, ' ') // Replace underscores with spaces
+          ) || []
+        : groupRole.name
+          ? groupRole.name.replace(/^grp_/i, '').replace(/_/g, ' ')
+          : ''
 
     const permissions = editType === 'groupRole' ? groupRole.permissions || [] : matchedRole.permissions || []
 
@@ -254,7 +294,51 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         }
       })
     })
-  }, [mode, userRoleData, roleId, groupRoleId, editType, designationData])
+  }, [mode, fetchedRoleData, roleId, groupRoleId, editType, currentDesignation])
+
+  useEffect(() => {
+    if (addUserRoleFailure && addUserRoleFailureMessage) {
+      setApiErrors(Array.isArray(addUserRoleFailureMessage) ? addUserRoleFailureMessage : [addUserRoleFailureMessage])
+    } else {
+      setApiErrors([])
+    }
+  }, [addUserRoleFailure, addUserRoleFailureMessage])
+
+  // Handle successful update
+  useEffect(() => {
+    if (addUserRoleSuccess && mode === 'edit') {
+      if (editType === 'designation' && activeSection === 'roleDetails') {
+        // After saving Role Details, enable Permissions section
+        setActiveSection('permissions')
+        setIsFormEdited(false)
+        dispatch(resetAddUserRoleStatus())
+        setApiErrors([])
+      } else {
+        // After saving Permissions (or groupRole edit), fetch updated role data
+        const fetchUpdatedRoleData = async () => {
+          try {
+            const res = await dispatch(getUserRoleDetails({ id: roleId })).unwrap()
+            setFetchedRoleData(res.data)
+            dispatch(resetAddUserRoleStatus())
+            setIsFormEdited(false)
+            setApiErrors([])
+          } catch (error) {
+            console.error('Failed to fetch updated role data:', error)
+            setApiErrors(['Failed to fetch updated role data. Please try again.'])
+          }
+        }
+        fetchUpdatedRoleData()
+      }
+    } else if (addUserRoleSuccess && mode === 'add') {
+      router.push('/user-management/role')
+    }
+  }, [addUserRoleSuccess, dispatch, roleId, mode, router, editType, activeSection])
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetAddUserRoleStatus())
+    }
+  }, [dispatch])
 
   const roleFormik = useFormik<FormValues>({
     initialValues: initialFormValues,
@@ -264,12 +348,12 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         .required('Designation is required')
         .matches(/^[a-zA-Z0-9\s]+$/, 'Only letters, numbers, and spaces allowed'),
       groupDesignation:
-        editType === 'designation' && mode === 'edit'
-          ? Yup.array().of(Yup.string()).min(1, 'At least one group designation required')
-          : Yup.string()
+        editType === 'groupRole'
+          ? Yup.string()
               .required('Group designation is required')
               .matches(/^[a-zA-Z0-9\s]+$/, 'Only letters, numbers, and spaces allowed')
-              .test('not-only-spaces', 'Cannot be only spaces', value => value?.trim().length > 0),
+              .test('not-only-spaces', 'Cannot be only spaces', value => value?.trim().length > 0)
+          : Yup.array().of(Yup.string()), // Optional for designation edit
       groupRoleDescription: Yup.string(),
       newPermissionNames: Yup.array().test('at-least-one-permission', 'At least one permission required', value =>
         value.some(p => (p.features ? p.features.some(f => f.selectedActions.length > 0) : p.actions?.length > 0))
@@ -291,31 +375,46 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       )
 
       try {
+        let res = null
         if (mode === 'edit' && roleId) {
           if (editType === 'designation') {
-            await dispatch(
-              updateUserRole({
-                id: roleId,
-                params: {
-                  designation: values.designation,
-                  newGroupDesignations: Array.isArray(values.groupDesignation)
-                    ? values.groupDesignation
-                    : [values.groupDesignation],
-                  newPermissionNames: permissions,
-                  editType: 'designation'
-                }
-              })
-            ).unwrap()
+            if (activeSection === 'roleDetails') {
+              // Submit only Role Details
+              res = await dispatch(
+                updateUserRole({
+                  id: roleId,
+                  params: {
+                    designation: currentDesignation,
+                    newGroupDesignations: Array.isArray(values.groupDesignation)
+                      ? values.groupDesignation.map(gd => gd)
+                      : [values.groupDesignation],
+                    editType: 'designation'
+                  }
+                })
+              ).unwrap()
+            } else if (activeSection === 'permissions') {
+              // Submit only Permissions
+              res = await dispatch(
+                updateUserRole({
+                  id: roleId,
+                  params: {
+                    designation: currentDesignation,
+                    newPermissionNames: permissions,
+                    editType: 'designation'
+                  }
+                })
+              ).unwrap()
+            }
           } else if (editType === 'groupRole' && groupRoleId) {
             const groupDesignation = typeof values.groupDesignation === 'string' ? values.groupDesignation.trim() : ''
 
             if (!groupDesignation) throw new Error('Group designation is required.')
-            await dispatch(
+            res = await dispatch(
               updateUserRole({
                 id: roleId,
                 groupRoleId,
                 params: {
-                  designation: values.designation,
+                  designation: currentDesignation,
                   targetGroupDesignation: groupDesignation,
                   targetGroupPermissions: permissions,
                   editType: 'designation'
@@ -330,14 +429,33 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           await dispatch(
             addNewUserRole({
               designation: values.designation,
-              group_designation: groupDesignation,
+              group_designation: groupDesignation
+                .toLowerCase()
+                .replace(/\s+/g, '_') // Convert spaces to underscores for backend
+                .replace(/^grp_/, ''), // Ensure no grp_ prefix
               grp_role_description: values.groupRoleDescription,
               permissions,
               des_role_description: ''
             })
           ).unwrap()
         }
+        toast.success(res?.message || 'Successfully Updated', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
       } catch (error: any) {
+        toast.error(error?.message, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        })
         setApiErrors(
           error.message
             ? Array.isArray(error.message)
@@ -464,7 +582,30 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }
 
-  if (isUserRoleLoading || isDesignationLoading) {
+  // Handle lazy loading for Autocomplete
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 1
+
+    if (bottom && hasMoreGroupRoles && !isGroupRoleLoading) {
+      setGroupRoleLimit(prevLimit => prevLimit + 100)
+    }
+  }
+
+  // Handle section toggle
+  const handleRoleDetailsClick = () => {
+    if (editType === 'designation') {
+      setActiveSection('roleDetails')
+    }
+  }
+
+  const handlePermissionsClick = () => {
+    if (editType === 'designation') {
+      setActiveSection('permissions')
+    }
+  }
+
+  if (isUserRoleLoading) {
     return (
       <Box display='flex' justifyContent='center' alignItems='center' height='100vh'>
         <CircularProgress />
@@ -474,6 +615,17 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
   return (
     <form onSubmit={roleFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Typography variant='h5' className='mb-4'>
         {mode === 'edit' ? (editType === 'groupRole' ? 'Edit Group Role' : 'Edit Designation') : 'Add New Role'}
       </Typography>
@@ -493,57 +645,63 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         </Box>
       )}
 
-      <Box component='fieldset' className='border border-gray-300 rounded p-4 mb-6'>
+      <Box
+        component='fieldset'
+        className={`border rounded p-4 mb-6 cursor-pointer transition-all duration-200 ${
+          editType === 'designation' && activeSection === 'roleDetails'
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300'
+        }`}
+        disabled={editType === 'designation' && activeSection !== 'roleDetails'}
+        onClick={handleRoleDetailsClick}
+      >
         <legend className='text-lg font-semibold text-gray-700'>Role Details</legend>
         <FormControl fullWidth margin='normal'>
-          <InputLabel id='designation-label'>Designation *</InputLabel>
-          <Select
-            labelId='designation-label'
+          <TextField
             label='Designation *'
             name='designation'
-            value={roleFormik.values.designation ? roleFormik.values.designation : ''}
+            value={roleFormik.values.designation || ''}
             onChange={roleFormik.handleChange}
             onBlur={roleFormik.handleBlur}
             error={roleFormik.touched.designation && !!roleFormik.errors.designation}
-          >
-            {designationData?.data?.map((d: any) => (
-              <MenuItem key={d.id} value={d.name}>
-                {d.name}
-              </MenuItem>
-            ))}
-          </Select>
-          {roleFormik.touched.designation && roleFormik.errors.designation && (
-            <Typography color='error' variant='caption'>
-              {roleFormik.errors.designation}
-            </Typography>
-          )}
+            helperText={roleFormik.touched.designation && roleFormik.errors.designation}
+            disabled={mode === 'edit'}
+          />
         </FormControl>
 
         {editType === 'designation' && mode === 'edit' ? (
           <FormControl fullWidth margin='normal'>
             <Autocomplete
               id='groupDesignation'
-              options={
-                userRoleData?.data?.flatMap(
-                  (d: any) =>
-                    d.groupRoles?.map(
-                      (gr: any) =>
-                        gr.name
-                          .replace(/^grp_/, '') // Remove "grp_"
-                          .replace(/_/g, ' ') // Replace underscores with space
-                          .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize each word
-                    ) || []
-                ) || []
-              }
+              options={groupDesignationOptions}
               value={Array.isArray(roleFormik.values.groupDesignation) ? roleFormik.values.groupDesignation : []}
               onChange={(e, value) => roleFormik.setFieldValue('groupDesignation', value)}
-              renderInput={params => <TextField {...params} label='Group Designations *' />}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Group Designations'
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {isGroupRoleLoading ? <CircularProgress size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    )
+                  }}
+                />
+              )}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
-                  <Chip variant='outlined' key='' label={option} {...getTagProps({ index })} />
+                  <Chip variant='outlined' key={index} label={option} {...getTagProps({ index })} />
                 ))
               }
               multiple
+              disabled={editType === 'designation' && activeSection !== 'roleDetails'}
+              ListboxProps={{
+                onScroll: handleScroll,
+                style: { maxHeight: 300 }
+              }}
             />
             {roleFormik.touched.groupDesignation && roleFormik.errors.groupDesignation && (
               <Typography color='error' variant='caption'>
@@ -582,8 +740,19 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
       {/* ###### Permissions ###### */}
 
-      <Box component='fieldset' className='border border-gray-300 rounded p-4 mb-6'>
-        <legend className='text-lg font-semibold text-gray-700'>Permissions</legend>
+      <Box
+        component='fieldset'
+        className={`border rounded p-4 mb-6 cursor-pointer transition-all duration-200 ${
+          editType === 'designation' && activeSection === 'permissions'
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300'
+        }`}
+        disabled={editType === 'designation' && activeSection !== 'permissions'}
+        onClick={handlePermissionsClick}
+      >
+        <legend className='text-lg font-semibold text-gray-700'>
+          {editType === 'designation' ? 'Permissions of Designations' : 'Permissions of Group'}
+        </legend>
         <Box mb={2}>
           <FormControlLabel
             control={
@@ -602,6 +771,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                     : (p.actions?.length ?? 0) === defaultPerm?.actions!.length
                 })}
                 onChange={e => handleSelectAllModules(e.target.checked)}
+                disabled={editType === 'designation' && activeSection !== 'permissions'}
               />
             }
             label='Select All'
@@ -615,6 +785,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                     : p.actions?.includes('read') ?? false
                 )}
                 onChange={e => handleSelectAllReadPermissions(e.target.checked)}
+                disabled={editType === 'designation' && activeSection !== 'permissions'}
               />
             }
             label='Select All Read Permissions'
@@ -641,6 +812,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                           )?.actions?.length ?? 0) === permission.actions!.length
                     }
                     onChange={e => handleSelectAllFeatures(permission.module, permission.subModule, e.target.checked)}
+                    disabled={editType === 'designation' && activeSection !== 'permissions'}
                   />
                 }
                 label={permission.subModule ? `${permission.module} - ${permission.subModule}` : permission.module}
@@ -667,6 +839,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                                   e.target.checked
                                 )
                               }
+                              disabled={editType === 'designation' && activeSection !== 'permissions'}
                             />
                           }
                           label={feature.name}
@@ -692,6 +865,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                                       e.target.checked
                                     )
                                   }
+                                  disabled={editType === 'designation' && activeSection !== 'permissions'}
                                 />
                               }
                               label={action.charAt(0).toUpperCase() + action.slice(1)}
@@ -719,6 +893,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                                 e.target.checked
                               )
                             }
+                            disabled={editType === 'designation' && activeSection !== 'permissions'}
                           />
                         }
                         label={
@@ -767,13 +942,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               (mode === 'edit' && !isFormEdited)
             }
           >
-            {isAddUserRoleLoading
-              ? 'Saving...'
-              : mode === 'edit'
-                ? editType === 'groupRole'
-                  ? 'Update Group Role'
-                  : 'Update Designation'
-                : 'Add Role'}
+            {isAddUserRoleLoading ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Add Role'}
           </DynamicButton>
         </Box>
       </Box>

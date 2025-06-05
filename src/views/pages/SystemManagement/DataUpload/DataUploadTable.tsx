@@ -32,6 +32,28 @@ const DataUploadTableList = () => {
   }, [dispatch, pagination?.pageIndex, pagination?.pageSize])
 
   // Map API data to table format
+  // const tableData = useMemo(() => {
+  //   const mappedData = uploads?.map((upload, index) => ({
+  //     slno: index + 1 + pagination?.pageIndex * pagination?.pageSize, // Serial number based on index and page
+  //     id: upload?.id,
+  //     fileName: upload?.processData?.originalname || '-',
+  //     fileType: upload?.processData?.type || '-',
+  //     fileSize: upload?.processData?.size,
+  //     time: upload?.createdAt ? new Date(upload.createdAt).toLocaleString() : '-',
+  //     status: upload?.processStatus || '-',
+  //     remarks: upload?.errorDetails
+  //       ? [upload?.errorDetails]
+  //       : upload?.processStatus === 'COMPLETED'
+  //         ? ['Processed successfully']
+  //         : ['-'] // Default remarks based on status
+  //   }))
+
+  //   return {
+  //     data: mappedData,
+  //     totalCount: totalCount
+  //   }
+  // }, [uploads, totalCount, pagination.pageIndex, pagination.pageSize])
+
   const tableData = useMemo(() => {
     const mappedData = uploads?.map((upload, index) => ({
       slno: index + 1 + pagination?.pageIndex * pagination?.pageSize, // Serial number based on index and page
@@ -40,6 +62,7 @@ const DataUploadTableList = () => {
       fileType: upload?.processData?.type || '-',
       fileSize: upload?.processData?.size,
       time: upload?.createdAt ? new Date(upload.createdAt).toLocaleString() : '-',
+      uploadDate: upload?.createdAt, // Store original timestamp for sorting
       status: upload?.processStatus || '-',
       remarks: upload?.errorDetails
         ? [upload?.errorDetails]
@@ -83,10 +106,10 @@ const DataUploadTableList = () => {
 
   const columns = useMemo<ColumnDef<DataUploadTableRow, any>[]>(
     () => [
-      columnHelper.accessor('slno', {
-        header: 'SLNO',
-        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.slno}</Typography>
-      }),
+      // columnHelper.accessor('slno', {
+      //   header: 'SLNO',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row?.original?.slno}</Typography>
+      // }),
       columnHelper.accessor('fileName', {
         header: 'FILE NAME',
         cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileName}</Typography>
@@ -99,10 +122,22 @@ const DataUploadTableList = () => {
         header: 'FILE SIZE',
         cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileSize}</Typography>
       }),
+
+      // columnHelper.accessor('time', {
+      //   header: 'TIME',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>
+      // }),
       columnHelper.accessor('time', {
         header: 'TIME',
-        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>,
+        sortingFn: (rowA, rowB) => {
+          const dateA = rowA.original.uploadDate ? new Date(rowA.original.uploadDate).getTime() : 0
+          const dateB = rowB.original.uploadDate ? new Date(rowB.original.uploadDate).getTime() : 0
+
+          return dateA - dateB
+        }
       }),
+
       columnHelper.accessor('status', {
         header: 'STATUS',
         cell: ({ row }) => {
@@ -192,6 +227,9 @@ const DataUploadTableList = () => {
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Data Upload List'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
       {/* <ConfirmModal

@@ -40,6 +40,7 @@ interface UpdateUserRoleParams {
     targetGroupPermissions?: string[] // Used for group role-wise edit
     groupRoleDescription?: string // Used for group role-wise edit
     editType: 'designation' | 'groupRole' // Explicitly specify edit type
+    totalCount?: any
   }
 }
 
@@ -57,7 +58,8 @@ export const fetchUserRole = createAsyncThunk(
           totalItems: response.data.data.pagination?.totalCount || 0,
           totalPages: response.data.data.pagination?.totalPages || 1,
           page: response.data.data.pagination?.page || 1,
-          limit: response.data.data.pagination?.limit || 10
+          limit: response.data.data.pagination?.limit || 10,
+          totalCount: response.data.data.pagination?.totalCount || 10
         },
         message: response.data.message
       }
@@ -71,6 +73,7 @@ export const fetchUserRole = createAsyncThunk(
     }
   }
 )
+
 export const getUserRoleDetails = createAsyncThunk(
   'userManagement/getUserRoleDetails',
   async ({ id }: { id: string }, { rejectWithValue }) => {
@@ -134,19 +137,29 @@ export const updateUserRole = createAsyncThunk(
   'userManagement/updateUserRole',
   async ({ id, groupRoleId, params }: UpdateUserRoleParams, { rejectWithValue }) => {
     id
-
     try {
       let requestBody: any
 
       if (!groupRoleId) {
         // Designation-wise edit
-        requestBody = {
-          designation: params.designation,
-          newGroupDesignations: params.newGroupDesignations || [],
-          newPermissionNames: params.newPermissionNames || []
+        // Only add newGroupDesignations if it's not empty
+        if (params.newGroupDesignations) {
+          // requestBody.targetGroupDesignation = params.newGroupDesignations
+          requestBody = {
+            designation: params.designation,
+            newGroupDesignations: params.newGroupDesignations
+            // newPermissionNames: params.newPermissionNames || []
+          }
+        } else {
+          requestBody = {
+            designation: params.designation,
+            // newGroupDesignations: params.newGroupDesignations || [],
+            newPermissionNames: params.newPermissionNames || []
+          }
         }
       } else {
         // Group role-wise edit
+        console.log(params.targetGroupDesignation)
         requestBody = {
           designation: params.designation,
           targetGroupDesignation: params.targetGroupDesignation,

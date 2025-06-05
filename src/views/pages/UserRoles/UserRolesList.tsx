@@ -121,7 +121,7 @@ const UserRolesAndPermissionList: React.FC = () => {
 
   // Handle navigation to view role page
   const handleView = (role: Role): void => {
-    const cleanedName = cleanName(role.name, 'DES_')
+    // const cleanedName = cleanName(role.name, 'DES_')
 
     const query = new URLSearchParams({
       id: role.id,

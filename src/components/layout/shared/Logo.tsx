@@ -74,7 +74,7 @@ const Logo = () => {
   // You may return any JSX here to display a logo in the sidebar header
   // return <Img src='/next.svg' width={100} height={25} alt='logo' /> // for example
   return (
-    <Link href='/' className='flex items-center'>
+    <Link href='/home' className='flex items-center'>
       {custom_theme_settings?.theme?.images?.logo?.url ? (
         <Box
           component='img'

@@ -14,8 +14,6 @@ const UserRolesIndex = () => {
   const mode = segments[3]
   const id = segments[4]
 
-  console.log('segments:', segments, 'mode:', mode, 'id:', id)
-
   return (
     <>
       {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole mode={mode} id={id} />}

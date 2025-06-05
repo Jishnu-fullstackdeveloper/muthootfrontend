@@ -1,9 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {
@@ -15,9 +13,11 @@ import {
   CircularProgress,
   Typography,
   Chip,
-  Autocomplete
+  Autocomplete,
+  Collapse,
+  IconButton
 } from '@mui/material'
-
+import { toast, ToastContainer } from 'react-toastify'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   addNewUserRole,
@@ -27,8 +27,9 @@ import {
   fetchUserRole
 } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
-import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 
 interface FeatureState {
   name: string
@@ -36,11 +37,18 @@ interface FeatureState {
   selectedActions?: string[]
 }
 
+interface SubModuleState {
+  name: string
+  actions?: string[]
+  features: FeatureState[]
+}
+
 interface PermissionState {
   module: string
   subModule?: string
   features?: FeatureState[]
   actions?: string[]
+  subModules?: SubModuleState[]
 }
 
 interface FormValues {
@@ -52,62 +60,72 @@ interface FormValues {
 
 const defaultPermissionsList: PermissionState[] = [
   {
-    module: 'User',
-    features: [
-      { name: 'User', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'Role', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'Employee', actions: ['read'] }
-    ]
-  },
-  {
-    module: 'System',
-    subModule: 'XFactor',
-    features: [
-      { name: 'NoticePeriodRange', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'ResignedXFactor', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'VacancyXFactor', actions: ['read', 'update', 'delete', 'create'] }
-    ]
-  },
-  {
-    module: 'System',
-    features: [
-      { name: 'DataUpload', actions: ['read', 'upload'] },
-      { name: 'Scheduler', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'OrganizationalMapping', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'ApprovalMatrix', actions: ['read', 'update', 'delete', 'create'] },
-      { name: 'ApprovalCategory', actions: ['read'] }
-    ]
-  },
-  {
-    module: 'Hiring',
-    features: [
-      { name: 'CVPool', actions: ['read'] },
-      { name: 'Budget', actions: ['read', 'create', 'delete', 'approval'] },
-      { name: 'Onboarding', actions: ['read', 'update', 'create'] },
-      { name: 'Vacancy', actions: ['read'] },
-      { name: 'JobPosting', actions: ['read', 'update'] },
-      { name: 'Interview', actions: ['read', 'update'] }
-    ]
-  },
-  {
-    module: 'JD',
-    actions: ['read', 'update', 'delete', 'create', 'approval', 'upload']
-  },
-  {
-    module: 'Approvals',
-    actions: ['read', 'update', 'delete', 'create']
-  },
-  {
-    module: 'General',
-    actions: ['read', 'update', 'delete', 'create']
-  },
-  {
     module: 'Home',
     actions: ['read']
   },
   {
+    module: 'User',
+    features: [
+      { name: 'User', actions: ['create', 'read', 'update', 'delete'] },
+      { name: 'Role', actions: ['create', 'read', 'update', 'delete'] },
+      { name: 'Employee', actions: ['read', 'sync'] }
+    ]
+  },
+  {
+    module: 'Approvals',
+    actions: ['create', 'read', 'update', 'delete']
+  },
+  {
+    module: 'Hiring',
+    features: [
+      { name: 'Cvpool', actions: ['read'] },
+      { name: 'Interview', actions: ['read', 'update'] },
+      { name: 'Jobposting', actions: ['read', 'update'] },
+      { name: 'Onboarding', actions: ['create', 'read', 'update'] },
+      { name: 'Resignation', actions: ['read', 'sync'] },
+      { name: 'Budget', actions: ['create', 'read', 'approval', 'delete'] }
+    ],
+    subModules: [
+      {
+        name: 'Vacancy',
+        features: [
+          { name: 'Vacancylist', actions: ['read'] },
+          { name: 'Vacancyrequest', actions: ['read', 'approval'] }
+        ]
+      }
+    ]
+  },
+  {
+    module: 'Jd',
+    actions: ['create', 'read', 'update', 'delete', 'upload', 'approval']
+  },
+  {
     module: 'Branch',
     actions: ['read']
+  },
+  {
+    module: 'System',
+    features: [
+      { name: 'Dataupload', actions: ['read', 'upload'] },
+      { name: 'Approvalcategory', actions: ['read'] },
+      { name: 'Approvalmatrix', actions: ['create', 'read', 'update', 'delete'] },
+      { name: 'Organizationalmapping', actions: ['create', 'read', 'update', 'delete'] },
+      { name: 'Scheduler', actions: ['create', 'read', 'update', 'delete'] }
+    ],
+    subModules: [
+      {
+        name: 'Xfactor',
+        features: [
+          { name: 'Noticeperiodrange', actions: ['create', 'read', 'update', 'delete'] },
+          { name: 'Resignedxfactor', actions: ['create', 'read', 'update', 'delete'] },
+          { name: 'Vacancyxfactor', actions: ['create', 'read', 'update', 'delete'] }
+        ]
+      }
+    ]
+  },
+  {
+    module: 'General',
+    actions: ['create', 'read', 'update', 'delete']
   }
 ]
 
@@ -118,6 +136,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const [groupRoleLimit, setGroupRoleLimit] = useState(100)
   const [isGroupRoleLoading, setIsGroupRoleLoading] = useState(false)
   const [hasMoreGroupRoles, setHasMoreGroupRoles] = useState(true)
+  const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({})
+  const [expandedSubModules, setExpandedSubModules] = useState<{ [key: string]: boolean }>({})
+  const [groupDesignationOptions, setGroupDesignationOptions] = useState<string[]>([])
 
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -125,16 +146,13 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const editType = searchParams.get('editType') || 'designation'
   const roleId = searchParams.get('id') || id || ''
   const groupRoleId = searchParams.get('groupRoleId')
+
   const [activeSection, setActiveSection] = useState<'roleDetails' | 'permissions'>(
     mode === 'edit' && (searchParams.get('editType') || 'designation') === 'designation' ? 'roleDetails' : 'permissions'
   )
-  const rawDesignation = searchParams.get('name') || ''
-  const autocompleteRef = useRef<HTMLDivElement | null>(null)
 
-  // Clean up the designation
-  const currentDesignation = rawDesignation
-    .replace(/^des_/i, '') // Remove "Des_" or "des_"
-    .replace(/_/g, ' ') // Replace all underscores with spaces
+  const rawDesignation = searchParams.get('name') || ''
+  const currentDesignation = rawDesignation.replace(/^des_/i, '').replace(/_/g, ' ')
 
   const {
     isAddUserRoleLoading,
@@ -145,26 +163,9 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     isUserRoleLoading
   } = useAppSelector((state: any) => state.UserRoleReducer)
 
-  // Compute group designation options with proper formatting
-  const groupDesignationOptions = useMemo(() => {
-    const options =
-      userRoleData?.data?.flatMap(
-        (role: any) =>
-          role.groupRoles?.map(
-            (gr: any) =>
-              gr.name
-                .replace(/^grp_/i, '') // Remove "grp"
-                .replace(/_/g, ' ') // Replace underscores with spaces
-          ) || []
-      ) || []
-
-    // Remove duplicates
-    return [...new Set(options)]
-  }, [userRoleData])
-
-  const initialFormValues: FormValues = useMemo(
-    () => ({
-      designation: currentDesignation, // Pre-set the designation from search params
+  const initialFormValues: FormValues = useMemo(() => {
+    return {
+      designation: currentDesignation,
       groupDesignation: editType === 'designation' ? [] : '',
       groupRoleDescription: '',
       newPermissionNames: defaultPermissionsList.map(p => ({
@@ -177,18 +178,26 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               selectedActions: [] as string[]
             }))
           : undefined,
-        actions: p.actions ? ([] as string[]) : undefined
+        actions: p.actions ? ([] as string[]) : [],
+        subModules: p.subModules
+          ? p.subModules.map(sm => ({
+              name: sm.name,
+              actions: sm.actions ? ([] as string[]) : [],
+              features: sm.features.map(f => ({
+                name: f.name,
+                actions: f.actions,
+                selectedActions: [] as string[]
+              }))
+            }))
+          : undefined
       }))
-    }),
-    [editType, currentDesignation]
-  )
+    }
+  }, [editType, currentDesignation])
 
-  // Fetch user roles on mount
   useEffect(() => {
     fetchGroupRoles()
   }, [dispatch])
 
-  // Fetch more group roles when limit changes
   useEffect(() => {
     if (groupRoleLimit > 100) {
       fetchGroupRoles()
@@ -200,6 +209,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     try {
       const response = await dispatch(fetchUserRole({ limit: groupRoleLimit, page: 1 })).unwrap()
       const totalItems = response?.pagination?.totalCount || 0
+      const newOptions =
+        response?.data?.flatMap(
+          (role: any) => role.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/i, '').replace(/_/g, ' ')) || []
+        ) || []
+      setGroupDesignationOptions(prev => [...new Set([...prev, ...newOptions])])
       setHasMoreGroupRoles(groupRoleLimit < totalItems)
     } catch (error) {
       console.error('Failed to fetch group roles:', error)
@@ -209,7 +223,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }
 
-  // Fetch role data when in edit mode
   useEffect(() => {
     if (mode === 'edit' && roleId) {
       const fetchRoleData = async () => {
@@ -225,7 +238,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }, [mode, roleId, dispatch])
 
-  // Update form values when role data is fetched
   useEffect(() => {
     if (mode !== 'edit' || !fetchedRoleData) return
 
@@ -237,9 +249,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
 
     const validDesignation = matchedRole.name
-      ? matchedRole.name
-          .replace(/^des_/i, '') // Remove "Des_" or "des_"
-          .replace(/_/g, ' ') // Replace all underscores with spaces
+      ? matchedRole.name.replace(/^des_/i, '').replace(/_/g, ' ')
       : currentDesignation || ''
 
     const groupRole =
@@ -249,12 +259,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     const groupDesignation =
       editType === 'designation'
-        ? matchedRole.groupRoles?.map(
-            (gr: any) =>
-              gr.name
-                .replace(/^grp_/i, '') // Remove "grp"
-                .replace(/_/g, ' ') // Replace underscores with spaces
-          ) || []
+        ? matchedRole.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/i, '').replace(/_/g, ' ')) || []
         : groupRole.name
           ? groupRole.name.replace(/^grp_/i, '').replace(/_/g, ' ')
           : ''
@@ -288,8 +293,32 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             : undefined,
           actions: p.actions
             ? permissions
-                .filter((perm: string) => perm.startsWith(`prv_${moduleShortName}_`))
+                .filter((perm: string) => perm.startsWith(`prv_${moduleShortName}_`) && perm.split('_').length === 3)
                 .map((perm: string) => perm.split('_').pop() || '') || []
+            : [],
+          subModules: p.subModules
+            ? p.subModules.map(sm => ({
+                name: sm.name,
+                actions: sm.actions
+                  ? permissions
+                      .filter(
+                        (perm: string) =>
+                          perm.startsWith(`prv_${moduleShortName}_${sm.name.toLowerCase()}_`) &&
+                          perm.split('_').length === 4
+                      )
+                      .map((perm: string) => perm.split('_').pop() || '') || []
+                  : [],
+                features: sm.features.map(f => ({
+                  name: f.name,
+                  actions: f.actions,
+                  selectedActions:
+                    permissions
+                      .filter((perm: string) =>
+                        perm.startsWith(`prv_${moduleShortName}_${sm.name.toLowerCase()}_${f.name.toLowerCase()}_`)
+                      )
+                      .map((perm: string) => perm.split('_').pop() || '') || []
+                }))
+              }))
             : undefined
         }
       })
@@ -304,17 +333,15 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }, [addUserRoleFailure, addUserRoleFailureMessage])
 
-  // Handle successful update
   useEffect(() => {
     if (addUserRoleSuccess && mode === 'edit') {
       if (editType === 'designation' && activeSection === 'roleDetails') {
-        // After saving Role Details, enable Permissions section
         setActiveSection('permissions')
         setIsFormEdited(false)
         dispatch(resetAddUserRoleStatus())
         setApiErrors([])
+        fetchGroupRoles() // Refresh group roles after edit
       } else {
-        // After saving Permissions (or groupRole edit), fetch updated role data
         const fetchUpdatedRoleData = async () => {
           try {
             const res = await dispatch(getUserRoleDetails({ id: roleId })).unwrap()
@@ -322,6 +349,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             dispatch(resetAddUserRoleStatus())
             setIsFormEdited(false)
             setApiErrors([])
+            fetchGroupRoles() // Refresh group roles after edit
           } catch (error) {
             console.error('Failed to fetch updated role data:', error)
             setApiErrors(['Failed to fetch updated role data. Please try again.'])
@@ -331,6 +359,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       }
     } else if (addUserRoleSuccess && mode === 'add') {
       router.push('/user-management/role')
+      fetchGroupRoles() // Refresh group roles after add
     }
   }, [addUserRoleSuccess, dispatch, roleId, mode, router, editType, activeSection])
 
@@ -353,47 +382,105 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               .required('Group designation is required')
               .matches(/^[a-zA-Z0-9\s]+$/, 'Only letters, numbers, and spaces allowed')
               .test('not-only-spaces', 'Cannot be only spaces', value => value?.trim().length > 0)
-          : Yup.array().of(Yup.string()), // Optional for designation edit
+          : Yup.array().of(Yup.string()),
       groupRoleDescription: Yup.string(),
       newPermissionNames: Yup.array().test('at-least-one-permission', 'At least one permission required', value =>
-        value.some(p => (p.features ? p.features.some(f => f.selectedActions.length > 0) : p.actions?.length > 0))
+        value.some(
+          p =>
+            (p.features ? p.features.some(f => f.selectedActions?.length > 0) : p.actions?.length > 0) ||
+            (p.subModules
+              ? p.subModules.some(sm => sm.actions?.length > 0 || sm.features.some(f => f.selectedActions?.length > 0))
+              : false)
+        )
       )
     }),
     onSubmit: async values => {
       setApiErrors([])
 
-      const permissions = values.newPermissionNames.flatMap(perm =>
-        perm.features
-          ? perm.features.flatMap(f =>
-              f.selectedActions.map(action =>
-                perm.subModule
-                  ? `prv_${perm.module.toLowerCase()}_${perm.subModule.toLowerCase()}_${f.name.toLowerCase()}_${action}`
-                  : `prv_${perm.module.toLowerCase()}_${f.name.toLowerCase()}_${action}`
+      const permissions = values.newPermissionNames
+        .flatMap(perm => {
+          const moduleResults = perm.features
+            ? perm.features.flatMap(
+                f =>
+                  f.selectedActions?.map(action =>
+                    perm.subModule
+                      ? `prv_${perm.module.toLowerCase()}_${perm.subModule.toLowerCase()}_${f.name.toLowerCase()}_${action}`
+                      : `prv_${perm.module.toLowerCase()}_${f.name.toLowerCase()}_${action}`
+                  ) || []
               )
-            )
-          : perm.actions!.map(action => `prv_${perm.module.toLowerCase()}_${action}`)
-      )
+            : perm.actions?.map(action => `prv_${perm.module.toLowerCase()}_${action}`) || []
+
+          const subModuleResults = perm.subModules
+            ? perm.subModules.flatMap(sm => [
+                ...(sm.actions?.map(action => `prv_${perm.module.toLowerCase()}_${sm.name.toLowerCase()}_${action}`) ||
+                  []),
+                ...sm.features.flatMap(
+                  f =>
+                    f.selectedActions?.map(
+                      action =>
+                        `prv_${perm.module.toLowerCase()}_${sm.name.toLowerCase()}_${f.name.toLowerCase()}_${action}`
+                    ) || []
+                )
+              ])
+            : []
+
+          // Add module-level read permissions for specific cases
+          const additionalPermissions: string[] = []
+          if (perm.module === 'User' && perm.features?.some(f => f.selectedActions?.length > 0)) {
+            additionalPermissions.push(`prv_user_read`)
+          }
+          if (
+            perm.module === 'Hiring' &&
+            (perm.features?.some(f => f.selectedActions?.length > 0) ||
+              perm.subModules?.some(sm => sm.features.some(f => f.selectedActions?.length > 0)))
+          ) {
+            additionalPermissions.push(`prv_hiring_read`)
+          }
+          if (
+            perm.module === 'Hiring' &&
+            perm.subModules?.some(sm => sm.name === 'Vacancy' && sm.features.some(f => f.selectedActions?.length > 0))
+          ) {
+            additionalPermissions.push(`prv_hiring_vacancy_read`)
+          }
+          if (
+            perm.module === 'System' &&
+            (perm.features?.some(f => f.selectedActions?.length > 0) ||
+              perm.subModules?.some(sm => sm.features.some(f => f.selectedActions?.length > 0)))
+          ) {
+            additionalPermissions.push(`prv_system_read`)
+          }
+          if (
+            perm.module === 'System' &&
+            perm.subModules?.some(sm => sm.name === 'Xfactor' && sm.features.some(f => f.selectedActions?.length > 0))
+          ) {
+            additionalPermissions.push(`prv_system_xfactor_read`)
+          }
+
+          return [...moduleResults, ...subModuleResults, ...additionalPermissions]
+        })
+        .filter(Boolean)
 
       try {
         let res = null
+
         if (mode === 'edit' && roleId) {
           if (editType === 'designation') {
             if (activeSection === 'roleDetails') {
-              // Submit only Role Details
               res = await dispatch(
                 updateUserRole({
                   id: roleId,
                   params: {
                     designation: currentDesignation,
                     newGroupDesignations: Array.isArray(values.groupDesignation)
-                      ? values.groupDesignation.map(gd => gd)
+                      ? values.groupDesignation.map(gd => {
+                          return gd
+                        })
                       : [values.groupDesignation],
                     editType: 'designation'
                   }
                 })
               ).unwrap()
             } else if (activeSection === 'permissions') {
-              // Submit only Permissions
               res = await dispatch(
                 updateUserRole({
                   id: roleId,
@@ -407,7 +494,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             }
           } else if (editType === 'groupRole' && groupRoleId) {
             const groupDesignation = typeof values.groupDesignation === 'string' ? values.groupDesignation.trim() : ''
-
             if (!groupDesignation) throw new Error('Group designation is required.')
             res = await dispatch(
               updateUserRole({
@@ -424,21 +510,18 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           }
         } else {
           const groupDesignation = typeof values.groupDesignation === 'string' ? values.groupDesignation.trim() : ''
-
           if (!groupDesignation) throw new Error('Group designation is required.')
           await dispatch(
             addNewUserRole({
               designation: values.designation,
-              group_designation: groupDesignation
-                .toLowerCase()
-                .replace(/\s+/g, '_') // Convert spaces to underscores for backend
-                .replace(/^grp_/, ''), // Ensure no grp_ prefix
+              group_designation: groupDesignation.toLowerCase().replace(/\s+/g, '_').replace(/^grp_/, ''),
               grp_role_description: values.groupRoleDescription,
               permissions,
               des_role_description: ''
             })
           ).unwrap()
         }
+
         toast.success(res?.message || 'Successfully Updated', {
           position: 'top-right',
           autoClose: 5000,
@@ -448,7 +531,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           draggable: true
         })
       } catch (error: any) {
-        toast.error(error?.message, {
+        toast.error(error?.message || 'Failed to save role', {
           position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
@@ -476,23 +559,42 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     subModule: string | undefined,
     featureOrAction: string,
     action: string,
-    checked: boolean
+    checked: boolean,
+    isSubModule: boolean = false,
+    parentSubModule?: string
   ) => {
     const permissions = [...roleFormik.values.newPermissionNames]
     const moduleIndex = permissions.findIndex(p => p.module === module && p.subModule === subModule)
-    const perm = defaultPermissionsList.find(p => p.module === module && p.subModule === subModule)
 
-    if (perm?.features) {
-      const featureIndex = permissions[moduleIndex].features!.findIndex(f => f.name === featureOrAction)
-      const selectedActions = [...(permissions[moduleIndex].features![featureIndex].selectedActions || [])]
-
-      permissions[moduleIndex].features![featureIndex].selectedActions = checked
-        ? [...new Set([...selectedActions, action])]
-        : selectedActions.filter(a => a !== action)
-    } else {
+    if (isSubModule && parentSubModule) {
+      const subModuleIndex = permissions[moduleIndex].subModules!.findIndex(sm => sm.name === parentSubModule)
+      if (featureOrAction === 'actions') {
+        permissions[moduleIndex].subModules![subModuleIndex].actions = checked
+          ? [...new Set([...(permissions[moduleIndex].subModules![subModuleIndex].actions || []), action])]
+          : (permissions[moduleIndex].subModules![subModuleIndex].actions || []).filter(a => a !== action)
+      } else {
+        const featureIndex = permissions[moduleIndex].subModules![subModuleIndex].features.findIndex(
+          f => f.name === featureOrAction
+        )
+        const selectedActions = [
+          ...(permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions || [])
+        ]
+        permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions = checked
+          ? [...new Set([...selectedActions, action])]
+          : selectedActions.filter(a => a !== action)
+      }
+    } else if (featureOrAction !== 'actions' && permissions[moduleIndex].features) {
+      const featureIndex = permissions[moduleIndex].features.findIndex(f => f.name === featureOrAction)
+      if (featureIndex !== -1) {
+        const selectedActions = [...(permissions[moduleIndex].features[featureIndex].selectedActions || [])]
+        permissions[moduleIndex].features[featureIndex].selectedActions = checked
+          ? [...new Set([...selectedActions, action])]
+          : selectedActions.filter(a => a !== action)
+      }
+    } else if (permissions[moduleIndex].actions) {
       permissions[moduleIndex].actions = checked
-        ? [...new Set([...(permissions[moduleIndex].actions || []), featureOrAction])]
-        : (permissions[moduleIndex].actions || []).filter(a => a !== featureOrAction)
+        ? [...new Set([...(permissions[moduleIndex].actions || []), action])]
+        : (permissions[moduleIndex].actions || []).filter(a => a !== action)
     }
 
     roleFormik.setFieldValue('newPermissionNames', permissions)
@@ -503,13 +605,32 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     subModule: string | undefined,
     feature: string,
     allActions: string[],
-    checked: boolean
+    checked: boolean,
+    isSubModule: boolean = false,
+    parentSubModule?: string
   ) => {
     const permissions = [...roleFormik.values.newPermissionNames]
     const moduleIndex = permissions.findIndex(p => p.module === module && p.subModule === subModule)
-    const featureIndex = permissions[moduleIndex].features!.findIndex(f => f.name === feature)
 
-    permissions[moduleIndex].features![featureIndex].selectedActions = checked ? allActions : []
+    if (isSubModule && parentSubModule) {
+      const subModuleIndex = permissions[moduleIndex].subModules!.findIndex(sm => sm.name === parentSubModule)
+      if (feature === 'actions') {
+        permissions[moduleIndex].subModules![subModuleIndex].actions = checked ? allActions : []
+      } else {
+        const featureIndex = permissions[moduleIndex].subModules![subModuleIndex].features.findIndex(
+          f => f.name === feature
+        )
+        permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions = checked
+          ? allActions
+          : []
+      }
+    } else if (feature === 'actions') {
+      permissions[moduleIndex].actions = checked ? allActions : []
+    } else {
+      const featureIndex = permissions[moduleIndex].features!.findIndex(f => f.name === feature)
+      permissions[moduleIndex].features![featureIndex].selectedActions = checked ? allActions : []
+    }
+
     roleFormik.setFieldValue('newPermissionNames', permissions)
   }
 
@@ -518,15 +639,13 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     const moduleIndex = permissions.findIndex(p => p.module === module && p.subModule === subModule)
     const perm = defaultPermissionsList.find(p => p.module === module && p.subModule === subModule)
 
-    if (perm?.features) {
-      permissions[moduleIndex].features = perm.features.map(f => ({
+    permissions[moduleIndex].features =
+      perm?.features?.map(f => ({
         name: f.name,
         actions: f.actions,
         selectedActions: checked ? f.actions : []
-      }))
-    } else {
-      permissions[moduleIndex].actions = checked ? perm!.actions! : []
-    }
+      })) || []
+    permissions[moduleIndex].actions = checked ? perm?.actions || [] : []
 
     roleFormik.setFieldValue('newPermissionNames', permissions)
   }
@@ -537,8 +656,24 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       defaultPermissionsList.map(p => ({
         module: p.module,
         subModule: p.subModule,
-        features: p.features?.map(f => ({ name: f.name, selectedActions: checked ? f.actions : [] })),
-        actions: p.actions ? (checked ? p.actions : []) : undefined
+        features:
+          p.features?.map(f => ({
+            name: f.name,
+            actions: f.actions,
+            selectedActions: checked ? f.actions : []
+          })) || [],
+        actions: checked ? p.actions || [] : [],
+        subModules: p.subModules
+          ? p.subModules.map(sm => ({
+              name: sm.name,
+              actions: checked ? sm.actions || [] : [],
+              features: sm.features.map(f => ({
+                name: f.name,
+                actions: f.actions,
+                selectedActions: checked ? f.actions : []
+              }))
+            }))
+          : []
       }))
     )
   }
@@ -551,23 +686,55 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
         return {
           ...perm,
-          features: perm.features?.map(f => ({
-            name: f.name,
-            selectedActions: checked
-              ? [
-                  ...new Set([
-                    ...(f.selectedActions || []),
-                    ...(defaultPerm?.features?.find(feat => feat.name === f.name)?.actions.filter(a => a === 'read') ||
-                      [])
-                  ])
-                ]
-              : (f.selectedActions || []).filter(a => a !== 'read')
-          })),
+          features:
+            perm.features?.map(f => ({
+              name: f.name,
+              actions: f.actions,
+              selectedActions: checked
+                ? [
+                    ...new Set([
+                      ...(f.selectedActions || []),
+                      ...(defaultPerm?.features
+                        ?.find(feat => feat.name === f.name)
+                        ?.actions.filter(a => a === 'read') || [])
+                    ])
+                  ]
+                : (f.selectedActions || []).filter(a => a !== 'read')
+            })) || [],
           actions: defaultPerm?.actions
             ? checked
               ? [...new Set([...(perm.actions || []), ...defaultPerm.actions.filter(a => a === 'read')])]
               : (perm.actions || []).filter(a => a !== 'read')
-            : perm.actions
+            : [],
+          subModules:
+            perm.subModules?.map(sm => ({
+              name: sm.name,
+              actions: defaultPerm?.subModules?.find(s => s.name === sm.name)?.actions
+                ? checked
+                  ? [
+                      ...new Set([
+                        ...(sm.actions || []),
+                        ...defaultPerm.subModules!.find(s => s.name === sm.name)!.actions.filter(a => a === 'read')
+                      ])
+                    ]
+                  : (sm.actions || []).filter(a => a !== 'read')
+                : [],
+              features: sm.features.map(f => ({
+                name: f.name,
+                actions: f.actions,
+                selectedActions: checked
+                  ? [
+                      ...new Set([
+                        ...(f.selectedActions || []),
+                        ...(defaultPerm?.subModules
+                          ?.find(s => s.name === sm.name)
+                          ?.features.find(feat => feat.name === f.name)
+                          ?.actions.filter(a => a === 'read') || [])
+                      ])
+                    ]
+                  : (f.selectedActions || []).filter(a => a !== 'read')
+              }))
+            })) || []
         }
       })
     )
@@ -582,8 +749,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }
 
-  // Handle lazy loading for Autocomplete
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+  const handleSlider = (event: React.UIEvent<HTMLElement>) => {
     const target = event.currentTarget
     const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 1
 
@@ -592,7 +758,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
   }
 
-  // Handle section toggle
   const handleRoleDetailsClick = () => {
     if (editType === 'designation') {
       setActiveSection('roleDetails')
@@ -603,6 +768,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     if (editType === 'designation') {
       setActiveSection('permissions')
     }
+  }
+
+  const toggleModule = (module: string) => {
+    setExpandedModules(prev => ({ ...prev, [module]: !prev[module] }))
+  }
+
+  const toggleSubModule = (subModule: string) => {
+    setExpandedSubModules(prev => ({ ...prev, [subModule]: !prev[subModule] }))
   }
 
   if (isUserRoleLoading) {
@@ -675,7 +848,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               id='groupDesignation'
               options={groupDesignationOptions}
               value={Array.isArray(roleFormik.values.groupDesignation) ? roleFormik.values.groupDesignation : []}
-              onChange={(e, value) => roleFormik.setFieldValue('groupDesignation', value)}
+              onChange={(_, value) => roleFormik.setFieldValue('groupDesignation', value)}
               renderInput={params => (
                 <TextField
                   {...params}
@@ -693,14 +866,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               )}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
-                  <Chip variant='outlined' key={index} label={option} {...getTagProps({ index })} />
+                  <Chip variant='outlined' key={index} label={option as string} {...getTagProps({ index })} />
                 ))
               }
               multiple
               disabled={editType === 'designation' && activeSection !== 'roleDetails'}
               ListboxProps={{
-                onScroll: handleScroll,
-                style: { maxHeight: 300 }
+                onScroll: handleSlider,
+                style: { maxHeight: '300px' }
               }}
             />
             {roleFormik.touched.groupDesignation && roleFormik.errors.groupDesignation && (
@@ -728,7 +901,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             <TextField
               label='Group Role Description'
               name='groupRoleDescription'
-              value={roleFormik.values.groupRoleDescription}
+              value={roleFormik.values.groupRoleDescription || ''}
               onChange={roleFormik.handleChange}
               onBlur={roleFormik.handleBlur}
               error={roleFormik.touched.groupRoleDescription && !!roleFormik.errors.groupRoleDescription}
@@ -739,183 +912,472 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       </Box>
 
       {/* ###### Permissions ###### */}
-
       <Box
         component='fieldset'
-        className={`border rounded p-4 mb-6 cursor-pointer transition-all duration-200 ${
-          editType === 'designation' && activeSection === 'permissions'
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300'
-        }`}
+        sx={{
+          border: '1px solid',
+          borderColor: editType === 'designation' && activeSection === 'permissions' ? 'blue.500' : 'gray.200',
+          borderRadius: '8px',
+          p: 3,
+          mb: 6,
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          backgroundColor: editType === 'designation' && activeSection === 'permissions' ? 'blue.50' : 'white',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+        }}
         disabled={editType === 'designation' && activeSection !== 'permissions'}
         onClick={handlePermissionsClick}
       >
-        <legend className='text-lg font-semibold text-gray-700'>
+        <legend style={{ fontSize: '1.125rem', fontWeight: 600, color: '#374151', padding: '0 8px' }}>
           {editType === 'designation' ? 'Permissions of Designations' : 'Permissions of Group'}
         </legend>
-        <Box mb={2}>
+        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
           <FormControlLabel
             control={
               <Checkbox
                 checked={roleFormik.values.newPermissionNames.every(p => {
                   const defaultPerm = defaultPermissionsList.find(
-                    d => d.module === p.module && d.subModule === p.subModule
+                    d => d.module === p.module && p.subModule === d.subModule
                   )
-
-                  return defaultPerm?.features
+                  const featuresChecked = defaultPerm?.features
                     ? p.features?.every(f =>
                         defaultPerm
                           .features!.find(feat => feat.name === f.name)
                           ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
-                      ) ?? false
-                    : (p.actions?.length ?? 0) === defaultPerm?.actions!.length
+                      ) ?? true
+                    : true
+                  const actionsChecked = defaultPerm?.actions ? p.actions?.length === defaultPerm.actions.length : true
+                  const subModulesChecked = defaultPerm?.subModules
+                    ? p.subModules?.every(sm => {
+                        const defaultSubModule = defaultPerm.subModules!.find(dsm => dsm.name === sm.name)
+                        const subActionsChecked = defaultSubModule?.actions
+                          ? sm.actions?.length === defaultSubModule.actions.length
+                          : true
+                        const subFeaturesChecked = defaultSubModule?.features
+                          ? sm.features.every(f =>
+                              defaultSubModule
+                                .features!.find(feat => feat.name === f.name)
+                                ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
+                            )
+                          : true
+                        return subActionsChecked && subFeaturesChecked
+                      }) ?? true
+                    : true
+                  return featuresChecked && actionsChecked && subModulesChecked
                 })}
                 onChange={e => handleSelectAllModules(e.target.checked)}
                 disabled={editType === 'designation' && activeSection !== 'permissions'}
+                sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
               />
             }
-            label='Select All'
+            label={<Typography sx={{ color: 'gray.700', fontWeight: 500 }}>Select All</Typography>}
+            sx={{ color: 'gray.700', fontWeight: 500 }}
           />
           <FormControlLabel
             control={
               <Checkbox
                 checked={roleFormik.values.newPermissionNames.every(p =>
                   p.features
-                    ? p.features.every(f => f.selectedActions?.includes('read') ?? false)
+                    ? p.features.every(f => f.selectedActions?.includes('read') ?? false) &&
+                      (p.subModules
+                        ? p.subModules.every(
+                            sm =>
+                              sm.actions?.includes('read') ??
+                              (true && sm.features.every(f => f.selectedActions?.includes('read') ?? false))
+                          )
+                        : true)
                     : p.actions?.includes('read') ?? false
                 )}
                 onChange={e => handleSelectAllReadPermissions(e.target.checked)}
                 disabled={editType === 'designation' && activeSection !== 'permissions'}
+                sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
               />
             }
-            label='Select All Read Permissions'
+            label={<Typography sx={{ color: 'gray.700', fontWeight: 500 }}>Select All Read Permissions</Typography>}
+            sx={{ color: 'gray.700', fontWeight: 500 }}
           />
         </Box>
 
-        <Box className='grid grid-cols-2 gap-4'>
-          {defaultPermissionsList.map(permission => (
-            <Box key={`${permission.module}-${permission.subModule || ''}`} className='mb-5'>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      permission.features
-                        ? roleFormik.values.newPermissionNames
-                            .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                            ?.features?.every(f =>
-                              permission
-                                .features!.find(feat => feat.name === f.name)
-                                ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
-                            ) ?? false
-                        : (roleFormik.values.newPermissionNames.find(
-                            p => p.module === permission.module && p.subModule === permission.subModule
-                          )?.actions?.length ?? 0) === permission.actions!.length
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {defaultPermissionsList.map(permission => {
+            const currentPerm = roleFormik.values.newPermissionNames.find(
+              p => p.module === permission.module && p.subModule === permission.subModule
+            )
+            return (
+              <Box
+                key={`${permission.module}-${permission.subModule || ''}`}
+                sx={{
+                  backgroundColor: 'white',
+                  border: '1px solid',
+                  borderColor: 'gray.200',
+                  borderRadius: '6px',
+                  p: 2,
+                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
+                  transition: 'box-shadow 0.2s',
+                  '&:hover': { boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }
+                }}
+              >
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  onClick={() => toggleModule(permission.module)}
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={
+                          (permission.features
+                            ? currentPerm?.features?.every(f =>
+                                permission
+                                  .features!.find(feat => feat.name === f.name)
+                                  ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
+                              ) ?? true
+                            : true) &&
+                          (permission.actions ? currentPerm?.actions?.length === permission.actions.length : true) &&
+                          (permission.subModules
+                            ? currentPerm?.subModules?.every(
+                                sm =>
+                                  (permission
+                                    .subModules!.find(dsm => dsm.name === sm.name)
+                                    ?.features.every(
+                                      f =>
+                                        sm.features.find(feat => feat.name === f.name)?.selectedActions?.length ===
+                                        f.actions.length
+                                    ) ||
+                                    true) &&
+                                  sm.actions?.length ===
+                                    permission.subModules!.find(dsm => dsm.name === sm.name)?.actions?.length
+                              ) ?? true
+                            : true)
+                        }
+                        onChange={e =>
+                          handleSelectAllFeatures(permission.module, permission.subModule, e.target.checked)
+                        }
+                        disabled={editType === 'designation' && activeSection !== 'permissions'}
+                        sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                      />
                     }
-                    onChange={e => handleSelectAllFeatures(permission.module, permission.subModule, e.target.checked)}
-                    disabled={editType === 'designation' && activeSection !== 'permissions'}
+                    label={
+                      <Typography sx={{ fontWeight: 600, color: 'gray.800' }}>
+                        {permission.subModule ? `${permission.module} - ${permission.subModule}` : permission.module}
+                      </Typography>
+                    }
                   />
-                }
-                label={permission.subModule ? `${permission.module} - ${permission.subModule}` : permission.module}
-              />
-              <Box pl={permission.features ? 6 : 4}>
-                {permission.features
-                  ? permission.features.map(feature => (
-                      <Box key={feature.name} className='mb-3'>
+                  <IconButton size='small'>
+                    {expandedModules[permission.module] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </Box>
+                <Collapse in={expandedModules[permission.module] || false}>
+                  <Box sx={{ pl: permission.features ? 4 : 2, mt: 2 }}>
+                    {permission.actions && (
+                      <Box sx={{ mb: 2 }}>
                         <FormControlLabel
                           control={
                             <Checkbox
-                              checked={
-                                (roleFormik.values.newPermissionNames
-                                  .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                                  ?.features?.find(f => f.name === feature.name)?.selectedActions?.length ?? 0) ===
-                                feature.actions.length
-                              }
+                              checked={currentPerm?.actions?.length === permission.actions?.length}
                               onChange={e =>
                                 handleSelectAllPermissions(
                                   permission.module,
                                   permission.subModule,
-                                  feature.name,
-                                  feature.actions,
+                                  'actions',
+                                  permission.actions || [],
                                   e.target.checked
                                 )
                               }
                               disabled={editType === 'designation' && activeSection !== 'permissions'}
+                              sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
                             />
                           }
-                          label={feature.name}
+                          label={<Typography sx={{ color: 'gray.700' }}>Actions</Typography>}
                         />
-                        <Box pl={6}>
-                          {feature.actions.map(action => (
+                        <Box sx={{ pl: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {permission.actions.map(action => (
                             <FormControlLabel
                               key={action}
                               control={
                                 <Checkbox
-                                  checked={
-                                    roleFormik.values.newPermissionNames
-                                      .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                                      ?.features?.find(f => f.name === feature.name)
-                                      ?.selectedActions?.includes(action) ?? false
-                                  }
+                                  checked={currentPerm?.actions?.includes(action) ?? false}
                                   onChange={e =>
                                     handlePermissionChange(
                                       permission.module,
                                       permission.subModule,
-                                      feature.name,
+                                      action,
                                       action,
                                       e.target.checked
                                     )
                                   }
                                   disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                  sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
                                 />
                               }
-                              label={action.charAt(0).toUpperCase() + action.slice(1)}
+                              label={
+                                <Typography sx={{ color: 'gray.600', fontSize: '0.875rem' }}>
+                                  {action.charAt(0).toUpperCase() + action.slice(1)}
+                                </Typography>
+                              }
                             />
                           ))}
                         </Box>
                       </Box>
-                    ))
-                  : permission.actions!.map(action => (
-                      <FormControlLabel
-                        key={action}
-                        control={
-                          <Checkbox
-                            checked={
-                              roleFormik.values.newPermissionNames
-                                .find(p => p.module === permission.module && p.subModule === permission.subModule)
-                                ?.actions?.includes(action) ?? false
+                    )}
+                    {permission.features?.map(feature => {
+                      const currentFeature = roleFormik.values.newPermissionNames
+                        .find(p => p.module === permission.module && p.subModule === permission.subModule)
+                        ?.features?.find(f => f.name === feature.name)
+                      return (
+                        <Box key={feature.name} sx={{ mb: 2 }}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={(currentFeature?.selectedActions?.length ?? 0) === feature.actions.length}
+                                onChange={e =>
+                                  handleSelectAllPermissions(
+                                    permission.module,
+                                    permission.subModule,
+                                    feature.name,
+                                    feature.actions,
+                                    e.target.checked
+                                  )
+                                }
+                                disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                              />
                             }
-                            onChange={e =>
-                              handlePermissionChange(
-                                permission.module,
-                                permission.subModule,
-                                action,
-                                action,
-                                e.target.checked
-                              )
-                            }
-                            disabled={editType === 'designation' && activeSection !== 'permissions'}
+                            label={<Typography sx={{ color: 'gray.700' }}>{feature.name}</Typography>}
                           />
-                        }
-                        label={
-                          <Typography variant='body2'>{action.charAt(0).toUpperCase() + action.slice(1)}</Typography>
-                        }
-                      />
-                    ))}
+                          <Box sx={{ pl: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {feature.actions.map(action => (
+                              <FormControlLabel
+                                key={action}
+                                control={
+                                  <Checkbox
+                                    checked={currentFeature?.selectedActions?.includes(action) ?? false}
+                                    onChange={e =>
+                                      handlePermissionChange(
+                                        permission.module,
+                                        permission.subModule,
+                                        feature.name,
+                                        action,
+                                        e.target.checked
+                                      )
+                                    }
+                                    disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                    sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                  />
+                                }
+                                label={
+                                  <Typography sx={{ color: 'gray.600', fontSize: '0.875rem' }}>
+                                    {action.charAt(0).toUpperCase() + action.slice(1)}
+                                  </Typography>
+                                }
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      )
+                    })}
+                    {permission.subModules?.map(subModule => {
+                      const currentSubModule = currentPerm?.subModules?.find(sm => sm.name === subModule.name)
+                      return (
+                        <Box key={subModule.name} sx={{ mt: 2, pl: 2 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              backgroundColor: 'gray.50',
+                              p: 1.5,
+                              borderRadius: '4px'
+                            }}
+                            onClick={() => toggleSubModule(subModule.name)}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={
+                                      (currentSubModule?.actions?.length === subModule.actions?.length || true) &&
+                                      subModule.features.every(
+                                        f =>
+                                          currentSubModule?.features?.find(cf => cf.name === f.name)?.selectedActions
+                                            ?.length === f.actions.length
+                                      )
+                                    }
+                                    onChange={e => {
+                                      if (subModule.actions) {
+                                        handleSelectAllPermissions(
+                                          permission.module,
+                                          undefined,
+                                          'actions',
+                                          subModule.actions,
+                                          e.target.checked,
+                                          true,
+                                          subModule.name
+                                        )
+                                      }
+                                      subModule.features.forEach(f =>
+                                        handleSelectAllPermissions(
+                                          permission.module,
+                                          undefined,
+                                          f.name,
+                                          f.actions,
+                                          e.target.checked,
+                                          true,
+                                          subModule.name
+                                        )
+                                      )
+                                    }}
+                                    disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                    sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                  />
+                                }
+                                label={
+                                  <Typography sx={{ fontWeight: 500, color: 'gray.700' }}>{subModule.name}</Typography>
+                                }
+                              />
+                            </Box>
+                            <IconButton size='small'>
+                              {expandedSubModules[subModule.name] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                          </Box>
+                          <Collapse in={expandedSubModules[subModule.name] || false}>
+                            <Box sx={{ pl: 2, mt: 1 }}>
+                              {subModule.actions && (
+                                <Box sx={{ mb: 2 }}>
+                                  <FormControlLabel
+                                    control={
+                                      <Checkbox
+                                        checked={currentSubModule?.actions?.length === subModule.actions?.length}
+                                        onChange={e =>
+                                          handleSelectAllPermissions(
+                                            permission.module,
+                                            undefined,
+                                            'actions',
+                                            subModule.actions,
+                                            e.target.checked,
+                                            true,
+                                            subModule.name
+                                          )
+                                        }
+                                        disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                        sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                      />
+                                    }
+                                    label={<Typography sx={{ color: 'gray.700' }}>Actions</Typography>}
+                                  />
+                                  <Box sx={{ pl: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {subModule.actions.map(action => (
+                                      <FormControlLabel
+                                        key={action}
+                                        control={
+                                          <Checkbox
+                                            checked={currentSubModule?.actions?.includes(action) ?? false}
+                                            onChange={e =>
+                                              handlePermissionChange(
+                                                permission.module,
+                                                undefined,
+                                                'actions',
+                                                action,
+                                                e.target.checked,
+                                                true,
+                                                subModule.name
+                                              )
+                                            }
+                                            disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                            sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                          />
+                                        }
+                                        label={
+                                          <Typography sx={{ color: 'gray.600', fontSize: '0.875rem' }}>
+                                            {action.charAt(0).toUpperCase() + action.slice(1)}
+                                          </Typography>
+                                        }
+                                      />
+                                    ))}
+                                  </Box>
+                                </Box>
+                              )}
+                              {subModule.features.map(feature => (
+                                <Box key={feature.name} sx={{ mb: 2 }}>
+                                  <FormControlLabel
+                                    control={
+                                      <Checkbox
+                                        checked={
+                                          (currentSubModule?.features?.find(f => f.name === feature.name)
+                                            ?.selectedActions?.length ?? 0) === feature.actions.length
+                                        }
+                                        onChange={e =>
+                                          handleSelectAllPermissions(
+                                            permission.module,
+                                            undefined,
+                                            feature.name,
+                                            feature.actions,
+                                            e.target.checked,
+                                            true,
+                                            subModule.name
+                                          )
+                                        }
+                                        disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                        sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                      />
+                                    }
+                                    label={<Typography sx={{ color: 'gray.700' }}>{feature.name}</Typography>}
+                                  />
+                                  <Box sx={{ pl: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {feature.actions.map(action => (
+                                      <FormControlLabel
+                                        key={action}
+                                        control={
+                                          <Checkbox
+                                            checked={
+                                              currentSubModule?.features
+                                                ?.find(f => f.name === feature.name)
+                                                ?.selectedActions?.includes(action) ?? false
+                                            }
+                                            onChange={e =>
+                                              handlePermissionChange(
+                                                permission.module,
+                                                undefined,
+                                                feature.name,
+                                                action,
+                                                e.target.checked,
+                                                true,
+                                                subModule.name
+                                              )
+                                            }
+                                            disabled={editType === 'designation' && activeSection !== 'permissions'}
+                                            sx={{ color: 'gray.600', '&.Mui-checked': { color: 'blue.600' } }}
+                                          />
+                                        }
+                                        label={
+                                          <Typography sx={{ color: 'gray.600', fontSize: '0.875rem' }}>
+                                            {action.charAt(0).toUpperCase() + action.slice(1)}
+                                          </Typography>
+                                        }
+                                      />
+                                    ))}
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Collapse>
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                </Collapse>
               </Box>
-            </Box>
-          ))}
+            )
+          })}
         </Box>
         {roleFormik.touched.newPermissionNames && roleFormik.errors.newPermissionNames && (
-          <Typography color='error' variant='caption'>
-            {Array.isArray(roleFormik.errors.newPermissionNames)
+          <Typography color='error' variant='caption' sx={{ mt: 2 }}>
+            {typeof roleFormik.errors.newPermissionNames === 'string'
               ? roleFormik.errors.newPermissionNames
-                  .filter(Boolean)
-                  .map(err =>
-                    typeof err === 'string' ? err : typeof err === 'object' && err ? JSON.stringify(err) : null
-                  )
-                  .join(', ')
-              : typeof roleFormik.errors.newPermissionNames === 'string'
+              : Array.isArray(roleFormik.errors.newPermissionNames)
                 ? roleFormik.errors.newPermissionNames
+                    .filter(Boolean)
+                    .map(err => err?.toString() || JSON.stringify(err))
+                    .join(', ')
                 : JSON.stringify(roleFormik.errors.newPermissionNames)}
           </Typography>
         )}
@@ -926,7 +1388,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <DynamicButton
             type='button'
             variant='contained'
-            className='bg-gray-500'
+            sx={{ backgroundColor: 'gray.500', color: 'white', '&:hover': { backgroundColor: 'gray.600' } }}
             onClick={handleCancel}
             disabled={!isFormEdited}
           >
@@ -935,7 +1397,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <DynamicButton
             type='submit'
             variant='contained'
-            className='bg-blue-500'
+            sx={{ backgroundColor: 'blue.500', color: 'white', '&:hover': { backgroundColor: 'blue.600' } }}
             disabled={
               isAddUserRoleLoading ||
               (mode === 'add' && (!roleFormik.isValid || !roleFormik.dirty)) ||

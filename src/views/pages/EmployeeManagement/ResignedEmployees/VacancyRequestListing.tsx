@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
@@ -11,8 +10,9 @@ import {
   IconButton,
   Tooltip,
   Typography,
-  TextField,
-  InputAdornment,
+
+  // TextField,
+  // InputAdornment,
   Button,
   Chip,
   Tabs,
@@ -37,7 +37,8 @@ import StoreOutlinedIcon from '@mui/icons-material/StoreOutlined'
 import { toast, ToastContainer } from 'react-toastify'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
+
+// import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import 'react-toastify/dist/ReactToastify.css'
 import {
@@ -49,7 +50,7 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { getUserId } from '@/utils/functions'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import L2ManagerDashboard from './L2ManagerDashboard'
-import type { VacancyRequest } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import type { VacancyRequest } from '@/types/vacancyManagement'
 
 interface ViewMode {
   view: 'grid' | 'table'
@@ -83,6 +84,8 @@ const ResignationDataListingPage = () => {
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
+  setFromDate(null)
+
   // Fetch vacancy requests with filters
   useEffect(() => {
     if (debounceTimeout.current) {
@@ -90,7 +93,7 @@ const ResignationDataListingPage = () => {
     }
 
     debounceTimeout.current = setTimeout(() => {
-      const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+      // const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
 
       setVisibleRequests([])
       setPage(1)
@@ -158,7 +161,8 @@ const ResignationDataListingPage = () => {
     const nextPage = page + 1
 
     setPage(nextPage)
-    const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+
+    // const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
 
     dispatch(
       fetchVacancyRequests({
@@ -221,7 +225,7 @@ const ResignationDataListingPage = () => {
       return
     }
 
-    dispatch(updateVacancyRequestStatus({ id: requestId, approverId, status }))
+    dispatch(updateVacancyRequestStatus({ id: requestId, approverId, status, notes: '' }))
       .unwrap()
       .then(() => {
         toast.success(`Vacancy request ${status.toLowerCase()} successfully`, {
@@ -234,7 +238,7 @@ const ResignationDataListingPage = () => {
         })
 
         // Refetch the vacancy requests to update the UI
-        const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+        // const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
 
         dispatch(
           fetchVacancyRequests({
@@ -283,7 +287,7 @@ const ResignationDataListingPage = () => {
         })
 
         // Refetch the vacancy requests to update the UI
-        const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+        // const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
         const approverId = getUserId()
 
         dispatch(

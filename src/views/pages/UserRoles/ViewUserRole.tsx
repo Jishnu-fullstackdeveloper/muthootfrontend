@@ -52,6 +52,7 @@ const ViewUserRole = () => {
     if (!roleId) {
       setLocalRole(null)
       setHasFetched(true) // Mark as fetched to avoid infinite loading
+
       return
     }
 

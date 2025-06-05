@@ -741,7 +741,7 @@ const VacancyRequestDetail = () => {
             ))}
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        {/* <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <ApproveAllButtonWithPermission
             onClick={handleApproveAll}
             disabled={
@@ -766,7 +766,7 @@ const VacancyRequestDetail = () => {
               </Button>
             }
           />
-        </Box>
+        </Box> */}
       </Box>
 
       <Drawer

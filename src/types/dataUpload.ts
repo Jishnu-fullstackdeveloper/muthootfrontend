@@ -31,6 +31,7 @@ export interface DataUploadTableRow {
   fileType: string
   fileSize: number
   time: string
+  uploadDate: string
   status: string
   remarks: string[]
 }

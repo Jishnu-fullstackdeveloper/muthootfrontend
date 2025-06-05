@@ -54,7 +54,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     : null
 
   const showPendingActions = firstLevelStatus === 'PENDING' || status === 'PENDING'
-  const showUnfreezeAction = status === 'FREEZED'
+  // const showUnfreezeAction = status === 'FREEZED'
 
   return (
     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -83,7 +83,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title='Freeze'>
+          {/* <Tooltip title='Freeze'>
             <span>
               <IconButton
                 color='info'
@@ -104,12 +104,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 <SwapHorizIcon fontSize='small' />
               </IconButton>
             </span>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )}
 
       {/* Always show Un-Freeze button if status is FREEZED */}
-      {showUnfreezeAction && (
+      {/* {showUnfreezeAction && (
         <Tooltip title='Un-Freeze'>
           <span>
             <IconButton
@@ -121,7 +121,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             </IconButton>
           </span>
         </Tooltip>
-      )}
+      )} */}
 
       {/* Always show View Employee Details button */}
       <Tooltip title='View Employee Details'>

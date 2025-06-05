@@ -514,7 +514,7 @@ const ResignationDetailsPage = () => {
                         </IconButton>
                       </span>
                     </Tooltip>
-                    <Tooltip title='Freeze'>
+                    {/* <Tooltip title='Freeze'>
                       <span>
                         <IconButton
                           color='info'
@@ -535,10 +535,10 @@ const ResignationDetailsPage = () => {
                           <SwapHorizIcon fontSize='small' />
                         </IconButton>
                       </span>
-                    </Tooltip>
+                    </Tooltip> */}
                   </>
                 )}
-                {showUnfreezeAction && (
+                {/* {showUnfreezeAction && (
                   <Tooltip title='Un-Freeze'>
                     <span>
                       <IconButton
@@ -550,7 +550,7 @@ const ResignationDetailsPage = () => {
                       </IconButton>
                     </span>
                   </Tooltip>
-                )}
+                )} */}
               </Box>
             ) : null
           )({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}

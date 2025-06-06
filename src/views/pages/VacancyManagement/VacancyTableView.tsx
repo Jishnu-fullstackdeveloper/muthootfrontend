@@ -139,15 +139,16 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor(row => `${row.experienceMin} - ${row.experienceMax}`, {
-        // Custom accessor combining experienceMin and experienceMax
-        header: 'EXPERIENCE',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.experienceMin} - {row.original.experienceMax} years
-          </Typography>
-        )
-      }),
+
+      // columnHelper.accessor(row => `${row.experienceMin} - ${row.experienceMax}`, {
+      //   // Custom accessor combining experienceMin and experienceMax
+      //   header: 'EXPERIENCE',
+      //   cell: ({ row }) => (
+      //     <Typography color='text.primary' className='font-medium'>
+      //       {row.original.experienceMin} - {row.original.experienceMax} years
+      //     </Typography>
+      //   )
+      // }),
       columnHelper.accessor('action', {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
@@ -344,20 +345,23 @@ const VacancyListingTableView = () => {
           Error: {vacancyListFailureMessage}
         </Typography>
       )}
-      {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData.length === 0 ? (
+      {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData?.length === 0 ? (
         <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
       ) : (
         !vacancyListLoading &&
         !vacancyListFailureMessage && (
           <DynamicTable
             columns={columns}
-            data={vacancyListData.data || []}
-            totalCount={vacancyListData.totalCount}
+            data={vacancyListData?.data || []}
+            totalCount={vacancyListData?.totalCount}
             pagination={pagination}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
             onPageCountChange={handlePageCountChange}
             tableName='Vacancy Listing Table'
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
           />
         )
       )}

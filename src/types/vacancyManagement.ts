@@ -37,6 +37,7 @@ export interface Vacancy {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
+  totalCount?: any
 }
 
 export interface VacancyListResponse {
@@ -275,6 +276,7 @@ export interface VacancyManagementState {
   vacancyListSuccess: boolean
   vacancyListData: Vacancy[] | null
   vacancyListTotal: number
+  totalCount?: any
   vacancyListFailure: boolean
   vacancyListFailureMessage: string
   vacancyDetailsLoading: boolean

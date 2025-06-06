@@ -222,7 +222,7 @@ const EmployeeProfilePage = () => {
         esiNo: selectedEmployee.payrollDetails?.esiNo || '-',
         isDisability: selectedEmployee.personalDetails?.isDisability ? 'Yes' : 'No',
         typeOfDisability: selectedEmployee.personalDetails?.typeOfDisability || '-',
-        nameAsPerAadhar: selectedEmployee.personalDetails?.nameAsPerAadhar || '-',
+        nameAsPerAdhaar: selectedEmployee.personalDetails?.nameAsPerAdhaar || '-',
         functionalManager: selectedEmployee.managementHierarchy?.functionalManager || '-',
         totalExperience: selectedEmployee.experienceDetails?.totalExperience || '-',
         age: selectedEmployee.experienceDetails?.ageYYMM || '-',
@@ -231,7 +231,7 @@ const EmployeeProfilePage = () => {
         pfGrossLimit: selectedEmployee.payrollDetails?.pfGrossLimit || '-',
         lwfApplicable: selectedEmployee.payrollDetails?.lwfApplicable ? 'Yes' : 'No',
         esiApplicable: selectedEmployee.payrollDetails?.esiApplicable ? 'Yes' : 'No',
-        aadharNumber: selectedEmployee.personalDetails?.aadharNumber || '-'
+        adharNo: selectedEmployee.personalDetails?.adharNo || '-'
       }
     : null
 
@@ -423,13 +423,13 @@ const EmployeeProfilePage = () => {
               <Grid item xs={12} sm={6}>
                 <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <BadgeOutlinedIcon fontSize='small' color='primary' />
-                  <strong>Name as per Aadhar:</strong> {employee.nameAsPerAadhar}
+                  <strong>Name as per Aadhar:</strong> {employee.nameAsPerAdhaar}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <CreditCardOutlinedIcon fontSize='small' color='primary' />
-                  <strong>Aadhar Number:</strong> {employee.aadharNumber}
+                  <strong>Aadhar Number:</strong> {employee.adharNo}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>

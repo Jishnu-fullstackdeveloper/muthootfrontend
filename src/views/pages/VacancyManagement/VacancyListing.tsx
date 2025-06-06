@@ -64,14 +64,15 @@ const VacancyListingPage = () => {
     state => state.vacancyManagementReducer
   )
 
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>('table')
 
   //const [addMoreFilters, setAddMoreFilters] = useState(false)
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
   const [page, setPage] = useState(1)
-  const [limit] = useState(6) // Fixed limit for lazy loading batches
+  const [limit] = useState(10) // Fixed limit for lazy loading batches
   //const [searchTerm, setSearchTerm] = useState('') // New state for search input
   const [searchQuery, setSearchQuery] = useState<string>('') // Updated to searchQuery for consistency
+  const [noMoreData, setNoMoreData] = useState<boolean>(false) // Added to track if there's no more data to load
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null) // Added for debounce
@@ -120,27 +121,33 @@ const VacancyListingPage = () => {
     // Set a new timeout for debounced search
     debounceTimeout.current = setTimeout(() => {
       console.log('Dispatching fetchVacancies with:', { page: 1, limit, search: searchQuery.trim() }) // Debug log
+      setVisibleVacancies([]) // Reset visible vacancies
+      setPage(1) // Reset page
+      setNoMoreData(false) // Reset noMoreData
       dispatch(fetchVacancies({ page: 1, limit, search: searchQuery.trim() }))
         .unwrap()
         .then(result => {
           console.log('fetchVacancies result:', result) // Debug API response
           const newVacancies = result.data || []
 
-          setVisibleVacancies(newVacancies) // Reset visibleVacancies with new data
+          setVisibleVacancies(newVacancies) // Set initial vacancies
           // Initialize selectedTabs for all new vacancies
           setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
-          setPage(1) // Reset to page 1
         })
-        .catch(err => console.error('Search failed:', err)) // Log errors
+        .catch(err => {
+          console.error('Search failed:', err) // Log errors
+          setVisibleVacancies([]) // Clear on error
+          setSelectedTabs({})
+        })
     }, 300) // 300ms debounce delay
 
-    // Cleanup timeout on unmount or searchQuery/viewMode change
+    // Cleanup timeout on unmount or searchQuery change
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [dispatch, limit, searchQuery, viewMode])
+  }, [dispatch, limit, searchQuery]) // Removed viewMode from dependencies to prevent unnecessary fetches
 
   // Update visibleVacancies with unique items from API
   useEffect(() => {
@@ -165,16 +172,29 @@ const VacancyListingPage = () => {
 
         return updatedVacancies
       })
-    } else if (!vacancyListData?.length && viewMode === 'grid' && !vacancyListLoading && page === 1) {
-      // Clear visibleVacancies and selectedTabs only on initial empty results
+      // setNoMoreData(false) // Reset noMoreData when new data is appended
+    } else if (!vacancyListData?.length && viewMode === 'grid' && !vacancyListLoading) {
+      // Handle empty results
       console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
-      setVisibleVacancies([])
-      setSelectedTabs({}) // Clear selectedTabs when no vacancies
+      // setNoMoreData(true) // Set noMoreData if no data is returned
     }
-  }, [vacancyListData, viewMode, vacancyListLoading, page])
+  }, [vacancyListData, viewMode, vacancyListLoading])
 
+  // Lazy loading
   const loadMoreVacancies = useCallback(() => {
-    if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal) return
+    console.log('sssssssssssssssssss')
+
+    if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal || noMoreData) {
+      console.log('Load more skipped:', {
+        vacancyListLoading,
+        visibleVacanciesLength: visibleVacancies.length,
+        vacancyListTotal,
+        noMoreData
+      })
+
+      return
+    }
+
     const nextPage = page + 1
 
     console.log('Loading more vacancies for page:', nextPage) // Debug log
@@ -185,30 +205,46 @@ const VacancyListingPage = () => {
         console.log('Loaded more vacancies:', result) // Debug log
       })
       .catch(err => console.error('Load more failed:', err))
-  }, [vacancyListLoading, visibleVacancies.length, vacancyListTotal, page, dispatch, limit, searchQuery])
+  }, [vacancyListLoading, visibleVacancies.length, vacancyListTotal, noMoreData, page, dispatch, limit, searchQuery])
 
   useEffect(() => {
-    if (viewMode !== 'grid' || visibleVacancies.length >= vacancyListTotal) return
-
+    console.log('Setting up IntersectionObserver') // Debug log
     observerRef.current = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && !vacancyListLoading) {
-          loadMoreVacancies()
+        if (
+          entries[0].isIntersecting &&
+          viewMode === 'grid' &&
+          visibleVacancies.length < vacancyListTotal &&
+          !noMoreData
+        ) {
+          console.log('IntersectionObserver triggered, calling loadMoreVacancies') // Debug log
+        } else {
+          console.log('IntersectionObserver skipped:', {
+            isIntersecting: entries[0].isIntersecting,
+            viewMode,
+            visibleVacanciesLength: visibleVacancies.length,
+            vacancyListTotal,
+            noMoreData
+          }) // Debug log
         }
       },
       { threshold: 0.1 }
     )
 
     if (loadMoreRef.current) {
+      console.log('Observing loadMoreRef') // Debug log
       observerRef.current.observe(loadMoreRef.current)
+    } else {
+      console.log('loadMoreRef not available yet') // Debug log
     }
 
     return () => {
       if (observerRef.current && loadMoreRef.current) {
+        console.log('Unobserving loadMoreRef') // Debug log
         observerRef.current.unobserve(loadMoreRef.current)
       }
     }
-  }, [loadMoreVacancies, viewMode, visibleVacancies.length, vacancyListTotal, vacancyListLoading])
+  }, [loadMoreVacancies, viewMode, visibleVacancies.length, vacancyListTotal, noMoreData]) // Simplified dependencies
 
   const handleTabChange = (vacancyId: any, newValue: number) =>
     setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
@@ -404,16 +440,6 @@ const VacancyListingPage = () => {
                 width: 'fit-content'
               }}
             >
-              <Tooltip title='Grid View'>
-                <IconButton
-                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
-                  onClick={() => setViewMode('grid')}
-                  size='small'
-                  sx={{ p: 0.5 }}
-                >
-                  <GridViewIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
               <Tooltip title='Table View'>
                 <IconButton
                   color={viewMode === 'table' ? 'primary' : 'secondary'}
@@ -422,6 +448,16 @@ const VacancyListingPage = () => {
                   sx={{ p: 0.5 }}
                 >
                   <TableChartIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Grid View'>
+                <IconButton
+                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('grid')}
+                  size='small'
+                  sx={{ p: 0.5 }}
+                >
+                  <GridViewIcon fontSize='small' />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -876,14 +912,14 @@ const VacancyListingPage = () => {
         )}
       </Box>
 
-      {viewMode === 'grid' && visibleVacancies.length === 0 && (
-        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
-          {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
-        </Box>
-      )}
-      {viewMode === 'grid' && visibleVacancies.length < vacancyListTotal && (
+      {viewMode === 'grid' && visibleVacancies.length < vacancyListTotal && !noMoreData && (
         <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
           <Typography>{vacancyListLoading ? 'Loading more...' : 'Scroll to load more'}</Typography>
+        </Box>
+      )}
+      {viewMode === 'grid' && noMoreData && visibleVacancies.length > 0 && (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography>No more vacancies to load</Typography>
         </Box>
       )}
     </Box>

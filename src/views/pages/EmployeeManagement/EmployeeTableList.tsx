@@ -173,6 +173,19 @@ const EmployeeTable = () => {
         header: 'EMPLOYEE TYPE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeType}</Typography>
       }),
+
+      columnHelper.accessor('status', {
+        header: 'EMPLOYEE STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
+      }),
+      columnHelper.accessor('company', {
+        header: 'COMPANY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.company}</Typography>
+      }),
+      columnHelper.accessor('businessUnit', {
+        header: 'BUSINESS UNIT',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.businessUnit}</Typography>
+      }),
       columnHelper.accessor('action', {
         header: 'ACTIONS',
         meta: { className: 'sticky right-0' },
@@ -195,18 +208,6 @@ const EmployeeTable = () => {
           </Box>
         ),
         enableSorting: false
-      }),
-      columnHelper.accessor('status', {
-        header: 'EMPLOYEE STATUS',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
-      }),
-      columnHelper.accessor('company', {
-        header: 'COMPANY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.company}</Typography>
-      }),
-      columnHelper.accessor('businessUnit', {
-        header: 'BUSINESS UNIT',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.businessUnit}</Typography>
       }),
       columnHelper.accessor('department', {
         header: 'DEPARTMENT',

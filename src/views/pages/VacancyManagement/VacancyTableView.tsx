@@ -7,6 +7,8 @@ import { IconButton, Tooltip, Typography, Chip, Box } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import VisibilityIcon from '@mui/icons-material/Visibility'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
@@ -160,7 +162,7 @@ const VacancyListingTableView = () => {
                   router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(row.original.id))
                 }
               >
-                <i className='tabler-eye text-textSecondary'></i>
+                <VisibilityIcon sx={{ fontSize: 10 }} />
               </IconButton>
             </Tooltip>
             {/* <Tooltip title='Edit' placement='top'>
@@ -337,16 +339,46 @@ const VacancyListingTableView = () => {
     [columnHelper, router]
   )
 
+  // return (
+  //   <Box>
+  //     {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
+  //     {vacancyListFailureMessage && (
+  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>
+  //         {/* Error: {vacancyListFailureMessage} */} No vacancy found
+  //       </Typography>
+  //     )}
+  //     {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData?.length === 0 ? (
+  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
+  //     ) : (
+  //       !vacancyListLoading &&
+  //       !vacancyListFailureMessage && (
+  //         <DynamicTable
+  //           columns={columns}
+  //           data={vacancyListData?.data || []}
+  //           totalCount={vacancyListData?.totalCount}
+  //           pagination={pagination}
+  //           onPageChange={handlePageChange}
+  //           onRowsPerPageChange={handleRowsPerPageChange}
+  //           onPageCountChange={handlePageCountChange}
+  //           tableName='Vacancy Listing Table'
+  //           sorting={undefined}
+  //           onSortingChange={undefined}
+  //           initialState={undefined}
+  //         />
+  //       )
+  //     )}
+  //   </Box>
+  // )
   return (
     <Box>
       {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
       {vacancyListFailureMessage && (
-        <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>
-          Error: {vacancyListFailureMessage}
-        </Typography>
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>No record is found</Typography>
       )}
-      {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData?.length === 0 ? (
-        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
+      {!vacancyListLoading &&
+      !vacancyListFailureMessage &&
+      (!vacancyListData?.data || vacancyListData?.data.length === 0) ? (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No record is found</Typography>
       ) : (
         !vacancyListLoading &&
         !vacancyListFailureMessage && (

@@ -105,8 +105,8 @@ export interface Employee {
   personalDetails: {
     isDisability: any
     typeOfDisability: string
-    nameAsPerAadhar: string
-    aadharNumber: string
+    nameAsPerAdhaar: string
+    adharNo: number
     gender: string
     religion: string
     birthPlace: string

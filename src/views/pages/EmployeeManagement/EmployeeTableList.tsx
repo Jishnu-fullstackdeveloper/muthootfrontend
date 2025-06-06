@@ -111,7 +111,7 @@ const EmployeeTable = () => {
       esiNo: employee.payrollDetails?.esiNo || '-',
       isDisability: employee.personalDetails?.isDisability ? 'Yes' : 'No',
       typeOfDisability: employee.personalDetails?.typeOfDisability || '-',
-      nameAsPerAadhar: employee.personalDetails?.nameAsPerAadhar || '-',
+      nameAsPerAdhaar: employee.personalDetails?.nameAsPerAdhaar || '-',
       functionalManager: employee.managementHierarchy?.functionalManager || '-',
       totalExperience: employee.experienceDetails?.totalExperience || '-',
       currentCompanyExperience: employee.experienceDetails?.currentCompanyExperience || '-',
@@ -212,34 +212,36 @@ const EmployeeTable = () => {
         header: 'DEPARTMENT',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.department}</Typography>
       }),
-      columnHelper.accessor('territory', {
-        header: 'TERRITORY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.territory}</Typography>
-      }),
-      columnHelper.accessor('zone', {
-        header: 'ZONE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.zone}</Typography>
-      }),
-      columnHelper.accessor('region', {
-        header: 'REGION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.region}</Typography>
-      }),
-      columnHelper.accessor('cluster', {
-        header: 'CLUSTER',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.cluster}</Typography>
-      }),
-      columnHelper.accessor('branch', {
-        header: 'BRANCH',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.branch}</Typography>
-      }),
+
+      // columnHelper.accessor('territory', {
+      //   header: 'TERRITORY',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.territory}</Typography>
+      // }),
+      // columnHelper.accessor('zone', {
+      //   header: 'ZONE',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.zone}</Typography>
+      // }),
+      // columnHelper.accessor('region', {
+      //   header: 'REGION',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.region}</Typography>
+      // }),
+      // columnHelper.accessor('cluster', {
+      //   header: 'CLUSTER',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.cluster}</Typography>
+      // }),
+      // columnHelper.accessor('branch', {
+      //   header: 'BRANCH',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.branch}</Typography>
+      // }),
       columnHelper.accessor('branchCode', {
         header: 'BRANCH CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.branchCode}</Typography>
       }),
-      columnHelper.accessor('area', {
-        header: 'AREA',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
-      }),
+
+      // columnHelper.accessor('area', {
+      //   header: 'AREA',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
+      // }),
       columnHelper.accessor('cityClassification', {
         header: 'CITY CLASSIFICATION',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.cityClassification}</Typography>
@@ -272,10 +274,11 @@ const EmployeeTable = () => {
         header: 'EMPLOYEE CATEGORY',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategory}</Typography>
       }),
-      columnHelper.accessor('employeeCategoryType', {
-        header: 'EMPLOYEE CATEGORY TYPE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategoryType}</Typography>
-      }),
+
+      // columnHelper.accessor('employeeCategoryType', {
+      //   header: 'EMPLOYEE CATEGORY TYPE',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategoryType}</Typography>
+      // }),
       columnHelper.accessor('l1ManagerCode', {
         header: 'L1 MANAGER CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.l1ManagerCode}</Typography>
@@ -442,7 +445,7 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('nameAsPerAadhar', {
         header: 'NAME AS PER AADHAR',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.nameAsPerAadhar}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.nameAsPerAdhaar}</Typography>
       }),
       columnHelper.accessor('functionalManager', {
         header: 'FUNCTIONAL MANAGER',
@@ -482,7 +485,7 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('aadharNumber', {
         header: 'AADHAR NUMBER',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.aadharNumber}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.adharNo}</Typography>
       }),
       columnHelper.accessor('matrixManagerCode', {
         header: 'MATRIX MANAGER CODE',

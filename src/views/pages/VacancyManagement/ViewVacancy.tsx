@@ -98,15 +98,10 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
     )
   }
 
-  console.log('Vacancy Details Data:', vacancyDetailsData?.data)
-
   if (!vacancyDetailsData?.data) {
     return (
       <Box sx={{ p: 4 }}>
-        <Typography variant='h6'>No vacancy data available for ID: {id}</Typography>
-        <Button variant='text' onClick={() => dispatch(fetchVacancyById({ id: id as string }))}>
-          Retry
-        </Button>
+        <Typography variant='h6'>No vacancy data available </Typography>
       </Box>
     )
   }

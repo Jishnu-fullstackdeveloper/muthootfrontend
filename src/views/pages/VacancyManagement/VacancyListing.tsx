@@ -510,7 +510,15 @@ const VacancyListingPage = () => {
       {vacancyListFailureMessage && (
         <Box sx={{ mb: 4, mx: 6, justifyContent: 'center', alignItems: 'center' }}>
           <Typography variant='h6' color='secondary'>
-            {vacancyListFailureMessage}
+            {/* {vacancyListFailureMessage} */} No vacancy data found
+          </Typography>
+        </Box>
+      )}
+
+      {viewMode === 'grid' && !vacancyListLoading && visibleVacancies.length === 0 && !vacancyListFailureMessage && (
+        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+          <Typography variant='h6' color='text.secondary'>
+            No search record is found
           </Typography>
         </Box>
       )}

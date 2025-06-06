@@ -381,12 +381,12 @@ const ResignationDataListingPage = () => {
                 <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
                   <Tooltip title='Designation'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CardMembershipOutlinedIcon fontSize='small' />: {employee.designation.name}
+                      <CardMembershipOutlinedIcon fontSize='small' />: {employee?.designation?.name}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Department'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AccountTreeOutlinedIcon fontSize='small' />: {employee.department.name}
+                      <AccountTreeOutlinedIcon fontSize='small' />: {employee?.department?.name}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Date of Resignation'>
@@ -397,23 +397,23 @@ const ResignationDataListingPage = () => {
                   </Tooltip>
                   <Tooltip title='Last Working Day'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayOutlinedIcon fontSize='small' />:{employee.resignationDetails.lwd.split('T')[0]}
+                      <CalendarTodayOutlinedIcon fontSize='small' />:{employee?.resignationDetails?.lwd?.split('T')[0]}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Notice Period'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayOutlinedIcon fontSize='small' />: {employee.resignationDetails.noticePeriod}
+                      <CalendarTodayOutlinedIcon fontSize='small' />: {employee?.resignationDetails?.noticePeriod}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Relieving Date'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <EventOutlinedIcon fontSize='small' />:
-                      {employee.resignationDetails.relievingDateAsPerNotice?.split('T')[0]}
+                      {employee?.resignationDetails?.relievingDateAsPerNotice?.split('T')[0]}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Notes'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <NoteOutlinedIcon fontSize='small' />: {employee.resignationDetails.notes || '-'}
+                      <NoteOutlinedIcon fontSize='small' />: {employee?.resignationDetails?.notes || '-'}
                     </Typography>
                   </Tooltip>
                 </Box>

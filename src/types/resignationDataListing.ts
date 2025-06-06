@@ -24,6 +24,28 @@ export interface ResignedEmployee {
   correspondenceEmail?: any
   correspondenceNumber?: any
   correspondenceAddress?: any
+  employeeDetails?: any
+  officeEmailAddress?: any
+  personalEmailAddress?: any
+  companyStructure: {
+    branchCode?: any
+  }
+  emergencyContact: {
+    emergencyContactMobilePhone?: any
+  }
+  managementHierarchy: {
+    l1Manager?: any
+    l2Manager?: any
+    hrManager?: any
+  }
+  address: {
+    residenceAddressLine1?: any
+    residenceAddressLine2?: any
+    residenceCity?: any
+    residenceState?: any
+    residenceCountry?: any
+    residencePostalCode?: any
+  }
   actions?: any
   resignationDetails: {
     dateOfResignation: string

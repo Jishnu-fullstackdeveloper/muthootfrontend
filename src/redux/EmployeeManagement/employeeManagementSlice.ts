@@ -211,7 +211,7 @@ interface Employee {
   personalDetails: {
     isDisability: any
     typeOfDisability: string
-    nameAsPerAadhar: string
+    nameAsPerAdhaar: string
     aadharNumber: string
     gender: string
     religion: string

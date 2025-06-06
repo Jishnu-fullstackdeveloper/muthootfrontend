@@ -7,7 +7,7 @@ import { Box, Typography, Card, TextField, InputAdornment, Tooltip, IconButton, 
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
-import AddIcon from '@mui/icons-material/Add'
+//import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 
 //import EditIcon from '@mui/icons-material/Edit'
@@ -31,7 +31,7 @@ import type {
   PaginatedGroupedData,
   PaginationState
 } from '@/types/approvalMatrix' // Adjust the path as needed
-import DynamicButton from '@/components/Button/dynamicButton'
+//import DynamicButton from '@/components/Button/dynamicButton'
 
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
@@ -582,7 +582,7 @@ const ApprovalMatrixList = () => {
 
   return (
     <>
-      <Box className='flex justify-between p-1 w-full'>
+      <Box className='flex justify-between  w-full'>
         <Card
           className='flex justify-between w-full'
           sx={{
@@ -599,10 +599,10 @@ const ApprovalMatrixList = () => {
           <TextField
             label='Search by approval categories'
             variant='outlined'
-            size='small' // Reduces the height to a smaller predefined size
+            size='small'
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-            sx={{ width: '300px', mr: 2 }} // Margin-right to separate from the button
+            sx={{ width: '300px', mr: 2 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -612,14 +612,14 @@ const ApprovalMatrixList = () => {
             }}
           />
 
-          <DynamicButton
+          {/* <DynamicButton
             label='New Approval'
             variant='contained'
             icon={<AddIcon />}
             position='start'
             onClick={() => router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_ADD)}
             children='New Approval'
-          />
+          /> */}
         </Card>
       </Box>
 
@@ -629,29 +629,24 @@ const ApprovalMatrixList = () => {
         </Box>
       )}
       {status === 'failed' && <Typography align='center'>No data found</Typography>}
-      {status === 'succeeded' && (
+      {status === 'succeeded' && searchQuery.trim() !== '' && groupedData.length === 0 && (
+        <Typography align='center'>No search item is found</Typography>
+      )}
+      {status === 'succeeded' && (searchQuery.trim() === '' || groupedData.length > 0) && (
         <DynamicTable
           columns={columns}
-          data={paginatedGroupedData.data} // Use paginated grouped data
-          totalCount={paginatedGroupedData.totalCount} // Use total grouped count
-          pagination={pagination} // Pass 0-based pagination directly
-          sorting={sorting} // Pass sorting state to control table sorting
-          onSortingChange={setSorting} // Handle sorting changes
-          initialState={{ sorting: [] }} // Ensure no default sorting
+          data={paginatedGroupedData.data}
+          totalCount={paginatedGroupedData.totalCount}
+          pagination={pagination}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          initialState={{ sorting: [] }}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onPageCountChange={handlePageCountChange} // Added for consistency
+          onPageCountChange={handlePageCountChange}
           tableName='Approvals Listing'
         />
       )}
-
-      {/* Delete Confirmation Modal */}
-      {/* <ConfirmModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        id={matrixIdsToDelete[0] || null} // Pass the first ID for compatibility with ConfirmModal
-      /> */}
     </>
   )
 }

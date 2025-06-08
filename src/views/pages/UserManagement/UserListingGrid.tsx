@@ -5,35 +5,39 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Card, CardContent, Grid, Chip, IconButton, Typography, Button, CircularProgress } from '@mui/material'
 import { grey } from '@mui/material/colors'
 
-interface Role {
-  id: string
-  name: string
-  permissions: { id: string; name: string; description: string }[]
-}
+// interface Role {
+//   id: string
+//   name: string
+//   permissions: { id: string; name: string; description: string }[]
+//   data?: any
+// }
 
-interface DesignationRole {
-  id: string
-  name: string
-  description: string
-  groupRoles: Role[]
-  permissions: string[]
-}
+// interface DesignationRole {
+//   id: string
+//   name: string
+//   description: string
+//   groupRoles: Role[]
+//   permissions: string[]
+// }
 
-interface User {
-  userId: string
-  firstName?: string
-  lastName?: string
-  middleName?: string
-  email?: string
-  employeeCode?: string
-  status?: string
-  source?: string
-  designationRole?: DesignationRole
-  designation?: string
-}
+// interface User {
+//   userId: string
+//   firstName?: string
+//   lastName?: string
+//   middleName?: string
+//   email?: string
+//   employeeCode?: string
+//   status?: string
+//   source?: string
+//   designationRole?: DesignationRole
+//   designation?: string
+//   data?: any
+// }
 
 interface UserGridProps {
-  data: (User & { designationRole?: string[] | Role[] })[]
+  data?: any
+
+  // data?: (User & { designationRole?: string[] | Role[] })[]
   loading: boolean
   onEdit: (empCode: string | undefined, id: string) => void
   page: number

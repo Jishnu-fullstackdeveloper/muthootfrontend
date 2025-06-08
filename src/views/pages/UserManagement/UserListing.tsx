@@ -59,6 +59,8 @@ interface Role {
   id: string
   name: string
   permissions: { id: string; name: string; description: string }[]
+  data?: any
+  pagination?: any
 }
 
 interface DesignationRole {
@@ -262,33 +264,33 @@ const UserListing = () => {
     })
   }, [allUsers, tableUsers, userRoleData, view])
 
-  const normalizedUserData = enrichedUserData.map(user => {
-    const normalizedRoles = (user.designationRole || [])?.map((role: any): DesignationRole => {
-      if (typeof role === 'string') {
-        return {
-          id: '',
-          name: role,
-          description: '',
-          groupRoles: '',
-          permissions: []
-        }
-      }
+  // const normalizedUserData = enrichedUserData.map(user => {
+  //   const normalizedRoles = user.designationRole?.map((role: any): DesignationRole => {
+  //     if (typeof role === 'string') {
+  //       return {
+  //         id: '',
+  //         name: role,
+  //         description: '',
+  //         groupRoles: '',
+  //         permissions: []
+  //       }
+  //     }
 
-      // assume role is of type Role
-      return {
-        id: role.id || '',
-        name: role.name || '',
-        description: '',
-        groupRoles: '',
-        permissions: role.permissions || []
-      }
-    })
+  //     // assume role is of type Role
+  //     return {
+  //       id: role.id || '',
+  //       name: role.name || '',
+  //       description: '',
+  //       groupRoles: '',
+  //       permissions: role.permissions || []
+  //     }
+  //   })
 
-    return {
-      ...user,
-      designationRole: normalizedRoles
-    }
-  })
+  //   return {
+  //     ...user,
+  //     designationRole: normalizedRoles
+  //   }
+  // })
 
   const handleEdit = (empCode: string | undefined, id: string) => {
     if (!empCode) return
@@ -427,7 +429,7 @@ const UserListing = () => {
         </Box>
       ) : view === 'grid' ? (
         <UserGrid
-          data={normalizedUserData}
+          data={enrichedUserData}
           loading={isUserManagementLoading}
           onEdit={handleEdit}
           page={gridPage}

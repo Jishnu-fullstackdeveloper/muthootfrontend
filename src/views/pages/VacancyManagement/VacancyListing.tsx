@@ -46,7 +46,7 @@ import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSl
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import VacancyListingTableView from './VacancyTableView'
 import { ROUTES } from '@/utils/routes'
-
+import type { VacancyManagementState } from '@/types/vacancyManagement'
 // import {
 //   getVacancyManagementFiltersFromCookie,
 //   removeVacancyManagementFiltersFromCookie,
@@ -62,9 +62,9 @@ const VacancyListingPage = () => {
 
   const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
-  )
+  ) as VacancyManagementState
 
-  const [viewMode, setViewMode] = useState<ViewMode>('table')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
   //const [addMoreFilters, setAddMoreFilters] = useState(false)
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
@@ -161,7 +161,7 @@ const VacancyListingPage = () => {
       console.log('Appending vacancies:', vacancyListData) // Debug log
       setVisibleVacancies((prev: Vacancy[]) => {
         // Ensure all vacancies have the required 'band' property
-        const newVacancies = (vacancyListData as unknown as Vacancy[])
+        const newVacancies = vacancyListData?.data
           .filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
           .map(vacancy => ({
             band: vacancy.band ?? '', // Provide a default value if missing
@@ -451,16 +451,6 @@ const VacancyListingPage = () => {
                 width: 'fit-content'
               }}
             >
-              <Tooltip title='Table View'>
-                <IconButton
-                  color={viewMode === 'table' ? 'primary' : 'secondary'}
-                  onClick={() => setViewMode('table')}
-                  size='small'
-                  sx={{ p: 0.5 }}
-                >
-                  <TableChartIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
               <Tooltip title='Grid View'>
                 <IconButton
                   color={viewMode === 'grid' ? 'primary' : 'secondary'}
@@ -469,6 +459,16 @@ const VacancyListingPage = () => {
                   sx={{ p: 0.5 }}
                 >
                   <GridViewIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Table View'>
+                <IconButton
+                  color={viewMode === 'table' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('table')}
+                  size='small'
+                  sx={{ p: 0.5 }}
+                >
+                  <TableChartIcon fontSize='small' />
                 </IconButton>
               </Tooltip>
             </Box>

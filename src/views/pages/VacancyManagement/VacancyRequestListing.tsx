@@ -353,6 +353,9 @@ const VacancyRequestListing = () => {
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Vacancy Requests'
           loading={vacancyRequestGroupByDesignationLoading}
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
     </Box>

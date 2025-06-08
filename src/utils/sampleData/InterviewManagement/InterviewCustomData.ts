@@ -9,6 +9,7 @@ export interface InterviewCustomization {
   designation: string[] // Changed to array for multiple selections
   levels: string[] // Changed to array for multiple selections
   aptitudeAvailable: 'Yes' | 'No'
+  Action?: any
 }
 
 // Sample data for the table

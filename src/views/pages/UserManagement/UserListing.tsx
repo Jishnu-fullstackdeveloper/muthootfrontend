@@ -59,6 +59,17 @@ interface Role {
   id: string
   name: string
   permissions: { id: string; name: string; description: string }[]
+  data?: any
+  pagination?: any
+}
+
+interface DesignationRole {
+  id: string
+  name: string
+  description: string
+  groupRoles: string
+  permissions: { id: string; name: string; description: string }[]
+  map?: any
 }
 
 interface User {
@@ -70,9 +81,13 @@ interface User {
   employeeCode?: string
   status?: string
   source?: string
-  designationRole?: string[] | Role[]
+  designationRole?: DesignationRole // Allow both string[], Role[], or undefined for compatibility
   GroupRoles?: string
   designation?: string
+  roles?: (Role | string)[]
+  role?: any
+  data?: any
+  pagination?: any
 }
 
 interface FetchParams {
@@ -80,6 +95,20 @@ interface FetchParams {
   page: number
   search?: string
   filters?: string[]
+}
+
+interface Pagination {
+  totalPages: number
+  currentPage: number
+  totalItems: number
+  limit: number
+}
+
+interface UserManagementResponse {
+  data: User[]
+  pagination: Pagination
+  userManagementData?: any
+  isUserManagementLoading?: any
 }
 
 const UserListing = () => {
@@ -98,12 +127,17 @@ const UserListing = () => {
     active: false,
     inactive: false,
     ad: false,
-    nonAd: false
+    nonAd: false,
+    selectedRoles: [] as string[]
   })
 
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { userManagementData, isUserManagementLoading } = useAppSelector(state => state.UserManagementReducer)
+
+  const { userManagementData, isUserManagementLoading } = useAppSelector(
+    state => state.UserManagementReducer
+  ) as unknown as UserManagementResponse
+
   const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
 
   useEffect(() => {
@@ -175,7 +209,7 @@ const UserListing = () => {
   }
 
   const handleClearFilters = () => {
-    setFilters({ active: false, inactive: false, ad: false, nonAd: false })
+    setFilters({ active: false, inactive: false, ad: false, nonAd: false, selectedRoles: [] })
     setGridPage(1)
     setTablePage(1)
     setAllUsers([])
@@ -198,19 +232,65 @@ const UserListing = () => {
     setTableUsers([])
   }
 
-  const safeGetData = <T,>(source: any): T[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+  // const safeGetData = <T,>(source: any): T[] => (source?.data && Array.isArray(source.data) ? source.data : [])
 
   const enrichedUserData = useMemo(() => {
-    const roles = safeGetData<Role>(userRoleData)
+    // const roles = safeGetData<Role>(userRoleData)
     const users = view === 'grid' ? allUsers : tableUsers
 
-    return users.map(user => ({
-      ...user,
-      roles: (Array.isArray(user.roles) ? user.roles : user.role ? [user.role] : []).map(
-        roleName => roles.find(r => r.name.toLowerCase() === (roleName as string).toLowerCase()) || { name: roleName }
-      )
-    }))
+    return users.map(user => {
+      if (Array.isArray(user.roles)) {
+        // If all elements are Role objects, return as Role[]
+        if (user.roles.every(role => typeof role === 'object' && role !== null && 'id' in role && 'name' in role)) {
+          return { ...user, roles: user.roles as Role[] }
+        }
+
+        // If all elements are strings, return as string[]
+        if (user.roles.every(role => typeof role === 'string')) {
+          return { ...user, roles: user.roles as string[] }
+        }
+
+        // If mixed, convert all to string[]
+        return {
+          ...user,
+          roles: user.roles.map(role => (typeof role === 'string' ? role : (role as Role).name)) as string[]
+        }
+      } else if (user.role) {
+        // If single role, wrap as Role[]
+        return { ...user, roles: [user.role] as Role[] }
+      } else {
+        return { ...user, roles: [] as string[] }
+      }
+    })
   }, [allUsers, tableUsers, userRoleData, view])
+
+  // const normalizedUserData = enrichedUserData.map(user => {
+  //   const normalizedRoles = user.designationRole?.map((role: any): DesignationRole => {
+  //     if (typeof role === 'string') {
+  //       return {
+  //         id: '',
+  //         name: role,
+  //         description: '',
+  //         groupRoles: '',
+  //         permissions: []
+  //       }
+  //     }
+
+  //     // assume role is of type Role
+  //     return {
+  //       id: role.id || '',
+  //       name: role.name || '',
+  //       description: '',
+  //       groupRoles: '',
+  //       permissions: role.permissions || []
+  //     }
+  //   })
+
+  //   return {
+  //     ...user,
+  //     designationRole: normalizedRoles
+  //   }
+  // })
 
   const handleEdit = (empCode: string | undefined, id: string) => {
     if (!empCode) return

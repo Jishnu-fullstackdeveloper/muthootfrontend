@@ -331,19 +331,16 @@ const ResignedDesignationsListing = () => {
                 position='start'
                 children='Export Excel'
               />
-              {withPermission(
-                () => (
-                  <DynamicButton
-                    label='New JD'
-                    variant='contained'
-                    icon={<i className='tabler-plus' />}
-                    position='start'
-                    onClick={() => router.push(`/recruitment-management/add/new`)}
-                    children='New Request'
-                  />
-                ),
-                'recruitmentManagement'
-              )({ individualPermission: 'recruitment_create' })}
+              {withPermission(() => (
+                <DynamicButton
+                  label='New JD'
+                  variant='contained'
+                  icon={<i className='tabler-plus' />}
+                  position='start'
+                  onClick={() => router.push(`/recruitment-management/add/new`)}
+                  children='New Request'
+                />
+              ))({ individualPermission: 'recruitment_create' })}
               <Box
                 sx={{
                   display: 'flex',
@@ -486,42 +483,39 @@ const ResignedDesignationsListing = () => {
                                 </Typography>
                               </Box>
                               <Divider sx={{ marginY: 2 }} />
-                              {withPermission(
-                                () => (
-                                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                    <Tooltip title='Approve Request'>
-                                      <Button
-                                        variant='contained'
-                                        color='success'
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          handleApprove(designation)
-                                        }}
-                                        sx={{ padding: '6px 16px' }}
-                                        startIcon={<i className='tabler-check' />}
-                                      >
-                                        Approve
-                                      </Button>
-                                    </Tooltip>
+                              {withPermission(() => (
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                  <Tooltip title='Approve Request'>
+                                    <Button
+                                      variant='contained'
+                                      color='success'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        handleApprove(designation)
+                                      }}
+                                      sx={{ padding: '6px 16px' }}
+                                      startIcon={<i className='tabler-check' />}
+                                    >
+                                      Approve
+                                    </Button>
+                                  </Tooltip>
 
-                                    <Tooltip title='Reject Request'>
-                                      <Button
-                                        variant='contained'
-                                        color='error'
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          handleReject(designation?.id, designation?.approvalId)
-                                        }}
-                                        sx={{ padding: '6px 16px' }}
-                                        startIcon={<i className='tabler-playstation-x' />}
-                                      >
-                                        Reject All
-                                      </Button>
-                                    </Tooltip>
-                                  </Box>
-                                ),
-                                'recruitmentManagement'
-                              )({ individualPermission: 'recruitment_approval' })}
+                                  <Tooltip title='Reject Request'>
+                                    <Button
+                                      variant='contained'
+                                      color='error'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        handleReject(designation?.id, designation?.approvalId)
+                                      }}
+                                      sx={{ padding: '6px 16px' }}
+                                      startIcon={<i className='tabler-playstation-x' />}
+                                    >
+                                      Reject All
+                                    </Button>
+                                  </Tooltip>
+                                </Box>
+                              ))({ individualPermission: 'recruitment_approval' })}
                               <Box sx={{ marginTop: 2, backgroundColor: '#f4f4f4', borderRadius: 2, padding: 2 }}>
                                 <Typography
                                   variant='body2'

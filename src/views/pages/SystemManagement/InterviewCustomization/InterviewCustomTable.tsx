@@ -422,6 +422,9 @@ const InterviewCustomizationTable = ({
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         tableName='Interview Customization Table'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
       {selectedRow && (
         <EditInterviewForm

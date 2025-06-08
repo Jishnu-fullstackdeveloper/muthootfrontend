@@ -25,11 +25,13 @@ import {
 } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+
+// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+// import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
+
+// import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 
@@ -410,7 +412,8 @@ const ResignationDetailsPage = () => {
 
   // Check if any level has "PENDING" status to decide which buttons to show
   const showPendingActions = approvalStatus.some((status: any) => status.approvalStatus === 'PENDING')
-  const showUnfreezeAction = vacancyRequestList?.status === 'FREEZED'
+
+  // const showUnfreezeAction = vacancyRequestList?.status === 'FREEZED'
 
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>

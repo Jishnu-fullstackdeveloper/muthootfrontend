@@ -251,6 +251,9 @@ const TimeBasedJobPosting = () => {
           totalCount={totalCount}
           onPageChange={newPage => setPage(newPage + 1)}
           onRowsPerPageChange={newLimit => setLimit(newLimit)}
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       </Card>
 

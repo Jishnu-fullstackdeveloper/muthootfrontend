@@ -86,7 +86,7 @@ const UserTable = ({
                   <Typography
                     variant='body2'
                     onClick={() => 'name' in role && handleView(role)}
-                    sx={{ cursor: 'name' in role ? 'pointer' : 'default',  }}
+                    sx={{ cursor: 'name' in role ? 'pointer' : 'default' }}
                   >
                     {'name' in role ? role.name : role}
                   </Typography>
@@ -146,6 +146,9 @@ const UserTable = ({
         totalCount={totalCount}
         onPageChange={newPage => onPageChange(newPage + 1)}
         onRowsPerPageChange={onRowsPerPageChange}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Card>
   )

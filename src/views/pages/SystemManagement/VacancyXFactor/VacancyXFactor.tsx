@@ -14,8 +14,9 @@ import {
   Typography,
   CircularProgress
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
+
+// import AddIcon from '@mui/icons-material/Add'
+// import RemoveIcon from '@mui/icons-material/Remove'
 import { createColumnHelper } from '@tanstack/react-table'
 import { toast } from 'react-toastify'
 
@@ -27,9 +28,21 @@ import { fetchVacancyXFactor, fetchDesignation, updateVacancyXFactor } from '@/r
 // Assuming createXFactor is defined similarly to updateVacancyXFactor
 // import { createXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice';
 
+interface ResignedXFactorRow {
+  id: string
+  designationName: string
+  xFactor: number
+  Action?: any
+}
+
+interface TempDesignation {
+  name: string
+  days: string
+}
+
 const VacancyXFactor = ({ formik }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [tempDesignations, setTempDesignations] = useState([{ name: '', days: '' }])
+  const [tempDesignations, setTempDesignations] = useState<TempDesignation[]>([{ name: '', days: null }])
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -69,7 +82,7 @@ const VacancyXFactor = ({ formik }) => {
     setEditId(null)
   }
 
-  const columnHelper = createColumnHelper()
+  const columnHelper = createColumnHelper<ResignedXFactorRow>()
 
   const columns = useMemo(
     () => [
@@ -103,7 +116,7 @@ const VacancyXFactor = ({ formik }) => {
   )
 
   const isSaveDisabled =
-    !tempDesignations.some(d => d.name && d.days && !isNaN(d.days)) || formik?.isSubmitting || isLoading
+    !tempDesignations.some(d => d.name && d.days && !isNaN(Number(d.days))) || formik?.isSubmitting || isLoading
 
   return (
     <div>
@@ -222,7 +235,7 @@ const VacancyXFactor = ({ formik }) => {
                   onChange={e => {
                     const value = e.target.value
 
-                    if (value === '' || (!isNaN(value) && value >= 0)) {
+                    if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0)) {
                       const newDesignations = [...tempDesignations]
 
                       newDesignations[index].days = value
@@ -256,7 +269,7 @@ const VacancyXFactor = ({ formik }) => {
               variant='contained'
               color='primary'
               onClick={async () => {
-                const validDesignations = tempDesignations.filter(d => d.name && d.days && !isNaN(d.days))
+                const validDesignations = tempDesignations.filter(d => d.name && d.days && !isNaN(Number(d.days)))
 
                 if (validDesignations.length === 0) {
                   toast.error('At least one valid designation is required')
@@ -318,6 +331,9 @@ const VacancyXFactor = ({ formik }) => {
           setLimit(newLimit)
           setPage(1)
         }}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </div>
   )

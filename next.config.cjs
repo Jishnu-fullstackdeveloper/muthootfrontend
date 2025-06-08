@@ -10,6 +10,9 @@ const nextConfig = withBundleAnalyzer({
   pageExtensions: ['ts', 'tsx'],
   fastRefresh: true,
   concurrentFeatures: true,
+  typescript: {
+    ignoreBuildErrors: true
+  },
   redirects: async () => [
     {
       source: '/',

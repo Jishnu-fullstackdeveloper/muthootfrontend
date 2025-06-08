@@ -137,10 +137,10 @@ const CandidateListing = () => {
     return filteredCandidates.slice(start, end)
   }, [filteredCandidates, gridPage, tablePage, gridLimit, tableLimit, view])
 
-  const handleView = (candidateId: number) => {
-    console.log('Navigating to candidateDetails with candidateId:', candidateId)
-    router.push(`/candidateDetails?candidateId=${candidateId}`)
-  }
+  // const handleView = (candidateId: number) => {
+  //   console.log('Navigating to candidateDetails with candidateId:', candidateId)
+  //   router.push(`/candidateDetails?candidateId=${candidateId}`)
+  // }
 
   const handleGridLoadMore = (newPage: number) => {
     setGridPage(newPage)
@@ -212,6 +212,11 @@ const CandidateListing = () => {
           page={gridPage}
           totalCount={filteredCandidates.length}
           onLoadMore={handleGridLoadMore}
+          updateCandidateStatus={function (candidateId: number, newStatus: string): void {
+            newStatus
+            candidateId
+            throw new Error('Function not implemented.')
+          }}
         />
       ) : (
         <CandidateTable
@@ -221,7 +226,11 @@ const CandidateListing = () => {
           totalCount={filteredCandidates.length}
           onPageChange={handleTablePageChange}
           onRowsPerPageChange={handleTableRowsPerPageChange}
-          handleView={handleView}
+          updateCandidateStatus={function (candidateId: number, newStatus: string): void {
+            candidateId
+            newStatus
+            throw new Error('Function not implemented.')
+          }}
         />
       )}
     </Box>

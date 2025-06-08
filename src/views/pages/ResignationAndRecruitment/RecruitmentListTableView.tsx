@@ -234,23 +234,20 @@ const RecruitmentListTableView = ({ designationData }: any) => {
               </IconButton>
             </Tooltip> */}
 
-            {withPermission(
-              () => (
-                <>
-                  <Tooltip title='Approve' placement='top'>
-                    <IconButton onClick={e => handleApprove(row.original.id, e)}>
-                      <i className='tabler-check text-green-500'></i>
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title='Reject' placement='top'>
-                    <IconButton onClick={e => handleReject(row.original.id, e)}>
-                      <i className='tabler-x text-red-500'></i>
-                    </IconButton>
-                  </Tooltip>
-                </>
-              ),
-              'recruitmentManagement'
-            )({ individualPermission: 'recruitment_approval' })}
+            {withPermission(() => (
+              <>
+                <Tooltip title='Approve' placement='top'>
+                  <IconButton onClick={e => handleApprove(row.original.id, e)}>
+                    <i className='tabler-check text-green-500'></i>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Reject' placement='top'>
+                  <IconButton onClick={e => handleReject(row.original.id, e)}>
+                    <i className='tabler-x text-red-500'></i>
+                  </IconButton>
+                </Tooltip>
+              </>
+            ))({ individualPermission: 'recruitment_approval' })}
 
             {isAdmin() ? (
               <>
@@ -291,9 +288,12 @@ const RecruitmentListTableView = ({ designationData }: any) => {
         columns={columns}
         data={designationData}
         pagination={pagination} // Pass pagination state
-        onPaginationChange={setPagination} // Pass pagination change handler
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        totalCount={0}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </div>
   )

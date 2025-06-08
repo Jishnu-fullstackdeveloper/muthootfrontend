@@ -137,6 +137,7 @@ export const updateUserRole = createAsyncThunk(
   'userManagement/updateUserRole',
   async ({ id, groupRoleId, params }: UpdateUserRoleParams, { rejectWithValue }) => {
     id
+
     try {
       let requestBody: any
 
@@ -148,11 +149,13 @@ export const updateUserRole = createAsyncThunk(
           requestBody = {
             designation: params.designation,
             newGroupDesignations: params.newGroupDesignations
+
             // newPermissionNames: params.newPermissionNames || []
           }
         } else {
           requestBody = {
             designation: params.designation,
+
             // newGroupDesignations: params.newGroupDesignations || [],
             newPermissionNames: params.newPermissionNames || []
           }

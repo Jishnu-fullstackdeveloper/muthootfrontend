@@ -12,6 +12,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import type { VacancyManagementState } from '@/types/vacancyManagement'
 import { ROUTES } from '@/utils/routes'
 
 const VacancyListingTableView = () => {
@@ -20,7 +21,7 @@ const VacancyListingTableView = () => {
 
   const { vacancyListData, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
-  )
+  ) as VacancyManagementState
 
   const columnHelper = createColumnHelper<any>()
 
@@ -377,7 +378,7 @@ const VacancyListingTableView = () => {
       )}
       {!vacancyListLoading &&
       !vacancyListFailureMessage &&
-      (!vacancyListData?.data || vacancyListData?.data.length === 0) ? (
+      (!vacancyListData?.data || vacancyListData?.data?.length === 0) ? (
         <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No record is found</Typography>
       ) : (
         !vacancyListLoading &&

@@ -27,7 +27,7 @@ import { useFormik } from 'formik'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
-import type { SchedulerManagementState } from '@/redux/Scheduler/schedulerSlice'
+import type { SchedulerManagementState } from '@/types/scheduler'
 import { getSchedulerConfigList, updateSchedulerConfig, toggleSchedulerConfig } from '@/redux/Scheduler/schedulerSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -41,7 +41,7 @@ interface SchedulerFormDrawerProps {
     typeofdata: string
     frequency: string
     frequencyCount: string
-    isActive: boolean
+    isActive?: boolean
   }) => void
 }
 
@@ -61,7 +61,7 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
     { name: 'Yearly', value: 'y' }
   ]
 
-  const validate = (values: { typeofdata: string; frequency: string; frequencyCount: string }) => {
+  const validate = (values: { typeofdata: string; frequency: string; frequencyCount: string; isActive?: any }) => {
     const errors: { typeofdata?: string; frequency?: string; frequencyCount?: string } = {}
 
     if (!values.typeofdata) {
@@ -468,6 +468,9 @@ const SchedulerPage = () => {
             totalCount={schedulerConfigs?.totalCount}
             pagination={pagination}
             tableName='Schedule List'
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
           />
           {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
             <FormControl size='small' sx={{ minWidth: 70 }}>

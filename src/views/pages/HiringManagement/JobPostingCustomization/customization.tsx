@@ -39,18 +39,17 @@
 //           </Tabs>
 //         </Box>
 //          </Paper>
-        
+
 //         <Box sx={{ mt: 2 }}>
 //           {activeTab === 0 && <CustomizedJobPosting />}
 //           {activeTab === 1 && <TimeBasedJobPosting />}
 //         </Box>
 //      </Box>
-   
+
 //   )
 // }
 
 // export default Customization
-
 
 'use client'
 
@@ -91,24 +90,22 @@ interface Posting {
 
 // Interface for flattened table data
 interface TableRow {
-
   platform: string // Joined array for display
   band: string // Joined array for display
   department: string // Joined array for display
   businessUnit: string // Added businessUnit for display
 }
 
-
 const CustomizedJobPosting = () => {
   const [postings, setPostings] = useState<Posting[]>([
-    { id: Date.now(), pairs: [{ platform: [], band: [], department: [], businessUnit:[] }] }
+    { id: Date.now(), pairs: [{ platform: [], band: [], department: [], businessUnit: [] }] }
   ])
 
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const [newPosting, setNewPosting] = useState<Posting>({
     id: 0,
-    pairs: [{ platform: [], band: [], department: [] , businessUnit: [] }] // Added businessUnit to newPosting
+    pairs: [{ platform: [], band: [], department: [], businessUnit: [] }] // Added businessUnit to newPosting
   })
 
   const [searchText, setSearchText] = useState('')
@@ -116,9 +113,9 @@ const CustomizedJobPosting = () => {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
 
-  const platforms = ['LinkedIn', 'Naukri','Internal portal','Indeed']
-  const bands = ['MM2', 'SM3','SM2','MM1','MM3','SM1','MM4','TM1']
-  const departments = ['Internal Audit','QA','BRANCHES','BUSINESS']
+  const platforms = ['LinkedIn', 'Naukri', 'Internal portal', 'Indeed']
+  const bands = ['MM2', 'SM3', 'SM2', 'MM1', 'MM3', 'SM1', 'MM4', 'TM1']
+  const departments = ['Internal Audit', 'QA', 'BRANCHES', 'BUSINESS']
   const businessUnit = []
 
   // Debounce search term
@@ -135,10 +132,10 @@ const CustomizedJobPosting = () => {
   const tableData: TableRow[] = useMemo(() => {
     let filteredData = postings.flatMap(posting =>
       posting.pairs.map(pair => ({
-       businessUnit: pair.businessUnit.join(', ') ,
-        platform: pair.platform.join(', ') ,
-        band: pair.band.join(', ') ,
-        department: pair.department.join(', ') 
+        businessUnit: pair.businessUnit.join(', '),
+        platform: pair.platform.join(', '),
+        band: pair.band.join(', '),
+        department: pair.department.join(', ')
       }))
     )
 
@@ -155,7 +152,6 @@ const CustomizedJobPosting = () => {
   }, [postings, debouncedSearchText])
 
   const totalCount = tableData.length
-
 
   // Update a specific pair in newPosting
   const updateNewPostingPair = (pairIndex: number, field: keyof PlatformPair, value: string[]) => {
@@ -182,7 +178,7 @@ const CustomizedJobPosting = () => {
 
     if (hasValidPair) {
       setPostings([...postings, { ...newPosting, id: Date.now() }])
-      setNewPosting({ id: 0, pairs: [{ platform: [], band: [], department: [],businessUnit:[] }] })
+      setNewPosting({ id: 0, pairs: [{ platform: [], band: [], department: [], businessUnit: [] }] })
       setDrawerOpen(false)
     }
   }
@@ -192,7 +188,7 @@ const CustomizedJobPosting = () => {
     setDrawerOpen(open)
 
     if (!open) {
-      setNewPosting({ id: 0, pairs: [{ platform: [], band: [], department: [],businessUnit:[] }] })
+      setNewPosting({ id: 0, pairs: [{ platform: [], band: [], department: [], businessUnit: [] }] })
     }
   }
 
@@ -201,12 +197,11 @@ const CustomizedJobPosting = () => {
 
   const columns = useMemo(
     () => [
-    
       columnHelper.accessor('band', {
         header: 'Band',
         cell: ({ row }) => row.original.band
       }),
-        columnHelper.accessor('businessUnit', {
+      columnHelper.accessor('businessUnit', {
         header: 'BusinessUnit',
         cell: ({ row }) => row.original.businessUnit
       }),
@@ -214,11 +209,11 @@ const CustomizedJobPosting = () => {
         header: 'Department',
         cell: ({ row }) => row.original.department
       }),
-      
-        columnHelper.accessor('platform', {
+
+      columnHelper.accessor('platform', {
         header: 'Platform',
         cell: ({ row }) => row.original.platform
-      }),
+      })
     ],
     [columnHelper]
   )
@@ -257,7 +252,7 @@ const CustomizedJobPosting = () => {
           }}
         />
         <Button onClick={toggleDrawer(true)} variant='contained' startIcon={<AddIcon />} sx={{ mb: 4 }}>
-          Add New 
+          Add New
         </Button>
       </Card>
 
@@ -271,6 +266,9 @@ const CustomizedJobPosting = () => {
           totalCount={totalCount}
           onPageChange={newPage => setPage(newPage + 1)}
           onRowsPerPageChange={newLimit => setLimit(newLimit)}
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       </Card>
 
@@ -302,14 +300,16 @@ const CustomizedJobPosting = () => {
                 />
               </Grid>
 
-                {/* BusinessUnit Autocomplete */}
+              {/* BusinessUnit Autocomplete */}
               <Grid item xs={12} sm={12}>
                 <Autocomplete
                   multiple
                   options={businessUnit}
                   value={pair.businessUnit}
                   onChange={(_, value) => updateNewPostingPair(pairIndex, 'businessUnit', value)}
-                  renderInput={params => <TextField {...params} label='businessUnit' placeholder='Select businessUnit' />}
+                  renderInput={params => (
+                    <TextField {...params} label='businessUnit' placeholder='Select businessUnit' />
+                  )}
                   renderTags={(value, getTagProps) =>
                     value.map((option, index) => <Chip key={option} label={option} {...getTagProps({ index })} />)
                   }
@@ -357,8 +357,6 @@ const CustomizedJobPosting = () => {
               )}
             </Grid>
           ))}
-
-       
 
           {/* Save Posting Button */}
           <Button onClick={addNewPosting} variant='contained' sx={{ mt: 2 }}>

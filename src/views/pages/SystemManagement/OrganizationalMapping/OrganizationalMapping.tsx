@@ -47,6 +47,7 @@ interface TableRow {
   designation: string
   department: string
   locationType: string
+  actions?: any
 }
 
 interface MappingData {
@@ -339,6 +340,9 @@ const OrganizationalMapping = () => {
             totalCount={totalCount}
             onPageChange={newPage => setPage(newPage + 1)}
             onRowsPerPageChange={newLimit => setLimit(newLimit)}
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
           />
         )}
       </Card>
@@ -449,7 +453,7 @@ const OrganizationalMapping = () => {
         </Box>
       </Drawer>
 
-     <Snackbar
+      <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
@@ -458,7 +462,12 @@ const OrganizationalMapping = () => {
         <Alert
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
-          sx={{ width: '100%', backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336', opacity: 1 , color: 'white'}}
+          sx={{
+            width: '100%',
+            backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
+            opacity: 1,
+            color: 'white'
+          }}
         >
           {snackbarMessage}
         </Alert>

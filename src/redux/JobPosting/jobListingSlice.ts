@@ -5,7 +5,7 @@ import AxiosLib from '@/lib/AxiosLib'
 // Thunk to fetch job postings
 export const fetchJobPostings = createAsyncThunk(
   'jobPostings/fetchJobPostings',
-  async (params: { page: number; limit: number }, { rejectWithValue }) => {
+  async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/job-management', { params })
 
@@ -19,7 +19,7 @@ export const fetchJobPostings = createAsyncThunk(
 // Thunk to fetch candidates for a job
 export const fetchCandidates = createAsyncThunk(
   'candidates/fetchCandidates',
-  async (params: { jobId: string; page: number; limit: number }, { rejectWithValue }) => {
+  async (params: { jobId: string; page: number; limit: number; search?: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/candidate-management', { params })
 

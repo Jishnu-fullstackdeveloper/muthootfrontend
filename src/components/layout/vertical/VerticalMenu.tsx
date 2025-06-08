@@ -232,13 +232,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             permission: 'dataUpload',
             read: 'SYSTEM_DATAUPLOAD_READ'
           },
-          {
-            path: ROUTES.SYSTEM_MANAGEMENT.APPROVAL_CATEGORY,
-            label: 'Approval Category',
-            iconClass: 'tabler-category',
-            permission: 'approvalCategory',
-            read: 'SYSTEM_APPROVALCATEGORY_READ'
-          },
+
+          // {
+          //   path: ROUTES.SYSTEM_MANAGEMENT.APPROVAL_CATEGORY,
+          //   label: 'Approval Category',
+          //   iconClass: 'tabler-category',
+          //   permission: 'approvalCategory',
+          //   read: 'SYSTEM_APPROVALCATEGORY_READ'
+          // },
           {
             path: ROUTES.SYSTEM_MANAGEMENT.ORGANIZATIONAL_MAPPING,
             label: 'Organizational Mapping',

@@ -66,7 +66,8 @@ const ResignationDataListingPage = () => {
 
   const {
     vacancyRequestListLoading: loading,
-    vacancyRequestListData: vacancyRequests,
+
+    // vacancyRequestListData: vacancyRequests,
     vacancyRequestListTotal: totalCount,
     vacancyRequestListFailureMessage: error
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer)
@@ -126,34 +127,34 @@ const ResignationDataListingPage = () => {
   }, [dispatch, limit, fromDate])
 
   // Update visible requests with unique items from API
-  useEffect(() => {
-    if (vacancyRequests?.length && viewMode === 'grid') {
-      setVisibleRequests((prev: VacancyRequest[]) => {
-        const newRequests = vacancyRequests.filter(request => !prev.some(existing => existing.id === request.id))
-        const updatedRequests = [...prev, ...newRequests]
+  // useEffect(() => {
+  //   if (vacancyRequests?.length && viewMode === 'grid') {
+  //     setVisibleRequests((prev: VacancyRequest[]) => {
+  //       const newRequests = vacancyRequests.filter(request => !prev.some(existing => existing.id === request.id))
+  //       const updatedRequests = [...prev, ...newRequests]
 
-        // Update selectedTabs for all requests, preserving existing selections
-        setSelectedTabs(prevTabs => {
-          const updatedTabs = { ...prevTabs }
+  //       // Update selectedTabs for all requests, preserving existing selections
+  //       setSelectedTabs(prevTabs => {
+  //         const updatedTabs = { ...prevTabs }
 
-          updatedRequests.forEach(request => {
-            if (!(request.id in updatedTabs)) {
-              updatedTabs[request.id] = 0 // Default to tab 0 if not already set
-            }
-          })
+  //         updatedRequests.forEach(request => {
+  //           if (!(request.id in updatedTabs)) {
+  //             updatedTabs[request.id] = 0 // Default to tab 0 if not already set
+  //           }
+  //         })
 
-          return updatedTabs
-        })
+  //         return updatedTabs
+  //       })
 
-        return updatedRequests
-      })
-      setNoMoreData(false)
-    } else if (!vacancyRequests?.length && viewMode === 'grid' && !loading) {
-      setVisibleRequests([])
-      setSelectedTabs({})
-      setNoMoreData(true)
-    }
-  }, [vacancyRequests, viewMode, loading])
+  //       return updatedRequests
+  //     })
+  //     setNoMoreData(false)
+  //   } else if (!vacancyRequests?.length && viewMode === 'grid' && !loading) {
+  //     setVisibleRequests([])
+  //     setSelectedTabs({})
+  //     setNoMoreData(true)
+  //   }
+  // }, [vacancyRequests, viewMode, loading])
 
   // Lazy loading for more vacancy requests
   const loadMoreRequests = useCallback(() => {

@@ -222,9 +222,12 @@ const JobListingTableView = ({ jobs }: any) => {
         columns={columns}
         data={jobs}
         pagination={pagination} // Pass pagination state
-        onPaginationChange={setPagination} // Pass pagination change handler
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        totalCount={0}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
       <ConfirmModal
         open={deleteModalOpen}

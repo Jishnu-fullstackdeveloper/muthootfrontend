@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {
@@ -18,6 +20,11 @@ import {
   IconButton
 } from '@mui/material'
 import { toast, ToastContainer } from 'react-toastify'
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   addNewUserRole,
@@ -28,8 +35,6 @@ import {
 } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 import 'react-toastify/dist/ReactToastify.css'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 
 interface FeatureState {
   name: string
@@ -159,7 +164,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     addUserRoleSuccess,
     addUserRoleFailure,
     addUserRoleFailureMessage,
-    userRoleData,
+
+    // userRoleData,
     isUserRoleLoading
   } = useAppSelector((state: any) => state.UserRoleReducer)
 
@@ -206,13 +212,16 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
   const fetchGroupRoles = async () => {
     setIsGroupRoleLoading(true)
+
     try {
       const response = await dispatch(fetchUserRole({ limit: groupRoleLimit, page: 1 })).unwrap()
       const totalItems = response?.pagination?.totalCount || 0
+
       const newOptions =
         response?.data?.flatMap(
           (role: any) => role.groupRoles?.map((gr: any) => gr.name.replace(/^grp_/i, '').replace(/_/g, ' ')) || []
         ) || []
+
       setGroupDesignationOptions(prev => [...new Set([...prev, ...newOptions])])
       setHasMoreGroupRoles(groupRoleLimit < totalItems)
     } catch (error) {
@@ -228,12 +237,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       const fetchRoleData = async () => {
         try {
           const res = await dispatch(getUserRoleDetails({ id: roleId })).unwrap()
+
           setFetchedRoleData(res.data)
         } catch (error) {
           console.error('Failed to fetch role data:', error)
           setApiErrors(['Failed to fetch role data. Please try again.'])
         }
       }
+
       fetchRoleData()
     }
   }, [mode, roleId, dispatch])
@@ -245,6 +256,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     if (!matchedRole) {
       console.warn(`No role found for roleId: ${roleId}`)
+
       return
     }
 
@@ -345,6 +357,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         const fetchUpdatedRoleData = async () => {
           try {
             const res = await dispatch(getUserRoleDetails({ id: roleId })).unwrap()
+
             setFetchedRoleData(res.data)
             dispatch(resetAddUserRoleStatus())
             setIsFormEdited(false)
@@ -355,6 +368,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             setApiErrors(['Failed to fetch updated role data. Please try again.'])
           }
         }
+
         fetchUpdatedRoleData()
       }
     } else if (addUserRoleSuccess && mode === 'add') {
@@ -426,9 +440,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
           // Add module-level read permissions for specific cases
           const additionalPermissions: string[] = []
+
           if (perm.module === 'User' && perm.features?.some(f => f.selectedActions?.length > 0)) {
             additionalPermissions.push(`prv_user_read`)
           }
+
           if (
             perm.module === 'Hiring' &&
             (perm.features?.some(f => f.selectedActions?.length > 0) ||
@@ -436,12 +452,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           ) {
             additionalPermissions.push(`prv_hiring_read`)
           }
+
           if (
             perm.module === 'Hiring' &&
             perm.subModules?.some(sm => sm.name === 'Vacancy' && sm.features.some(f => f.selectedActions?.length > 0))
           ) {
             additionalPermissions.push(`prv_hiring_vacancy_read`)
           }
+
           if (
             perm.module === 'System' &&
             (perm.features?.some(f => f.selectedActions?.length > 0) ||
@@ -449,6 +467,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           ) {
             additionalPermissions.push(`prv_system_read`)
           }
+
           if (
             perm.module === 'System' &&
             perm.subModules?.some(sm => sm.name === 'Xfactor' && sm.features.some(f => f.selectedActions?.length > 0))
@@ -494,6 +513,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             }
           } else if (editType === 'groupRole' && groupRoleId) {
             const groupDesignation = typeof values.groupDesignation === 'string' ? values.groupDesignation.trim() : ''
+
             if (!groupDesignation) throw new Error('Group designation is required.')
             res = await dispatch(
               updateUserRole({
@@ -510,6 +530,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           }
         } else {
           const groupDesignation = typeof values.groupDesignation === 'string' ? values.groupDesignation.trim() : ''
+
           if (!groupDesignation) throw new Error('Group designation is required.')
           await dispatch(
             addNewUserRole({
@@ -568,6 +589,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     if (isSubModule && parentSubModule) {
       const subModuleIndex = permissions[moduleIndex].subModules!.findIndex(sm => sm.name === parentSubModule)
+
       if (featureOrAction === 'actions') {
         permissions[moduleIndex].subModules![subModuleIndex].actions = checked
           ? [...new Set([...(permissions[moduleIndex].subModules![subModuleIndex].actions || []), action])]
@@ -576,17 +598,21 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         const featureIndex = permissions[moduleIndex].subModules![subModuleIndex].features.findIndex(
           f => f.name === featureOrAction
         )
+
         const selectedActions = [
           ...(permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions || [])
         ]
+
         permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions = checked
           ? [...new Set([...selectedActions, action])]
           : selectedActions.filter(a => a !== action)
       }
     } else if (featureOrAction !== 'actions' && permissions[moduleIndex].features) {
       const featureIndex = permissions[moduleIndex].features.findIndex(f => f.name === featureOrAction)
+
       if (featureIndex !== -1) {
         const selectedActions = [...(permissions[moduleIndex].features[featureIndex].selectedActions || [])]
+
         permissions[moduleIndex].features[featureIndex].selectedActions = checked
           ? [...new Set([...selectedActions, action])]
           : selectedActions.filter(a => a !== action)
@@ -614,12 +640,14 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     if (isSubModule && parentSubModule) {
       const subModuleIndex = permissions[moduleIndex].subModules!.findIndex(sm => sm.name === parentSubModule)
+
       if (feature === 'actions') {
         permissions[moduleIndex].subModules![subModuleIndex].actions = checked ? allActions : []
       } else {
         const featureIndex = permissions[moduleIndex].subModules![subModuleIndex].features.findIndex(
           f => f.name === feature
         )
+
         permissions[moduleIndex].subModules![subModuleIndex].features[featureIndex].selectedActions = checked
           ? allActions
           : []
@@ -628,6 +656,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       permissions[moduleIndex].actions = checked ? allActions : []
     } else {
       const featureIndex = permissions[moduleIndex].features!.findIndex(f => f.name === feature)
+
       permissions[moduleIndex].features![featureIndex].selectedActions = checked ? allActions : []
     }
 
@@ -939,6 +968,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                   const defaultPerm = defaultPermissionsList.find(
                     d => d.module === p.module && p.subModule === d.subModule
                   )
+
                   const featuresChecked = defaultPerm?.features
                     ? p.features?.every(f =>
                         defaultPerm
@@ -946,13 +976,17 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                           ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
                       ) ?? true
                     : true
+
                   const actionsChecked = defaultPerm?.actions ? p.actions?.length === defaultPerm.actions.length : true
+
                   const subModulesChecked = defaultPerm?.subModules
                     ? p.subModules?.every(sm => {
                         const defaultSubModule = defaultPerm.subModules!.find(dsm => dsm.name === sm.name)
+
                         const subActionsChecked = defaultSubModule?.actions
                           ? sm.actions?.length === defaultSubModule.actions.length
                           : true
+
                         const subFeaturesChecked = defaultSubModule?.features
                           ? sm.features.every(f =>
                               defaultSubModule
@@ -960,9 +994,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                                 ?.actions.every(a => f.selectedActions?.includes(a) ?? false)
                             )
                           : true
+
                         return subActionsChecked && subFeaturesChecked
                       }) ?? true
                     : true
+
                   return featuresChecked && actionsChecked && subModulesChecked
                 })}
                 onChange={e => handleSelectAllModules(e.target.checked)}
@@ -1003,6 +1039,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             const currentPerm = roleFormik.values.newPermissionNames.find(
               p => p.module === permission.module && p.subModule === permission.subModule
             )
+
             return (
               <Box
                 key={`${permission.module}-${permission.subModule || ''}`}
@@ -1123,6 +1160,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                       const currentFeature = roleFormik.values.newPermissionNames
                         .find(p => p.module === permission.module && p.subModule === permission.subModule)
                         ?.features?.find(f => f.name === feature.name)
+
                       return (
                         <Box key={feature.name} sx={{ mb: 2 }}>
                           <FormControlLabel
@@ -1177,6 +1215,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                     })}
                     {permission.subModules?.map(subModule => {
                       const currentSubModule = currentPerm?.subModules?.find(sm => sm.name === subModule.name)
+
                       return (
                         <Box key={subModule.name} sx={{ mt: 2, pl: 2 }}>
                           <Box
@@ -1214,6 +1253,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                                           subModule.name
                                         )
                                       }
+
                                       subModule.features.forEach(f =>
                                         handleSelectAllPermissions(
                                           permission.module,

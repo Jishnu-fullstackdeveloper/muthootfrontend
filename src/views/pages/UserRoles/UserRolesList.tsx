@@ -29,6 +29,7 @@ interface Role {
   name: string
   description?: string
   permissions?: string[]
+  action?: any
 }
 
 interface FetchParams {
@@ -141,10 +142,10 @@ const UserRolesAndPermissionList: React.FC = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('serialNo', {
-        header: 'Sl No',
-        cell: ({ row }) => <Typography variant='body2'>{(page - 1) * limit + row.index + 1}</Typography>
-      }),
+      // columnHelper.accessor('serialNo', {
+      //   header: 'Sl No',
+      //   cell: ({ row }) => <Typography variant='body2'>{(page - 1) * limit + row.index + 1}</Typography>
+      // }),
       columnHelper.accessor('name', {
         header: 'Role Name',
         cell: ({ row }) => (
@@ -282,6 +283,9 @@ const UserRolesAndPermissionList: React.FC = () => {
             totalCount={userRoleData?.pagination?.totalItems || 0}
             onPageChange={newPage => setPage(newPage + 1)}
             onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
           />
         </Card>
       )}

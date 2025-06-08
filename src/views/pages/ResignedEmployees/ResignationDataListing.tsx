@@ -65,7 +65,9 @@ const ResignationDataListingPage = () => {
     }
 
     debounceTimeout.current = setTimeout(() => {
-      const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+      const formattedFromDate = fromDate
+        ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
+        : undefined
 
       setVisibleEmployees([])
       setPage(1)
@@ -108,7 +110,10 @@ const ResignationDataListingPage = () => {
     const nextPage = page + 1
 
     setPage(nextPage)
-    const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+
+    const formattedFromDate = fromDate
+      ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
+      : undefined
 
     dispatch(
       fetchResignedEmployees({
@@ -161,7 +166,9 @@ const ResignationDataListingPage = () => {
   //       })
 
   //       debounceTimeout.current = setTimeout(() => {
-  //         const formattedFromDate = fromDate ? fromDate.toISOString().split('T')[0] : undefined
+  //         const formattedFromDate = fromDate
+  //        ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
+  //         : undefined
 
   //         setVisibleEmployees([])
   //         setPage(1)

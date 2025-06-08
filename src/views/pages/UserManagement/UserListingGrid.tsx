@@ -33,7 +33,7 @@ interface User {
 }
 
 interface UserGridProps {
-  data: User[]
+  data: (User & { designationRole?: string[] | Role[] })[]
   loading: boolean
   onEdit: (empCode: string | undefined, id: string) => void
   page: number

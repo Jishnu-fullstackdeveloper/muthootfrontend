@@ -42,6 +42,7 @@ import {
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
+import type { SelectChangeEvent } from '@mui/material'
 
 // import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
@@ -77,6 +78,7 @@ export interface InterviewCandidate {
   profileMatchPercent?: number // Percentage (0-100)
   source?: string // e.g., LinkedIn, Referral
   sourceDetails?: string // e.g., Referred by John Smith
+  actions?: any
 }
 
 const InterviewDetailedPage = () => {
@@ -96,10 +98,23 @@ const InterviewDetailedPage = () => {
     if (id) {
       const foundCandidate = interviewCandidates.find(c => c.id === id)
 
-      setCandidate(foundCandidate || null)
-      setUpdatedScreeningStatus(foundCandidate?.screeningStatus || '')
-      setRound1Feedback(foundCandidate?.round1Feedback || '')
-      setRound2Feedback(foundCandidate?.round2Feedback || '')
+      if (foundCandidate) {
+        setCandidate({
+          ...foundCandidate,
+          screeningStatus: foundCandidate.screeningStatus as 'Shortlisted' | 'Rejected' | 'Pending' | 'Interviewed',
+          round1Status: foundCandidate.round1Status as 'Pending' | 'Completed' | undefined,
+          round2Status: foundCandidate.round2Status as 'Pending' | 'Completed' | undefined,
+          aptitudeTestStatus: foundCandidate.aptitudeTestStatus as 'Pass' | 'Fail' | 'NA' | undefined
+        })
+        setUpdatedScreeningStatus(foundCandidate.screeningStatus as string)
+        setRound1Feedback(foundCandidate.round1Feedback || '')
+        setRound2Feedback(foundCandidate.round2Feedback || '')
+      } else {
+        setCandidate(null)
+        setUpdatedScreeningStatus('')
+        setRound1Feedback('')
+        setRound2Feedback('')
+      }
     }
   }, [searchParams])
 
@@ -110,7 +125,7 @@ const InterviewDetailedPage = () => {
     }
   }, [tabValue])
 
-  const handleScreeningStatusChange = (event: ChangeEvent<{ value: unknown }>) => {
+  const handleScreeningStatusChange = (event: SelectChangeEvent<string>) => {
     const newStatus = event.target.value as 'Shortlisted' | 'Rejected' | 'Pending' | 'Interviewed'
 
     setUpdatedScreeningStatus(newStatus)

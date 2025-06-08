@@ -428,8 +428,8 @@ const JobListing = () => {
                   {job.title.toUpperCase()}
                 </Typography>
                 <div className='flex space-x-2'>
-                  <Tooltip title='Edit JD' placement='top'>
-                    {/* <IconButton
+                  {/* <Tooltip title='Edit JD' placement='top'>
+                    <IconButton
                       sx={{ ':hover': { color: 'primary.main' } }}
                       onClick={e => {
                         e.stopPropagation()
@@ -437,8 +437,8 @@ const JobListing = () => {
                       }}
                     >
                       <i className='tabler-edit' />
-                    </IconButton> */}
-                  </Tooltip>
+                    </IconButton>
+                  </Tooltip> */}
                   <Tooltip title='Delete JD' placement='top'>
                     <IconButton
                       sx={{ ':hover': { color: 'error.main' } }}

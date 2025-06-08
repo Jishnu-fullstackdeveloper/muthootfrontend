@@ -214,6 +214,9 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         tableName='Resigned Employee Table'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Box>
   )

@@ -3,9 +3,10 @@ import React from 'react'
 import { Box, Tooltip, IconButton } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+
+// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+// import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
+// import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 
 import type { VacancyRequest } from '@/types/vacancyManagement'
@@ -54,6 +55,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     : null
 
   const showPendingActions = firstLevelStatus === 'PENDING' || status === 'PENDING'
+
   // const showUnfreezeAction = status === 'FREEZED'
 
   return (

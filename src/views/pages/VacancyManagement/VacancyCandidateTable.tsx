@@ -171,9 +171,13 @@ const CandidateListingTableView = () => {
         columns={columns}
         data={candidatesData}
         pagination={pagination} // Pass pagination state
-        onPaginationChange={setPagination} // Pass pagination change handler
+        // onPaginationChange={setPagination} // Pass pagination change handler
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        totalCount={0}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
       <ConfirmModal
         open={deleteModalOpen}

@@ -22,8 +22,8 @@ const SystemManagementIndex = () => {
   return (
     <>
       {mode === 'add' || (mode === 'edit' && settings)}
-      {mode === 'view' && settings === 'resigned-xfactor' && <ResignedXFactor />}
-      {mode === 'view' && settings === 'vacancy-xfactor' && <VacancyXFactor />}
+      {mode === 'view' && settings === 'resigned-xfactor' && <ResignedXFactor formik={undefined} />}
+      {mode === 'view' && settings === 'vacancy-xfactor' && <VacancyXFactor formik={undefined} />}
       {mode === 'view' && settings === 'data-upload' && <DataUploadListingPage />}
       {mode === 'view' && settings === 'approval-category' && <ApprovalCategoryForm />}
       {mode === 'view' && settings === 'interview-customization' && <InterviewCustomizationPage />}

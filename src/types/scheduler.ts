@@ -13,6 +13,8 @@ export interface SchedulerConfig {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
+  totalCount?: any
+  data?: any
 }
 
 export interface SchedulerConfigListResponse {
@@ -39,7 +41,7 @@ export interface ToggleSchedulerConfigResponse {
 export interface SchedulerManagementState {
   schedulerConfigListLoading: boolean
   schedulerConfigListSuccess: boolean
-  schedulerConfigListData: SchedulerConfig[] | null
+  schedulerConfigListData: SchedulerConfig | null
   schedulerConfigListTotal: number
   schedulerConfigListFailure: boolean
   schedulerConfigListFailureMessage: string
@@ -53,4 +55,5 @@ export interface SchedulerManagementState {
   toggleSchedulerConfigData: SchedulerConfig | null
   toggleSchedulerConfigFailure: boolean
   toggleSchedulerConfigFailureMessage: string
+  totalCount?: any
 }

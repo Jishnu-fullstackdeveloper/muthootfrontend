@@ -130,7 +130,12 @@ const VacancyListingPage = () => {
           console.log('fetchVacancies result:', result) // Debug API response
           const newVacancies = result.data || []
 
-          setVisibleVacancies(newVacancies) // Set initial vacancies
+          setVisibleVacancies(
+            (newVacancies as unknown as Vacancy[]).map(vacancy => ({
+              band: vacancy.band ?? '', // Ensure 'band' property exists
+              ...vacancy
+            }))
+          ) // Set initial vacancies
           // Initialize selectedTabs for all new vacancies
           setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
         })
@@ -151,10 +156,18 @@ const VacancyListingPage = () => {
 
   // Update visibleVacancies with unique items from API
   useEffect(() => {
-    if (vacancyListData?.length && viewMode === 'grid') {
+    if (vacancyListData?.data?.length && viewMode === 'grid') {
+      1
       console.log('Appending vacancies:', vacancyListData) // Debug log
       setVisibleVacancies((prev: Vacancy[]) => {
-        const newVacancies = vacancyListData.filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+        // Ensure all vacancies have the required 'band' property
+        const newVacancies = (vacancyListData as unknown as Vacancy[])
+          .filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+          .map(vacancy => ({
+            band: vacancy.band ?? '', // Provide a default value if missing
+            ...vacancy
+          }))
+
         const updatedVacancies = [...prev, ...newVacancies]
 
         // Update selectedTabs for all vacancies in updatedVacancies, preserving existing selections
@@ -173,7 +186,7 @@ const VacancyListingPage = () => {
         return updatedVacancies
       })
       // setNoMoreData(false) // Reset noMoreData when new data is appended
-    } else if (!vacancyListData?.length && viewMode === 'grid' && !vacancyListLoading) {
+    } else if (!vacancyListData?.data?.length && viewMode === 'grid' && !vacancyListLoading) {
       // Handle empty results
       console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
       // setNoMoreData(true) // Set noMoreData if no data is returned
@@ -182,8 +195,6 @@ const VacancyListingPage = () => {
 
   // Lazy loading
   const loadMoreVacancies = useCallback(() => {
-    console.log('sssssssssssssssssss')
-
     if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal || noMoreData) {
       console.log('Load more skipped:', {
         vacancyListLoading,

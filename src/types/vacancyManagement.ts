@@ -25,6 +25,7 @@ export interface Vacancy {
   region: string
   area: string
   cluster: string
+
   branch: string
   branchCode: string
   city: string
@@ -38,6 +39,7 @@ export interface Vacancy {
   updatedAt: string
   deletedAt: string | null
   totalCount?: any
+  data?: any
 }
 
 export interface VacancyListResponse {
@@ -71,6 +73,15 @@ export interface VacancyRequest {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
+  cluster?: {
+    id?: any
+    area?: {
+      id?: any
+      name?: any
+    }
+  }
+  data?: any
+  totalCount?: any
   employees: {
     id: string
     deletedBy: string | null
@@ -248,6 +259,8 @@ export interface VacancyRequestGroupByDesignation {
   departmentName: string
   branchName: string
   count: number
+  data?: any
+  totalCount?: any
 }
 
 export interface VacancyRequestGroupByDesignationResponse {
@@ -274,7 +287,7 @@ export interface AutoApproveVacancyRequestsResponse {
 export interface VacancyManagementState {
   vacancyListLoading: boolean
   vacancyListSuccess: boolean
-  vacancyListData: Vacancy[] | null
+  vacancyListData: Vacancy | null
   vacancyListTotal: number
   totalCount?: any
   vacancyListFailure: boolean
@@ -286,13 +299,13 @@ export interface VacancyManagementState {
   vacancyDetailsFailureMessage: string
   vacancyRequestListLoading: boolean
   vacancyRequestListSuccess: boolean
-  vacancyRequestListData: VacancyRequest[] | null
+  vacancyRequestListData: VacancyRequest | null
   vacancyRequestListTotal: number
   vacancyRequestListFailure: boolean
   vacancyRequestListFailureMessage: string
   vacancyRequestGroupByDesignationLoading: boolean
   vacancyRequestGroupByDesignationSuccess: boolean
-  vacancyRequestGroupByDesignationData: VacancyRequestGroupByDesignation[] | null
+  vacancyRequestGroupByDesignationData: VacancyRequestGroupByDesignation | null
   vacancyRequestGroupByDesignationTotal: number
   vacancyRequestGroupByDesignationFailure: boolean
   vacancyRequestGroupByDesignationFailureMessage: string
@@ -306,4 +319,5 @@ export interface VacancyManagementState {
   autoApproveVacancyRequestsData: any[] | null
   autoApproveVacancyRequestsFailure: boolean
   autoApproveVacancyRequestsFailureMessage: string
+  data?: any
 }

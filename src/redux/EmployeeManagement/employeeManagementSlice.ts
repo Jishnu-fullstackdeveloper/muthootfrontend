@@ -221,6 +221,7 @@ interface Employee {
     dateOfBirth: string
     marriageDate: string
     maritalStatus: string
+    adharNo: string
   }
   createdAt: string
   updatedAt: string
@@ -263,6 +264,7 @@ interface EmployeeState {
   branch: Branch | null
   branchStatus: 'idle' | 'loading' | 'succeeded' | 'failed'
   branchError: string | null
+  adharNo?: string
 }
 
 // Initial state

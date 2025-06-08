@@ -17,6 +17,7 @@ import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 type Props = {
   mode: 'add' | 'edit'
+  id?: string
 }
 
 const AddOrEditUser: React.FC<Props> = ({ mode }) => {

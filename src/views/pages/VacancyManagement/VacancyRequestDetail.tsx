@@ -42,8 +42,9 @@ import type { RootState } from '@/redux/store'
 import type { VacancyManagementState, VacancyRequest } from '@/types/vacancyManagement'
 import {
   fetchVacancyRequests,
-  updateVacancyRequestStatus,
-  autoApproveVacancyRequests
+  updateVacancyRequestStatus
+
+  // autoApproveVacancyRequests
 } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import type { BudgetManagementState } from '@/types/budget'
 import {
@@ -99,8 +100,9 @@ const VacancyRequestDetail = () => {
     vacancyRequestListLoading = false,
     vacancyRequestListData = null,
     vacancyRequestListFailure = false,
-    updateVacancyRequestStatusLoading = false,
-    autoApproveVacancyRequestsLoading = false
+    updateVacancyRequestStatusLoading = false
+
+    // autoApproveVacancyRequestsLoading = false
   } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
 
   // Selectors for budget management state (filter values)
@@ -299,45 +301,45 @@ const VacancyRequestDetail = () => {
     }
   }
 
-  const handleApproveAll = () => {
-    dispatch(autoApproveVacancyRequests()).then(() => {
-      const params: {
-        page: number
-        limit: number
-        search?: string
-        designationId?: string
-        branchIds?: string[]
-        areaIds?: string[]
-        regionIds?: string[]
-        zoneIds?: string[]
-        territoryIds?: string[]
-      } = {
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        designationId: designationId || ''
-      }
+  // const handleApproveAll = () => {
+  //   dispatch(autoApproveVacancyRequests()).then(() => {
+  //     const params: {
+  //       page: number
+  //       limit: number
+  //       search?: string
+  //       designationId?: string
+  //       branchIds?: string[]
+  //       areaIds?: string[]
+  //       regionIds?: string[]
+  //       zoneIds?: string[]
+  //       territoryIds?: string[]
+  //     } = {
+  //       page: pagination.pageIndex + 1,
+  //       limit: pagination.pageSize,
+  //       designationId: designationId || ''
+  //     }
 
-      if (searchDesignation) params.search = searchDesignation
+  //     if (searchDesignation) params.search = searchDesignation
 
-      if (selectedFilterType && selectedFilterValues.length > 0) {
-        if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
-        else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
-        else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
-        else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
-        else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
-      }
+  //     if (selectedFilterType && selectedFilterValues.length > 0) {
+  //       if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+  //       else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+  //       else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+  //       else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+  //       else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+  //     }
 
-      dispatch(fetchVacancyRequests(params))
-      toast.success('All vacancy requests approved successfully', {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
-      })
-    })
-  }
+  //     dispatch(fetchVacancyRequests(params))
+  //     toast.success('All vacancy requests approved successfully', {
+  //       position: 'top-right',
+  //       autoClose: 5000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true
+  //     })
+  //   })
+  // }
 
   // const handleRejectAll = () => {
   //   if (vacancyRequestListData?.data) {
@@ -405,71 +407,71 @@ const VacancyRequestDetail = () => {
   //   }
   // }
 
-  const handleFreezeAll = () => {
-    if (vacancyRequestListData?.data) {
-      Promise.all(
-        vacancyRequestListData.data
-          .filter(request => request.status === 'PENDING')
-          .map(request =>
-            dispatch(
-              updateVacancyRequestStatus({
-                id: request.id,
-                approverId: userId, // Use current userId
-                status: 'FREEZED',
-                notes: `Bulk freeze on ${new Date().toISOString()}`
-              })
-            )
-          )
-      )
-        .then(() => {
-          const params: {
-            page: number
-            limit: number
-            search?: string
-            designationId?: string
-            branchIds?: string[]
-            areaIds?: string[]
-            regionIds?: string[]
-            zoneIds?: string[]
-            territoryIds?: string[]
-          } = {
-            page: pagination.pageIndex + 1,
-            limit: pagination.pageSize,
-            designationId: designationId || ''
-          }
+  // const handleFreezeAll = () => {
+  //   if (vacancyRequestListData?.data) {
+  //     Promise.all(
+  //       vacancyRequestListData.data
+  //         .filter(request => request.status === 'PENDING')
+  //         .map(request =>
+  //           dispatch(
+  //             updateVacancyRequestStatus({
+  //               id: request.id,
+  //               approverId: userId, // Use current userId
+  //               status: 'FREEZED',
+  //               notes: `Bulk freeze on ${new Date().toISOString()}`
+  //             })
+  //           )
+  //         )
+  //     )
+  //       .then(() => {
+  //         const params: {
+  //           page: number
+  //           limit: number
+  //           search?: string
+  //           designationId?: string
+  //           branchIds?: string[]
+  //           areaIds?: string[]
+  //           regionIds?: string[]
+  //           zoneIds?: string[]
+  //           territoryIds?: string[]
+  //         } = {
+  //           page: pagination.pageIndex + 1,
+  //           limit: pagination.pageSize,
+  //           designationId: designationId || ''
+  //         }
 
-          if (searchDesignation) params.search = searchDesignation
+  //         if (searchDesignation) params.search = searchDesignation
 
-          if (selectedFilterType && selectedFilterValues.length > 0) {
-            if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
-            else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
-            else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
-            else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
-            else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
-          }
+  //         if (selectedFilterType && selectedFilterValues.length > 0) {
+  //           if (selectedFilterType === 'Branch') params.branchIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Area') params.areaIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Region') params.regionIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Zone') params.zoneIds = selectedFilterValues
+  //           else if (selectedFilterType === 'Territory') params.territoryIds = selectedFilterValues
+  //         }
 
-          dispatch(fetchVacancyRequests(params))
-          toast.success('All vacancy requests FREEZED successfully', {
-            position: 'top-right',
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          })
-        })
-        .catch((err: any) => {
-          toast.error(`Failed to freeze all requests: ${err}`, {
-            position: 'top-right',
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          })
-        })
-    }
-  }
+  //         dispatch(fetchVacancyRequests(params))
+  //         toast.success('All vacancy requests FREEZED successfully', {
+  //           position: 'top-right',
+  //           autoClose: 5000,
+  //           hideProgressBar: false,
+  //           closeOnClick: true,
+  //           pauseOnHover: true,
+  //           draggable: true
+  //         })
+  //       })
+  //       .catch((err: any) => {
+  //         toast.error(`Failed to freeze all requests: ${err}`, {
+  //           position: 'top-right',
+  //           autoClose: 5000,
+  //           hideProgressBar: false,
+  //           closeOnClick: true,
+  //           pauseOnHover: true,
+  //           draggable: true
+  //         })
+  //       })
+  //   }
+  // }
 
   const handleApplyFilters = () => {
     setIsFilterDrawerOpen(false)
@@ -513,16 +515,19 @@ const VacancyRequestDetail = () => {
         header: 'BRANCH',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.branches.name}</Typography>
       }),
-      columnHelper.accessor('branches.cluster.area.name', {
-        header: 'AREA',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.branches.cluster.area.name}</Typography>
-      }),
-      columnHelper.accessor('branches.cluster.area.region.name', {
-        header: 'REGION',
-        cell: ({ row }) => (
-          <Typography color='text.primary'>{row.original.branches.cluster.area.region.name}</Typography>
-        )
-      }),
+
+      // columnHelper.accessor('branches?.cluster?.area?.name', {
+      //   header: 'AREA',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.branches.cluster.area.name}</Typography>
+      // }),
+
+      // columnHelper.accessor('branches.cluster.area.region.name', {
+      //   header: 'REGION',
+      //   cell: ({ row }) => (
+      //     <Typography color='text.primary'>{row.original.branches.cluster.area.region.name}</Typography>
+      //   )
+      // }),
+
       columnHelper.accessor('status', {
         header: 'FINAL STATUS',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
@@ -559,7 +564,7 @@ const VacancyRequestDetail = () => {
                       : 'text.primary'
               }
             >
-              {status}
+              {typeof status === 'string' ? status : status?.status ?? ''}
             </Typography>
           )
         }
@@ -594,44 +599,44 @@ const VacancyRequestDetail = () => {
     fetchBranchLoading || fetchTerritoryLoading || fetchAreaLoading || fetchRegionLoading || fetchZoneLoading
 
   // Define the ApproveAllButton component inline and wrap it with withPermission
-  const ApproveAllButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
-    <Button
-      variant='outlined'
-      color='success'
-      onClick={onClick}
-      disabled={disabled}
-      sx={{
-        borderColor: 'success.main',
-        '&:hover': {
-          backgroundColor: 'success.main'
-        }
-      }}
-    >
-      Approve All
-    </Button>
-  )
+  // const ApproveAllButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
+  //   <Button
+  //     variant='outlined'
+  //     color='success'
+  //     onClick={onClick}
+  //     disabled={disabled}
+  //     sx={{
+  //       borderColor: 'success.main',
+  //       '&:hover': {
+  //         backgroundColor: 'success.main'
+  //       }
+  //     }}
+  //   >
+  //     Approve All
+  //   </Button>
+  // )
 
   // Define the FreezeAllButton component inline and wrap it with withPermission
-  const FreezeAllButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
-    <Button
-      variant='outlined'
-      color='info'
-      onClick={onClick}
-      disabled={disabled}
-      sx={{
-        borderColor: 'info.main',
-        '&:hover': {
-          backgroundColor: 'info.main'
-        }
-      }}
-    >
-      Freeze All
-    </Button>
-  )
+  // const FreezeAllButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
+  //   <Button
+  //     variant='outlined'
+  //     color='info'
+  //     onClick={onClick}
+  //     disabled={disabled}
+  //     sx={{
+  //       borderColor: 'info.main',
+  //       '&:hover': {
+  //         backgroundColor: 'info.main'
+  //       }
+  //     }}
+  //   >
+  //     Freeze All
+  //   </Button>
+  // )
 
   // Wrap the buttons with withPermission HOC
-  const ApproveAllButtonWithPermission = withPermission(ApproveAllButton)
-  const FreezeAllButtonWithPermission = withPermission(FreezeAllButton)
+  // const ApproveAllButtonWithPermission = withPermission(ApproveAllButton)
+  // const FreezeAllButtonWithPermission = withPermission(FreezeAllButton)
 
   return (
     <Box>

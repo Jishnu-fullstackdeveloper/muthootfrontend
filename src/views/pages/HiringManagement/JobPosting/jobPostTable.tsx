@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import {  Card, IconButton, Typography } from '@mui/material'
+import { Card, IconButton, Typography } from '@mui/material'
 import { Visibility as VisibilityIcon } from '@mui/icons-material'
 
 import DynamicTable from '@/components/Table/dynamicTable'
@@ -111,7 +111,9 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
         totalCount={totalCount}
         onPageChange={newPage => onPageChange(newPage + 1)}
         onRowsPerPageChange={onRowsPerPageChange}
-        rowHoverStyle={{ cursor: 'pointer', backgroundColor: '#f5f5f5' }}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Card>
   )

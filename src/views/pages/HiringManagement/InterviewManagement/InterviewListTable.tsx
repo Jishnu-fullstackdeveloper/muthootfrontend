@@ -149,6 +149,9 @@ const InterviewTableView = ({ candidates }: InterviewListTableProps) => {
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         tableName='Interview List Table'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Box>
   )

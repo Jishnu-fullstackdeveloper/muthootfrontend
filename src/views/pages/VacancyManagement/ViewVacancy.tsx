@@ -36,6 +36,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   //const [tabValue, setTabValue] = useState(0) // State for tab value
   const [activeTab, setActiveTab] = useState<number>(tabMapping[vacancyTab] || 0)
 
+  console.log('sssssss')
+
   setActiveTab
 
   // Tab change handler

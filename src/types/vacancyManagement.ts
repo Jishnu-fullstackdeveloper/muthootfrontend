@@ -1,61 +1,61 @@
-export interface Vacancy {
-  status: string
-  territory: string
-  id: string
-  deletedBy: string | null
-  jobTitle: string
-  grade: string
-  designation: string
-  jobRole: string
-  openings: number
-  businessRole: string
-  experienceMin: number
-  experienceMax: number
-  campusOrLateral: string
-  employeeCategory: string
-  employeeType: string
-  hiringManager: string
-  startingDate: string
-  closingDate: string
-  company: string
-  businessUnit: string
-  department: string
-  teritory: string // Note: API has "teritory" (typo?), adjust if corrected in real API
-  zone: string
-  region: string
-  area: string
-  cluster: string
+// export interface Vacancy {
+//   status: string
+//   territory: string
+//   id: string
+//   deletedBy: string | null
+//   jobTitle: string
+//   grade: string
+//   designation: string
+//   jobRole: string
+//   openings: number
+//   businessRole: string
+//   experienceMin: number
+//   experienceMax: number
+//   campusOrLateral: string
+//   employeeCategory: string
+//   employeeType: string
+//   hiringManager: string
+//   startingDate: string
+//   closingDate: string
+//   company: string
+//   businessUnit: string
+//   department: string
+//   teritory: string // Note: API has "teritory" (typo?), adjust if corrected in real API
+//   zone: string
+//   region: string
+//   area: string
+//   cluster: string
 
-  branch: string
-  branchCode: string
-  city: string
-  state: string
-  origin: string
-  metaData: {
-    project: string
-    priority: string
-  }
-  createdAt: string
-  updatedAt: string
-  deletedAt: string | null
-  totalCount?: any
-  data?: any
-}
+//   branch: string
+//   branchCode: string
+//   city: string
+//   state: string
+//   origin: string
+//   metaData: {
+//     project: string
+//     priority: string
+//   }
+//   createdAt: string
+//   updatedAt: string
+//   deletedAt: string | null
+//   totalCount?: any
+//   data?: any
+// }
 
-export interface VacancyListResponse {
-  success: boolean
-  message: string
-  data: Vacancy[]
-  totalCount: number
-  currentPage: number
-  limit: number
-}
+// export interface VacancyListResponse {
+//   success: boolean
+//   message: string
+//   data: Vacancy[]
+//   totalCount: number
+//   currentPage: number
+//   limit: number
+// }
 
-export interface VacancyDetailsResponse {
-  success: boolean
-  message: string
-  data: Vacancy
-}
+// export interface VacancyDetailsResponse {
+//   success: boolean
+//   message: string
+//   data: Vacancy
+// }
 
 export interface VacancyRequest {
   id: string
@@ -208,6 +208,7 @@ export interface VacancyRequest {
     createdAt: string
     updatedAt: string
     deletedAt: string | null
+    data?: any
   }
   designations: {
     id: string
@@ -243,14 +244,14 @@ export interface VacancyRequest {
   }
 }
 
-export interface VacancyRequestListResponse {
-  success: boolean
-  message: string
-  data: VacancyRequest[]
-  totalCount: number
-  page: number
-  limit: number
-}
+// export interface VacancyRequestListResponse {
+//   success: boolean
+//   message: string
+//   data: VacancyRequest
+//   totalCount: number
+//   page: number
+//   limit: number
+// }
 
 export interface VacancyRequestGroupByDesignation {
   designationId: string
@@ -263,61 +264,281 @@ export interface VacancyRequestGroupByDesignation {
   totalCount?: any
 }
 
+// export interface VacancyRequestGroupByDesignationResponse {
+//   success: boolean
+//   message: string
+//   data: VacancyRequestGroupByDesignation[]
+//   totalCount: number
+//   page: number
+//   limit: number
+// }
+
+// export interface UpdateVacancyRequestStatusResponse {
+//   success: boolean
+//   message: string
+//   data: any // Assuming the response data structure is not specified
+// }
+
+// export interface AutoApproveVacancyRequestsResponse {
+//   success: boolean
+//   message: string
+//   data: any[]
+// }
+
+// export interface VacancyManagementState {
+//   vacancyListLoading: boolean
+//   vacancyListSuccess: boolean
+//   vacancyListData: Vacancy | null
+//   vacancyListTotal: number
+//   totalCount?: any
+//   vacancyListFailure: boolean
+//   vacancyListFailureMessage: string
+//   vacancyDetailsLoading: boolean
+//   vacancyDetailsSuccess: boolean
+//   vacancyDetailsData: Vacancy | null
+//   vacancyDetailsFailure: boolean
+//   vacancyDetailsFailureMessage: string
+//   vacancyRequestListLoading: boolean
+//   vacancyRequestListSuccess: boolean
+//   // vacancyRequestListData: VacancyRequest | null
+//   vacancyRequestListTotal: number
+//   vacancyRequestListFailure: boolean
+//   vacancyRequestListFailureMessage: string
+//   vacancyRequestGroupByDesignationLoading: boolean
+//   vacancyRequestGroupByDesignationSuccess: boolean
+//   // vacancyRequestGroupByDesignationData: VacancyRequestGroupByDesignation | null
+//   vacancyRequestGroupByDesignationTotal: number
+//   vacancyRequestGroupByDesignationFailure: boolean
+//   vacancyRequestGroupByDesignationFailureMessage: string
+//   updateVacancyRequestStatusLoading: boolean
+//   updateVacancyRequestStatusSuccess: boolean
+//   updateVacancyRequestStatusData: any | null
+//   updateVacancyRequestStatusFailure: boolean
+//   updateVacancyRequestStatusFailureMessage: string
+//   autoApproveVacancyRequestsLoading: boolean
+//   autoApproveVacancyRequestsSuccess: boolean
+//   autoApproveVacancyRequestsData: any[] | null
+//   autoApproveVacancyRequestsFailure: boolean
+//   autoApproveVacancyRequestsFailureMessage: string
+//   data?: any
+// }
+
+export interface Pagination {
+  totalCount: number
+  currentPage: number
+  limit: number
+}
+
+export interface ApprovalStatus {
+  id: string
+  level: number
+  approver: string
+  approverId: string
+  approvalStatus: 'PENDING' | 'APPROVED' | 'FREEZED'
+  updatedAt?: string
+}
+
+export interface MetaData {
+  areaId?: string
+  bandId?: string
+  cityId?: string
+  zoneId?: string
+  gradeId?: string
+  stateId?: string
+  branchId?: string
+  regionId?: string
+  clusterId?: string
+  jobRoleId?: string
+  districtId?: string | null
+  employeeId?: string
+  territoryId?: string
+  departmentId?: string
+  businessUnitId?: string
+  employeeCategoryId?: string
+}
+
+export interface Vacancy {
+  id: string
+  deletedBy: string | null
+  jobTitle: string
+  employeeCode: string
+  grade: string
+  designation: string
+  jobRole: string
+  openings: number
+  experienceMin: number
+  experienceMax: number
+  campusOrLateral: string
+  employeeCategory: string
+  employeeType: string
+  hiringManager: string
+  startingDate: string
+  closingDate: string
+  company: string
+  businessUnit: string
+  department: string
+  territory: string
+  zone: string
+  region: string
+  area: string
+  cluster: string
+  branch: string
+  branchCode: string
+  city: string
+  band: string
+  state: string
+  origin: 'MANUAL' | 'RESIGNED' | 'ABSCONDING' | 'BUDGETUPDATE' | string
+  status: 'PENDING' | 'APPROVED' | 'FREEZED' | string
+  approvalId: string
+  autoApprovalDate: string | null
+  notes: string | null
+  approvalStatus: ApprovalStatus[]
+  metaData: MetaData
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+}
+
+export interface VacancyListResponse {
+  success: boolean
+  message: string
+  data: Vacancy[]
+  totalCount: number
+  currentPage: number
+  limit: number
+}
+
+export interface VacancyDetailsResponse {
+  success: boolean
+  message: string
+  data: Vacancy
+}
+
+// export interface VacancyRequest {
+//   id: string
+//   // Add other relevant fields as needed
+// }
+
+export interface VacancyRequestListResponse {
+  success: boolean
+  message: string
+  data: VacancyRequest
+  totalCount: number
+  currentPage: number
+  limit: number
+}
+
 export interface VacancyRequestGroupByDesignationResponse {
   success: boolean
   message: string
-  data: VacancyRequestGroupByDesignation[]
+  data: {
+    designation: string
+    department: string
+    [key: string]: string // Dynamic key for branch, cluster, area, region, zone, or territory
+    designationCount: string
+  }[]
   totalCount: number
-  page: number
+  currentPage: number
+  limit: number
+}
+
+export interface VacancyGroupByDesignationResponse {
+  success: boolean
+  message: string
+  data: {
+    designation: string
+    department: string
+    branch?: string
+    cluster?: string
+    area?: string
+    region?: string
+    zone?: string
+    territory?: string
+    designationCount: string
+  }[]
+  totalCount: number
+  currentPage: number
   limit: number
 }
 
 export interface UpdateVacancyRequestStatusResponse {
   success: boolean
   message: string
-  data: any // Assuming the response data structure is not specified
+  vacancy: {
+    aknowledge: boolean
+    vacancies: {
+      id: string
+      approvalStatus: ApprovalStatus[]
+      approvalId: string
+      status: 'PENDING' | 'APPROVED' | 'FREEZED'
+    }[]
+  }
+}
+
+export interface UpdateVacancyStatusResponse {
+  success: boolean
+  message: string
+  vacancy: {
+    aknowledge: boolean
+    vacancies: {
+      id: string
+      approvalStatus: ApprovalStatus[]
+      approvalId: string
+      status: 'PENDING' | 'APPROVED' | 'FREEZED'
+    }[]
+  }
 }
 
 export interface AutoApproveVacancyRequestsResponse {
   success: boolean
   message: string
-  data: any[]
+  data: any
 }
 
 export interface VacancyManagementState {
   vacancyListLoading: boolean
   vacancyListSuccess: boolean
-  vacancyListData: Vacancy | null
+
+  vacancyListData: VacancyListResponse | null
   vacancyListTotal: number
-  totalCount?: any
   vacancyListFailure: boolean
   vacancyListFailureMessage: string
   vacancyDetailsLoading: boolean
   vacancyDetailsSuccess: boolean
-  vacancyDetailsData: Vacancy | null
+  vacancyDetailsData: VacancyDetailsResponse | null
   vacancyDetailsFailure: boolean
   vacancyDetailsFailureMessage: string
   vacancyRequestListLoading: boolean
   vacancyRequestListSuccess: boolean
-  vacancyRequestListData: VacancyRequest | null
+  vacancyRequestListData: VacancyRequestListResponse['data'] | null
   vacancyRequestListTotal: number
   vacancyRequestListFailure: boolean
   vacancyRequestListFailureMessage: string
   vacancyRequestGroupByDesignationLoading: boolean
   vacancyRequestGroupByDesignationSuccess: boolean
-  vacancyRequestGroupByDesignationData: VacancyRequestGroupByDesignation | null
+  vacancyRequestGroupByDesignationData: VacancyRequestGroupByDesignationResponse | null
   vacancyRequestGroupByDesignationTotal: number
   vacancyRequestGroupByDesignationFailure: boolean
   vacancyRequestGroupByDesignationFailureMessage: string
+  vacancyGroupByDesignationLoading: boolean
+  vacancyGroupByDesignationSuccess: boolean
+  vacancyGroupByDesignationData: VacancyGroupByDesignationResponse['data'] | null
+  vacancyGroupByDesignationTotal: number
+  vacancyGroupByDesignationFailure: boolean
+  vacancyGroupByDesignationFailureMessage: string
   updateVacancyRequestStatusLoading: boolean
   updateVacancyRequestStatusSuccess: boolean
   updateVacancyRequestStatusData: any | null
   updateVacancyRequestStatusFailure: boolean
   updateVacancyRequestStatusFailureMessage: string
+  updateVacancyStatusLoading: boolean
+  updateVacancyStatusSuccess: boolean
+  updateVacancyStatusData: UpdateVacancyStatusResponse['vacancy'] | null
+  updateVacancyStatusFailure: boolean
+  updateVacancyStatusFailureMessage: string
   autoApproveVacancyRequestsLoading: boolean
   autoApproveVacancyRequestsSuccess: boolean
-  autoApproveVacancyRequestsData: any[] | null
+  autoApproveVacancyRequestsData: AutoApproveVacancyRequestsResponse | null
   autoApproveVacancyRequestsFailure: boolean
   autoApproveVacancyRequestsFailureMessage: string
-  data?: any
 }

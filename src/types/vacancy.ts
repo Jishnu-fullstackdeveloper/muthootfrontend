@@ -63,6 +63,7 @@ export interface Vacancy {
   createdAt: string // Matches "2025-04-08T05:33:33.482Z"
   updatedAt: string // Matches "2025-04-08T05:33:33.482Z"
   deletedAt: string | null // Matches "null"
+  data?: any
 }
 
 // Props for DebouncedInput component

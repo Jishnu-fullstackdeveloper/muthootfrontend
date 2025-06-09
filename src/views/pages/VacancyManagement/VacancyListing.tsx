@@ -160,13 +160,18 @@ const VacancyListingPage = () => {
       1
       console.log('Appending vacancies:', vacancyListData) // Debug log
       setVisibleVacancies((prev: Vacancy[]) => {
-        // Ensure all vacancies have the required 'band' property
+        // Ensure all vacancies have the required 'band' property and correct types
         const newVacancies = vacancyListData?.data
           .filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
-          .map(vacancy => ({
-            band: vacancy.band ?? '', // Provide a default value if missing
-            ...vacancy
-          }))
+          .map(
+            vacancy =>
+              ({
+                band: vacancy.band ?? '', // Provide a default value if missing
+                ...vacancy,
+                experienceMin: vacancy.experienceMin?.toString?.() ?? '',
+                experienceMax: vacancy.experienceMax?.toString?.() ?? ''
+              }) as unknown as Vacancy
+          )
 
         const updatedVacancies = [...prev, ...newVacancies]
 

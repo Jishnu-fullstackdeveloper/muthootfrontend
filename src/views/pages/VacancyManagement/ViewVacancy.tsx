@@ -11,6 +11,7 @@ import { Box, Typography, Divider, Paper, Button, Chip } from '@mui/material'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancyById } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import type { Props } from '@/types/vacancy'
+import type { VacancyManagementState } from '@/types/vacancyManagement'
 
 const tabMapping: { [key: string]: number } = {
   'vacancy-details': 0,
@@ -27,7 +28,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
 
   const { vacancyDetailsData, vacancyDetailsLoading, vacancyDetailsFailureMessage } = useAppSelector(
     state => state.vacancyManagementReducer
-  )
+  ) as VacancyManagementState
 
   // const jobDetailRef = useRef<HTMLDivElement>(null)
   // const candidateListRef = useRef<HTMLDivElement>(null)

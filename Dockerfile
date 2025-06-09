@@ -12,7 +12,7 @@ FROM base as dev
 ENV NODE_ENV=development
 WORKDIR /app
 RUN npm run build:icons
-RUN npm run build
+RUN npm run build --production
 # Copy all project files (avoiding this if using bind mounts)
 COPY . .
 

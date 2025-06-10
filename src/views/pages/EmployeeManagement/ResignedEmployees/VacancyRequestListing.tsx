@@ -111,9 +111,9 @@ const ResignationDataListingPage = () => {
       )
         .unwrap()
         .then(result => {
-          const newRequests = result.data || []
+          const newRequests = Array.isArray(result.data) ? result.data : []
 
-          setVisibleRequests(newRequests)
+          setVisibleRequests(Array.isArray(newRequests) ? newRequests : [])
           setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
         })
         .catch(err => console.error('Fetch vacancy requests failed:', err))
@@ -252,7 +252,7 @@ const ResignationDataListingPage = () => {
         )
           .unwrap()
           .then(result => {
-            const newRequests = result.data || []
+            const newRequests = Array.isArray(result.data) ? result.data : []
 
             setVisibleRequests(newRequests)
             setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))
@@ -302,7 +302,7 @@ const ResignationDataListingPage = () => {
         )
           .unwrap()
           .then(fetchResult => {
-            const newRequests = fetchResult.data || []
+            const newRequests = Array.isArray(fetchResult.data) ? result.data : []
 
             setVisibleRequests(newRequests)
             setSelectedTabs(newRequests.reduce((acc, request) => ({ ...acc, [request.id]: 0 }), {} as SelectedTabs))

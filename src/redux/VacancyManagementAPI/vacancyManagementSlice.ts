@@ -3,26 +3,133 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
-import { handleAsyncThunkStates } from '@/utils/functions'
+
 import { API_ENDPOINTS } from '../ApiUrls/vacancyApiUrls'
+
+import { handleAsyncThunkStates } from '@/utils/functions'
+
 import type {
   VacancyListResponse,
   VacancyDetailsResponse,
   VacancyRequestListResponse,
   VacancyRequestGroupByDesignationResponse,
+  VacancyGroupByDesignationResponse,
   UpdateVacancyRequestStatusResponse,
+  UpdateVacancyStatusResponse,
   AutoApproveVacancyRequestsResponse,
   VacancyManagementState
 } from '@/types/vacancyManagement'
 
 // Thunk for fetching vacancy list
-export const fetchVacancies = createAsyncThunk<VacancyListResponse, { page: number; limit: number; search?: string }>(
+export const fetchVacancies = createAsyncThunk<
+  VacancyListResponse,
+  {
+    page: number
+    limit: number
+    search?: string
+    status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+    jobTitle?: string
+    employeeCode?: string
+    grade?: string[]
+    designation?: string[]
+    jobRole?: string[]
+    employeeCategory?: string[]
+    employeeType?: string[]
+    hiringManager?: string[]
+    company?: 'Muthoot Papachan' | 'Muthoot Fincorp Ltd.'
+    businessUnit?: string[]
+    department?: string[]
+    territory?: string[]
+    zone?: string[]
+    region?: string[]
+    area?: string[]
+    cluster?: string[]
+    branch?: string[]
+    city?: string[]
+    band?: string[]
+    origin?: 'MANUAL' | 'RESIGNED' | 'ABSCONDING' | 'BUDGETUPDATE'
+  }
+>(
   'vacancyManagement/fetchVacancies',
-  async ({ page, limit, search }, { rejectWithValue }) => {
+  async (
+    {
+      page,
+      limit,
+      search,
+      status,
+      jobTitle,
+      employeeCode,
+      grade,
+      designation,
+      jobRole,
+      employeeCategory,
+      employeeType,
+      hiringManager,
+      company,
+      businessUnit,
+      department,
+      territory,
+      zone,
+      region,
+      area,
+      cluster,
+      branch,
+      city,
+      band,
+      origin
+    },
+    { rejectWithValue }
+  ) => {
     try {
-      const params: { page: number; limit: number; search?: string } = { page, limit }
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        status?: string
+        jobTitle?: string
+        employeeCode?: string
+        grade?: string[]
+        designation?: string[]
+        jobRole?: string[]
+        employeeCategory?: string[]
+        employeeType?: string[]
+        hiringManager?: string[]
+        company?: string
+        businessUnit?: string[]
+        department?: string[]
+        territory?: string[]
+        zone?: string[]
+        region?: string[]
+        area?: string[]
+        cluster?: string[]
+        branch?: string[]
+        city?: string[]
+        band?: string[]
+        origin?: string
+      } = { page, limit }
 
       if (search) params.search = search.trim()
+      if (status) params.status = status
+      if (jobTitle) params.jobTitle = jobTitle
+      if (employeeCode) params.employeeCode = employeeCode
+      if (grade && grade.length > 0) params.grade = grade
+      if (designation && designation.length > 0) params.designation = designation
+      if (jobRole && jobRole.length > 0) params.jobRole = jobRole
+      if (employeeCategory && employeeCategory.length > 0) params.employeeCategory = employeeCategory
+      if (employeeType && employeeType.length > 0) params.employeeType = employeeType
+      if (hiringManager && hiringManager.length > 0) params.hiringManager = hiringManager
+      if (company) params.company = company
+      if (businessUnit && businessUnit.length > 0) params.businessUnit = businessUnit
+      if (department && department.length > 0) params.department = department
+      if (territory && territory.length > 0) params.territory = territory
+      if (zone && zone.length > 0) params.zone = zone
+      if (region && region.length > 0) params.region = region
+      if (area && area.length > 0) params.area = area
+      if (cluster && cluster.length > 0) params.cluster = cluster
+      if (branch && branch.length > 0) params.branch = branch
+      if (city && city.length > 0) params.city = city
+      if (band && band.length > 0) params.band = band
+      if (origin) params.origin = origin
 
       const response = await AxiosLib.get(API_ENDPOINTS.vacancyListingApi, { params })
 
@@ -175,6 +282,40 @@ export const fetchVacancyRequestsGroupByDesignation = createAsyncThunk<
   }
 )
 
+// Thunk for fetching vacancies grouped by designation
+export const fetchVacanciesGroupByDesignation = createAsyncThunk<
+  VacancyGroupByDesignationResponse,
+  {
+    page: number
+    limit: number
+    search?: string
+    locationType: 'BRANCH' | 'CLUSTER' | 'AREA' | 'REGION' | 'ZONE' | 'TERRITORY'
+    status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+  }
+>(
+  'vacancyManagement/fetchVacanciesGroupByDesignation',
+  async ({ page, limit, search, locationType, status }, { rejectWithValue }) => {
+    try {
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        locationType: string
+        status?: string
+      } = { page, limit, locationType }
+
+      if (search) params.search = search.trim()
+      if (status) params.status = status
+
+      const response = await AxiosLib.get(API_ENDPOINTS.vacancyGroupByDesignation, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacancies grouped by designation')
+    }
+  }
+)
+
 // Thunk for updating vacancy request status
 export const updateVacancyRequestStatus = createAsyncThunk<
   UpdateVacancyRequestStatusResponse,
@@ -188,6 +329,22 @@ export const updateVacancyRequestStatus = createAsyncThunk<
     return response.data
   } catch (error: any) {
     return rejectWithValue(error.response?.data?.error?.message || 'Failed to update vacancy request status')
+  }
+})
+
+// Thunk for updating vacancy status
+export const updateVacancyStatus = createAsyncThunk<
+  UpdateVacancyStatusResponse,
+  { ids: string[]; status: 'PENDING' | 'APPROVED' | 'FREEZED' }
+>('vacancyManagement/updateVacancyStatus', async ({ ids, status }, { rejectWithValue }) => {
+  try {
+    const requestBody = { ids, status }
+
+    const response = await AxiosLib.put(API_ENDPOINTS.vacancyStatusUpdate, requestBody)
+
+    return response.data
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.error?.message || 'Failed to update vacancy status')
   }
 })
 
@@ -232,11 +389,22 @@ export const vacancyManagementSlice = createSlice({
     vacancyRequestGroupByDesignationTotal: 0,
     vacancyRequestGroupByDesignationFailure: false,
     vacancyRequestGroupByDesignationFailureMessage: '',
+    vacancyGroupByDesignationLoading: false,
+    vacancyGroupByDesignationSuccess: false,
+    vacancyGroupByDesignationData: null,
+    vacancyGroupByDesignationTotal: 0,
+    vacancyGroupByDesignationFailure: false,
+    vacancyGroupByDesignationFailureMessage: '',
     updateVacancyRequestStatusLoading: false,
     updateVacancyRequestStatusSuccess: false,
     updateVacancyRequestStatusData: null,
     updateVacancyRequestStatusFailure: false,
     updateVacancyRequestStatusFailureMessage: '',
+    updateVacancyStatusLoading: false,
+    updateVacancyStatusSuccess: false,
+    updateVacancyStatusData: null,
+    updateVacancyStatusFailure: false,
+    updateVacancyStatusFailureMessage: '',
     autoApproveVacancyRequestsLoading: false,
     autoApproveVacancyRequestsSuccess: false,
     autoApproveVacancyRequestsData: null,
@@ -251,7 +419,9 @@ export const vacancyManagementSlice = createSlice({
     handleAsyncThunkStates(builder, fetchVacancyById, 'vacancyDetails')
     handleAsyncThunkStates(builder, fetchVacancyRequests, 'vacancyRequestList')
     handleAsyncThunkStates(builder, fetchVacancyRequestsGroupByDesignation, 'vacancyRequestGroupByDesignation')
+    handleAsyncThunkStates(builder, fetchVacanciesGroupByDesignation, 'vacancyGroupByDesignation')
     handleAsyncThunkStates(builder, updateVacancyRequestStatus, 'updateVacancyRequestStatus')
+    handleAsyncThunkStates(builder, updateVacancyStatus, 'updateVacancyStatus')
     handleAsyncThunkStates(builder, autoApproveVacancyRequests, 'autoApproveVacancyRequests')
   }
 })

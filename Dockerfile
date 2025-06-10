@@ -7,11 +7,11 @@ EXPOSE 3000
 COPY . .
 RUN npm install --force # Install all dependencies for development
 RUN npm install tsx --force
+RUN npm run build
 # Development stage
 FROM base as dev
 ENV NODE_ENV=development
 WORKDIR /app
-RUN npm run build
 
 # Copy all project files (avoiding this if using bind mounts)
 COPY . .

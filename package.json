@@ -26,6 +26,8 @@
     "@emotion/styled": "^11.14.0",
     "@floating-ui/react": "0.26.9",
     "@hookform/resolvers": "^4.1.0",
+    "@iconify/tools": "^4.1.2",
+    "@iconify/utils": "^2.1.22",
     "@mui/icons-material": "^5.15.12",
     "@mui/lab": "5.0.0-alpha.167",
     "@mui/material": "^5.17.1",
@@ -69,9 +71,7 @@
     "tsx": "4.7.1",
     "valibot": "^1.0.0-rc.1",
     "yup": "^1.5.0",
-    "zustand": "^5.0.4",
-    "@iconify/tools": "^4.1.2",
-    "@iconify/utils": "^2.1.22"
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@iconify/iconify": "^3.1.1",
@@ -92,7 +92,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "7.1.1",
     "@typescript-eslint/parser": "7.1.1",
-    "autoprefixer": "10.4.18",
+    "autoprefixer": "^10.4.18",
     "babel-jest": "^29.7.0",
     "cross-env": "^7.0.3",
     "eslint": "8.57.0",

@@ -7,7 +7,7 @@ RUN apk add --no-cache libc6-compat
 
 # Install only dependencies first for better caching
 COPY package*.json ./
-RUN npm ci --omit=dev
+# RUN npm ci --omit=dev
 
 RUN npm install
 

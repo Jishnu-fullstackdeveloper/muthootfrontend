@@ -459,6 +459,9 @@ export interface VacancyGroupByDesignationResponse {
   totalCount: number
   currentPage: number
   limit: number
+  designation?: any
+  department?: any
+  designationCount?: any
 }
 
 export interface UpdateVacancyRequestStatusResponse {
@@ -522,7 +525,7 @@ export interface VacancyManagementState {
   vacancyRequestGroupByDesignationFailureMessage: string
   vacancyGroupByDesignationLoading: boolean
   vacancyGroupByDesignationSuccess: boolean
-  vacancyGroupByDesignationData: VacancyGroupByDesignationResponse['data'] | null
+  vacancyGroupByDesignationData: VacancyGroupByDesignationResponse | null
   vacancyGroupByDesignationTotal: number
   vacancyGroupByDesignationFailure: boolean
   vacancyGroupByDesignationFailureMessage: string

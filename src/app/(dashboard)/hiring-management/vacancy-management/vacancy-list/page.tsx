@@ -1,11 +1,12 @@
 import React from 'react'
 
-import VacancyListing from '@/views/pages/VacancyManagement/VacancyListing'
+import VacancyGroupListing from '@/views/pages/VacancyManagement/VacancyGroupListing'
 
 function VacancyManagement() {
   return (
     <div>
-      <VacancyListing />
+      {/* <VacancyListing /> */}
+      <VacancyGroupListing />
     </div>
   )
 }

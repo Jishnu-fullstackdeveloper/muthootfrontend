@@ -8,6 +8,7 @@ RUN apk add --no-cache libc6-compat
 # Install only dependencies first for better caching
 COPY package*.json ./
 RUN npm install
+
  
 # 2️⃣ Build Stage
 FROM base AS builder
@@ -38,3 +39,4 @@ EXPOSE 3000
  
 # Start Next.js in standalone or server mode
 CMD ["npm", "start"]
+

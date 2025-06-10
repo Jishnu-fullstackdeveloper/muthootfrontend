@@ -11,9 +11,10 @@ RUN npm install tsx --force
 FROM base as dev
 ENV NODE_ENV=development
 WORKDIR /app
-RUN npm run build:icons
+RUN npm run build
 
 # Copy all project files (avoiding this if using bind mounts)
 COPY . .
 
-CMD ["npm", "run", "dev"]
+# Start Next.js in standalone or server mode
+CMD ["npm", "start"]

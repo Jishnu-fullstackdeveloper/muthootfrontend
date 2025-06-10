@@ -1,20 +1,29 @@
-# Base image
-FROM node:18-alpine as base
+# ---------- Base image ----------
+FROM node:18-alpine AS base
+WORKDIR /app
 RUN apk add --no-cache g++ make py3-pip libc6-compat
-WORKDIR /app
+
 COPY package*.json ./
-EXPOSE 3000
+COPY .env .env # <- include the .env file
+RUN npm install --force
+
+# ---------- Build Stage ----------
+FROM base AS build
 COPY . .
-RUN npm install --force # Install all dependencies for development
-RUN npm install tsx --force
 RUN npm run build
-# Development stage
-FROM base as dev
-ENV NODE_ENV=development
+
+# ---------- Production Runtime ----------
+FROM node:18-alpine AS production
+ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy all project files (avoiding this if using bind mounts)
-COPY . .
+# Copy from build
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/.env ./.env # <- still copy for safety
 
-# Start Next.js in standalone or server mode
+# Start the app
+EXPOSE 3000
 CMD ["npm", "start"]

@@ -16,6 +16,7 @@ COPY . .
 # Set environment to production for build optimization
 ENV NODE_ENV=production
 
+RUN npm install autoprefixer
 # Next.js build (includes .next, public, etc.)
 RUN npm run build
 

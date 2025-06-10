@@ -12,7 +12,6 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "postinstall": "npm run build:icons",
     "generate-form": "ts-node scripts/generate-form.ts",
     "test": "jest",
     "test:watch": "jest — watchAll",
@@ -26,8 +25,6 @@
     "@emotion/styled": "^11.14.0",
     "@floating-ui/react": "0.26.9",
     "@hookform/resolvers": "^4.1.0",
-    "@iconify/tools": "^4.1.2",
-    "@iconify/utils": "^2.1.22",
     "@mui/icons-material": "^5.15.12",
     "@mui/lab": "5.0.0-alpha.167",
     "@mui/material": "^5.17.1",
@@ -74,6 +71,8 @@
     "zustand": "^5.0.4"
   },
   "devDependencies": {
+     "@iconify/tools": "^4.1.2",
+    "@iconify/utils": "^2.1.22",
     "@iconify/iconify": "^3.1.1",
     "@iconify/json": "^2.2.347",
     "@iconify/types": "2.0.0",

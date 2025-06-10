@@ -9,6 +9,8 @@ RUN apk add --no-cache libc6-compat
 COPY package*.json ./
 RUN npm ci --omit=dev
 
+RUN npm install
+
 # 2️⃣ Build Stage
 FROM base AS builder
 COPY . .

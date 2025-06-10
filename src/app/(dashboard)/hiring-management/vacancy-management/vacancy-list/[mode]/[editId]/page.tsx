@@ -1,7 +1,7 @@
-import AddNewVacancy from '@/views/pages/VacancyManagement/[editid]/AddNewVacancy'
+import VacancyListingPage from '@/views/pages/VacancyManagement/VacancyListing'
 
 const Page = () => {
-  return <AddNewVacancy />
+  return <VacancyListingPage />
 }
 
 export default Page

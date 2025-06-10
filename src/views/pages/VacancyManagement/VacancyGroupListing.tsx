@@ -132,7 +132,7 @@ const VacancyGroupListing = () => {
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
   const handleViewDetails = (designation: string) => {
-    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST_DETAIL(designation))
+    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(designation))
     console.log(`Viewing details for designation: ${designation}`)
   }
 

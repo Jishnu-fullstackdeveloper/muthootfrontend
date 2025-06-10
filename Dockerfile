@@ -4,7 +4,7 @@ WORKDIR /app
 RUN apk add --no-cache g++ make py3-pip libc6-compat
 
 COPY package*.json ./
-COPY .env .env # <- include the .env file
+COPY .env  # <- include the .env file
 RUN npm install --force
 
 # ---------- Build Stage ----------

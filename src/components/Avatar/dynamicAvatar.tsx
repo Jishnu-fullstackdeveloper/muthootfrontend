@@ -43,7 +43,7 @@ const DynamicAvatar: FC<DynamicAvatarProps> = ({ avatars, maxGroup = 4, size = 4
     <AvatarGroup max={maxGroup}>
       {avatars.map((avatar, index) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const [hasError, setHasError] = React.useState(false)
+        const [hasError, setHasError] = useState(false)
 
         return (
           <Avatar

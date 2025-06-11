@@ -83,10 +83,12 @@ jest.mock(
       onChange,
       options,
       getOptionLabel,
-      isOptionEqualToValue,
+
+      // isOptionEqualToValue,
       renderInput,
       ListboxProps,
-      sx,
+
+      // sx,
       disabled,
       loading,
       onOpen
@@ -521,7 +523,8 @@ describe('AddNewApprovalMatrixGenerated', () => {
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
     const dragIndicators = screen.getAllByTestId('drag-indicator')
-    const section1 = dragIndicators[0].parentElement
+
+    // const section1 = dragIndicators[0].parentElement
     const section2 = dragIndicators[1].parentElement
 
     fireEvent.dragStart(dragIndicators[0])

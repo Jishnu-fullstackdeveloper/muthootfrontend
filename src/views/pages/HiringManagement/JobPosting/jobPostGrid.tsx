@@ -1,20 +1,22 @@
 'use client'
 
 import React, { useEffect, useRef, useCallback } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import { Box, Card, CardContent, Grid, Typography, CircularProgress, Fade, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 interface JobPosting {
-  id: number
+  id: string // Changed to string for UUID
   designation: string
   jobRole: string
   location: string
-  status: 'Hiring' | 'In Progress' | 'Completed'
+  status: 'CREATED' | 'Hiring' | 'In Progress' | 'Completed' // Added CREATED
   openings: number
   candidatesApplied: number
   shortlisted: number
-  hired: number
+  hired: number // Changed from HIRED to hired
 }
 
 interface JobPostGridProps {
@@ -47,11 +49,11 @@ const StatusBadge = styled(Typography)(({ theme }) => ({
 }))
 
 const calculateHiredPercentage = (job: JobPosting) => {
-  return Math.round((job.hired / job.openings) * 100)
+  return job.openings === 0 ? 0 : Math.round((job.hired / job.openings) * 100)
 }
 
 const calculateShortlistedPercentage = (job: JobPosting) => {
-  return Math.round((job.shortlisted / job.candidatesApplied) * 100)
+  return job.candidatesApplied === 0 ? 0 : Math.round((job.shortlisted / job.candidatesApplied) * 100)
 }
 
 const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGridProps) => {
@@ -59,13 +61,14 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  const handleView = (jobId: number) => {
-    router.push(`/candidateListing/${jobId}`)
-  }
+const handleView = (jobId: string) => {
+  router.push(`/hiring-management/job-posting/view/${jobId}`)
+}
 
   const loadMoreJobs = useCallback(() => {
     if (loading || data.length >= totalCount) return
     const nextPage = page + 1
+
     onLoadMore(nextPage)
   }, [loading, data.length, totalCount, page, onLoadMore])
 
@@ -123,13 +126,17 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
                             ? 'success.light'
                             : job.status === 'In Progress'
                               ? 'warning.light'
-                              : 'error.light',
+                              : job.status === 'CREATED'
+                                ? 'info.light'
+                                : 'error.light',
                         color:
                           job.status === 'Hiring'
                             ? 'success.contrastText'
                             : job.status === 'In Progress'
                               ? 'warning.contrastText'
-                              : 'error.contrastText'
+                              : job.status === 'CREATED'
+                                ? 'info.contrastText'
+                                : 'error.contrastText'
                       }}
                     >
                       {job.status}
@@ -191,8 +198,7 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
                               >
                                 {`${calculateHiredPercentage(job)}%`}
                               </Typography>
-                              
-                              <Typography> Hired</Typography>
+                              <Typography>Hired</Typography>
                             </Box>
                           </Box>
                         </Box>
@@ -221,16 +227,17 @@ const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGri
                             }}
                           >
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography variant='caption' sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}>
+                              <Typography
+                                variant='caption'
+                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
+                              >
                                 {`${calculateShortlistedPercentage(job)}%`}
-
                               </Typography>
-                               Shortlist
+                              <Typography>Shortlist</Typography>
                             </Box>
                           </Box>
                         </Box>
                       </Tooltip>
-                      
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant='body2'>

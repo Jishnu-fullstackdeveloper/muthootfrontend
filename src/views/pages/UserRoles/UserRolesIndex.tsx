@@ -9,17 +9,17 @@ import ViewUserRole from './ViewUserRole'
 
 const UserRolesIndex = () => {
   const pathname = usePathname()
-  
+
   const segments = pathname.split('/')
-  const mode = segments[2]
-  const id = segments[3] 
+  const mode = segments[3]
+  const id = segments[4]
 
-  return <>
-
-  {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole  mode={mode} id={id} />}
-  {mode === 'view' && <ViewUserRole />}
-  </>
+  return (
+    <>
+      {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole mode={mode} id={id} />}
+      {mode === 'view' && <ViewUserRole />}
+    </>
+  )
 }
-
 
 export default UserRolesIndex

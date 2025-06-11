@@ -1,4 +1,5 @@
 // Third-party Imports
+// import { Suspense } from 'react'
 import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // Type Imports
@@ -56,7 +57,10 @@ const RootLayout = ({ children }: ChildrenType) => {
         <link rel='apple-touch-icon' href={custom_theme_settings?.theme?.images?.favicon?.url} />
         {/* <link rel='manifest' href={custom_theme_settings?.theme?.images?.favicon?.url} /> */}
       </head>
-      <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
+      <body className='flex is-full min-bs-full flex-auto flex-col'>
+        {/* <Suspense fallback={<div>Loading...</div>}>{children}</Suspense> */}
+        {children}
+      </body>
     </html>
   )
 }

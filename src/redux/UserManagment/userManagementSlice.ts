@@ -16,11 +16,25 @@ export const fetchUserManagement = createAsyncThunk(
   }
 )
 
+// New API: Fetch User by ID
+export const fetchUserById = createAsyncThunk(
+  'userManagement/fetchUserById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(`${API_ENDPOINTS.getUserByIdUrl}/${id}`)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 export const fetchEmployees = createAsyncThunk(
   'userManagement/fetchEmployees',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/employee', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getEmployeesUrl, { params })
 
       return response.data
     } catch (error: any) {
@@ -33,7 +47,7 @@ export const fetchUserRole = createAsyncThunk(
   'userManagement/fetchUserRole',
   async (params: any, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get('/roles', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getRolesUrl, { params })
 
       return response
     } catch (error: any) {
@@ -46,7 +60,7 @@ export const addNewUser = createAsyncThunk<any, any>(
   'userManagement/addNewUser',
   async (params: object, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.post('/users', params)
+      const response = await AxiosLib.post(API_ENDPOINTS.addUserUrl, params)
 
       return response.data
     } catch (error: any) {
@@ -60,50 +74,27 @@ export const addNewUser = createAsyncThunk<any, any>(
   }
 )
 
-// export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleName: string[] } }>(
-//   'userManagement/updateUser',
-//   async ({ id, params }, { rejectWithValue }) => {
-//     try {
-//       id
+export const updateUser = createAsyncThunk<
+  any,
+  { id: string; params: { email: string; newDesignationRole?: string; newRoleNames?: string[] } }
+>('userManagement/updateUser', async ({ params }, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserRolesUrl, {
+      email: params.email,
+      ...(params.newDesignationRole !== undefined ? { newDesignationRole: params.newDesignationRole } : {}),
+      ...(params.newRoleNames !== undefined ? { newRoleNames: params.newRoleNames } : {})
+    })
 
-//       const response = await AxiosLib.patch(`/users/role`, {
-//         email: params.email,
-//         newRoleName: params.newRoleName
-//       })
+    return response.data
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to update role'
 
-//       return response.data
-//     } catch (error: any) {
-//       const errorMessage = error.response?.data?.message || 'Failed to update role'
-
-//       return rejectWithValue({
-//         message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
-//         statusCode: error.response?.data?.statusCode || 500
-//       })
-//     }
-//   }
-// )
-
-export const updateUser = createAsyncThunk<any, { id: string; params: { email: string; newRoleNames: string[] } }>(
- 
-  'userManagement/updateUser',
-  async ({ params }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.patch(`/users/update-roles`, {
-        email: params.email,
-        newRoleNames: params.newRoleNames
-      })
-
-      return response.data
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update role'
-
-      return rejectWithValue({
-        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
-        statusCode: error.response?.data?.statusCode || 500
-      })
-    }
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
   }
-)
+})
 
 export const UserManagementSlice = createSlice({
   name: 'UserManagement',
@@ -172,6 +163,28 @@ export const UserManagementSlice = createSlice({
       state.userManagementFailureMessage = action?.payload?.message || 'Listing Failed'
     })
 
+    // Fetch User by ID
+    builder.addCase(fetchUserById.pending, state => {
+      state.isUserLoading = true
+      state.userSuccess = false
+      state.userFailure = false
+      state.userFailureMessage = ''
+    })
+    builder.addCase(fetchUserById.fulfilled, (state, action) => {
+      state.selectedUser = action?.payload?.data
+      state.isUserLoading = false
+      state.userSuccess = true
+      state.userFailure = false
+    })
+    builder.addCase(fetchUserById.rejected, (state, action: any) => {
+      state.isUserLoading = false
+      state.selectedUser = null
+      state.userSuccess = false
+      state.userFailure = true
+      state.userFailureMessage = action?.payload?.message || 'Failed to fetch user'
+    })
+
+    // Fetch User Roles
     builder.addCase(fetchUserRole.pending, state => {
       state.isUserRoleLoading = true
     })
@@ -243,5 +256,5 @@ export const UserManagementSlice = createSlice({
   }
 })
 
-export const { resetAddUserStatus } = UserManagementSlice.actions
+export const { fetchUserManagementDismiss, resetAddUserStatus } = UserManagementSlice.actions
 export default UserManagementSlice.reducer

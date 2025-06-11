@@ -1,3 +1,4 @@
+// JobPostListing.tsx
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
@@ -13,21 +14,10 @@ import {
   TableView as TableChartIcon
 } from '@mui/icons-material'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchJobPostings } from '@/redux/JobPosting/jobListingSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 
-interface JobPosting {
-  id: number
-  designation: string // Renamed from title
-  jobRole: string // Added new field
-  location: string
-  status: 'Hiring' | 'In Progress' | 'Completed' // Updated status values
-  openings: number
-  candidatesApplied: number
-  shortlisted: number
-  hired: number
-}
-
-// Lazy load JobTable and JobPostGrid
 const JobTable = dynamic(() => import('./jobPostTable'), {
   loading: () => (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
@@ -50,81 +40,15 @@ const JobPostListing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [gridPage, setGridPage] = useState(1)
-  const [gridLimit] = useState(6)
   const [tablePage, setTablePage] = useState(1)
   const [tableLimit, setTableLimit] = useState(10)
   const [view, setView] = useState<'grid' | 'table'>('grid')
-  const [allJobs, setAllJobs] = useState<JobPosting[]>([])
-  const [tableJobs, setTableJobs] = useState<JobPosting[]>([])
-  const [loading, setLoading] = useState(false)
 
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
-  // Mock data
-  const jobPostings = useMemo<JobPosting[]>(
-    () => [
-      {
-        id: 1,
-        designation: 'Software Engineer',
-        jobRole: 'Full Stack Developer',
-        location: 'New York',
-        status: 'Hiring',
-        openings: 5,
-        candidatesApplied: 20,
-        shortlisted: 10,
-        hired: 2
-      },
-      {
-        id: 2,
-        designation: 'Product Manager',
-        jobRole: 'Product Strategy Lead',
-        location: 'San Francisco',
-        status: 'Completed',
-        openings: 2,
-        candidatesApplied: 15,
-        shortlisted: 5,
-        hired: 1
-      },
-      {
-        id: 3,
-        designation: 'Data Analyst',
-        jobRole: 'Business Intelligence Analyst',
-        location: 'Chicago',
-        status: 'Hiring',
-        openings: 3,
-        candidatesApplied: 30,
-        shortlisted: 12,
-        hired: 0
-      },
-      {
-        id: 4,
-        designation: 'UX Designer',
-        jobRole: 'User Interface Specialist',
-        location: 'Austin',
-        status: 'In Progress',
-        openings: 4,
-        candidatesApplied: 25,
-        shortlisted: 8,
-        hired: 3
-      }
-    ],
-    []
-  )
-
-  // Memoized filtered job postings
-  const filteredJobPostings = useMemo(() => {
-    if (!debouncedSearch) return jobPostings
-
-    const lowerSearch = debouncedSearch.toLowerCase()
-
-    return jobPostings.filter(
-      job =>
-        job.designation.toLowerCase().includes(lowerSearch) ||
-        job.jobRole.toLowerCase().includes(lowerSearch) ||
-        job.location.toLowerCase().includes(lowerSearch) ||
-        job.status.toLowerCase().includes(lowerSearch)
-    )
-  }, [debouncedSearch, jobPostings])
+  const { jobPostingsData, isJobPostingsLoading, totalCount, jobPostingsFailure, jobPostingsFailureMessage } =
+    useAppSelector((state: any) => state.JobPostingReducer)
 
   // Debounce search
   useEffect(() => {
@@ -137,47 +61,44 @@ const JobPostListing = () => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  // Fetch and paginate data
+  // Fetch jobs from API
   useEffect(() => {
-    setLoading(true)
-
-    if (view === 'grid') {
-      const start = (gridPage - 1) * gridLimit
-      const end = start + gridLimit
-      const newJobs = filteredJobPostings.slice(start, end)
-
-      setAllJobs(prev => {
-        const existingIds = new Set(prev.map(job => job.id))
-
-        return [...prev, ...newJobs.filter(job => !existingIds.has(job.id))]
+    dispatch(
+      fetchJobPostings({
+        page: view === 'grid' ? gridPage : tablePage,
+        limit: view === 'grid' ? undefined : tableLimit,
+        search: debouncedSearch || undefined
       })
-    } else {
-      const start = (tablePage - 1) * tableLimit
-      const end = start + tableLimit
+    )
+  }, [dispatch, view, gridPage, tablePage, tableLimit, debouncedSearch])
 
-      setTableJobs(filteredJobPostings.slice(start, end))
+  const jobs = useMemo(() => {
+    if (!jobPostingsData) return []
+
+    const mappedJobs = jobPostingsData.map((item: any) => ({
+      ...item.job,
+      id: item.job?.id, // Ensure job ID is included
+      candidatesApplied: item.candidateStatusCounts?.APPLIED || 0,
+      shortlisted: item.candidateStatusCounts?.SHORTLISTED || 0,
+      hired: item.candidateStatusCounts?.HIRED || 0
+    }))
+
+    console.log('Mapped Jobs:', mappedJobs)
+
+    return mappedJobs.filter(job => job.id) // Filter out jobs without an ID
+  }, [jobPostingsData])
+
+  const handleView = (jobId: string) => {
+    if (!jobId) {
+      console.error('handleView: jobId is undefined or null')
+
+      return
     }
 
-    setLoading(false)
-  }, [filteredJobPostings, gridPage, tablePage, view, gridLimit, tableLimit])
+    const url = `/candidateListing?jobId=${encodeURIComponent(jobId)}`
 
-  // Initialize data on mount
-  useEffect(() => {
-    if (view === 'table') {
-      const start = (tablePage - 1) * tableLimit
-      const end = start + tableLimit
-
-      setTableJobs(filteredJobPostings.slice(start, end))
-    } else {
-      const start = (gridPage - 1) * gridLimit
-      const end = start + gridLimit
-
-      setAllJobs(filteredJobPostings.slice(start, end))
-    }
-  }, [filteredJobPostings, view, gridLimit, tableLimit, gridPage, tablePage])
-
-  const handleView = (jobId: number) => {
-    router.push(`/candidateListing/${jobId}`)
+    console.log('Navigating to:', url)
+    router.push(url)
   }
 
   const handleGridLoadMore = (newPage: number) => {
@@ -216,15 +137,23 @@ const JobPostListing = () => {
               <Tooltip title='Interview Management'>
                 <DynamicButton
                   variant='contained'
-                  onClick={() => router.push('hiring-management/interview-management')}
+                  onClick={() => router.push('/hiring-management/interview-management')}
                 >
                   Interview
                 </DynamicButton>
               </Tooltip>
-              <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
+              <IconButton
+                onClick={() => setView('table')}
+                color={view === 'table' ? 'primary' : 'default'}
+                aria-label='Table view'
+              >
                 <TableChartIcon />
               </IconButton>
-              <IconButton onClick={() => setView('grid')} color={view === 'grid' ? 'primary' : 'default'}>
+              <IconButton
+                onClick={() => setView('grid')}
+                color={view === 'grid' ? 'primary' : 'default'}
+                aria-label='Grid view'
+              >
                 <GridViewIcon />
               </IconButton>
             </Box>
@@ -232,28 +161,32 @@ const JobPostListing = () => {
         </CardContent>
       </Card>
 
-      {loading ? (
+      {isJobPostingsLoading && !jobs.length ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
         </Box>
-      ) : (view === 'grid' ? allJobs : tableJobs).length === 0 ? (
+      ) : jobPostingsFailure ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <Typography color='error'>{jobPostingsFailureMessage}</Typography>
+        </Box>
+      ) : jobs.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <Typography>No job postings available</Typography>
         </Box>
       ) : view === 'grid' ? (
         <JobPostGrid
-          data={allJobs}
-          loading={loading}
+          data={jobs}
+          loading={isJobPostingsLoading}
           page={gridPage}
-          totalCount={filteredJobPostings.length}
+          totalCount={totalCount}
           onLoadMore={handleGridLoadMore}
         />
       ) : (
         <JobTable
-          data={tableJobs}
+          data={jobs}
           page={tablePage}
           limit={tableLimit}
-          totalCount={filteredJobPostings.length}
+          totalCount={totalCount}
           onPageChange={handleTablePageChange}
           onRowsPerPageChange={handleTableRowsPerPageChange}
           handleView={handleView}

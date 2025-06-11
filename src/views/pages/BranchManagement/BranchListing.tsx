@@ -90,7 +90,7 @@ const BranchListing = () => {
         }))
       }
     },
-    [isLoadingMore, viewMode, branchListData?.data.length, branchListTotal]
+    [isLoadingMore, viewMode, branchListData?.data?.length, branchListTotal]
   )
 
   useEffect(() => {

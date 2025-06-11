@@ -301,6 +301,9 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               tableName='Employee List'
+              sorting={undefined}
+              onSortingChange={undefined}
+              initialState={undefined}
             />
           ))}
         {/* {activeTab === 1 && (

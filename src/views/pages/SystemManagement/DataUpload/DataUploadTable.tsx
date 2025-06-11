@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useMemo, useEffect } from 'react'
 
-import { Box, Typography, Chip } from '@mui/material'
+import { Box, Typography, Chip, CircularProgress } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -13,7 +13,7 @@ import type { DataUploadTableRow } from '@/types/dataUpload'
 const DataUploadTableList = () => {
   const columnHelper = createColumnHelper<DataUploadTableRow>()
   const dispatch = useAppDispatch()
-  const { uploads, totalCount, status, error } = useAppSelector(state => state.dataUploadReducer)
+  const { uploads, totalCount, status } = useAppSelector(state => state.dataUploadReducer)
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -24,22 +24,45 @@ const DataUploadTableList = () => {
   useEffect(() => {
     dispatch(
       fetchDataUploads({
-        page: pagination.pageIndex + 1, // API uses 1-based indexing
-        limit: pagination.pageSize,
+        page: pagination?.pageIndex + 1, // API uses 1-based indexing
+        limit: pagination?.pageSize,
         search: ''
       })
     )
-  }, [dispatch, pagination.pageIndex, pagination.pageSize])
+  }, [dispatch, pagination?.pageIndex, pagination?.pageSize])
 
   // Map API data to table format
+  // const tableData = useMemo(() => {
+  //   const mappedData = uploads?.map((upload, index) => ({
+  //     slno: index + 1 + pagination?.pageIndex * pagination?.pageSize, // Serial number based on index and page
+  //     id: upload?.id,
+  //     fileName: upload?.processData?.originalname || '-',
+  //     fileType: upload?.processData?.type || '-',
+  //     fileSize: upload?.processData?.size,
+  //     time: upload?.createdAt ? new Date(upload.createdAt).toLocaleString() : '-',
+  //     status: upload?.processStatus || '-',
+  //     remarks: upload?.errorDetails
+  //       ? [upload?.errorDetails]
+  //       : upload?.processStatus === 'COMPLETED'
+  //         ? ['Processed successfully']
+  //         : ['-'] // Default remarks based on status
+  //   }))
+
+  //   return {
+  //     data: mappedData,
+  //     totalCount: totalCount
+  //   }
+  // }, [uploads, totalCount, pagination.pageIndex, pagination.pageSize])
+
   const tableData = useMemo(() => {
-    const mappedData = uploads.map((upload, index) => ({
-      slno: index + 1 + pagination.pageIndex * pagination.pageSize, // Serial number based on index and page
+    const mappedData = uploads?.map((upload, index) => ({
+      slno: index + 1 + pagination?.pageIndex * pagination?.pageSize, // Serial number based on index and page
       id: upload?.id,
       fileName: upload?.processData?.originalname || '-',
       fileType: upload?.processData?.type || '-',
       fileSize: upload?.processData?.size,
       time: upload?.createdAt ? new Date(upload.createdAt).toLocaleString() : '-',
+      uploadDate: upload?.createdAt, // Store original timestamp for sorting
       status: upload?.processStatus || '-',
       remarks: upload?.errorDetails
         ? [upload?.errorDetails]
@@ -83,39 +106,49 @@ const DataUploadTableList = () => {
 
   const columns = useMemo<ColumnDef<DataUploadTableRow, any>[]>(
     () => [
-      columnHelper.accessor('slno', {
-        header: 'SLNO',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.slno}</Typography>
-      }),
+      // columnHelper.accessor('slno', {
+      //   header: 'SLNO',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row?.original?.slno}</Typography>
+      // }),
       columnHelper.accessor('fileName', {
         header: 'FILE NAME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileName}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileName}</Typography>
       }),
       columnHelper.accessor('fileType', {
         header: 'TYPE/CATEGORY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileType}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileType}</Typography>
       }),
       columnHelper.accessor('fileSize', {
         header: 'FILE SIZE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fileSize}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileSize}</Typography>
       }),
+
+      // columnHelper.accessor('time', {
+      //   header: 'TIME',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>
+      // }),
       columnHelper.accessor('time', {
         header: 'TIME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.time}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.time}</Typography>,
+        sortingFn: (rowA, rowB) => {
+          const dateA = rowA.original.uploadDate ? new Date(rowA.original.uploadDate).getTime() : 0
+          const dateB = rowB.original.uploadDate ? new Date(rowB.original.uploadDate).getTime() : 0
+
+          return dateA - dateB
+        }
       }),
+
       columnHelper.accessor('status', {
         header: 'STATUS',
         cell: ({ row }) => {
-          const status = row.original.status
+          const status = row?.original?.status
           let color: 'success' | 'error' | 'warning' = 'warning' // Default to yellow (warning)
 
           if (status === 'COMPLETED')
             color = 'success' // Green
           else if (status === 'FAILED') color = 'error' // Red
 
-          return (
-            <Chip size='small' variant='tonal' label={status} color={color} sx={{ fontWeight: 500, color: '#fff' }} />
-          )
+          return <Chip variant='tonal' size='small' label={status} color={color} sx={{ borderRadius: 1 }} />
         }
       })
 
@@ -179,8 +212,12 @@ const DataUploadTableList = () => {
 
   return (
     <>
-      {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: {error}</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {status === 'failed' && <Typography align='center'>No data found</Typography>}
       {status === 'succeeded' && (
         <DynamicTable
           columns={columns}
@@ -189,7 +226,10 @@ const DataUploadTableList = () => {
           pagination={pagination}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          tableName='Data Upload Listing'
+          tableName='Data Upload List'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
       {/* <ConfirmModal

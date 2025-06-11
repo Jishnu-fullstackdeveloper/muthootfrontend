@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 
-import { Box, Card, InputAdornment, Typography } from '@mui/material'
+import { Box, Card, InputAdornment } from '@mui/material'
 import type { TextFieldProps } from '@mui/material/TextField'
 
 import DynamicButton from '@/components/Button/dynamicButton'

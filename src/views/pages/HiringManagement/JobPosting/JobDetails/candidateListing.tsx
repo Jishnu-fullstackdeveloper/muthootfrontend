@@ -1,16 +1,21 @@
+// CandidateListing.tsx
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography, Tooltip } from '@mui/material'
+
+import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography, Button } from '@mui/material'
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   GridView as GridViewIcon,
   TableView as TableChartIcon
 } from '@mui/icons-material'
-import DynamicButton from '@/components/Button/dynamicButton'
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchCandidates, resetCandidatesStatus } from '@/redux/JobPosting/jobListingSlice'
 
 interface Candidate {
   id: number
@@ -26,7 +31,6 @@ interface Candidate {
   match?: string
 }
 
-// Lazy load CandidateTable and CandidateGrid
 const CandidateTable = dynamic(() => import('../../candidateManagement/candidateTable'), {
   loading: () => (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
@@ -53,124 +57,52 @@ const CandidateListing = () => {
   const [tablePage, setTablePage] = useState(1)
   const [tableLimit, setTableLimit] = useState(10)
   const [view, setView] = useState<'grid' | 'table'>('grid')
-  const [allCandidates, setAllCandidates] = useState<Candidate[]>([])
-  const [tableCandidates, setTableCandidates] = useState<Candidate[]>([])
-  const [loading, setLoading] = useState(false)
+  const [effectiveJobId, setEffectiveJobId] = useState<string | null>(null)
 
+  const dispatch = useAppDispatch()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  // Mock data
-  const candidates = useMemo<Candidate[]>(
-    () => [
-      {
-        id: 1,
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        status: 'Shortlisted',
-        appliedDate: '2025-05-01',
-        gender: 'Male',
-        appliedPortal: 'LinkedIn',
-        minExperience: '2 years',
-        maxExperience: '5 years',
-        phoneNumber: '123-456-7890',
-        match: '85%'
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        status: 'L1',
-        appliedDate: '2025-05-02',
-        gender: 'Female',
-        appliedPortal: 'Indeed',
-        minExperience: '1 year',
-        maxExperience: '3 years',
-        phoneNumber: '234-567-8901',
-        match: '90%'
-      },
-      {
-        id: 3,
-        name: 'Alice Johnson',
-        email: 'alice.johnson@example.com',
-        status: 'Shortlisted',
-        appliedDate: '2025-05-03',
-        gender: 'Other',
-        appliedPortal: 'Company Website',
-        minExperience: '3 years',
-        maxExperience: '6 years',
-        phoneNumber: '345-678-9012',
-        match: '78%'
-      },
-      {
-        id: 4,
-        name: 'Bob Brown',
-        email: 'bob.brown@example.com',
-        status: 'Rejected',
-        appliedDate: '2025-05-04',
-        gender: '',
-        appliedPortal: 'Referral',
-        minExperience: '0 years',
-        maxExperience: '2 years',
-        phoneNumber: '456-789-0123',
-        match: '65%'
-      },
-      {
-        id: 5,
-        name: 'Emma Wilson',
-        email: 'emma.wilson@example.com',
-        status: 'L1',
-        appliedDate: '2025-05-05',
-        gender: 'Female',
-        appliedPortal: 'Glassdoor',
-        minExperience: '4 years',
-        maxExperience: '7 years',
-        phoneNumber: '567-890-1234',
-        match: '82%'
-      },
-      {
-        id: 6,
-        name: 'Michael Chen',
-        email: 'michael.chen@example.com',
-        status: 'Shortlisted',
-        appliedDate: '2025-05-06',
-        gender: 'Male',
-        appliedPortal: 'LinkedIn',
-        minExperience: '5 years',
-        maxExperience: '8 years',
-        phoneNumber: '678-901-2345',
-        match: '88%'
-      },
-      {
-        id: 7,
-        name: 'Sarah Davis',
-        email: 'sarah.davis@example.com',
-        status: 'Rejected',
-        appliedDate: '2025-05-07',
-        gender: 'Female',
-        appliedPortal: 'Indeed',
-        minExperience: '2 years',
-        maxExperience: '4 years',
-        phoneNumber: '789-012-3456',
-        match: '70%'
-      }
-    ],
-    []
+  const { candidatesData, isCandidatesLoading, candidatesFailure, candidatesFailureMessage } = useAppSelector(
+    (state: any) => state.JobPostingReducer
   )
 
-  // Memoized filtered candidates
-  const filteredCandidates = useMemo(() => {
-    if (!debouncedSearch) return candidates
+  // Handle jobId from query parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      const jobIdFromUrl = url.searchParams.get('jobId')
+      const jobIdFromSearchParams = searchParams.get('jobId')
 
-    const lowerSearch = debouncedSearch.toLowerCase()
+      console.log('CandidateListing URL:', window.location.href)
+      console.log('CandidateListing searchParams:', Object.fromEntries(searchParams.entries()))
+      console.log('CandidateListing jobId (searchParams):', jobIdFromSearchParams)
+      console.log('CandidateListing jobId (URL):', jobIdFromUrl)
+      console.log('CandidateListing candidatesData:', candidatesData)
+      setEffectiveJobId(jobIdFromSearchParams || jobIdFromUrl)
+    }
+  }, [searchParams, candidatesData])
 
-    return candidates.filter(
-      candidate =>
-        candidate.name.toLowerCase().includes(lowerSearch) ||
-        candidate.email.toLowerCase().includes(lowerSearch) ||
-        (candidate.appliedPortal?.toLowerCase().includes(lowerSearch) ?? false) ||
-        candidate.status.toLowerCase().includes(lowerSearch)
-    )
-  }, [debouncedSearch, candidates])
+  // Fetch candidates from API
+  useEffect(() => {
+    if (effectiveJobId) {
+      console.log('Fetching candidates for jobId:', effectiveJobId)
+      dispatch(
+        fetchCandidates({
+          jobId: effectiveJobId,
+          page: view === 'grid' ? gridPage : tablePage,
+          limit: view === 'grid' ? gridLimit : tableLimit
+        })
+      )
+    } else {
+      console.log('No effective jobId, resetting candidates status')
+      dispatch(resetCandidatesStatus())
+    }
+
+    return () => {
+      dispatch(resetCandidatesStatus())
+    }
+  }, [effectiveJobId, gridPage, tablePage, gridLimit, tableLimit, view, dispatch])
 
   // Debounce search
   useEffect(() => {
@@ -183,47 +115,32 @@ const CandidateListing = () => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  // Fetch and paginate data
-  useEffect(() => {
-    setLoading(true)
+  // Filter candidates by search
+  const filteredCandidates = useMemo(() => {
+    if (!debouncedSearch || !Array.isArray(candidatesData)) return candidatesData || []
+    const lowerSearch = debouncedSearch.toLowerCase()
 
-    if (view === 'grid') {
-      const start = (gridPage - 1) * gridLimit
-      const end = start + gridLimit
-      const newCandidates = filteredCandidates.slice(start, end)
+    return candidatesData.filter(
+      (candidate: Candidate) =>
+        candidate.name.toLowerCase().includes(lowerSearch) ||
+        candidate.email.toLowerCase().includes(lowerSearch) ||
+        (candidate.appliedPortal?.toLowerCase().includes(lowerSearch) ?? false) ||
+        candidate.status.toLowerCase().includes(lowerSearch)
+    )
+  }, [debouncedSearch, candidatesData])
 
-      setAllCandidates(prev => {
-        const existingIds = new Set(prev.map(candidate => candidate.id))
-        return [...prev, ...newCandidates.filter(candidate => !existingIds.has(candidate.id))]
-      })
-    } else {
-      const start = (tablePage - 1) * tableLimit
-      const end = start + tableLimit
+  // Paginate filtered candidates for table/grid
+  const paginatedCandidates = useMemo(() => {
+    const start = ((view === 'grid' ? gridPage : tablePage) - 1) * (view === 'grid' ? gridLimit : tableLimit)
+    const end = start + (view === 'grid' ? gridLimit : tableLimit)
 
-      setTableCandidates(filteredCandidates.slice(start, end))
-    }
+    return filteredCandidates.slice(start, end)
+  }, [filteredCandidates, gridPage, tablePage, gridLimit, tableLimit, view])
 
-    setLoading(false)
-  }, [filteredCandidates, gridPage, tablePage, view, gridLimit, tableLimit])
-
-  // Initialize data on mount
-  useEffect(() => {
-    if (view === 'table') {
-      const start = (tablePage - 1) * tableLimit
-      const end = start + tableLimit
-
-      setTableCandidates(filteredCandidates.slice(start, end))
-    } else {
-      const start = (gridPage - 1) * gridLimit
-      const end = start + gridLimit
-
-      setAllCandidates(filteredCandidates.slice(start, end))
-    }
-  }, [filteredCandidates, view, gridLimit, tableLimit, gridPage, tablePage])
-
-  const handleView = (candidateId: number) => {
-    router.push('./candidateDetails.tsx')
-  }
+  // const handleView = (candidateId: number) => {
+  //   console.log('Navigating to candidateDetails with candidateId:', candidateId)
+  //   router.push(`/candidateDetails?candidateId=${candidateId}`)
+  // }
 
   const handleGridLoadMore = (newPage: number) => {
     setGridPage(newPage)
@@ -236,15 +153,6 @@ const CandidateListing = () => {
   const handleTableRowsPerPageChange = (newPageSize: number) => {
     setTableLimit(newPageSize)
     setTablePage(1)
-  }
-
-  const updateCandidateStatus = (candidateId: number, newStatus: string) => {
-    setAllCandidates(prev =>
-      prev.map(candidate => (candidate.id === candidateId ? { ...candidate, status: newStatus } : candidate))
-    )
-    setTableCandidates(prev =>
-      prev.map(candidate => (candidate.id === candidateId ? { ...candidate, status: newStatus } : candidate))
-    )
   }
 
   return (
@@ -267,11 +175,10 @@ const CandidateListing = () => {
               }}
             />
             <Box>
-             
               <IconButton onClick={() => setView('grid')} color={view === 'grid' ? 'primary' : 'default'}>
                 <GridViewIcon />
               </IconButton>
-               <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
+              <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
                 <TableChartIcon />
               </IconButton>
             </Box>
@@ -279,32 +186,51 @@ const CandidateListing = () => {
         </CardContent>
       </Card>
 
-      {loading ? (
+      {!effectiveJobId ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
+          <Typography color='error'>No job ID provided. Please select a job from the job postings page.</Typography>
+          <Button variant='contained' onClick={() => router.push('/jobPostListing')} sx={{ mt: 2 }}>
+            Go to Job Postings
+          </Button>
+        </Box>
+      ) : isCandidatesLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
         </Box>
-      ) : (view === 'grid' ? allCandidates : tableCandidates).length === 0 ? (
+      ) : candidatesFailure ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-          <Typography>No candidates available</Typography>
+          <Typography color='error'>{candidatesFailureMessage}</Typography>
+        </Box>
+      ) : paginatedCandidates.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <Typography>No candidates available for this job</Typography>
         </Box>
       ) : view === 'grid' ? (
         <CandidateGrid
-          data={allCandidates}
-          loading={loading}
+          data={paginatedCandidates}
+          loading={isCandidatesLoading}
           page={gridPage}
           totalCount={filteredCandidates.length}
           onLoadMore={handleGridLoadMore}
-          updateCandidateStatus={updateCandidateStatus}
+          updateCandidateStatus={function (candidateId: number, newStatus: string): void {
+            newStatus
+            candidateId
+            throw new Error('Function not implemented.')
+          }}
         />
       ) : (
         <CandidateTable
-          data={tableCandidates}
+          data={paginatedCandidates}
           page={tablePage}
           limit={tableLimit}
           totalCount={filteredCandidates.length}
           onPageChange={handleTablePageChange}
           onRowsPerPageChange={handleTableRowsPerPageChange}
-          handleView={handleView}
+          updateCandidateStatus={function (candidateId: number, newStatus: string): void {
+            candidateId
+            newStatus
+            throw new Error('Function not implemented.')
+          }}
         />
       )}
     </Box>

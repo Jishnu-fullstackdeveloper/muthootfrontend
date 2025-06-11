@@ -7,18 +7,16 @@ import {
   Box,
   Card,
   Typography,
-  Chip,
   Button,
   Divider,
-  IconButton,
   Tooltip,
-  TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   TextareaAutosize
 } from '@mui/material'
+import type { SelectChangeEvent } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
@@ -220,7 +218,7 @@ const InterviewDetailedPage = () => {
     )
   }
 
-  const handleScreeningStatusChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleScreeningStatusChange = (event: SelectChangeEvent<string>) => {
     const newStatus = event.target.value as 'Shortlisted' | 'Rejected' | 'Pending' | 'Interviewed'
 
     setUpdatedScreeningStatus(newStatus)

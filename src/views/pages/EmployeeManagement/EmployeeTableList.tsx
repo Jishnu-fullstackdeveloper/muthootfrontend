@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
@@ -16,13 +16,14 @@ import DynamicTable from '@/components/Table/dynamicTable'
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchEmployees } from '@/redux/EmployeeManagement/employeeManagementSlice' // Import the employee slice
+import { ROUTES } from '@/utils/routes'
 
 const EmployeeTable = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const columnHelper = createColumnHelper<any>()
 
-  const { employees, totalCount, status, error } = useAppSelector(state => state.employeeManagementReducer)
+  const { employees, totalCount, status } = useAppSelector(state => state.employeeManagementReducer)
 
   //const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   //const [employeeIdToDelete, setEmployeeIdToDelete] = useState<string | number | null>(null)
@@ -47,7 +48,7 @@ const EmployeeTable = () => {
     const mappedData = employees?.map(employee => ({
       id: employee.id,
       employeeCode: employee.employeeCode,
-      fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName}`, // Combine firstName, middleName, lastName
+      fullName: `${employee.title} ${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName ? ` ${employee.lastName}` : ''}`, // Combine firstName, middleName, lastName
       employeeType: employee.employeeDetails.employmentType,
       status: employee.employeeDetails.employmentStatus,
       company: employee.companyStructure.company,
@@ -101,16 +102,16 @@ const EmployeeTable = () => {
       bankAccountNumber: employee.payrollDetails?.bankAccountNo || '-',
       ifscCode: employee.payrollDetails?.ifscCode || '-',
       uanNumber: employee.payrollDetails?.uanNumber || '-',
-      noticePeriod: employee.employeeDetails?.noticePeriod || '-',
+      noticePeriod: employee.resignationDetails?.noticePeriod || '-',
       mobileNumber: employee.mobileNumber || '-',
       dateOfResignation: employee.resignationDetails?.dateOfResignation || '-',
-      finalApprovalLWD: employee.resignationDetails?.finalApprovalLWD || '-',
+      lwd: employee.resignationDetails?.lwd || '-',
       foodCardNumber: employee.payrollDetails?.foodCardNo || '-',
       npsAccountNumber: employee.payrollDetails?.npsAccountNo || '-',
       esiNo: employee.payrollDetails?.esiNo || '-',
       isDisability: employee.personalDetails?.isDisability ? 'Yes' : 'No',
       typeOfDisability: employee.personalDetails?.typeOfDisability || '-',
-      nameAsPerAadhar: employee.personalDetails?.nameAsPerAadhar || '-',
+      nameAsPerAdhaar: employee.personalDetails?.nameAsPerAdhaar || '-',
       functionalManager: employee.managementHierarchy?.functionalManager || '-',
       totalExperience: employee.experienceDetails?.totalExperience || '-',
       currentCompanyExperience: employee.experienceDetails?.currentCompanyExperience || '-',
@@ -172,6 +173,19 @@ const EmployeeTable = () => {
         header: 'EMPLOYEE TYPE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeType}</Typography>
       }),
+
+      columnHelper.accessor('status', {
+        header: 'EMPLOYEE STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
+      }),
+      columnHelper.accessor('company', {
+        header: 'COMPANY',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.company}</Typography>
+      }),
+      columnHelper.accessor('businessUnit', {
+        header: 'BUSINESS UNIT',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.businessUnit}</Typography>
+      }),
       columnHelper.accessor('action', {
         header: 'ACTIONS',
         meta: { className: 'sticky right-0' },
@@ -179,7 +193,7 @@ const EmployeeTable = () => {
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
               <IconButton
-                onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
+                onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))} // onClick={() => router.push(`/employee-management/view/profile-?id=${row.original.id}`)}
                 sx={{ fontSize: 18 }}
               >
                 {/* <i className='tabler-eye text-textSecondary' /> */}
@@ -195,50 +209,40 @@ const EmployeeTable = () => {
         ),
         enableSorting: false
       }),
-      columnHelper.accessor('status', {
-        header: 'EMPLOYEE STATUS',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
-      }),
-      columnHelper.accessor('company', {
-        header: 'COMPANY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.company}</Typography>
-      }),
-      columnHelper.accessor('businessUnit', {
-        header: 'BUSINESS UNIT',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.businessUnit}</Typography>
-      }),
       columnHelper.accessor('department', {
         header: 'DEPARTMENT',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.department}</Typography>
       }),
-      columnHelper.accessor('territory', {
-        header: 'TERRITORY',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.territory}</Typography>
-      }),
-      columnHelper.accessor('zone', {
-        header: 'ZONE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.zone}</Typography>
-      }),
-      columnHelper.accessor('region', {
-        header: 'REGION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.region}</Typography>
-      }),
-      columnHelper.accessor('cluster', {
-        header: 'CLUSTER',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.cluster}</Typography>
-      }),
-      columnHelper.accessor('branch', {
-        header: 'BRANCH',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.branch}</Typography>
-      }),
+
+      // columnHelper.accessor('territory', {
+      //   header: 'TERRITORY',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.territory}</Typography>
+      // }),
+      // columnHelper.accessor('zone', {
+      //   header: 'ZONE',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.zone}</Typography>
+      // }),
+      // columnHelper.accessor('region', {
+      //   header: 'REGION',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.region}</Typography>
+      // }),
+      // columnHelper.accessor('cluster', {
+      //   header: 'CLUSTER',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.cluster}</Typography>
+      // }),
+      // columnHelper.accessor('branch', {
+      //   header: 'BRANCH',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.branch}</Typography>
+      // }),
       columnHelper.accessor('branchCode', {
         header: 'BRANCH CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.branchCode}</Typography>
       }),
-      columnHelper.accessor('area', {
-        header: 'AREA',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
-      }),
+
+      // columnHelper.accessor('area', {
+      //   header: 'AREA',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.area}</Typography>
+      // }),
       columnHelper.accessor('cityClassification', {
         header: 'CITY CLASSIFICATION',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.cityClassification}</Typography>
@@ -271,10 +275,11 @@ const EmployeeTable = () => {
         header: 'EMPLOYEE CATEGORY',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategory}</Typography>
       }),
-      columnHelper.accessor('employeeCategoryType', {
-        header: 'EMPLOYEE CATEGORY TYPE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategoryType}</Typography>
-      }),
+
+      // columnHelper.accessor('employeeCategoryType', {
+      //   header: 'EMPLOYEE CATEGORY TYPE',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeCategoryType}</Typography>
+      // }),
       columnHelper.accessor('l1ManagerCode', {
         header: 'L1 MANAGER CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.l1ManagerCode}</Typography>
@@ -413,11 +418,11 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('dateOfResignation', {
         header: 'DATE OF RESIGNATION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation.split('T')[0]}</Typography>
       }),
       columnHelper.accessor('finalApprovalLWD', {
         header: 'FINAL APPROVAL LWD',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.finalApprovalLWD}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.lwd.split('T')[0]}</Typography>
       }),
       columnHelper.accessor('foodCardNumber', {
         header: 'FOOD CARD NUMBER',
@@ -441,7 +446,7 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('nameAsPerAadhar', {
         header: 'NAME AS PER AADHAR',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.nameAsPerAadhar}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.nameAsPerAdhaar}</Typography>
       }),
       columnHelper.accessor('functionalManager', {
         header: 'FUNCTIONAL MANAGER',
@@ -481,7 +486,7 @@ const EmployeeTable = () => {
       }),
       columnHelper.accessor('aadharNumber', {
         header: 'AADHAR NUMBER',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.aadharNumber}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.adharNo}</Typography>
       }),
       columnHelper.accessor('matrixManagerCode', {
         header: 'MATRIX MANAGER CODE',
@@ -497,8 +502,16 @@ const EmployeeTable = () => {
 
   return (
     <>
-      {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: {error}</Typography>}
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {status === 'failed' && (
+        <Typography color='secondary' align='center'>
+          No Employee Data
+        </Typography>
+      )}
       {status === 'succeeded' && (
         <DynamicTable
           columns={columns}
@@ -508,6 +521,9 @@ const EmployeeTable = () => {
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           tableName='Employee Listing'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
         />
       )}
       {/* <ConfirmModal

@@ -51,7 +51,7 @@ export const createDataUpload = createAsyncThunk(
 
       return response.data
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload file')
+      return rejectWithValue(error.response?.data?.error.message || 'Failed to upload file')
     }
   }
 )

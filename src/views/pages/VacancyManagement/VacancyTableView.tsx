@@ -7,14 +7,21 @@ import { IconButton, Tooltip, Typography, Chip, Box } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import VisibilityIcon from '@mui/icons-material/Visibility'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import type { VacancyManagementState } from '@/types/vacancyManagement'
+import { ROUTES } from '@/utils/routes'
 
 const VacancyListingTableView = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { vacancies, totalCount, loading, error } = useAppSelector(state => state.vacancyManagementReducer)
+
+  const { vacancyListData, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
+    state => state.vacancyManagementReducer
+  ) as VacancyManagementState
 
   const columnHelper = createColumnHelper<any>()
 
@@ -135,23 +142,28 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-      columnHelper.accessor(row => `${row.experienceMin} - ${row.experienceMax}`, {
-        // Custom accessor combining experienceMin and experienceMax
-        header: 'EXPERIENCE',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.experienceMin} - {row.original.experienceMax} years
-          </Typography>
-        )
-      }),
+
+      // columnHelper.accessor(row => `${row.experienceMin} - ${row.experienceMax}`, {
+      //   // Custom accessor combining experienceMin and experienceMax
+      //   header: 'EXPERIENCE',
+      //   cell: ({ row }) => (
+      //     <Typography color='text.primary' className='font-medium'>
+      //       {row.original.experienceMin} - {row.original.experienceMax} years
+      //     </Typography>
+      //   )
+      // }),
       columnHelper.accessor('action', {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
         cell: ({ row }) => (
           <Box className='flex items-center'>
             <Tooltip title='View' placement='top'>
-              <IconButton onClick={() => router.push(`/vacancy-management/view/${row.original.id}`)}>
-                <i className='tabler-eye text-textSecondary'></i>
+              <IconButton
+                onClick={() =>
+                  router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(row.original.id))
+                }
+              >
+                <VisibilityIcon sx={{ fontSize: 10 }} />
               </IconButton>
             </Tooltip>
             {/* <Tooltip title='Edit' placement='top'>
@@ -328,24 +340,61 @@ const VacancyListingTableView = () => {
     [columnHelper, router]
   )
 
+  // return (
+  //   <Box>
+  //     {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
+  //     {vacancyListFailureMessage && (
+  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>
+  //         {/* Error: {vacancyListFailureMessage} */} No vacancy found
+  //       </Typography>
+  //     )}
+  //     {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData?.length === 0 ? (
+  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
+  //     ) : (
+  //       !vacancyListLoading &&
+  //       !vacancyListFailureMessage && (
+  //         <DynamicTable
+  //           columns={columns}
+  //           data={vacancyListData?.data || []}
+  //           totalCount={vacancyListData?.totalCount}
+  //           pagination={pagination}
+  //           onPageChange={handlePageChange}
+  //           onRowsPerPageChange={handleRowsPerPageChange}
+  //           onPageCountChange={handlePageCountChange}
+  //           tableName='Vacancy Listing Table'
+  //           sorting={undefined}
+  //           onSortingChange={undefined}
+  //           initialState={undefined}
+  //         />
+  //       )
+  //     )}
+  //   </Box>
+  // )
   return (
     <Box>
-      {loading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
-      {error && <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>Error: {error}</Typography>}
-      {!loading && !error && vacancies.length === 0 ? (
-        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
+      {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
+      {vacancyListFailureMessage && (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>No record is found</Typography>
+      )}
+      {!vacancyListLoading &&
+      !vacancyListFailureMessage &&
+      (!vacancyListData?.data || vacancyListData?.data?.length === 0) ? (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No record is found</Typography>
       ) : (
-        !loading &&
-        !error && (
+        !vacancyListLoading &&
+        !vacancyListFailureMessage && (
           <DynamicTable
             columns={columns}
-            data={vacancies || []}
-            totalCount={totalCount}
+            data={vacancyListData?.data || []}
+            totalCount={vacancyListData?.totalCount}
             pagination={pagination}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
             onPageCountChange={handlePageCountChange}
             tableName='Vacancy Listing Table'
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
           />
         )
       )}

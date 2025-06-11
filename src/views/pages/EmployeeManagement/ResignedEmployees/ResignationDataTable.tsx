@@ -22,9 +22,7 @@ interface ResignedEmployeesTableViewProps {
 const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProps) => {
   const dispatch = useAppDispatch<AppDispatch>()
 
-  const { employees, loading, error, totalCount } = useAppSelector(
-    (state: RootState) => state.resignationDataListingReducer
-  )
+  const { employees, totalCount } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
 
   const columnHelper = createColumnHelper<ResignedEmployee & { fullName: string }>()
 
@@ -204,6 +202,9 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         tableName='Resigned Employee Table'
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Box>
   )

@@ -87,11 +87,11 @@ const TotalVacancies = () => {
   return (
     <Card>
       <CardHeader title='Total Vacancies' subheader='Last Year' className='pbe-0' />
-      <AppReactApexCharts type='area' height={109} width='100%' options={options} series={series} />
+      <AppReactApexCharts type='area' height={122} width='100%' options={options} series={series} />
       <CardContent className='flex flex-col pbs-0'>
         <div className='flex items-center justify-between flex-wrap gap-x-4 gap-y-0.5'>
           <Typography variant='h4' color='text.primary'>
-            175k
+            175
           </Typography>
           <Typography variant='body2' color='error.main'>
             -16.2%

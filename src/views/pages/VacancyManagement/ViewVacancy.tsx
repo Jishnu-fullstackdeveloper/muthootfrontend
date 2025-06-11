@@ -36,8 +36,6 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
   //const [tabValue, setTabValue] = useState(0) // State for tab value
   const [activeTab, setActiveTab] = useState<number>(tabMapping[vacancyTab] || 0)
 
-  console.log('sssssss')
-
   setActiveTab
 
   // Tab change handler
@@ -50,9 +48,6 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab, id }) => {
 
   // Fetch vacancy data when component mounts or ID changes
   useEffect(() => {
-    console.log('Params:', params) // Debug full params object
-    console.log('Dispatching fetchVacancyById with ID:', id)
-
     if (id) {
       dispatch(fetchVacancyById({ id }))
     } else {

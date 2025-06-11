@@ -28,6 +28,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 // import { set } from 'lodash'
 
+// import { string } from 'yup'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
@@ -131,9 +133,29 @@ const VacancyGroupListing = () => {
 
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
-  const handleViewDetails = (designation: string) => {
-    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(designation))
-    console.log(`Viewing details for designation: ${designation}`)
+  const handleViewDetails = (
+    designation: string,
+    department: string,
+    branch?: string,
+    cluster?: string,
+    area?: string,
+    region?: string,
+    zone?: string,
+    territory?: string
+  ) => {
+    router.push(
+      ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW({
+        designation,
+        department,
+        branch,
+        cluster,
+        area,
+        region,
+        zone,
+        territory,
+        locationType: selectedLocationType // assumed to be defined outside
+      })
+    )
   }
 
   const filteredData = useMemo(() => {
@@ -168,7 +190,16 @@ const VacancyGroupListing = () => {
         id: 'action',
         cell: ({ row }) => (
           <Tooltip title='View Details'>
-            <IconButton color='primary' onClick={() => handleViewDetails(row.original.designation)}>
+            <IconButton
+              color='primary'
+              onClick={() =>
+                handleViewDetails(
+                  row.original.designation,
+                  row.original.department,
+                  row.original[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
+                )
+              }
+            >
               <VisibilityIcon fontSize='small' />
             </IconButton>
           </Tooltip>
@@ -356,7 +387,13 @@ const VacancyGroupListing = () => {
                       size='small'
                       color='primary'
                       variant='outlined'
-                      onClick={() => handleViewDetails(item.designation)}
+                      onClick={() =>
+                        handleViewDetails(
+                          item.designation,
+                          item.department,
+                          item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
+                        )
+                      }
                       startIcon={<VisibilityIcon />}
                       sx={{
                         borderRadius: '8px',

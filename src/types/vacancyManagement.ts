@@ -397,6 +397,7 @@ export interface Vacancy {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
+  action?: any
 }
 
 export interface VacancyListResponse {

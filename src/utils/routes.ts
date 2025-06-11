@@ -21,8 +21,52 @@ export const ROUTES = {
     RESIGNED_EMPLOYEE_DETAIL: (id: string) => `/hiring-management/resigned-employee/view/detail?id=${id}`,
     VACANCY_MANAGEMENT: {
       VACANCY_LIST: '/hiring-management/vacancy-management/vacancy-list',
-      VACANCY_LIST_VIEW: (id: string) =>
-        `/hiring-management/vacancy-management/vacancy-list/view/vacancy-details?id=${id}`,
+      VACANCY_LIST_VIEW: ({
+        designation,
+        department,
+        branch,
+        cluster,
+        area,
+        region,
+        zone,
+        territory,
+        locationType
+      }: {
+        designation: string
+        department: string
+        branch?: string
+        cluster?: string
+        area?: string
+        region?: string
+        zone?: string
+        territory?: string
+        locationType?: 'BRANCH' | 'CLUSTER' | 'AREA' | 'REGION' | 'ZONE' | 'TERRITORY' | string
+      }) => {
+        const params = new URLSearchParams({
+          designation,
+          department
+        })
+
+        const locationMap: Record<string, string | undefined> = {
+          branch,
+          cluster,
+          area,
+          region,
+          zone,
+          territory
+        }
+
+        // Only add locationType's matching value if it exists
+        if (locationType && locationMap[locationType?.toLowerCase()]) {
+          params.append(locationType?.toLowerCase(), locationMap[locationType?.toLowerCase()]!)
+        }
+
+        return `/hiring-management/vacancy-management/vacancy-list/view/vacancy-details?${params.toString()}`
+      },
+
+      VACANCY_LIST_VIEW_DETAIL: (id: string) =>
+        `/hiring-management/vacancy-management/vacancy-list/view/detail?id=${id}`,
+
       VACANCY_REQUEST: '/hiring-management/vacancy-management/vacancy-request',
       VACANCY_REQUEST_DETAIL: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-request/view/Detail?id=${id}`,

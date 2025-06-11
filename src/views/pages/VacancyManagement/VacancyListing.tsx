@@ -1,459 +1,616 @@
-/* eslint-disable lines-around-comment */
 'use client'
-import React, { useEffect, useState, useRef, useCallback } from 'react'
 
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 
-import { Box, Card, IconButton, Tab, Tabs, Tooltip, Typography, TextField, InputAdornment, Chip } from '@mui/material'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+import {
+  Box,
+  Card,
+  Typography,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tabs,
+  Tab,
+  Chip,
+  Drawer,
+  Autocomplete,
+  Button,
+  CircularProgress,
+  Tooltip,
+  Grid
+} from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-
-// import Stack from '@mui/material/Stack'
+import FilterListIcon from '@mui/icons-material/FilterList'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+import CardMembershipRoundedIcon from '@mui/icons-material/CardMembershipRounded'
+import EngineeringRoundedIcon from '@mui/icons-material/Engineering'
+import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutline'
+import SchoolRoundedIcon from '@mui/icons-material/School'
+import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined'
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutline'
+import TodayRoundedIcon from '@mui/icons-material/Today'
+import EventRoundedIcon from '@mui/icons-material/Event'
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccounts'
+import ApartmentRoundedIcon from '@mui/icons-material/Apartment'
+import BusinessCenterRoundedIcon from '@mui/icons-material/BusinessCenter'
+import AccountTreeRoundedIcon from '@mui/icons-material/AccountTree'
+import PublicRoundedIcon from '@mui/icons-material/Public'
+import PinDropRoundedIcon from '@mui/icons-material/PinDrop'
+import HubRoundedIcon from '@mui/icons-material/Hub'
 
-// import { RestartAlt } from '@mui/icons-material'
+// import ExploreRoundedIcon from '@mui/icons-material/Explore'
+// import StoreRoundedIcon from '@mui/icons-material/Store'
+// import CodeRoundedIcon from '@mui/icons-material/Code'
+// import LocationCityRoundedIcon from '@mui/icons-material/LocationCity'
+// import FlagRoundedIcon from '@mui/icons-material/Flag'
+// import SourceRoundedIcon from '@mui/icons-material/Source'
+import MilitaryTechRoundedIcon from '@mui/icons-material/MilitaryTech'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-// Import MUI icons
-import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined' //designation
-import EngineeringOutlinedIcon from '@mui/icons-material/EngineeringOutlined' //job role
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined' // openings
-//import CorporateFareOutlinedIcon from '@mui/icons-material/CorporateFareOutlined' // businessRole
-//import ViewTimelineOutlinedIcon from '@mui/icons-material/ViewTimelineOutlined' // experience
-import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined' // campusOrLateral
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined' // employeeCategory
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined' // employeeType
-import EventOutlinedIcon from '@mui/icons-material/EventOutlined' // starting date
-import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined' // closing date
-
-import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined' // hiringManager
-import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined' // company
-import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined' // businessUnit
-import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined' // department
-import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined' // territory
-import PinDropOutlinedIcon from '@mui/icons-material/PinDropOutlined' // region
-import HubOutlinedIcon from '@mui/icons-material/HubOutlined' // cluster
-
-import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined' // area
-import StoreOutlinedIcon from '@mui/icons-material/StoreOutlined' // branch
-import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined' // branchCode
-import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined' // city
-import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined' // state
-import SourceOutlinedIcon from '@mui/icons-material/SourceOutlined' // origin
-import MilitaryTechOutlinedIcon from '@mui/icons-material/MilitaryTechOutlined'
-
-import type { ViewMode, Vacancy, SelectedTabs } from '@/types/vacancy' //VacancyFilters //DebouncedInputProps
-import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import VacancyListingTableView from './VacancyTableView'
+import type { RootState } from '@/redux/store'
+import type { VacancyManagementState, Vacancy } from '@/types/vacancyManagement'
+import type { BudgetManagementState } from '@/types/budget'
+import { fetchVacancies, updateVacancyStatus } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
+import {
+  fetchBranch,
+  fetchCluster,
+  fetchTerritory,
+  fetchArea,
+  fetchRegion,
+  fetchZone
+} from '@/redux/BudgetManagement/BudgetManagementSlice'
 import { ROUTES } from '@/utils/routes'
-import type { VacancyManagementState } from '@/types/vacancyManagement'
-// import {
-//   getVacancyManagementFiltersFromCookie,
-//   removeVacancyManagementFiltersFromCookie,
-//   setVacancyManagementFiltersToCookie
-// } from '@/utils/functions'
-// import CustomTextField from '@/@core/components/mui/TextField'
-// import VacancyManagementFilters from '@/@core/components/dialogs/vacancy-listing-filters'
-// import DynamicButton from '@/components/Button/dynamicButton'
+import { getUserId } from '@/utils/functions'
+import VacancyListingTableView from './VacancyTableView'
+
+type ViewMode = 'grid' | 'table'
+type TabMode = 'list' | 'request'
+type FilterType = 'Branch' | 'Cluster' | 'Area' | 'Region' | 'Zone' | 'Territory' | null
+
+// interface FilterOption {
+//   id: string
+//   name: string
+// }
+
+const filterOptions: FilterType[] = ['Branch', 'Cluster', 'Area', 'Region', 'Zone', 'Territory']
 
 const VacancyListingPage = () => {
-  const router = useRouter()
   const dispatch = useAppDispatch()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const userId = getUserId()
 
-  const { vacancyListData, vacancyListTotal, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
-    state => state.vacancyManagementReducer
-  ) as VacancyManagementState
-
+  // State management
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-
-  //const [addMoreFilters, setAddMoreFilters] = useState(false)
+  const [tabMode, setTabMode] = useState<TabMode>('list')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
   const [page, setPage] = useState(1)
-  const [limit] = useState(10) // Fixed limit for lazy loading batches
-  //const [searchTerm, setSearchTerm] = useState('') // New state for search input
-  const [searchQuery, setSearchQuery] = useState<string>('') // Updated to searchQuery for consistency
-  const [noMoreData, setNoMoreData] = useState<boolean>(false) // Added to track if there's no more data to load
+  const [limit, setLimit] = useState(10)
+  const [hasMore, setHasMore] = useState(true)
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
+  const [selectedFilterType, setSelectedFilterType] = useState<FilterType>(null)
+  const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>([])
+  const [filterPage, setFilterPage] = useState(1)
+  const [filterLimit, setFilterLimit] = useState(10)
+  const [filterHasMore, setFilterHasMore] = useState(true)
+  const [selectedTabs, setSelectedTabs] = useState({})
+
+  // URL query params
+  const initialParams = useMemo(
+    () => ({
+      designation: searchParams.get('designation') ? [searchParams.get('designation')!] : undefined,
+      department: searchParams.get('department') ? [searchParams.get('department')!] : undefined,
+      branch: searchParams.get('branch') ? [searchParams.get('branch')!] : undefined,
+      cluster: searchParams.get('cluster') ? [searchParams.get('cluster')!] : undefined,
+      area: searchParams.get('area') ? [searchParams.get('area')!] : undefined,
+      region: searchParams.get('region') ? [searchParams.get('region')!] : undefined,
+      zone: searchParams.get('zone') ? [searchParams.get('zone')!] : undefined,
+      territory: searchParams.get('territory') ? [searchParams.get('territory')!] : undefined
+    }),
+    [searchParams]
+  )
+
+  // Redux selectors
+  const {
+    vacancyListData,
+    vacancyListTotal,
+    vacancyListLoading,
+    vacancyListFailureMessage,
+    updateVacancyStatusLoading
+  } = useAppSelector((state: RootState) => state.vacancyManagementReducer) as VacancyManagementState
+
+  const {
+    fetchBranchData,
+    fetchBranchLoading,
+    fetchClusterData,
+    fetchClusterLoading,
+    fetchTerritoryData,
+    fetchTerritoryLoading,
+    fetchAreaData,
+    fetchAreaLoading,
+    fetchRegionData,
+    fetchRegionLoading,
+    fetchZoneData,
+    fetchZoneLoading
+  } = useAppSelector((state: RootState) => state.budgetManagementReducer) as BudgetManagementState
+
+  // Refs for lazy loading
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null) // Added for debounce
+  const filterSentinelRef = useRef<HTMLDivElement | null>(null)
+  const filterObserverRef = useRef<IntersectionObserver | null>(null)
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  // const [selectedFilters, setSelectedFilters] = useState<VacancyFilters>({
-  //   location: [],
-  //   department: [],
-  //   employmentType: [],
-  //   experience: [],
-  //   skills: [],
-  //   salaryRange: [0, 0],
-  //   jobRole: ''
-  // })
-
-  // const [selectedFilters, setSelectedFilters] = useState<VacancyFilters>({
-  //   location: [],
-  //   department: [],
-  //   employmentType: [],
-  //   experience: [],
-  //   skills: [],
-  //   salaryRange: [0, 0],
-  //   jobRole: ''
-  // })
-
-  const [selectedTabs, setSelectedTabs] = useState<SelectedTabs>({})
-
-  //const FiltersFromCookie = getVacancyManagementFiltersFromCookie()
-
-  // useEffect(() => {
-  //   setVacancyManagementFiltersToCookie({ selectedFilters, appliedFilters })
-  // }, [selectedFilters, appliedFilters])
-
-  // useEffect(() => {
-  //   const cookieFilters = FiltersFromCookie
-  //   if (cookieFilters?.selectedFilters) setSelectedFilters(cookieFilters.selectedFilters)
-  //   if (cookieFilters?.appliedFilters) setAppliedFilters(cookieFilters.appliedFilters)
-  // }, [])
-
-  // Consolidated useEffect for fetching vacancies with debounced search
+  // Fetch vacancies with debounced search
   useEffect(() => {
-    // Clear any existing timeout
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current)
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
 
-    // Set a new timeout for debounced search
     debounceTimeout.current = setTimeout(() => {
-      console.log('Dispatching fetchVacancies with:', { page: 1, limit, search: searchQuery.trim() }) // Debug log
-      setVisibleVacancies([]) // Reset visible vacancies
-      setPage(1) // Reset page
-      setNoMoreData(false) // Reset noMoreData
-      dispatch(fetchVacancies({ page: 1, limit, search: searchQuery.trim() }))
+      setVisibleVacancies([])
+      setPage(1)
+      setLimit(10)
+      setHasMore(true)
+
+      const params: {
+        page: number
+        limit: number
+        search?: string
+        status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+        designation?: string[]
+        department?: string[]
+        branch?: string[]
+        cluster?: string[]
+        area?: string[]
+        region?: string[]
+        zone?: string[]
+        territory?: string[]
+      } = {
+        page: 1,
+        limit: 10,
+        status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
+        designation: initialParams.designation,
+        department: initialParams.department,
+        ...(initialParams.branch && { branch: initialParams.branch }),
+        ...(initialParams.cluster && { cluster: initialParams.cluster }),
+        ...(initialParams.area && { area: initialParams.area }),
+        ...(initialParams.region && { region: initialParams.region }),
+        ...(initialParams.zone && { zone: initialParams.zone }),
+        ...(initialParams.territory && { territory: initialParams.territory })
+      }
+
+      if (searchQuery) params.search = searchQuery.trim()
+
+      if (selectedFilterType && selectedFilterValues.length > 0) {
+        ;(params as any)[selectedFilterType.toLowerCase()] = selectedFilterValues
+      }
+
+      dispatch(fetchVacancies(params))
         .unwrap()
         .then(result => {
-          console.log('fetchVacancies result:', result) // Debug API response
-          const newVacancies = result.data || []
+          const newVacancies = (result.data || []).map((vacancy: any) => ({
+            band: vacancy.band ?? '',
+            ...vacancy
+          }))
 
-          setVisibleVacancies(
-            (newVacancies as unknown as Vacancy[]).map(vacancy => ({
-              band: vacancy.band ?? '', // Ensure 'band' property exists
-              ...vacancy
-            }))
-          ) // Set initial vacancies
-          // Initialize selectedTabs for all new vacancies
-          setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {} as SelectedTabs))
+          setVisibleVacancies(newVacancies)
+          setSelectedTabs(newVacancies.reduce((acc, vacancy) => ({ ...acc, [vacancy.id]: 0 }), {}))
+          setHasMore(newVacancies.length < result.totalCount)
         })
         .catch(err => {
-          console.error('Search failed:', err) // Log errors
-          setVisibleVacancies([]) // Clear on error
+          console.error('Fetch vacancies failed:', err)
+          setVisibleVacancies([])
           setSelectedTabs({})
         })
-    }, 300) // 300ms debounce delay
+    }, 300)
 
-    // Cleanup timeout on unmount or searchQuery change
     return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current)
-      }
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
     }
-  }, [dispatch, limit, searchQuery]) // Removed viewMode from dependencies to prevent unnecessary fetches
+  }, [dispatch, searchQuery, tabMode, selectedFilterType, selectedFilterValues, initialParams])
 
-  // Update visibleVacancies with unique items from API
+  // Append new vacancies for lazy loading
   useEffect(() => {
-    if (vacancyListData?.data?.length && viewMode === 'grid') {
-      1
-      console.log('Appending vacancies:', vacancyListData) // Debug log
-      setVisibleVacancies((prev: Vacancy[]) => {
-        // Ensure all vacancies have the required 'band' property and correct types
-        const newVacancies = vacancyListData?.data
-          .filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
-          .map(
-            vacancy =>
-              ({
-                band: vacancy.band ?? '', // Provide a default value if missing
-                ...vacancy,
-                experienceMin: vacancy.experienceMin?.toString?.() ?? '',
-                experienceMax: vacancy.experienceMax?.toString?.() ?? ''
-              }) as unknown as Vacancy
-          )
+    if (!vacancyListData?.data?.length || viewMode !== 'grid' || page === 1) return
 
-        const updatedVacancies = [...prev, ...newVacancies]
+    setVisibleVacancies(prev => {
+      const newVacancies = vacancyListData.data
+        .filter(vacancy => !prev.some(existing => existing.id === vacancy.id))
+        .map(vacancy => ({
+          band: vacancy.band ?? '',
+          ...vacancy
+        }))
 
-        // Update selectedTabs for all vacancies in updatedVacancies, preserving existing selections
-        setSelectedTabs(prevTabs => {
-          const updatedTabs = { ...prevTabs }
+      const updatedVacancies = [...prev, ...newVacancies]
 
-          updatedVacancies.forEach(vacancy => {
-            if (!(vacancy.id in updatedTabs)) {
-              updatedTabs[vacancy.id] = 0 // Default to tab 0 if not already set
-            }
-          })
+      setSelectedTabs(prevTabs => {
+        const updatedTabs = { ...prevTabs }
 
-          return updatedTabs
+        updatedVacancies.forEach(vacancy => {
+          if (!(vacancy.id in updatedTabs)) updatedTabs[vacancy.id] = 0
         })
 
-        return updatedVacancies
+        return updatedTabs
       })
-      // setNoMoreData(false) // Reset noMoreData when new data is appended
-    } else if (!vacancyListData?.data?.length && viewMode === 'grid' && !vacancyListLoading) {
-      // Handle empty results
-      console.log('Clearing visibleVacancies: No vacancies returned') // Debug log
-      // setNoMoreData(true) // Set noMoreData if no data is returned
-    }
-  }, [vacancyListData, viewMode, vacancyListLoading])
 
-  // Lazy loading
+      setHasMore(updatedVacancies.length < vacancyListTotal)
+
+      return updatedVacancies
+    })
+  }, [vacancyListData, viewMode, page, vacancyListTotal])
+
+  // Lazy loading for grid view
   const loadMoreVacancies = useCallback(() => {
-    if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal || noMoreData) {
-      console.log('Load more skipped:', {
-        vacancyListLoading,
-        visibleVacanciesLength: visibleVacancies.length,
-        vacancyListTotal,
-        noMoreData
-      })
-
-      return
-    }
+    if (vacancyListLoading || visibleVacancies.length >= vacancyListTotal || !hasMore) return
 
     const nextPage = page + 1
 
-    console.log('Loading more vacancies for page:', nextPage) // Debug log
     setPage(nextPage)
-    dispatch(fetchVacancies({ page: nextPage, limit, search: searchQuery.trim() }))
-      .unwrap()
-      .then(result => {
-        console.log('Loaded more vacancies:', result) // Debug log
-      })
-      .catch(err => console.error('Load more failed:', err))
-  }, [vacancyListLoading, visibleVacancies.length, vacancyListTotal, noMoreData, page, dispatch, limit, searchQuery])
+
+    const params: {
+      page: number
+      limit: number
+      search?: string
+      status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+      designation?: string[]
+      department?: string[]
+      branch?: string[]
+      cluster?: string[]
+      area?: string[]
+      region?: string[]
+      zone?: string[]
+      territory?: string[]
+    } = {
+      page: nextPage,
+      limit,
+      status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
+      designation: initialParams.designation,
+      department: initialParams.department,
+      ...(initialParams.branch && { branch: initialParams.branch }),
+      ...(initialParams.cluster && { cluster: initialParams.cluster }),
+      ...(initialParams.area && { area: initialParams.area }),
+      ...(initialParams.region && { region: initialParams.region }),
+      ...(initialParams.zone && { zone: initialParams.zone }),
+      ...(initialParams.territory && { territory: initialParams.territory })
+    }
+
+    if (searchQuery) params.search = searchQuery.trim()
+
+    if (selectedFilterType && selectedFilterValues.length > 0) {
+      // params[selectedFilterType.toLowerCase() as keyof typeof params] = selectedFilterValues
+      ;(params as any)[selectedFilterType.toLowerCase()] = selectedFilterValues
+    }
+
+    dispatch(fetchVacancies(params))
+  }, [
+    vacancyListLoading,
+    visibleVacancies.length,
+    vacancyListTotal,
+    hasMore,
+    page,
+    limit,
+    searchQuery,
+    tabMode,
+    selectedFilterType,
+    selectedFilterValues,
+    dispatch,
+    initialParams
+  ])
 
   useEffect(() => {
-    console.log('Setting up IntersectionObserver') // Debug log
-    observerRef.current = new IntersectionObserver(
+    if (viewMode !== 'grid' || !hasMore || vacancyListLoading) return
+
+    if (observerRef.current) observerRef.current.disconnect()
+
+    const observer = new IntersectionObserver(
       entries => {
-        if (
-          entries[0].isIntersecting &&
-          viewMode === 'grid' &&
-          visibleVacancies.length < vacancyListTotal &&
-          !noMoreData
-        ) {
-          console.log('IntersectionObserver triggered, calling loadMoreVacancies') // Debug log
-        } else {
-          console.log('IntersectionObserver skipped:', {
-            isIntersecting: entries[0].isIntersecting,
-            viewMode,
-            visibleVacanciesLength: visibleVacancies.length,
-            vacancyListTotal,
-            noMoreData
-          }) // Debug log
+        if (entries[0].isIntersecting) {
+          setLimit(prev => prev + 10)
+          loadMoreVacancies()
         }
       },
       { threshold: 0.1 }
     )
 
-    if (loadMoreRef.current) {
-      console.log('Observing loadMoreRef') // Debug log
-      observerRef.current.observe(loadMoreRef.current)
-    } else {
-      console.log('loadMoreRef not available yet') // Debug log
-    }
+    observerRef.current = observer
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
 
     return () => {
-      if (observerRef.current && loadMoreRef.current) {
-        console.log('Unobserving loadMoreRef') // Debug log
-        observerRef.current.unobserve(loadMoreRef.current)
-      }
+      if (observerRef.current) observerRef.current.disconnect()
     }
-  }, [loadMoreVacancies, viewMode, visibleVacancies.length, vacancyListTotal, noMoreData]) // Simplified dependencies
+  }, [viewMode, hasMore, vacancyListLoading, loadMoreVacancies])
 
-  const handleTabChange = (vacancyId: any, newValue: number) =>
+  // Fetch filter values with lazy loading
+  const fetchFilterValues = useCallback(() => {
+    if (!selectedFilterType || filterPage === 1) setFilterLimit(10)
+
+    const params = { page: filterPage, limit: filterLimit }
+    let fetchAction
+
+    switch (selectedFilterType) {
+      case 'Branch':
+        fetchAction = fetchBranch(params)
+        break
+      case 'Cluster':
+        fetchAction = fetchCluster(params)
+        break
+      case 'Area':
+        fetchAction = fetchArea(params)
+        break
+      case 'Region':
+        fetchAction = fetchRegion(params)
+        break
+      case 'Zone':
+        fetchAction = fetchZone(params)
+        break
+      case 'Territory':
+        fetchAction = fetchTerritory(params)
+        break
+      default:
+        return
+    }
+
+    dispatch(fetchAction).then(result => {
+      if (result.payload?.data) {
+        setFilterHasMore(result.payload.data.length < result.payload.totalCount)
+      }
+    })
+  }, [dispatch, selectedFilterType, filterPage, filterLimit])
+
+  useEffect(() => {
+    if (!selectedFilterType) return
+    setFilterPage(1)
+    setSelectedFilterValues([])
+    fetchFilterValues()
+  }, [selectedFilterType, fetchFilterValues])
+
+  // Lazy loading for filter dropdown
+  useEffect(() => {
+    if (!selectedFilterType || !filterHasMore || filterSentinelRef.current === null) return
+
+    if (filterObserverRef.current) filterObserverRef.current.disconnect()
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          setFilterLimit(prev => prev + 10)
+          setFilterPage(prev => prev + 1)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    filterObserverRef.current = observer
+    if (filterSentinelRef.current) observer.observe(filterSentinelRef.current)
+
+    return () => {
+      if (filterObserverRef.current) filterObserverRef.current.disconnect()
+    }
+  }, [selectedFilterType, filterHasMore])
+
+  // Map filter values
+  const filterValuesMap = useMemo(
+    () => ({
+      Branch: fetchBranchData?.data?.map(branch => ({ id: branch.id, name: branch.name })) || [],
+      Cluster: fetchClusterData?.data?.map(cluster => ({ id: cluster.id, name: cluster.name })) || [],
+      Area: fetchAreaData?.data?.map(area => ({ id: area.id, name: area.name })) || [],
+      Region: fetchRegionData?.data?.map(region => ({ id: region.id, name: region.name })) || [],
+      Zone: fetchZoneData?.data?.map(zone => ({ id: zone.id, name: zone.name })) || [],
+      Territory: fetchTerritoryData?.data?.map(territory => ({ id: territory.id, name: territory.name })) || []
+    }),
+    [fetchBranchData, fetchClusterData, fetchAreaData, fetchRegionData, fetchZoneData, fetchTerritoryData]
+  )
+
+  const isFilterLoading =
+    fetchBranchLoading ||
+    fetchClusterLoading ||
+    fetchTerritoryLoading ||
+    fetchAreaLoading ||
+    fetchRegionLoading ||
+    fetchZoneLoading
+
+  // Handle tab change for vacancies
+  const handleTabChange = (vacancyId: string, newValue: number) => {
     setSelectedTabs(prev => ({ ...prev, [vacancyId]: newValue }))
+  }
 
-  console.log('Vacancies', visibleVacancies, vacancyListFailureMessage)
+  // Handle filter drawer toggle
+  const handleFilterDrawerToggle = () => {
+    setIsFilterDrawerOpen(prev => !prev)
+  }
 
-  // const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }: DebouncedInputProps) => {
-  //   const [value, setValue] = useState(initialValue)
-  //   useEffect(() => setValue(initialValue), [initialValue])
-  //   useEffect(() => {
-  //     const timeout = setTimeout(() => onChange(value), debounce)
-  //     return () => clearTimeout(timeout)
-  //   }, [value])
-  //   return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
-  // }
+  // Handle apply filters
+  const handleApplyFilters = () => {
+    setIsFilterDrawerOpen(false)
+    setPage(1)
+    setLimit(10)
+  }
 
-  // const CheckAllFiltersEmpty = (filters: VacancyFilters): boolean =>
-  //   Object.entries(filters).every(([key, value]) =>
-  //     Array.isArray(value)
-  //       ? key === 'salaryRange'
-  //         ? value[0] === 0 && value[1] === 0
-  //         : !value.length
-  //       : !value?.trim?.()
-  //   )
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setSelectedFilterType(null)
+    setSelectedFilterValues([])
+    setFilterPage(1)
+    setFilterLimit(10)
+    setPage(1)
+    setLimit(10)
+  }
 
-  // const handleResetFilters = () => {
-  //   setSelectedFilters({
-  //     location: [],
-  //     department: [],
-  //     employmentType: [],
-  //     experience: [],
-  //     skills: [],
-  //     salaryRange: [0, 0],
-  //     jobRole: ''
-  //   })
-  //   removeVacancyManagementFiltersFromCookie()
-  // }
+  // Check if current user is an approver with PENDING status
+  const canApproveOrFreeze = (vacancy: Vacancy) => {
+    return (
+      vacancy.approvalStatus?.some(status => status.approverId === userId && status.approvalStatus === 'PENDING') ||
+      false
+    )
+  }
 
-  // const removeSelectedFilterItem = (category: keyof VacancyFilters, value: string) =>
-  //   setSelectedFilters(prev => ({
-  //     ...prev,
-  //     [category]: category === 'jobRole' ? '' : (prev[category] as string[]).filter(item => item !== value)
-  //   }))
+  // Get IDs of PENDING vacancies for bulk actions
+  const pendingVacancyIds = useMemo(() => {
+    return visibleVacancies.filter(vacancy => canApproveOrFreeze(vacancy)).map(vacancy => vacancy.id)
+  }, [visibleVacancies, userId])
 
-  // const toggleFilter = (filterType: keyof VacancyFilters, filterValue: any) =>
-  //   setAppliedFilters(prev => {
-  //     if (filterType === 'salaryRange') {
-  //       return {
-  //         ...prev,
-  //         salaryRange:
-  //           prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1] ? [0, 0] : filterValue
-  //       }
-  //     }
-  //     if (filterType === 'jobRole') {
-  //       return { ...prev, jobRole: prev.jobRole === filterValue ? '' : filterValue }
-  //     }
-  //     return {
-  //       ...prev,
-  //       [filterType]: prev[filterType]?.includes(filterValue)
-  //         ? (prev[filterType] as string[]).filter(item => item !== value)
-  //         : [...((prev[filterType] as string[]) || []), filterValue]
-  //     }
-  //   })
+  // Handle bulk actions
+  const handleBulkAction = (status: 'APPROVED' | 'FREEZED') => {
+    if (!pendingVacancyIds.length) return
 
-  // const renderFilterChips = (category: keyof VacancyFilters) => {
-  //   switch (category) {
-  //     case 'location':
-  //     case 'department':
-  //     case 'employmentType':
-  //     case 'experience':
-  //     case 'skills':
-  //       return selectedFilters[category].map((val: string) => (
-  //         <Chip
-  //           key={val}
-  //           label={val}
-  //           variant='outlined'
-  //           color={appliedFilters[category].includes(val) ? 'primary' : 'default'}
-  //           onClick={() => toggleFilter(category, val)}
-  //           onDelete={() => removeSelectedFilterItem(category, val)}
-  //         />
-  //       ))
-  //     case 'salaryRange':
-  //       return selectedFilters.salaryRange[0] !== 0 || selectedFilters.salaryRange[1] !== 0 ? (
-  //         <Chip
-  //           key='salary-range'
-  //           label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
-  //           variant='outlined'
-  //           color={appliedFilters.salaryRange[0] !== 0 || appliedFilters.salaryRange[1] !== 0 ? 'primary' : 'default'}
-  //           onClick={() => toggleFilter('salaryRange', selectedFilters.salaryRange)}
-  //           onDelete={() => setSelectedFilters({ ...selectedFilters, salaryRange: [0, 0] })}
-  //         />
-  //       ) : null
-  //     case 'jobRole':
-  //       return selectedFilters.jobRole ? (
-  //         <Chip
-  //           key='job-role'
-  //           label={selectedFilters.jobRole}
-  //           variant='outlined'
-  //           color={appliedFilters.jobRole === selectedFilters.jobRole ? 'primary' : 'default'}
-  //           onClick={() => toggleFilter('jobRole', selectedFilters.jobRole)}
-  //           onDelete={() => removeSelectedFilterItem('jobRole', '')}
-  //         />
-  //       ) : null
-  //     default:
-  //       return null
-  //   }
-  // }
+    dispatch(updateVacancyStatus({ ids: pendingVacancyIds, status }))
+      .unwrap()
+      .then(() => {
+        toast.success(`All vacancies ${status.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+        setVisibleVacancies([])
+        setPage(1)
+        setLimit(10)
+      })
+      .catch(err => {
+        toast.error(`Failed to update vacancies: ${err}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      })
+  }
+
+  // Handle individual vacancy action
+  const handleVacancyAction = (id: string, status: 'APPROVED' | 'FREEZED') => {
+    dispatch(updateVacancyStatus({ ids: [id], status }))
+      .unwrap()
+      .then(() => {
+        toast.success(`Vacancy ${status.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+
+        // setVisibleVacancies(prev => prev.filter(v => v.id !== id))
+        setVisibleVacancies([])
+        setPage(1)
+        setLimit(10)
+      })
+      .catch(err => {
+        toast.error(`Failed to update vacancy: ${err}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      })
+  }
 
   return (
-    <Box className=''>
-      {/* <VacancyManagementFilters
-        open={addMoreFilters}
-        setOpen={setAddMoreFilters}
-        setSelectedFilters={setSelectedFilters}
-        selectedFilters={selectedFilters}
-        setAppliedFilters={setAppliedFilters}
-        handleResetFilters={handleResetFilters}
-      /> */}
+    <Box sx={{ p: 4, bgcolor: '#f9fafb' }}>
+      <ToastContainer position='top-right' autoClose={3000} />
       <Card
         sx={{
           mb: 4,
+          p: 3,
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          bgcolor: '#fff',
           position: 'sticky',
-          top: 70,
-          zIndex: 10,
-          backgroundColor: 'white',
-          height: 'auto',
-          paddingBottom: 2
+          top: 16,
+          zIndex: 10
         }}
       >
-        {viewMode === 'grid' && (
-          <Typography variant='h5' fontWeight='bold' sx={{ p: 2 }}>
-            Vacancy Listing
-          </Typography>
-        )}
-        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-2 border-bs gap-3 custom-scrollbar-xaxis'>
-          <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
+        {/* <Typography variant='h5' fontWeight={600} sx={{ mb: 3, color: '#333' }}>
+          Vacancy Management
+        </Typography> */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { md: 'center' },
+            justifyContent: 'space-between',
+            gap: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: '40%' } }}>
             <TextField
-              label='Search'
+              label='Search Vacancies'
               variant='outlined'
               size='small'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              sx={{ width: '400px', mr: 2, mt: 3 }}
+              sx={{
+                flex: 1,
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: '#e0e0e0' },
+                  '&:hover fieldset': { borderColor: '#1976d2' }
+                }
+              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: '#757575' }} />
                   </InputAdornment>
                 )
               }}
             />
-            {/* <Box sx={{ mt: 5 }}>
-              <DynamicButton
-                label='Add more filters'
-                variant='tonal'
-                icon={<i className='tabler-plus' />}
-                position='start'
-                onClick={() => setAddMoreFilters(true)}
-                children='Add more filters'
-              />
-            </Box> */}
-            {/* <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
-              <DynamicButton
-                label='Reset Filters'
-                variant='outlined'
-                icon={<RestartAlt />}
-                position='start'
-                onClick={handleResetFilters}
-                children='Reset Filters'
-                disabled={CheckAllFiltersEmpty(selectedFilters)}
-              />
-            </Box> */}
+            <IconButton
+              color='primary'
+              onClick={handleFilterDrawerToggle}
+              sx={{
+                borderRadius: '8px',
+                p: 1,
+                '&:hover': { bgcolor: 'primary.light' }
+              }}
+            >
+              <FilterListIcon />
+            </IconButton>
           </Box>
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 5 }}>
-            {/* <DynamicButton
-              label='New Vacancy'
-              variant='contained'
-              icon={<i className='tabler-plus' />}
-              position='start'
-              onClick={() => router.push(`/vacancy-management/add/new-vacancy`)}
-              children='New Vacancy'
-            /> */}
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {tabMode === 'request' && viewMode === 'grid' && (
+              <>
+                <Button
+                  variant='outlined'
+                  color='success'
+                  startIcon={<CheckCircleOutlineIcon />}
+                  onClick={() => handleBulkAction('APPROVED')}
+                  disabled={!pendingVacancyIds.length || updateVacancyStatusLoading}
+                  sx={{
+                    borderColor: 'success.main',
+                    color: 'success.main',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: 'success.main' }
+                  }}
+                >
+                  Approve All
+                </Button>
+                <Button
+                  variant='outlined'
+                  color='info'
+                  startIcon={<PauseCircleOutlineIcon />}
+                  onClick={() => handleBulkAction('FREEZED')}
+                  disabled={!pendingVacancyIds.length || updateVacancyStatusLoading}
+                  sx={{
+                    borderColor: 'info.main',
+                    color: 'info.main',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: 'info.main' }
+                  }}
+                >
+                  Freeze All
+                </Button>
+              </>
+            )}
             <Box
               sx={{
                 display: 'flex',
                 gap: 0.5,
-                alignItems: 'center',
                 padding: '2px',
-                backgroundColor: '#f5f5f5',
+                bgcolor: '#f5f5f5',
                 borderRadius: '6px',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' },
-                width: 'fit-content'
+                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
               }}
             >
               <Tooltip title='Grid View'>
@@ -479,473 +636,304 @@ const VacancyListingPage = () => {
             </Box>
           </Box>
         </Box>
-        {/* <Box>
-          {!CheckAllFiltersEmpty(selectedFilters) && (
-            <Stack direction='row' spacing={1} ml={5}>
-              <Typography component='h3' color='black'>
-                Filters
-              </Typography>
-            </Stack>
-          )}
-          <Stack direction='row' spacing={1} ml={5}>
-            <Box sx={{ overflow: 'hidden', maxWidth: '100%', display: 'flex', flexWrap: 'wrap', gap: 1, p: 1 }}>
-              {renderFilterChips('experience')}
-              {renderFilterChips('location')}
-              {renderFilterChips('department')}
-              {renderFilterChips('employmentType')}
-              {renderFilterChips('skills')}
-              {(selectedFilters.salaryRange[0] !== 0 || selectedFilters.salaryRange[1] !== 0) && (
-                <Chip
-                  key='salary-range'
-                  label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
-                  variant='outlined'
-                  color={
-                    appliedFilters.salaryRange?.[0] !== 0 || appliedFilters.salaryRange?.[1] !== 0
-                      ? 'primary'
-                      : 'default'
-                  }
-                  onClick={() => toggleFilter('salaryRange', selectedFilters.salaryRange)}
-                  onDelete={() => setSelectedFilters({ ...selectedFilters, salaryRange: [0, 0] })}
-                />
-              )}
-              {selectedFilters.jobRole && (
-                <Chip
-                  key='job-role'
-                  label={selectedFilters.jobRole}
-                  variant='outlined'
-                  color={appliedFilters.jobRole === selectedFilters.jobRole ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('jobRole', selectedFilters.jobRole)}
-                  onDelete={() => removeSelectedFilterItem('jobRole', '')}
-                />
-              )}
-            </Box>
-          </Stack>
-        </Box> */}
       </Card>
 
+      <Tabs
+        value={tabMode}
+        onChange={(e, newValue) => setTabMode(newValue as TabMode)}
+        sx={{
+          mb: 3,
+          bgcolor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <Tab label='Vacancy List' value='list' sx={{ textTransform: 'none', fontWeight: 600 }} />
+        <Tab label='Vacancy Request' value='request' sx={{ textTransform: 'none', fontWeight: 600 }} />
+      </Tabs>
+
       {vacancyListFailureMessage && (
-        <Box sx={{ mb: 4, mx: 6, justifyContent: 'center', alignItems: 'center' }}>
-          <Typography variant='h6' color='secondary'>
-            {/* {vacancyListFailureMessage} */} No vacancy data found
-          </Typography>
+        <Box sx={{ textAlign: 'center', mt: 4, color: '#757575' }}>
+          <Typography variant='h6'>No vacancy data found</Typography>
         </Box>
       )}
 
       {viewMode === 'grid' && !vacancyListLoading && visibleVacancies.length === 0 && !vacancyListFailureMessage && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='text.secondary'>
-            No search record is found
-          </Typography>
+        <Box sx={{ textAlign: 'center', mt: 4, color: '#757575' }}>
+          <Typography variant='h6'>No record found</Typography>
         </Box>
       )}
 
-      {/* {viewMode === 'grid' && vacancyListLoading && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='text.secondary'>
-            Searching...
-          </Typography>
-        </Box>
-      )} */}
-
-      {/* {viewMode === 'grid' && vacancyListFailureMessage && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          <Typography variant='h6' color='text.secondary'>
-            {searchQuery ? `No vacancies match "${searchQuery}"` : 'No vacancies found'}
-          </Typography>
-        </Box>
-      )} */}
-
-      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
-        {viewMode === 'grid' ? (
-          visibleVacancies?.map(vacancy => (
-            <Box
-              // onClick={() => router.push(`/hiring-management/vacancy-management/view/vacancy-details?id=${vacancy.id}`)}
-              onClick={() => router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(vacancy.id))}
-              key={vacancy.id}
-              className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
-              sx={{ cursor: 'pointer', minHeight: '150px' }}
-            >
-              <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
-                <Tooltip title='Job Title'>
-                  <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
-                    {vacancy.jobTitle}
-                  </Typography>
-                </Tooltip>
-                <Chip
-                  label={vacancy.status}
-                  size='small'
-                  variant='tonal'
-                  color={
-                    vacancy.status === 'Open'
-                      ? 'success'
-                      : vacancy.status === 'Closed'
-                        ? 'error'
-                        : vacancy.status === 'Freeze'
-                          ? 'info'
-                          : 'default'
+      {viewMode === 'grid' ? (
+        <>
+          <Grid container spacing={3}>
+            {visibleVacancies.map(vacancy => (
+              <Grid item xs={12} sm={6} md={4} key={vacancy.id}>
+                <Card
+                  onClick={() =>
+                    // router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW_DETAIL(vacancy.id))
+                    router.push(`/hiring-management/vacancy-management/vacancy-list/view/detail?id=${vacancy.id}`)
                   }
-                  sx={{ ml: 1, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}
-                />
-
-                {/* <Box className='flex'>
-                  <Tooltip title='Edit Vacancy' placement='top'>
-                    <IconButton
-                      sx={{ ':hover': { color: 'primary.main' }, fontSize: '1.2rem' }}
-                      onClick={e => {
-                        e.stopPropagation()
-                        router.push(`/vacancy-management/edit/${vacancy.id}`)
-                      }}
+                  sx={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+                    },
+                    bgcolor: '#fff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Tooltip title='Job Title'>
+                      <Typography variant='h6' fontWeight={600} sx={{ color: '#333', textTransform: 'capitalize' }}>
+                        {vacancy.jobTitle}
+                      </Typography>
+                    </Tooltip>
+                    <Chip
+                      label={vacancy.status}
+                      size='small'
+                      variant='tonal'
+                      color={
+                        vacancy.status === 'Open'
+                          ? 'success'
+                          : vacancy.status === 'Closed'
+                            ? 'error'
+                            : vacancy.status === 'Freeze'
+                              ? 'info'
+                              : 'default'
+                      }
+                      sx={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}
+                    />
+                  </Box>
+                  <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
+                    <Tabs
+                      value={selectedTabs[vacancy.id] || 0}
+                      onClick={e => e.stopPropagation()}
+                      onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)}
+                      sx={{ mb: 2 }}
                     >
-                      <i className='tabler-edit' />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title='Delete Vacancy' placement='top'>
-                    <IconButton
-                      sx={{ ':hover': { color: 'error.main' }, fontSize: '1.2rem' }}
+                      <Tab label='Details' sx={{ fontSize: '0.8rem', textTransform: 'none' }} />
+                      <Tab label='More Details' sx={{ fontSize: '0.8rem', textTransform: 'none' }} />
+                    </Tabs>
+                    {selectedTabs[vacancy.id] === 0 && (
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, fontSize: '0.75rem' }}>
+                        <Tooltip title='Employee Category'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <InboxOutlinedIcon fontSize='small' /> {vacancy.employeeCategory}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Hiring Manager'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <ManageAccountsRoundedIcon fontSize='small' /> {vacancy.hiringManager}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Company'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <ApartmentRoundedIcon fontSize='small' /> {vacancy.company}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Business Unit'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <BusinessCenterRoundedIcon fontSize='small' /> {vacancy.businessUnit}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Department'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <AccountTreeRoundedIcon fontSize='small' /> {vacancy.department}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Territory'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <PublicRoundedIcon fontSize='small' /> {vacancy.territory}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Region'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <PinDropRoundedIcon fontSize='small' /> {vacancy.region}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Cluster'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <HubRoundedIcon fontSize='small' /> {vacancy.cluster}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    )}
+                    {selectedTabs[vacancy.id] === 1 && (
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, fontSize: '0.75rem' }}>
+                        <Tooltip title='Designation'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <CardMembershipRoundedIcon fontSize='small' /> {vacancy.designation}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Job Role'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <EngineeringRoundedIcon fontSize='small' /> {vacancy.jobRole}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Openings'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <WorkOutlineRoundedIcon fontSize='small' /> {vacancy.openings}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Campus/Lateral'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <SchoolRoundedIcon fontSize='small' /> {vacancy.campusOrLateral}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Employee Type'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <PersonOutlineRoundedIcon fontSize='small' /> {vacancy.employeeType}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Grade'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#757575' }}>
+                            <MilitaryTechRoundedIcon fontSize='small' /> {vacancy.grade}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='Start Date'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'green' }}>
+                            <TodayRoundedIcon fontSize='small' /> {vacancy.startingDate.split('T')[0]}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title='End Date'>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'red' }}>
+                            <EventRoundedIcon fontSize='small' /> {vacancy.closingDate.split('T')[0]}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    )}
+                  </Box>
+                  {tabMode === 'request' && canApproveOrFreeze(vacancy) && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 1,
+                        bgcolor: '#fafafa',
+                        borderTop: '1px solid #e0e0e0'
+                      }}
                       onClick={e => e.stopPropagation()}
                     >
-                      <i className='tabler-trash' />
-                    </IconButton>
-                  </Tooltip>
-                </Box> */}
-              </Box>
-              <Box className='p-2 border-t'>
-                <Tabs
-                  value={selectedTabs[vacancy.id] || 0}
-                  onClick={e => e.stopPropagation()}
-                  onChange={(e, newValue) => handleTabChange(vacancy.id, newValue)}
-                  aria-label='vacancy details'
-                >
-                  <Tab label='Details' sx={{ fontSize: '11px' }} />
-                  <Tab label='More details' sx={{ fontSize: '11px' }} />
-                  {/* <Tab label='More details2' sx={{ fontSize: '11px' }} /> */}
-                </Tabs>
-                <Box className='mt-4'>
-                  {/* {selectedTabs[vacancy.id] === 0 && (
-                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <Tooltip title='Designation'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <CardMembershipOutlinedIcon fontSize='small' />: {vacancy.designation}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Job Role'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <EngineeringOutlinedIcon fontSize='small' />: {vacancy.jobRole}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Openings'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <WorkOutlineOutlinedIcon fontSize='small' />: {vacancy.openings}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Experience'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <ViewTimelineOutlinedIcon fontSize='small' />: {vacancy.experienceMin} -{' '}
-                          {vacancy.experienceMax} years
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Campus/Lateral'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <SchoolOutlinedIcon fontSize='small' />: {vacancy.campusOrLateral}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Employee Type'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <PersonOutlineOutlinedIcon fontSize='small' />: {vacancy.employeeType}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Start Date'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'green' }}
-                        >
-                          <TodayOutlinedIcon fontSize='small' />: {vacancy.startingDate.split('T')[0]}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='End Date'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'red' }}
-                        >
-                          <EventOutlinedIcon fontSize='small' />: {vacancy.closingDate.split('T')[0]}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                  )} */}
-                  {selectedTabs[vacancy.id] === 0 && (
-                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      {/* <Tooltip title='Business Role'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <CorporateFareOutlinedIcon fontSize='small' />: {vacancy.businessRole}
-                        </Typography>
-                      </Tooltip> */}
-                      <Tooltip title='Employee Category'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <InboxOutlinedIcon fontSize='small' />: {vacancy.employeeCategory}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Hiring Manager'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <ManageAccountsOutlinedIcon fontSize='small' />: {vacancy.hiringManager}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Company'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <ApartmentOutlinedIcon fontSize='small' />: {vacancy.company}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Business Unit'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <BusinessCenterOutlinedIcon fontSize='small' />: {vacancy.businessUnit}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Department'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <AccountTreeOutlinedIcon fontSize='small' />: {vacancy.department}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Territory'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <PublicOutlinedIcon fontSize='small' />: {vacancy.territory}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Region'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <PinDropOutlinedIcon fontSize='small' />: {vacancy.region}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Cluster'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <HubOutlinedIcon fontSize='small' />: {vacancy.cluster}
-                        </Typography>
-                      </Tooltip>
+                      <IconButton
+                        color='success'
+                        onClick={() => handleVacancyAction(vacancy.id, 'APPROVED')}
+                        disabled={updateVacancyStatusLoading}
+                        sx={{ '&:hover': { bgcolor: 'success.light' } }}
+                      >
+                        <CheckCircleOutlineIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        color='info'
+                        onClick={() => handleVacancyAction(vacancy.id, 'FREEZED')}
+                        disabled={updateVacancyStatusLoading}
+                        sx={{ '&:hover': { bgcolor: 'info.light' } }}
+                      >
+                        <PauseCircleOutlineIcon fontSize='small' />
+                      </IconButton>
                     </Box>
                   )}
-                  {selectedTabs[vacancy.id] === 1 && (
-                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <Tooltip title='Designation'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <CardMembershipOutlinedIcon fontSize='small' />: {vacancy.designation}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Job Role'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <EngineeringOutlinedIcon fontSize='small' />: {vacancy.jobRole}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Openings'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <WorkOutlineOutlinedIcon fontSize='small' />: {vacancy.openings}
-                        </Typography>
-                      </Tooltip>
-                      {/* <Tooltip title='Experience'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <ViewTimelineOutlinedIcon fontSize='small' />: {vacancy.experienceMin} -{' '}
-                          {vacancy.experienceMax} years
-                        </Typography>
-                      </Tooltip> */}
-                      <Tooltip title='Campus/Lateral'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <SchoolOutlinedIcon fontSize='small' />: {vacancy.campusOrLateral}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Employee Type'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <PersonOutlineOutlinedIcon fontSize='small' />: {vacancy.employeeType}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Employee Type'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <MilitaryTechOutlinedIcon fontSize='small' />: {vacancy.grade}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Start Date'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'green' }}
-                        >
-                          <TodayOutlinedIcon fontSize='small' />: {vacancy.startingDate.split('T')[0]}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='End Date'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'red' }}
-                        >
-                          <EventOutlinedIcon fontSize='small' />: {vacancy.closingDate.split('T')[0]}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                  )}
-                  {selectedTabs[vacancy.id] === 2 && (
-                    <Box className='text-sm text-gray-700 grid grid-cols-2 gap-y-2'>
-                      <Tooltip title='Area'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <ExploreOutlinedIcon fontSize='small' />: {vacancy.area}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Branch'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <StoreOutlinedIcon fontSize='small' />: {vacancy.branch}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Branch Code'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <CodeOutlinedIcon fontSize='small' />: {vacancy.branchCode}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='City'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <LocationCityOutlinedIcon fontSize='small' />: {vacancy.city}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='State'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <FlagOutlinedIcon fontSize='small' />: {vacancy.state}
-                        </Typography>
-                      </Tooltip>
-                      <Tooltip title='Origin'>
-                        <Typography
-                          variant='body2'
-                          fontSize='10px'
-                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                        >
-                          <SourceOutlinedIcon fontSize='small' />: {vacancy.origin}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+          {hasMore && viewMode === 'grid' && (
+            <Box ref={sentinelRef} sx={{ display: 'flex', justifyContent: 'center', mt: 4, height: '40px' }}>
+              {vacancyListLoading && <CircularProgress size={24} />}
             </Box>
-          ))
-        ) : (
-          <VacancyListingTableView />
-        )}
-      </Box>
+          )}
+        </>
+      ) : (
+        <VacancyListingTableView tabMode={tabMode} />
+      )}
 
-      {viewMode === 'grid' && visibleVacancies.length < vacancyListTotal && !noMoreData && (
-        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography>{vacancyListLoading ? 'Loading more...' : 'Scroll to load more'}</Typography>
+      <Drawer
+        anchor='right'
+        open={isFilterDrawerOpen}
+        onClose={handleFilterDrawerToggle}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: '80%', sm: 400 }, p: 3, bgcolor: '#fff' } }}
+      >
+        <Typography variant='h6' fontWeight={600} sx={{ mb: 3, color: '#333' }}>
+          Filter Options
+        </Typography>
+        <Autocomplete
+          options={filterOptions}
+          value={selectedFilterType}
+          onChange={(e, newValue) => {
+            setSelectedFilterType(newValue as FilterType)
+            setSelectedFilterValues([])
+            setFilterPage(1)
+            setFilterLimit(10)
+          }}
+          renderInput={params => <TextField {...params} label='Filter Type' variant='outlined' size='small' />}
+          sx={{ mb: 3 }}
+        />
+        {isFilterLoading && !filterValuesMap[selectedFilterType || 'Branch'].length ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Autocomplete
+            multiple
+            options={selectedFilterType ? filterValuesMap[selectedFilterType].map(item => item.id) : []}
+            getOptionLabel={option =>
+              selectedFilterType
+                ? filterValuesMap[selectedFilterType].find(item => item.id === option)?.name || option
+                : option
+            }
+            value={selectedFilterValues}
+            onChange={(e, newValue) => setSelectedFilterValues(newValue)}
+            disabled={!selectedFilterType}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label='Filter Values'
+                variant='outlined'
+                size='small'
+                sx={{
+                  '& .MuiInputBase-input': {
+                    color: !selectedFilterType ? 'text.disabled' : 'text.primary'
+                  }
+                }}
+              />
+            )}
+            ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
+            sx={{ mb: 3 }}
+          />
+        )}
+        {filterHasMore && selectedFilterType && (
+          <Box ref={filterSentinelRef} sx={{ height: '20px', textAlign: 'center' }}>
+            {isFilterLoading && <CircularProgress size={16} />}
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant='contained'
+            color='primary'
+            onClick={handleApplyFilters}
+            fullWidth
+            sx={{ borderRadius: '8px' }}
+          >
+            Apply Filters
+          </Button>
+          <Button
+            variant='outlined'
+            color='secondary'
+            onClick={handleResetFilters}
+            fullWidth
+            sx={{ borderRadius: '8px' }}
+          >
+            Reset
+          </Button>
         </Box>
-      )}
-      {viewMode === 'grid' && noMoreData && visibleVacancies.length > 0 && (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography>No more vacancies to load</Typography>
-        </Box>
-      )}
+      </Drawer>
     </Box>
   )
 }

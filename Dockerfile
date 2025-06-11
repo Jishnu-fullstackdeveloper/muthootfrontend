@@ -1,19 +1,41 @@
-# Base image
-FROM node:18-alpine as base
-RUN apk add --no-cache g++ make py3-pip libc6-compat
+# 1️⃣ Base image with Node
+FROM node:18-alpine AS base
 WORKDIR /app
+
+# Optional: Speed up native package builds
+RUN apk add --no-cache libc6-compat
+
+# Install only dependencies first for better caching
 COPY package*.json ./
-EXPOSE 3000
+RUN npm ci --omit=dev
+
+RUN npm install
+
+# 2️⃣ Build Stage
+FROM base AS builder
 COPY . .
-RUN npm install --force # Install all dependencies for development
-RUN npm install tsx --force
-# Development stage
-FROM base as dev
-ENV NODE_ENV=development
+
+# Set environment to production for build optimization
+ENV NODE_ENV=production
+
+# Next.js build (includes .next, public, etc.)
+RUN npm run build
+
+# 3️⃣ Final Runtime Image
+FROM node:18-alpine AS runner
+
+# Install minimal dependencies for runtime
 WORKDIR /app
-RUN npm run build:icons
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
 
-# Copy all project files (avoiding this if using bind mounts)
-COPY . .
+ENV NODE_ENV=production
+ENV PORT=3000
 
-CMD ["npm", "run", "dev"]
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Start Next.js in standalone or server mode
+CMD ["npm", "start"]

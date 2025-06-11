@@ -3,17 +3,17 @@
 import React, { useMemo } from 'react'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { Box, Card, IconButton, Typography } from '@mui/material'
+import { Card, IconButton, Typography } from '@mui/material'
 import { Visibility as VisibilityIcon } from '@mui/icons-material'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface JobPosting {
-  id: number
-  designation: string // Renamed from title
-  jobRole: string // Added new field
+  id: string // Changed to string for UUID
+  designation: string
+  jobRole: string
   location: string
-  status: 'Hiring' | 'In Progress' | 'Completed' // Updated status values
+  status: 'CREATED' | 'Hiring' | 'In Progress' | 'Completed' // Added CREATED
   openings: number
   candidatesApplied: number
   shortlisted: number
@@ -27,7 +27,7 @@ interface JobTableProps {
   totalCount: number
   onPageChange: (newPage: number) => void
   onRowsPerPageChange: (newPageSize: number) => void
-  handleView: (jobId: number) => void
+  handleView: (jobId: string) => void
 }
 
 const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageChange, handleView }: JobTableProps) => {
@@ -64,7 +64,9 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
                 ? 'success.main'
                 : row.original.status === 'In Progress'
                   ? 'warning.main'
-                  : 'error.main'
+                  : row.original.status === 'CREATED'
+                    ? 'info.main'
+                    : 'error.main'
             }
           >
             {row.original.status}
@@ -82,8 +84,19 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
       columnHelper.accessor('hired', {
         header: 'No. of Hired Candidates',
         cell: ({ row }) => <Typography>{row.original.hired}</Typography>
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <IconButton
+            onClick={() => handleView(row.original.id)}
+            aria-label={`View candidates for job ${row.original.id}`}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        )
       })
-     
     ],
     [columnHelper, handleView]
   )
@@ -98,7 +111,9 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
         totalCount={totalCount}
         onPageChange={newPage => onPageChange(newPage + 1)}
         onRowsPerPageChange={onRowsPerPageChange}
-        rowHoverStyle={{ cursor: 'pointer', backgroundColor: '#f5f5f5' }}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Card>
   )

@@ -50,7 +50,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { fetchInitialLoginURL, fetchPermissionRenderConfig } from '@/redux/loginSlice'
 
-import { getAccessToken, setPermissionRenderConfig } from '@/utils/functions'
+import { getAccessToken } from '@/utils/functions'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -110,7 +110,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
   // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const { firstLoginData, loginErrorMessage, loginFailure, fetchPermissionRenderConfigData }: any = useSelector(
+  const { fetchInitialLoginURLData, loginErrorMessage, loginFailure }: any = useSelector(
     (state: any) => state.loginReducer
   )
 
@@ -131,10 +131,14 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
     setDisplayLoginPage(false)
     setIsPasswordShown(false)
 
-    if (Object?.entries(firstLoginData)?.length !== 0 && firstLoginData?.url) {
-      window.location.replace(firstLoginData?.url)
+    if (
+      fetchInitialLoginURLData &&
+      Object.entries(fetchInitialLoginURLData).length !== 0 &&
+      fetchInitialLoginURLData?.url
+    ) {
+      window.location.replace(fetchInitialLoginURLData.url)
     }
-  }, [firstLoginData])
+  }, [fetchInitialLoginURLData])
 
   //for entering to the dashboard if their is an access token
   useEffect(() => {
@@ -146,6 +150,8 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       }
     }
   }, [])
+
+  isPasswordShown
 
   useEffect(() => {
     if (loginFailure) {

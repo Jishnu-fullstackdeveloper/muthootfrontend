@@ -17,7 +17,7 @@ export interface Employee {
   bandId: string
   designationId: string
   employeeDetails: {
-    noticePeriod: string
+    noticePeriod: number
     band: string
     grade: string
     groupDOJ: string
@@ -105,8 +105,8 @@ export interface Employee {
   personalDetails: {
     isDisability: any
     typeOfDisability: string
-    nameAsPerAadhar: string
-    aadharNumber: string
+    nameAsPerAdhaar: string
+    adharNo: number
     gender: string
     religion: string
     birthPlace: string

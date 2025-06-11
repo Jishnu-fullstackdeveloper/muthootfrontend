@@ -15,11 +15,17 @@ import {
   Autocomplete
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
+
+import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
+
+import { toast, ToastContainer } from 'react-toastify'
 
 import DataUploadTableList from './DataUploadTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchDataUploads, createDataUpload, fetchUploadCategories } from '@/redux/DataUpload/dataUploadSlice'
+
+// Import react-toastify for toast messages
+import 'react-toastify/dist/ReactToastify.css'
 
 //import DataUploadTable from './DataUploadTable'
 
@@ -107,6 +113,17 @@ const DataUploadListingPage = () => {
 
         console.log('File uploaded successfully:', result)
 
+        // Show success toast message
+        toast.success(result.message || 'File uploaded successfully!', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
+
         // Refresh the data after successful upload
         dispatch(
           fetchDataUploads({
@@ -115,13 +132,35 @@ const DataUploadListingPage = () => {
             search: searchQuery.trim() || undefined
           })
         )
-      } catch (error) {
+      } catch (error: any) {
         console.error('File upload failed:', error)
+
+        // Show error toast message
+        toast.error(error || 'Failed to upload file. Please try again.', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined
+        })
       }
 
       handleDialogClose()
     } else {
       console.log('Please select a file and category')
+
+      // Show warning toast if file or category is missing
+      toast.warn('Please select a file and category', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined
+      })
     }
   }
 
@@ -146,7 +185,7 @@ const DataUploadListingPage = () => {
               size='small'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              sx={{ width: '400px' }}
+              sx={{ width: '300px' }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
@@ -162,9 +201,15 @@ const DataUploadListingPage = () => {
                 variant='contained'
                 color='primary'
                 onClick={handleUploadClick}
-                sx={{ minWidth: '70px', textTransform: 'none' }}
+                sx={{
+                  minWidth: '70px',
+                  textTransform: 'none',
+                  boxShadow: 3,
+                  border: '2px solid white',
+                  borderRadius: 2
+                }}
                 size='small'
-                startIcon={<FileUploadOutlinedIcon fontSize='medium' />}
+                startIcon={<UploadOutlinedIcon fontSize='large' />}
               >
                 Upload
               </Button>
@@ -221,6 +266,19 @@ const DataUploadListingPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add ToastContainer for toast messages */}
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   )
 }

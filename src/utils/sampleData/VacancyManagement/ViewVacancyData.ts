@@ -20,11 +20,14 @@ export const viewVacancy = {
     { label: 'Behavioral Attributes', value: 'Adaptability, Problem-solving' }
   ],
   numberOfOpenings: 5,
+
   //branch: 'Head Office',
   grade: 'A',
+
   //city: 'Bangalore',
   stateRegion: 'Karnataka',
   country: 'India',
+
   //zone: 'Bellari',
   educationalQualification: "Bachelor's Degree in Computer Science or related field",
   experience: 3,

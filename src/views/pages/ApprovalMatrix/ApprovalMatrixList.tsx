@@ -3,11 +3,12 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, Button, Card, TextField, InputAdornment } from '@mui/material' //IconButton //Tooltip
+import { Box, Typography, Card, TextField, InputAdornment, Tooltip, IconButton, CircularProgress } from '@mui/material' //IconButton //Tooltip
 import SearchIcon from '@mui/icons-material/Search'
 
 //import VisibilityIcon from '@mui/icons-material/Visibility'
-import AddIcon from '@mui/icons-material/Add'
+//import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 
 //import EditIcon from '@mui/icons-material/Edit'
 //import DeleteIcon from '@mui/icons-material/Delete'
@@ -16,20 +17,34 @@ import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchApprovalCategories, fetchApprovalMatrices } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
+import { fetchApprovalMatrices, fetchApprovalCategoryById } from '@/redux/approvalMatrixSlice' //deleteApprovalMatrix
 import DynamicTable from '@/components/Table/dynamicTable' // Adjust the import path as needed
 //import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Import the ConfirmModal
 //import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix'
+import { ROUTES } from '@/utils/routes'
+
+// Import types from the new file
+import type {
+  ApprovalMatrix,
+  GroupedCategory,
+  FormattedData,
+  PaginatedGroupedData,
+  PaginationState
+} from '@/types/approvalMatrix' // Adjust the path as needed
+//import DynamicButton from '@/components/Button/dynamicButton'
 
 const ApprovalMatrixList = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const columnHelper = createColumnHelper<any>()
+  const columnHelper = createColumnHelper<FormattedData>()
 
   const { approvalMatrixData, status } = useAppSelector(state => state.approvalMatrixReducer) //totalItems
+  // const { approvalMatrixData, status } = useAppSelector(
+  //   (state: { approvalMatrixReducer: ApprovalMatrixState }) => state.approvalMatrixReducer
+  // )
 
   // Pagination state (0-based for table)
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0, // Changed to 0-based index for table compatibility
     pageSize: 5
   })
@@ -46,6 +61,68 @@ const ApprovalMatrixList = () => {
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
+  // useEffect(() => {
+  //   // Clear the previous timeout
+  //   if (debounceTimeout.current) {
+  //     clearTimeout(debounceTimeout.current)
+  //   }
+
+  //   // Set a new timeout
+  //   debounceTimeout.current = setTimeout(() => {
+  //     if (searchQuery.trim() === '') {
+  //       // Fetch all matrices when search is cleared
+  //       dispatch(
+  //         fetchApprovalMatrices({
+  //           page: 1,
+  //           limit: 1000
+  //         })
+  //       )
+  //     } else {
+  //       // Fetch categories for search
+  //       dispatch(
+  //         fetchApprovalCategories({
+  //           page: 1,
+  //           limit: 1000,
+  //           search: searchQuery
+  //         })
+  //       )
+  //     }
+  //   }, 300) // 300ms delay - adjust as needed
+
+  //   // Cleanup function to clear timeout if component unmounts
+  //   return () => {
+  //     if (debounceTimeout.current) {
+  //       clearTimeout(debounceTimeout.current)
+  //     }
+  //   }
+  // }, [searchQuery, dispatch])
+
+  // useEffect(() => {
+  //   // Clear the previous timeout
+  //   if (debounceTimeout.current) {
+  //     clearTimeout(debounceTimeout.current)
+  //   }
+
+  //   // Set a new timeout
+  //   debounceTimeout.current = setTimeout(() => {
+  //     // Fetch categories with or without search query
+  //     dispatch(
+  //       fetchApprovalCategories({
+  //         page: 1,
+  //         limit: 1000,
+  //         search: searchQuery.trim() === '' ? undefined : searchQuery
+  //       })
+  //     )
+  //   }, 300) // 300ms delay - adjust as needed
+
+  //   // Cleanup function to clear timeout if component unmounts
+  //   return () => {
+  //     if (debounceTimeout.current) {
+  //       clearTimeout(debounceTimeout.current)
+  //     }
+  //   }
+  // }, [searchQuery, dispatch])
+
   useEffect(() => {
     // Clear the previous timeout
     if (debounceTimeout.current) {
@@ -54,25 +131,14 @@ const ApprovalMatrixList = () => {
 
     // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
-      if (searchQuery.trim() === '') {
-        // Fetch all matrices when search is cleared
-        dispatch(
-          fetchApprovalMatrices({
-            page: 1,
-            limit: 1000
-          })
-        )
-      } else {
-        // Fetch categories for search
-        dispatch(
-          fetchApprovalCategories({
-            page: 1,
-            limit: 1000,
-            search: searchQuery
-          })
-        )
-      }
-    }, 300) // 300ms delay - adjust as needed
+      // Fetch matrices with or without search query
+      dispatch(
+        fetchApprovalMatrices({
+          page: 1,
+          limit: 1000
+        })
+      )
+    }, 300)
 
     // Cleanup function to clear timeout if component unmounts
     return () => {
@@ -80,52 +146,68 @@ const ApprovalMatrixList = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [searchQuery, dispatch])
+  }, [searchQuery, dispatch, router]) // Add router to trigger fetch on navigation
 
-  // Process the approvalMatrixData to group by approvalCategoryId and filter based on search query
-  const groupedData = React.useMemo(() => {
-    const grouped = approvalMatrixData.reduce(
-      (acc, item) => {
-        const categoryId = item.approvalCategoryId
+  // Process the approvalMatrices to format data for the table and filter based on search query
+  const groupedData = React.useMemo((): FormattedData[] => {
+    // If approvalMatrixData is not an array, return an empty array
+    if (!Array.isArray(approvalMatrixData)) {
+      return []
+    }
+
+    // Group approval matrices by approvalCategoryId
+    const groupedByCategory = approvalMatrixData.reduce(
+      (acc: Record<string, GroupedCategory>, matrix: ApprovalMatrix) => {
+        const categoryId = matrix.approvalCategoryId
 
         if (!acc[categoryId]) {
           acc[categoryId] = {
-            id: item.id, // Use the first item's ID for simplicity
-            approvalCategories: item.approvalCategories,
-            designations: [],
-            grades: [],
-            level: 0, // We'll use the max level as numberOfLevels
-            matrixIds: [] // Store all matrix IDs for this category
+            id: categoryId,
+            approvalCategories: matrix.approvalCategories,
+            matrices: []
           }
         }
 
-        acc[categoryId].designations.push(item.designation)
-        acc[categoryId].grades.push(item.grade)
-        acc[categoryId].level = Math.max(acc[categoryId].level, item.level) // Update max level
-        acc[categoryId].matrixIds.push(item.id) // Collect matrix ID
+        acc[categoryId].matrices.push(matrix)
 
         return acc
       },
-      {} as Record<string, any>
+      {}
     )
 
-    const groupedArray = Object.values(grouped)
+    // Convert grouped data into the format required by the table
+    const formattedData: FormattedData[] = Object.values(groupedByCategory).map((group: GroupedCategory) => ({
+      id: group.id,
+      approvalCategories: {
+        id: group?.approvalCategories?.id,
+        name: group?.approvalCategories?.name,
+        description: group?.approvalCategories?.description
+      },
+      approver: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.approver || 'No Approver') : [],
+      grades: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.grade || 'No Grade') : [],
+      level:
+        group.matrices && group.matrices.length > 0
+          ? Math.max(...group.matrices.map((matrix: ApprovalMatrix) => matrix.level || 0))
+          : 0,
+      matrixIds: group.matrices ? group.matrices.map((matrix: ApprovalMatrix) => matrix.id) : []
+    }))
 
     // Filter based on search query
     if (searchQuery.trim() === '') {
-      return groupedArray
+      return formattedData
     }
 
-    // Filter approvalMatrixData based on approvalCategories.name
-    return groupedArray.filter((group: any) =>
+    return formattedData.filter((group: FormattedData) =>
       group.approvalCategories.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
   }, [approvalMatrixData, searchQuery])
 
   // Slice the grouped data for client-side pagination
-  const paginatedGroupedData = React.useMemo(() => {
+  const paginatedGroupedData = React.useMemo((): PaginatedGroupedData => {
     const startIndex = pagination.pageIndex * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
+
+    console.log(groupedData)
 
     return {
       data: groupedData.slice(startIndex, endIndex),
@@ -155,8 +237,96 @@ const ApprovalMatrixList = () => {
   //     grade: JSON.stringify(grades)
   //   }).toString()
 
-  //   router.push(`/approval-matrix/edit/edit-approval?${queryParams}`)
+  //   router.push(`/system-management/approval-matrix/edit/edit-approval?${queryParams}`)
   // }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const handleEdit = (rowData: FormattedData) => {
+  //   // Map the approvers to the designation or level format expected by the form
+  //   const designations = rowData.approver.map((approver: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique designation ID
+  //     name: approver === 'No Approver' ? '' : approver
+  //   }))
+
+  //   const grades = rowData.grades.map((grade: string, index: number) => ({
+  //     id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique grade ID
+  //     name: grade === 'No Grade' ? '' : grade
+  //   }))
+
+  //   const queryParams = new URLSearchParams({
+  //     id: rowData.matrixIds.join(','), // Pass all matrix IDs as a comma-separated string
+  //     approvalCategoryId: rowData.approvalCategories.id,
+  //     approvalCategory: rowData.approvalCategories.name,
+  //     numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+  //     description: rowData.approvalCategories.description,
+  //     designationName: JSON.stringify(designations), // Pass approvers as designations
+  //     grade: JSON.stringify(grades)
+  //   }).toString()
+
+  //   router.push(`/system-management/approval-matrix/edit/edit-approval?${queryParams}`)
+  // }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleEdit = async (rowData: FormattedData) => {
+    try {
+      // Fetch approval category details to get the approverType
+      const response = await dispatch(fetchApprovalCategoryById(rowData.approvalCategories.id)).unwrap()
+      const approverType = response.approverType || 'Designation' // Default to 'Designation' if not found
+
+      // Map the approvers to the format expected by the form
+      const approvers = rowData.approver.map((approver: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique ID
+        name: approver === 'No Approver' ? '' : approver
+      }))
+
+      const grades = rowData.grades.map((grade: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`, // Use matrix ID for unique grade ID
+        name: grade === 'No Grade' ? '' : grade
+      }))
+
+      const queryParams = new URLSearchParams({
+        id: rowData.matrixIds.join(','), // Pass all matrix IDs as a comma-separated string
+        approvalCategoryId: rowData?.approvalCategories?.id,
+        approvalCategory: rowData?.approvalCategories?.name,
+        numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+        description: rowData?.approvalCategories?.description,
+
+        // Conditionally pass either designationName or level based on approverType
+        ...(approverType === 'Level'
+          ? { level: JSON.stringify(approvers) }
+          : { designationName: JSON.stringify(approvers) }),
+        grade: JSON.stringify(grades)
+      }).toString()
+
+      router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_EDIT(queryParams))
+    } catch (error) {
+      console.error('Error fetching approval category details:', error)
+
+      // Fallback behavior in case of error
+      const approvers = rowData.approver.map((approver: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`,
+        name: approver === 'No Approver' ? '' : approver
+      }))
+
+      const grades = rowData.grades.map((grade: string, index: number) => ({
+        id: `${rowData.matrixIds[index]}-${index}`,
+        name: grade === 'No Grade' ? '' : grade
+      }))
+
+      const queryParams = new URLSearchParams({
+        id: rowData.matrixIds.join(','),
+        approvalCategoryId: rowData.approvalCategories.id,
+        approvalCategory: rowData.approvalCategories.name,
+        numberOfLevels: rowData.level === 0 ? '1' : rowData.level.toString(),
+        description: rowData.approvalCategories.description,
+        designationName: JSON.stringify(approvers),
+        level: JSON.stringify(approvers),
+        grade: JSON.stringify(grades)
+      }).toString()
+
+      router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_EDIT(queryParams))
+    }
+  }
 
   // // Handle delete action (open modal)
   // // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,7 +357,7 @@ const ApprovalMatrixList = () => {
   // }
 
   // Define columns for the table
-  const columns = React.useMemo<ColumnDef<any, any>[]>(
+  const columns = React.useMemo<ColumnDef<FormattedData, any>[]>(
     () => [
       columnHelper.accessor('approvalCategories.name', {
         header: 'APPROVAL CATEGORY',
@@ -204,90 +374,196 @@ const ApprovalMatrixList = () => {
           <Typography color='text.primary'>{row.original.level === 0 ? 1 : row.original?.level}</Typography>
         )
       }),
-      columnHelper.accessor('designations', {
-        header: 'DESIGNATION',
-        cell: ({ row }) =>
-          Array.isArray(row.original.designations) && row.original.designations.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              {row.original.designations.map((designation: string, index: number) => (
-                <li key={index}>
-                  <Typography color='text.primary' variant='body2'>
-                    {designation}
-                  </Typography>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Typography color='text.primary' variant='body2'>
-              No Designation
-            </Typography>
-          )
-      }),
-      columnHelper.accessor('grades', {
-        header: 'GRADE',
-        cell: ({ row }) =>
-          Array.isArray(row.original.grades) && row.original.grades.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              {row.original.grades.map((grade: string, index: number) => (
-                <li key={index}>
-                  <Typography color='text.primary' variant='body2'>
-                    {grade}
-                  </Typography>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Typography color='text.primary' variant='body2'>
-              No Grade
-            </Typography>
-          )
-      })
 
-      // columnHelper.accessor('action', {
-      //   header: 'ACTIONS',
-      //   meta: { className: 'sticky right-0' },
-      //   cell: ({ row }) => (
-      //     <Box className='flex items-center'>
-      //       {/* <Tooltip title='View' placement='top'>
-      //         <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
-      //           <VisibilityIcon />
-      //         </IconButton>
-      //       </Tooltip> */}
-      //       <Tooltip title='Edit' placement='top'>
-      //         <IconButton
-      //           onClick={e => {
-      //             e.stopPropagation()
-      //             handleEdit(row.original)
-      //           }}
-      //           sx={{ fontSize: 18 }}
-      //           aria-label='edit'
-      //         >
-      //           <EditIcon />
-      //         </IconButton>
-      //       </Tooltip>
-      //       <Tooltip title='Delete' placement='top'>
-      //         <IconButton
-      //           onClick={e => {
-      //             e.stopPropagation()
-      //             handleDelete(row.original)
-      //           }}
-      //           sx={{ fontSize: 18 }}
-      //           aria-label='delete'
-      //         >
-      //           <DeleteIcon />
-      //         </IconButton>
-      //       </Tooltip>
-      //     </Box>
-      //   ),
-      //   enableSorting: false
-      // })
+      // columnHelper.accessor('approver', {
+      //   header: 'APPROVER',
+      //   cell: ({ row }) => {
+      //     // eslint-disable-next-line react-hooks/rules-of-hooks
+      //     const [showAll, setShowAll] = useState(false)
+      //     const approvers = Array.isArray(row.original.approver) ? row.original.approver : []
+      //     const displayedApprovers = showAll ? approvers : approvers.slice(0, 2)
+
+      //     return (
+      //       <Box>
+      //         <ul style={{ margin: 0, paddingLeft: '20px' }}>
+      //           {displayedApprovers.length > 0 ? (
+      //             displayedApprovers.map((approver: string, index: number) => (
+      //               <li key={index}>
+      //                 <Typography color='text.primary' variant='body2'>
+      //                   {approver}
+      //                 </Typography>
+      //               </li>
+      //             ))
+      //           ) : (
+      //             <Typography color='text.primary' variant='body2'>
+      //               No Designation
+      //             </Typography>
+      //           )}
+      //           {approvers.length > 2 && (
+      //             <Typography
+      //               color='primary'
+      //               variant='body2'
+      //               sx={{ cursor: 'pointer', mt: 1 }}
+      //               onClick={() => setShowAll(!showAll)}
+      //             >
+      //               {showAll ? 'Show Less' : 'Show More'}
+      //             </Typography>
+      //           )}
+      //         </ul>
+      //         {/* {approvers.length > 2 && (
+      //           <Typography
+      //             color='primary'
+      //             variant='body2'
+      //             sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1 }}
+      //             onClick={() => setShowAll(!showAll)}
+      //           >
+      //             {showAll ? 'Show Less' : 'Show More'}
+      //           </Typography>
+      //         )} */}
+      //       </Box>
+      //     )
+      //   }
+      // }),
+
+      // columnHelper.accessor('grades', {
+      //   header: 'GRADE',
+      //   cell: ({ row }) => {
+      //     // eslint-disable-next-line react-hooks/rules-of-hooks
+      //     const [showAll, setShowAll] = useState(false)
+      //     const grades = Array.isArray(row.original.grades) ? row.original.grades : []
+      //     const displayedGrades = showAll ? grades : grades.slice(0, 2)
+
+      //     return (
+      //       <Box>
+      //         <ul style={{ margin: 0, paddingLeft: '20px' }}>
+      //           {displayedGrades.length > 0 ? (
+      //             displayedGrades.map((grade: string, index: number) => (
+      //               <li key={index}>
+      //                 <Typography color='text.primary' variant='body2'>
+      //                   {grade}
+      //                 </Typography>
+      //               </li>
+      //             ))
+      //           ) : (
+      //             <Typography color='text.primary' variant='body2'>
+      //               No Grade
+      //             </Typography>
+      //           )}
+      //           {grades.length > 2 && (
+      //             <Typography
+      //               color='primary'
+      //               variant='body2'
+      //               sx={{ cursor: 'pointer', mt: 1 }}
+      //               onClick={() => setShowAll(!showAll)}
+      //             >
+      //               {showAll ? 'Show Less' : 'Show More'}
+      //             </Typography>
+      //           )}
+      //         </ul>
+      //         {/* {grades.length > 2 && (
+      //           <Typography
+      //             color='primary'
+      //             variant='body2'
+      //             sx={{ cursor: 'pointer', textDecoration: 'underline', mt: 1, ml: 5 }}
+      //             onClick={() => setShowAll(!showAll)}
+      //           >
+      //             {showAll ? 'Show Less' : 'Show More'}
+      //           </Typography>
+      //         )} */}
+      //       </Box>
+      //     )
+      //   }
+      // }),
+
+      columnHelper.accessor('approver', {
+        header: 'APPROVER',
+        cell: ({ row }) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const [showAll, setShowAll] = useState(false)
+          const approvers = Array.isArray(row.original.approver) ? row.original.approver : []
+
+          // Transform approvers to remove underscores for display
+          const displayedApprovers = (showAll ? approvers : approvers.slice(0, 2)).map(approver =>
+            approver === 'No Approver' ? approver : approver.replace(/_/g, ' ')
+          )
+
+          return (
+            <Box>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {displayedApprovers.length > 0 ? (
+                  displayedApprovers.map((approver: string, index: number) => (
+                    <li key={index}>
+                      <Typography color='text.primary' variant='body2'>
+                        {approver}
+                      </Typography>
+                    </li>
+                  ))
+                ) : (
+                  <Typography color='text.primary' variant='body2'>
+                    No Designation
+                  </Typography>
+                )}
+                {approvers.length > 2 && (
+                  <Typography
+                    color='primary'
+                    variant='body2'
+                    sx={{ cursor: 'pointer', mt: 1 }}
+                    onClick={() => setShowAll(!showAll)}
+                  >
+                    {showAll ? 'Show Less' : 'Show More'}
+                  </Typography>
+                )}
+              </ul>
+            </Box>
+          )
+        }
+      }),
+
+      columnHelper.accessor('action', {
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            {/* <Tooltip title='View' placement='top'>
+              <IconButton onClick={() => handleView(row.original)} sx={{ fontSize: 18 }} aria-label='view'>
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip> */}
+            <Tooltip title='Edit' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleEdit(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='edit'
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            {/* <Tooltip title='Delete' placement='top'>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  handleDelete(row.original)
+                }}
+                sx={{ fontSize: 18 }}
+                aria-label='delete'
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip> */}
+          </Box>
+        ),
+        enableSorting: false
+      })
     ],
-    [columnHelper]
+    [columnHelper, handleEdit]
   )
 
   // Pagination handlers for DynamicTable
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({
+    setPagination((prev: PaginationState) => ({
       ...prev,
       pageIndex: newPage
     }))
@@ -306,7 +582,7 @@ const ApprovalMatrixList = () => {
 
   return (
     <>
-      <Box className='flex justify-between p-1 w-full'>
+      <Box className='flex justify-between  w-full'>
         <Card
           className='flex justify-between w-full'
           sx={{
@@ -323,10 +599,10 @@ const ApprovalMatrixList = () => {
           <TextField
             label='Search by approval categories'
             variant='outlined'
-            size='small' // Reduces the height to a smaller predefined size
+            size='small'
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            sx={{ width: '400px', mr: 2 }} // Margin-right to separate from the button
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            sx={{ width: '300px', mr: 2 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -335,43 +611,42 @@ const ApprovalMatrixList = () => {
               )
             }}
           />
-          <Button
+
+          {/* <DynamicButton
+            label='New Approval'
             variant='contained'
-            size='small' // Reduces the height to a smaller predefined size
-            onClick={() => router.push(`/approval-matrix/add/new-approval`)}
-            sx={{ padding: '6px 16px' }} // Optional: Fine-tune padding to match TextField height
-          >
-            <AddIcon sx={{ mr: 1, width: 16 }} /> {/* Reduced icon size slightly */}
-            New Approval
-          </Button>
+            icon={<AddIcon />}
+            position='start'
+            onClick={() => router.push(ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX_ADD)}
+            children='New Approval'
+          /> */}
         </Card>
       </Box>
 
-      {status === 'loading' && <Typography>Loading...</Typography>}
-      {status === 'failed' && <Typography color='error'>Error: Failed to load data</Typography>}
-      {status === 'succeeded' && (
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {status === 'failed' && <Typography align='center'>No data found</Typography>}
+      {status === 'succeeded' && searchQuery.trim() !== '' && groupedData.length === 0 && (
+        <Typography align='center'>No search item is found</Typography>
+      )}
+      {status === 'succeeded' && (searchQuery.trim() === '' || groupedData.length > 0) && (
         <DynamicTable
           columns={columns}
-          data={paginatedGroupedData.data} // Use paginated grouped data
-          totalCount={paginatedGroupedData.totalCount} // Use total grouped count
-          pagination={pagination} // Pass 0-based pagination directly
-          sorting={sorting} // Pass sorting state to control table sorting
-          onSortingChange={setSorting} // Handle sorting changes
-          initialState={{ sorting: [] }} // Ensure no default sorting
+          data={paginatedGroupedData.data}
+          totalCount={paginatedGroupedData.totalCount}
+          pagination={pagination}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          initialState={{ sorting: [] }}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onPageCountChange={handlePageCountChange} // Added for consistency
+          onPageCountChange={handlePageCountChange}
           tableName='Approvals Listing'
         />
       )}
-
-      {/* Delete Confirmation Modal */}
-      {/* <ConfirmModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        id={matrixIdsToDelete[0] || null} // Pass the first ID for compatibility with ConfirmModal
-      /> */}
     </>
   )
 }

@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import CandidateListing from './candidateListing';
-import JdDetails from './jdDetails';
-import VacancyDetails from './vaccancyDetails';
-import { Box, Tabs, Tab } from '@mui/material';
+import { useState } from 'react'
+
+import { Box, Tabs, Tab } from '@mui/material'
+
+import CandidateListing from './candidateListing'
+import JdDetails from './jdDetails'
+import VacancyDetails from './vaccancyDetails'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('Candidate Listing');
+  const [activeTab, setActiveTab] = useState('Candidate Listing')
 
   return (
     <Box
@@ -14,7 +16,7 @@ export default function Home() {
         border: 1,
         borderColor: 'grey.300',
         borderRadius: 2,
-        boxShadow: 3,
+        boxShadow: 3
       }}
     >
       {/* Tab Navigation */}
@@ -30,20 +32,19 @@ export default function Home() {
               color: 'grey.500',
               minWidth: 'auto',
               px: 2,
-              py: 1,
+              py: 1
             },
             '& .Mui-selected': {
-              color: 'blue.500',
+              color: 'blue.500'
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: 'blue.500',
-            },
+              backgroundColor: 'blue.500'
+            }
           }}
         >
-          <Tab label="Candidate Listing" value="Candidate Listing" />
-          <Tab label="Vacancy Details" value="Vacancy Details" />
-          <Tab label="Jd Details" value="Jd Details" />
-          
+          <Tab label='Candidate Listing' value='Candidate Listing' />
+          <Tab label='Vacancy Details' value='Vacancy Details' />
+          <Tab label='Jd Details' value='Jd Details' />
         </Tabs>
       </Box>
 
@@ -54,5 +55,5 @@ export default function Home() {
         {activeTab === 'Vacancy Details' && <VacancyDetails />}
       </Box>
     </Box>
-  );
+  )
 }

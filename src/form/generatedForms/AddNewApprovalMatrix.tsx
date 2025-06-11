@@ -32,106 +32,126 @@ import {
   fetchApprovalCategories,
   fetchApprovalCategoryById,
   updateApprovalCategory,
+  deleteApprovalMatrix,
   fetchDesignations,
-  fetchGrades
+  fetchLevels // Import the new thunk
 } from '@/redux/approvalMatrixSlice'
-import type { ApprovalMatrixFormValues, Section } from '@/types/approvalMatrix' // Import types
+import type { ApprovalMatrixFormValues, Section, LevelOption } from '@/types/approvalMatrix' // Import types
 
-const validationSchema = Yup.object({
-  approvalCategory: Yup.object()
-    .shape({
-      id: Yup.string().required('Invalid option selected'),
-      name: Yup.string().required('Invalid option selected')
-    })
-    .nullable()
-    .required('Approval Category is required'),
-  numberOfLevels: Yup.number()
-    .required('Number of Levels is required')
-    .integer('Number of Levels must be an integer')
-    .min(1, 'Number of Levels must be at least 1')
-    .max(10, 'Number of Levels cannot exceed 10'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters long'),
-  sections: Yup.array()
-    .of(
-      Yup.object().shape({
-        designationName: Yup.object()
-          .shape({
-            id: Yup.string().required('Invalid option selected'),
-            name: Yup.string().required('Invalid option selected')
-          })
-          .nullable()
-          .required('Approval For is required'),
-        grade: Yup.object()
-          .shape({
-            id: Yup.string().required('Invalid option selected'),
-            name: Yup.string().required('Invalid option selected')
-          })
-          .nullable()
-          .required('Grade is required')
+// Update the validation schema to conditionally validate based on approverType
+const validationSchema = (approverType: string | null) =>
+  Yup.object({
+    approvalCategory: Yup.object()
+      .shape({
+        id: Yup.string().required('Invalid option selected'),
+        name: Yup.string().required('Invalid option selected')
       })
-    )
-    .min(1, 'At least one section is required')
-})
+      .nullable()
+      .required('Approval Category is required'),
+    numberOfLevels: Yup.number()
+      .required('Number of Levels is required')
+      .integer('Number of Levels must be an integer')
+      .min(1, 'Number of Levels must be at least 1')
+      .max(10, 'Number of Levels cannot exceed 10'),
+    description: Yup.string()
+      .required('Description is required')
+      .min(10, 'Description must be at least 10 characters long'),
+    sections: Yup.array()
+      .of(
+        Yup.object().shape({
+          // Conditionally require designationName or level based on approverType
+          designationName:
+            approverType === 'Designation'
+              ? Yup.object()
+                  .shape({
+                    id: Yup.string().required('Invalid option selected'),
+                    name: Yup.string().required('Invalid option selected')
+                  })
+                  .nullable()
+                  .required('Approval For is required')
+              : Yup.mixed().nullable().notRequired(),
+          level:
+            approverType === 'Level'
+              ? Yup.object()
+                  .shape({
+                    id: Yup.string().required('Invalid option selected'),
+                    name: Yup.string().required('Invalid option selected')
+                  })
+                  .nullable()
+                  .required('Level is required')
+              : Yup.mixed().nullable().notRequired()
+        })
+      )
+      .min(1, 'At least one section is required')
+  })
 
 const AddNewApprovalMatrixGenerated: React.FC = () => {
   const [sectionsVisible, setSectionsVisible] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
   const [approvalCategoryId, setApprovalCategoryId] = useState<string | null>(null) // Store the created category ID
+  const [approverType, setApproverType] = useState<string | null>(null) // State to store approverType
   const [approvalCategoryLimit, setApprovalCategoryLimit] = useState(10) // Initial limit for approval categories
   const [designationLimit, setDesignationLimit] = useState(10) // Initial limit for designations
-  const [gradeLimit, setGradeLimit] = useState(10) // Initial limit for grades
   const [approvalCategoryLoading, setApprovalCategoryLoading] = useState(false) // Loading state for approval categories
   const [designationLoading, setDesignationLoading] = useState(false) // Loading state for designations
-  const [gradeLoading, setGradeLoading] = useState(false) // Loading state for grades
+  const [levelLoading, setLevelLoading] = useState(false) // Loading state for levels
   const searchParams = useSearchParams()
 
   const router = useRouter()
   const dispatch = useAppDispatch()
   const isUpdateMode = Boolean(searchParams.get('id'))
 
-  const { designations, grades, approvalCategories } = useAppSelector(state => state.approvalMatrixReducer) //options
+  const { designations, approvalCategories, levels } = useAppSelector(state => state.approvalMatrixReducer) // Removed grades from selector
 
-  // Debug  Debug: Log approvalCategories to check if data is fetched
+  // Debug: Log approvalCategories to check if data is fetched
   useEffect(() => {
     console.log('approvalCategories:', approvalCategories)
   }, [approvalCategories])
 
+  // Fetch levels when approverType changes to "Level"
+  useEffect(() => {
+    if (approverType === 'Level' && levels.length === 0) {
+      setLevelLoading(true)
+      dispatch(fetchLevels())
+        .then(() => setLevelLoading(false))
+        .catch(() => setLevelLoading(false))
+    }
+  }, [approverType, dispatch, levels.length])
+
   const ApprovalMatrixFormik = useFormik<ApprovalMatrixFormValues>({
     initialValues: {
       id: '',
-      approvalCategory: null, // Changed to null for Autocomplete
+      approvalCategory: null,
       numberOfLevels: 1,
       description: '',
+
       sections: [] as Section[],
       draggingIndex: null as number | null
     },
-    validationSchema,
+    validationSchema: validationSchema(approverType),
 
     onSubmit: async values => {
-      // Check for duplicate designation or grade
-      const seenDesignations = new Set<string>()
-      const seenGrades = new Set<string>()
+      // Check for duplicate designation or level
+      const seenDesignationsOrLevels = new Set<string>()
       let hasDuplicates = false
 
       for (let i = 0; i < values.sections.length; i++) {
         const section = values.sections[i]
-        const designationId = section.designationName?.id || ''
-        const gradeId = section.grade?.id || ''
 
-        if (seenDesignations.has(designationId) || seenGrades.has(gradeId)) {
+        const designationOrLevelId =
+          approverType === 'Level' ? section.level?.id || '' : section.designationName?.id || ''
+
+        if (seenDesignationsOrLevels.has(designationOrLevelId)) {
           hasDuplicates = true
           break
         }
 
-        seenDesignations.add(designationId)
-        seenGrades.add(gradeId)
+        seenDesignationsOrLevels.add(designationOrLevelId)
       }
 
       if (hasDuplicates) {
-        toast.error('The same designation or grade are selected in the previous level', {
+        toast.error('The same designation/level are selected in the previous level', {
           position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
@@ -150,18 +170,18 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       // Prepare the approval matrix data for submission
       const approvalMatrix = values.sections.map((section, index) => ({
         approvalCategoryId: categoryIdFromUrl,
-        designation: section.designationName?.name || '',
-        grade: section.grade?.name || '',
+        approver: approverType === 'Level' ? section.level?.name || '' : section.designationName?.name || '', // Use level name if approverType is "Level"
         level: index + 1
       }))
 
       if (isUpdateMode) {
         try {
-          // Update the approval category first
+          // Update the approval category first, including approverType
           await dispatch(
             updateApprovalCategory({
               id: categoryIdFromUrl,
               name: values.approvalCategory?.name || '',
+              approverType: approverType || '', // Pass the approverType
               description: values.description
             })
           ).unwrap()
@@ -180,12 +200,13 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     id: existingMatrixIds[index],
                     approvalMatrix: {
                       approvalCategoryId: matrix.approvalCategoryId,
-                      designation: matrix.designation,
-                      grade: matrix.grade,
+                      approver: matrix.approver,
                       level: matrix.level
                     }
                   })
                 ).unwrap()
+
+                response
 
                 return existingMatrixIds[index]
               } else {
@@ -196,6 +217,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
               }
             })
           )
+
+          updatedMatrixIds
 
           // Delete matrices for levels that were removed
           const matricesToDelete = existingMatrixIds.slice(values.sections.length)
@@ -231,7 +254,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
           const response = await dispatch(createNewApprovalMatrix({ approvalMatrix })).unwrap()
 
           console.log('Approval Matrices created successfully:', response)
-          toast.success('Approval Matrix created successfully!', {
+          toast.success(response.message || 'Approval Matrix created successfully!', {
             position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,
@@ -241,8 +264,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             progress: undefined
           })
         } catch (error) {
-          console.error('Error creating approval matrices:', error)
-          toast.error('Failed to create approval matrix. Please try again.', {
+          console.error(error.message, 'Error creating approval matrices:')
+          toast.error(error.message || 'Failed to create approval matrix. Please try again.', {
             position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,
@@ -260,6 +283,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       ApprovalMatrixFormik.resetForm()
       setApprovalCategoryId(null) // Reset category ID after submission
       setSectionsVisible(false) // Hide sections after submission
+      setApproverType(null) // Reset approverType after submission
 
       router.back() // Route back to the listing page
     }
@@ -299,22 +323,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     }
   }
 
-  // Scroll handler for Grade Autocomplete
-  const handleScrollGrades = (event: any) => {
-    const listboxNode = event.currentTarget
-
-    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 10) {
-      if (!gradeLoading) {
-        setGradeLoading(true)
-        setGradeLimit(prev => prev + 10)
-        const params = { limit: gradeLimit + 10 }
-
-        dispatch(fetchGrades(params))
-          .then(() => setGradeLoading(false))
-          .catch(() => setGradeLoading(false))
-      }
-    }
-  }
+  // Removed Scroll handler for Grade Autocomplete
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchOptions = async (_id: number, _p0: string) => {
@@ -323,8 +332,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       const approvalCategory = searchParams.get('approvalCategory') || ''
       const numberOfLevels = searchParams.get('numberOfLevels') || '1'
       const description = searchParams.get('description') || ''
-      const designationName = searchParams.get('designationName') || '[]'
-      const grade = searchParams.get('grade') || '[]'
+      const designationName = searchParams.get('designationName') || '[]' // For Designation approverType
+      const level = searchParams.get('level') || '[]' // For Level approverType
       const categoryId = searchParams.get('approvalCategoryId') || '' // Get approvalCategoryId from URL
 
       if (isUpdateMode) {
@@ -336,14 +345,50 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         ApprovalMatrixFormik.setFieldValue('description', description)
         setApprovalCategoryId(categoryId) // Set approvalCategoryId for use in submission
 
-        const parsedDesignations = JSON.parse(designationName)
-        const parsedGrades = JSON.parse(grade)
+        // Fetch approval category details to get approverType
+        let fetchedApproverType: string | null = null
 
-        // Generate sections based on numberOfLevels, pre-filling designation and grade
-        const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => ({
-          designationName: parsedDesignations[index] || null,
-          grade: parsedGrades[index] || null
+        if (categoryId) {
+          try {
+            const response = await dispatch(fetchApprovalCategoryById(categoryId)).unwrap()
+
+            fetchedApproverType = response.approverType || null
+            setApproverType(fetchedApproverType) // Set approverType in edit mode
+          } catch (error) {
+            console.error('Error fetching approval category details in edit mode:', error)
+            setApproverType(null)
+          }
+        }
+
+        // Fetch levels if approverType is 'Level' and levels are not already fetched
+        let availableLevels: LevelOption[] = levels.map(lvl => ({
+          ...lvl,
+          displayName: lvl.displayName || lvl.name // Ensure displayName exists
         }))
+
+        if (fetchedApproverType === 'Level') {
+          setLevelLoading(true)
+          const levelsResult = await dispatch(fetchLevels()).unwrap() // Directly get the result from the thunk
+
+          setLevelLoading(false)
+          availableLevels = levelsResult // Use the fetched levels directly
+        }
+
+        // Parse the approver data based on approverType
+        const parsedApprovers = fetchedApproverType === 'Level' ? JSON.parse(level) : JSON.parse(designationName)
+
+        // Generate sections based on numberOfLevels, pre-filling designation or level
+        const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => {
+          const approverEntry = parsedApprovers[index] || { id: '', name: '' }
+
+          return {
+            designationName: fetchedApproverType === 'Level' ? null : approverEntry,
+            level:
+              fetchedApproverType === 'Level'
+                ? availableLevels.find(option => option.name === approverEntry.name) || null
+                : null
+          }
+        })
 
         ApprovalMatrixFormik.setFieldValue('sections', sections)
         setSectionsVisible(true) // Show sections immediately in edit mode
@@ -353,20 +398,37 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     }
   }
 
+  // Fetch levels when approverType changes to "Level" (only in create mode)
   useEffect(() => {
-    // Fetch designations, grades, and approval categories on component mount
+    if (!isUpdateMode && approverType === 'Level' && levels.length === 0) {
+      setLevelLoading(true)
+      dispatch(fetchLevels())
+        .then(() => setLevelLoading(false))
+        .catch(() => setLevelLoading(false))
+    }
+  }, [approverType, dispatch, levels.length, isUpdateMode])
+
+  useEffect(() => {
+    // Fetch designations and approval categories on component mount
     dispatch(fetchDesignations({ limit: designationLimit }))
-    dispatch(fetchGrades({ limit: gradeLimit }))
     dispatch(fetchApprovalCategories({ page: 1, limit: approvalCategoryLimit }))
     fetchOptions(0, 'designation')
   }, [dispatch])
+
+  // Re-apply validation schema when approverType changes
+  useEffect(() => {
+    ApprovalMatrixFormik.setFormikState(state => ({
+      ...state,
+      validationSchema: validationSchema(approverType)
+    }))
+  }, [approverType])
 
   const handleAddSection = () => {
     const numberOfSections = ApprovalMatrixFormik.values.numberOfLevels
 
     const newSections = Array.from({ length: numberOfSections }, () => ({
       designationName: null,
-      grade: null
+      level: null // Initialize level field
     }))
 
     ApprovalMatrixFormik.setFieldValue('sections', newSections)
@@ -378,7 +440,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     const errors = await ApprovalMatrixFormik.validateForm()
 
     if (errors.approvalCategory || errors.description) {
-      ApprovalMatrixFormik.setTouched({ approvalCategory: true, description: true })
+      ApprovalMatrixFormik.setTouched({ approvalCategory: { id: true, name: true }, description: true })
 
       return
     }
@@ -434,14 +496,49 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     handleCloseDialog()
   }
 
-  const areAllSectionsFilled = ApprovalMatrixFormik.values.sections.every(
-    section => section.designationName !== null && section.grade !== null
-  )
+  const areAllSectionsFilled = ApprovalMatrixFormik.values.sections.every(section => {
+    if (approverType === 'Level') {
+      return section.level !== null
+    }
+
+    return section.designationName !== null
+  })
+
+  // Reset numberOfLevels and sections when approverType changes to "Level"
+  // useEffect(() => {
+  //   if (approverType === 'Level') {
+  //     ApprovalMatrixFormik.setFieldValue('numberOfLevels', 1)
+  //     ApprovalMatrixFormik.setFieldValue('sections', [{ designationName: null, level: null }])
+  //     setSectionsVisible(true) // Ensure sections are visible with one level
+  //   }
+  // }, [approverType])
+
+  // Dynamically update sections when numberOfLevels changes
+  useEffect(() => {
+    if (ApprovalMatrixFormik.values.numberOfLevels > 0) {
+      const currentSections = ApprovalMatrixFormik.values.sections
+      const newSectionCount = ApprovalMatrixFormik.values.numberOfLevels
+
+      // If sections are already visible, adjust the sections array dynamically
+      if (sectionsVisible) {
+        const newSections = Array.from({ length: newSectionCount }, (_, index) => {
+          // Preserve existing sections if they exist, otherwise create a new empty section
+          return (
+            currentSections[index] || {
+              designationName: null,
+              level: null
+            }
+          )
+        })
+
+        ApprovalMatrixFormik.setFieldValue('sections', newSections)
+      }
+    }
+  }, [ApprovalMatrixFormik.values.numberOfLevels, sectionsVisible])
 
   return (
     <>
       <form onSubmit={ApprovalMatrixFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-        {/* <h1 className='text-2xl font-bold text-gray-800 mb-4'>Approval Process Form</h1> */}
         <Typography variant='h5' sx={{ fontSize: 'bold' }}>
           Approval Matrix Form
         </Typography>
@@ -461,7 +558,6 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             {/* Nested Box to keep Approval Category and Number of Levels in the same line */}
             <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
-                {/* Autocomplete for Approval Category, displaying only the name in the dropdown */}
                 <Autocomplete
                   value={ApprovalMatrixFormik.values.approvalCategory || null}
                   onChange={async (_, value) => {
@@ -473,16 +569,19 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                         const response = await dispatch(fetchApprovalCategoryById(value.id)).unwrap()
 
                         ApprovalMatrixFormik.setFieldValue('description', response.description || '')
+                        setApproverType(response.approverType || null) // Store approverType in state
                       } catch (error) {
-                        console.error('Error fetching approval category description:', error)
+                        console.error('Error fetching approval category details:', error)
                         ApprovalMatrixFormik.setFieldValue('description', '')
+                        setApproverType(null) // Reset approverType on error
                       }
                     } else {
                       ApprovalMatrixFormik.setFieldValue('description', '')
+                      setApproverType(null) // Reset approverType if no category is selected
                     }
                   }}
-                  options={approvalCategories} // Options from fetchApprovalCategories, only name is displayed
-                  getOptionLabel={option => option?.name || ''} // Display only the approval category name
+                  options={approvalCategories}
+                  getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => option.id === value?.id}
                   ListboxProps={{
                     onScroll: handleScrollApprovalCategories,
@@ -511,8 +610,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                       }}
                     />
                   )}
-                  disabled={isUpdateMode} // Disable in edit mode
-                  loading={approvalCategoryLoading} // Pass the loading prop
+                  disabled={isUpdateMode}
+                  loading={approvalCategoryLoading}
                   onOpen={() => {
                     if (approvalCategories.length === 0) {
                       setApprovalCategoryLoading(true)
@@ -522,6 +621,11 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     }
                   }}
                 />
+                {approverType && (
+                  <Typography variant='body2' sx={{ mt: 1, color: 'text.secondary' }}>
+                    Approver Type: {approverType}
+                  </Typography>
+                )}
               </FormControl>
 
               <FormControl fullWidth>
@@ -566,6 +670,8 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                       e.preventDefault()
                     }
                   }}
+
+                  //disabled={approverType === 'Level'} // Disable when approverType is "Level"
                 />
               </FormControl>
             </Box>
@@ -604,7 +710,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     alignItems: 'center',
                     p: 2,
                     width: '100%',
-                    maxWidth: 900,
+                    maxWidth: 500,
                     boxShadow: 1,
                     borderRadius: 1,
                     bgcolor: 'background.paper'
@@ -612,107 +718,105 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 >
                   <DragIndicatorIcon sx={{ mr: 2, color: '#666', cursor: 'grab' }} />
                   <Typography variant='body1' sx={{ mr: 2 }}>
-                    Level {index + 1}:
+                    Approval {index + 1}:
                   </Typography>
-                  <Autocomplete
-                    value={section.designationName || null}
-                    onChange={(_, value) => {
-                      const updatedSections = [...ApprovalMatrixFormik.values.sections]
+                  {approverType === 'Level' ? (
+                    <Autocomplete
+                      value={section.level || null}
+                      onChange={(_, value: LevelOption | null) => {
+                        const updatedSections = [...ApprovalMatrixFormik.values.sections]
 
-                      updatedSections[index].designationName = value
-                      ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
-                    }}
-                    options={designations} // Use fetched designations
-                    getOptionLabel={option => option.name || ''}
-                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                    ListboxProps={{
-                      onScroll: handleScrollDesignations,
-                      style: { maxHeight: '160px', overflow: 'auto' }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        placeholder='Designations'
-                        error={
-                          ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
-                          Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName)
+                        updatedSections[index].level = value
+                        ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
+                      }}
+                      options={levels} // Use fetched levels
+                      getOptionLabel={(option: LevelOption) => option.displayName || ''} // Use displayName for dropdown
+                      isOptionEqualToValue={(option: LevelOption, value: LevelOption | null) => option.id === value?.id}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          placeholder='Level'
+                          error={
+                            ApprovalMatrixFormik.touched.sections?.[index]?.level &&
+                            Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.level)
+                          }
+                          helperText={
+                            ApprovalMatrixFormik.touched.sections?.[index]?.level &&
+                            ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.level as string)
+                          }
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {levelLoading ? <CircularProgress color='inherit' size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      sx={{ flex: 1, mr: 2 }}
+                      loading={levelLoading}
+                      onOpen={() => {
+                        if (levels.length === 0 && approverType === 'Level') {
+                          setLevelLoading(true)
+                          dispatch(fetchLevels())
+                            .then(() => setLevelLoading(false))
+                            .catch(() => setLevelLoading(false))
                         }
-                        helperText={
-                          ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
-                          ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName as string)
-                        }
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              {designationLoading ? <CircularProgress color='inherit' size={20} /> : null}
-                              {params.InputProps.endAdornment}
-                            </>
-                          )
-                        }}
-                      />
-                    )}
-                    sx={{ flex: 1, mr: 2 }}
-                    loading={designationLoading} // Pass the loading prop
-                    onOpen={() => {
-                      if (designations.length === 0) {
-                        setDesignationLoading(true)
-                        dispatch(fetchDesignations({ limit: designationLimit }))
-                          .then(() => setDesignationLoading(false))
-                          .catch(() => setDesignationLoading(false))
-                      }
-                    }}
-                  />
-                  {/* Added Grade Autocomplete */}
-                  <Autocomplete
-                    value={section.grade || null}
-                    onChange={(_, value) => {
-                      const updatedSections = [...ApprovalMatrixFormik.values.sections]
+                      }}
+                    />
+                  ) : (
+                    <Autocomplete
+                      value={section.designationName || null}
+                      onChange={(_, value) => {
+                        const updatedSections = [...ApprovalMatrixFormik.values.sections]
 
-                      updatedSections[index].grade = value
-                      ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
-                    }}
-                    options={grades} // Use fetched grades
-                    getOptionLabel={option => option.name || ''}
-                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                    ListboxProps={{
-                      onScroll: handleScrollGrades,
-                      style: { maxHeight: '160px', overflow: 'auto' }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        placeholder='Grade'
-                        error={
-                          ApprovalMatrixFormik.touched.sections?.[index]?.grade &&
-                          Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.grade)
+                        updatedSections[index].designationName = value
+                        ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
+                      }}
+                      options={designations} // Use fetched designations
+                      getOptionLabel={option => option.name || ''}
+                      isOptionEqualToValue={(option, value) => option.id === value?.id}
+                      ListboxProps={{
+                        onScroll: handleScrollDesignations,
+                        style: { maxHeight: '160px', overflow: 'auto' }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          placeholder='Designations'
+                          error={
+                            ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
+                            Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName)
+                          }
+                          helperText={
+                            ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
+                            ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName as string)
+                          }
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {designationLoading ? <CircularProgress color='inherit' size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      sx={{ flex: 1, mr: 2 }}
+                      loading={designationLoading} // Pass the loading prop
+                      onOpen={() => {
+                        if (designations.length === 0) {
+                          setDesignationLoading(true)
+                          dispatch(fetchDesignations({ limit: designationLimit }))
+                            .then(() => setDesignationLoading(false))
+                            .catch(() => setDesignationLoading(false))
                         }
-                        helperText={
-                          ApprovalMatrixFormik.touched.sections?.[index]?.grade &&
-                          ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.grade as string)
-                        }
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              {gradeLoading ? <CircularProgress color='inherit' size={20} /> : null}
-                              {params.InputProps.endAdornment}
-                            </>
-                          )
-                        }}
-                      />
-                    )}
-                    sx={{ flex: 1, mr: 2 }}
-                    loading={gradeLoading} // Pass the loading prop
-                    onOpen={() => {
-                      if (grades.length === 0) {
-                        setGradeLoading(true)
-                        dispatch(fetchGrades({ limit: gradeLimit }))
-                          .then(() => setGradeLoading(false))
-                          .catch(() => setGradeLoading(false))
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  )}
                   <IconButton onClick={() => handleOpenDialog(index)}>
                     <DeleteIcon />
                   </IconButton>
@@ -730,6 +834,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                   ApprovalMatrixFormik.resetForm()
                   setSectionsVisible(false) // Reset sections visibility
                   setApprovalCategoryId(null) // Reset category ID on clear
+                  setApproverType(null) // Reset approverType on clear
                 }}
               >
                 Clear
@@ -740,7 +845,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
               color='primary'
               onClick={() => {
                 if (sectionsVisible && areAllSectionsFilled) {
-                  void ApprovalMatrixFormik.submitForm() // Second API call for designation and grade
+                  void ApprovalMatrixFormik.submitForm() // Second API call for designation and level
                 } else {
                   void handleNextClick() // First API call for approval category and description
                 }

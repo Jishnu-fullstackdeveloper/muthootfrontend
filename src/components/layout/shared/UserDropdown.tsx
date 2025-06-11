@@ -16,7 +16,8 @@ import Fade from '@mui/material/Fade'
 import Paper from '@mui/material/Paper'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import MenuList from '@mui/material/MenuList'
-import Typography from '@mui/material/Typography'
+import { Typography, Tooltip, Box } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
@@ -54,6 +55,8 @@ const BadgeContentSpan = styled('span')({
 interface Permission {
   role: string
   permissions: string[]
+  groupRoles: string
+  name: string
 }
 
 type CurrentPermissions = Permission[]
@@ -146,7 +149,15 @@ const UserDropdown = () => {
   const getFilteredRoles = (permissions: CurrentPermissions): string => {
     const filteredRoles = permissions
       .filter(permission => permission.role !== 'default-roles-hrms')
-      .map(permission => permission.role)
+      .map(permission => permission.groupRoles)
+
+    return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
+  }
+
+  const getFilteredDesignation = (permissions: CurrentPermissions): string => {
+    const filteredRoles = permissions
+      .filter(permission => permission.role !== 'default-roles-hrms')
+      .map(permission => permission.name)
 
     return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
   }
@@ -286,7 +297,13 @@ const UserDropdown = () => {
                           whiteSpace: 'pre-line'
                         }}
                       >
-                        {getFilteredRoles(currentPermissions)}
+                        {getFilteredRoles(currentPermissions)} <br />
+                        <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                          Designation: {getFilteredDesignation(currentPermissions)}
+                          <Tooltip title="This is the user's designation" arrow>
+                            <InfoOutlinedIcon fontSize='small' sx={{ ml: 0.5, cursor: 'pointer' }} />
+                          </Tooltip>
+                        </Box>
                       </Typography>
                     </div>
                   </div>

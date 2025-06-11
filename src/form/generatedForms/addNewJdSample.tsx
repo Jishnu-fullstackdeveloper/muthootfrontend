@@ -1,6 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector, Button } from '@mui/material'
@@ -11,6 +13,10 @@ import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import { ArrowBack } from '@mui/icons-material'
+
+import type { NodeProps } from 'reactflow'
+import ReactFlow, { Background, Handle, Position, ReactFlowProvider } from 'reactflow'
+
 import {
   getJDManagementAddFormValues,
   removeJDManagementAddFormValues,
@@ -19,7 +25,6 @@ import {
 import DynamicButton from '@/components/Button/dynamicButton'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
-import ReactFlow, { Background, NodeProps, Handle, Position, ReactFlowProvider } from 'reactflow'
 import 'reactflow/dist/style.css'
 import OrgChartCanvas from './addOrganizationChart'
 
@@ -81,9 +86,11 @@ const validationSchema = Yup.object().shape({
     )
     .test('validate-details', 'At least one section is required', function (value) {
       const { skillsAndAttributesType } = this.parent
+
       if (skillsAndAttributesType !== 'description_only') {
         return Array.isArray(value) && value.length > 0
       }
+
       return true
     }),
   minimumQualification: Yup.string().required('Minimum Qualification is required'),
@@ -176,6 +183,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     if (organizationChart) {
       completedSteps = 1
     }
+
     // Step 1: Description (previously step 0)
     if (
       completedSteps >= 1 &&
@@ -187,22 +195,27 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     ) {
       completedSteps = 2
     }
+
     // Step 2: Summary (previously step 1)
     if (completedSteps >= 2 && AddNewJDFormik.values.roleSummary) {
       completedSteps = 3
     }
+
     // Step 3: Responsibilities (previously step 2)
     if (completedSteps >= 3 && AddNewJDFormik.values.keyResponsibilities.some((d: any) => d.title && d.description)) {
       completedSteps = 4
     }
+
     // Step 4: Challenges (previously step 3)
     if (completedSteps >= 4 && AddNewJDFormik.values.keyChallenges) {
       completedSteps = 5
     }
+
     // Step 5: Decisions (previously step 4)
     if (completedSteps >= 5 && AddNewJDFormik.values.keyDecisions) {
       completedSteps = 6
     }
+
     // Step 6: Interactions (previously step 5)
     if (
       completedSteps >= 6 &&
@@ -211,6 +224,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     ) {
       completedSteps = 7
     }
+
     // Step 7: Role Dimensions (previously step 6)
     if (
       completedSteps >= 7 &&
@@ -221,6 +235,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     ) {
       completedSteps = 8
     }
+
     // Step 8: Skills (previously step 7)
     if (
       completedSteps >= 8 &&
@@ -239,6 +254,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
     ) {
       completedSteps = 9
     }
+
     // Step 9: Requirements (previously step 8)
     if (
       completedSteps >= 9 &&
@@ -865,6 +881,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                               const updatedSections = AddNewJDFormik.values.skillsAndAttributesDetails.filter(
                                 (_: any, i: number) => i !== sectionIndex
                               )
+
                               AddNewJDFormik.setFieldValue('skillsAndAttributesDetails', updatedSections)
                             }}
                           >
@@ -893,6 +910,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                       const updatedCompetency = item.competency.filter(
                                         (_: any, i: number) => i !== competencyIndex
                                       )
+
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].competency`,
                                         updatedCompetency
@@ -910,6 +928,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                       onClick={() => {
                                         const newCompetency = { value: '' }
                                         const updatedCompetency = [...item.competency, newCompetency]
+
                                         AddNewJDFormik.setFieldValue(
                                           `skillsAndAttributesDetails[${sectionIndex}].competency`,
                                           updatedCompetency
@@ -946,6 +965,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                     const updatedDefinition = item.definition.filter(
                                       (_: any, i: number) => i !== definitionIndex
                                     )
+
                                     AddNewJDFormik.setFieldValue(
                                       `skillsAndAttributesDetails[${sectionIndex}].definition`,
                                       updatedDefinition
@@ -962,6 +982,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                     onClick={() => {
                                       const newDefinition = { value: '' }
                                       const updatedDefinition = [...item.definition, newDefinition]
+
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].definition`,
                                         updatedDefinition
@@ -997,6 +1018,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                     const updatedAttributes = item.behavioural_attributes.filter(
                                       (_: any, i: number) => i !== attrIndex
                                     )
+
                                     AddNewJDFormik.setFieldValue(
                                       `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
                                       updatedAttributes
@@ -1013,6 +1035,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
                                     onClick={() => {
                                       const newAttribute = { value: '' }
                                       const updatedAttributes = [...item.behavioural_attributes, newAttribute]
+
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
                                         updatedAttributes

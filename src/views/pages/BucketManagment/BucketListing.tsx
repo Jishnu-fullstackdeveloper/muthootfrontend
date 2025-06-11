@@ -108,8 +108,8 @@ const BucketListing = () => {
               {/* Show remaining positions */}
               {/* {remainingCount > 0 && (
               <div>
-               
-                +{remainingCount} 
+
+                +{remainingCount}
               </div>
             )} */}
             </>
@@ -345,7 +345,18 @@ const BucketListing = () => {
       <CardActions className='p-0 pt-5'>
         {viewMode === 'table' ? (
           <Box sx={{ width: '100%' }}>
-            <DynamicTable columns={columns} data={bucketListData.data} />
+            <DynamicTable
+              columns={columns}
+              data={bucketListData.data}
+              totalCount={0}
+              sorting={undefined}
+              onSortingChange={undefined}
+              initialState={undefined}
+              pagination={{
+                pageIndex: 0,
+                pageSize: 0
+              }}
+            />
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -355,7 +366,6 @@ const BucketListing = () => {
                 <Grid item xs={12} sm={6} md={4} key={bucket.id}>
                   <Card
                     onClick={() =>
-                    
                       router.push(
                         `/bucket-management/view/${bucket.turnoverCode}?name=${bucket.name}&turnoverCode=${bucket.turnoverCode}&notes=${bucket.notes || ''}&positionCategories=${JSON.stringify(bucket.positionCategories)}`
                       )

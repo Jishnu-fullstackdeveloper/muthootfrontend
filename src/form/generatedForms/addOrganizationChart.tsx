@@ -1,5 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
+
+import type { Connection, Edge, Node, NodeProps } from 'reactflow'
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -7,13 +9,9 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
-  Edge,
-  Node,
   Handle,
   Position,
-  ReactFlowProvider,
-  NodeProps,
+  ReactFlowProvider
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 
@@ -27,7 +25,7 @@ function CustomNode({ data, selected, id }: NodeProps) {
   const shapeStyles: Record<string, string> = {
     rectangle: 'rounded bg-white w-32 h-16',
     circle: 'rounded-full bg-blue-100 w-20 h-20 flex items-center justify-center',
-    diamond: 'w-20 h-20 bg-green-100 rotate-45 flex items-center justify-center',
+    diamond: 'w-20 h-20 bg-green-100 rotate-45 flex items-center justify-center'
   }
 
   const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -71,6 +69,7 @@ interface OrgChartCanvasProps {
 
 export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasProps) {
   const [usedRoles, setUsedRoles] = useState<string[]>([])
+
   const [nodes, setNodes, onNodesChange] = useNodesState(
     initialChart?.nodes || [
       {
@@ -81,12 +80,13 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
           shape: 'rectangle',
           options: roles,
           usedRoles: [],
-          onChange: () => {},
+          onChange: () => {}
         },
-        type: 'custom',
-      },
+        type: 'custom'
+      }
     ]
   )
+
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialChart?.edges || [])
 
   const onConnect = useCallback((params: Edge | Connection) => setEdges(eds => addEdge(params, eds)), [])
@@ -95,8 +95,10 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     setUsedRoles(prev => {
       const newUsed = [...prev]
       const prevLabel = nodes.find(n => n.id === id)?.data.label
+
       if (prevLabel) newUsed.splice(newUsed.indexOf(prevLabel), 1)
       if (newLabel && !newUsed.includes(newLabel)) newUsed.push(newLabel)
+
       return newUsed
     })
 
@@ -109,8 +111,8 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
                 ...node.data,
                 label: newLabel,
                 usedRoles,
-                onChange: updateNodeLabel,
-              },
+                onChange: updateNodeLabel
+              }
             }
           : node
       )
@@ -126,13 +128,14 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
         shape,
         options: roles,
         usedRoles,
-        onChange: updateNodeLabel,
+        onChange: updateNodeLabel
       },
       position: {
         x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100,
-      },
+        y: Math.random() * 400 + 100
+      }
     }
+
     setNodes(nds => [...nds, newNode])
   }
 
@@ -148,7 +151,9 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
         setEdges(eds => eds.filter(edge => !edge.selected))
       }
     }
+
     window.addEventListener('keydown', handleKeyDown)
+
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [nodes, setNodes, setEdges])
 
@@ -159,8 +164,8 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
         data: {
           ...node.data,
           usedRoles,
-          onChange: updateNodeLabel,
-        },
+          onChange: updateNodeLabel
+        }
       }))
     )
   }, [usedRoles])
@@ -173,6 +178,7 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
 
   const handleSave = () => {
     const chartData = { nodes, edges }
+
     onSave(chartData)
   }
 

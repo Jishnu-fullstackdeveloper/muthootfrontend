@@ -1,7 +1,7 @@
-import Approvals from '@/views/pages/Approvals/Approvals'
+import ApprovalsListing from '@/views/pages/Approvals/ApprovalsListing'
 
 const Page = () => {
-  return <Approvals/>
+  return <ApprovalsListing />
 }
 
 export default Page

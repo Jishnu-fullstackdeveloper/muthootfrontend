@@ -10,7 +10,8 @@ import { toast } from 'react-toastify'
 
 import AddNewApprovalMatrixGenerated from '../AddNewApprovalMatrix'
 import approvalMatrixReducer from '@/redux/approvalMatrixSlice'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+
+// import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({

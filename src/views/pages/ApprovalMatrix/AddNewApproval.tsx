@@ -10,7 +10,7 @@ import AddNewApprovalMatrixGenerated from '@/form/generatedForms/AddNewApprovalM
 const AddNewApproval = () => {
   const pathname = usePathname() // Gets the full pathname
   const segments = pathname.split('/') // Split by "/"
-  const mode = segments[2] // Extract "add, view or edit"
+  const mode = segments[3] // Extract "add, view or edit"
 
   return (
     <div>

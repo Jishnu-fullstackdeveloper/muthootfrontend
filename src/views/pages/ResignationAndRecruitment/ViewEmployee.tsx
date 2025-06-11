@@ -264,36 +264,33 @@ const ViewEmployee: React.FC<Props> = ({ mode, id }) => {
           }}
         /> */}
 
-        {withPermission(
-          () => (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-              <Tooltip title='Approve Request'>
-                <Button
-                  variant='contained'
-                  color='success'
-                  onClick={handleApprove}
-                  sx={{ padding: '6px 16px' }}
-                  startIcon={<i className='tabler-check' />}
-                >
-                  Approve
-                </Button>
-              </Tooltip>
+        {withPermission(() => (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Tooltip title='Approve Request'>
+              <Button
+                variant='contained'
+                color='success'
+                onClick={handleApprove}
+                sx={{ padding: '6px 16px' }}
+                startIcon={<i className='tabler-check' />}
+              >
+                Approve
+              </Button>
+            </Tooltip>
 
-              <Tooltip title='Reject Request'>
-                <Button
-                  variant='contained'
-                  color='error'
-                  onClick={handleReject}
-                  sx={{ padding: '6px 16px' }}
-                  startIcon={<i className='tabler-playstation-x' />}
-                >
-                  Reject All
-                </Button>
-              </Tooltip>
-            </Box>
-          ),
-          'recruitmentManagement'
-        )({ individualPermission: 'recruitment_approval' })}
+            <Tooltip title='Reject Request'>
+              <Button
+                variant='contained'
+                color='error'
+                onClick={handleReject}
+                sx={{ padding: '6px 16px' }}
+                startIcon={<i className='tabler-playstation-x' />}
+              >
+                Reject All
+              </Button>
+            </Tooltip>
+          </Box>
+        ))({ individualPermission: 'recruitment_approval' })}
       </Box>
 
       {/* Action Buttons */}

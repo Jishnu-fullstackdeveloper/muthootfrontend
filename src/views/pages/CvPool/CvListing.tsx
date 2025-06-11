@@ -194,8 +194,11 @@ const mockCvData: Cv[] = [
   }
 ]
 
-const SlideTransition = forwardRef(function SlideTransition(props, ref) {
-  return <Slide {...props} ref={ref} direction={props.direction as 'left' | 'right'} />
+const SlideTransition = forwardRef(function SlideTransition(
+  props: React.ComponentProps<typeof Slide> & { direction: 'left' | 'right' },
+  ref
+) {
+  return <Slide {...props} ref={ref} direction={props.direction} />
 })
 
 const CvListing = () => {
@@ -489,7 +492,7 @@ const CvListing = () => {
         maxWidth='lg'
         fullWidth
         TransitionComponent={SlideTransition}
-        TransitionProps={{ direction: dialogDirection, timeout: 400 }}
+        TransitionProps={{ timeout: 400 }} //  direction: dialogDirection,
       >
         <DialogContent sx={{ p: 0, height: '85vh' }}>
           {filteredData[currentCvIndex]?.resumeUrl ? (
@@ -531,7 +534,7 @@ const CvListing = () => {
         maxWidth='md'
         fullWidth
         TransitionComponent={SlideTransition}
-        TransitionProps={{ direction: dialogDirection, timeout: 400 }}
+        TransitionProps={{ timeout: 400 }} // direction: dialogDirection,
       >
         <DialogContent sx={{ p: 4 }}>
           <Typography variant='h6' sx={{ mb: 3, color: '#000', fontWeight: 600 }}>
@@ -906,8 +909,8 @@ const CvListingTableView = ({
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
       <Typography sx={{ color: '#000' }}>
-        Showing {pagination.pageIndex * paginationState.pageSize + 1}-
-        {Math.min((pagination.pageIndex + 1) * paginationState.pageSize, totalCount)} of {totalCount}
+        Showing {pagination.pageIndex * pagination.pageSize + 1}-
+        {Math.min((pagination.pageIndex + 1) * pagination.pageSize, totalCount)} of {totalCount}
       </Typography>
       <Button
         onClick={() => onPageChange(pagination.pageIndex - 1)}
@@ -919,7 +922,7 @@ const CvListingTableView = ({
       </Button>
       <Button
         onClick={() => onPageChange(pagination.pageIndex + 1)}
-        disabled={(pagination.pageIndex + 1) * paginationState.pageSize >= totalCount}
+        disabled={(pagination.pageIndex + 1) * pagination.pageSize >= totalCount}
         sx={{ color: '#000', borderColor: '#000', borderRadius: 2 }}
         variant='outlined'
       >

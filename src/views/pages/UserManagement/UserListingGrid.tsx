@@ -5,34 +5,45 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Card, CardContent, Grid, Chip, IconButton, Typography, Button, CircularProgress } from '@mui/material'
 import { grey } from '@mui/material/colors'
 
-interface Role {
-  id: string
-  name: string
-  permissions: { id: string; name: string; description: string }[]
-}
+// interface Role {
+//   id: string
+//   name: string
+//   permissions: { id: string; name: string; description: string }[]
+//   data?: any
+// }
 
-interface User {
-  userId: string
-  firstName?: string
-  lastName?: string
-  middleName?: string
-  email?: string
-  employeeCode?: string
-  status?: string
-  source?: string
-  roles?: string[] | Role[]
-  role?: string
-  designation?: string
-}
+// interface DesignationRole {
+//   id: string
+//   name: string
+//   description: string
+//   groupRoles: Role[]
+//   permissions: string[]
+// }
+
+// interface User {
+//   userId: string
+//   firstName?: string
+//   lastName?: string
+//   middleName?: string
+//   email?: string
+//   employeeCode?: string
+//   status?: string
+//   source?: string
+//   designationRole?: DesignationRole
+//   designation?: string
+//   data?: any
+// }
 
 interface UserGridProps {
-  data: User[]
+  data?: any
+
+  // data?: (User & { designationRole?: string[] | Role[] })[]
   loading: boolean
   onEdit: (empCode: string | undefined, id: string) => void
   page: number
   totalPages: number
-  totalCount: number // Added to track total number of users
-  onLoadMore: (newPage: number) => void // Modified to handle lazy loading
+  totalCount: number
+  onLoadMore: (newPage: number) => void
 }
 
 const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserGridProps) => {
@@ -82,6 +93,12 @@ const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserG
       }
     }
   }, [loadMoreUsers])
+
+  const cleanName = (name: string, prefix: string) => {
+    if (!name) return ''
+
+    return name.replace(new RegExp(`^${prefix}`), '').trim()
+  }
 
   return (
     <Box>
@@ -140,26 +157,34 @@ const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserG
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Roles:{' '}
-                      {Array.isArray(user.roles) && user.roles.length > 0 ? (
+                      Default Role:{' '}
+                      <Typography component='span'>
+                        {user.designationRole?.name ? toTitleCase(cleanName(user.designationRole.name, 'des_')) : 'N/A'}
+                      </Typography>
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
+                      Group Roles:{' '}
+                      {user.designationRole?.groupRoles && user.designationRole.groupRoles.length > 0 ? (
                         <>
                           <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                            {user.roles.slice(0, expandedRoles[user.userId] ? undefined : 2).map((role, index) => (
-                              <li key={index}>
-                                <Typography variant='body2'>
-                                  {'name' in role ? toTitleCase(role.name) : 'No Name'}
-                                </Typography>
-                              </li>
-                            ))}
+                            {user.designationRole.groupRoles
+                              .slice(0, expandedRoles[user.userId] ? undefined : 2)
+                              .map((role, index) => (
+                                <li key={index}>
+                                  <Typography variant='body2'>{cleanName(role.name, 'grp_')}</Typography>
+                                </li>
+                              ))}
                           </ul>
-                          {user.roles.length > 2 && (
+                          {user.designationRole.groupRoles.length > 2 && (
                             <Button variant='text' size='small' onClick={() => toggleShowRoles(user.userId)}>
                               {expandedRoles[user.userId] ? 'Show Less' : 'Show More'}
                             </Button>
                           )}
                         </>
                       ) : (
-                        <Typography component='span'>{user.role ? toTitleCase(user.role) : 'No Role'}</Typography>
+                        <Typography component='span'>No Role</Typography>
                       )}
                     </Typography>
                   </Grid>

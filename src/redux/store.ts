@@ -10,11 +10,15 @@ import BucketManagementReducer from './BucketManagementSlice'
 import branchManagementReducer from './BranchManagement/BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
 import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
-import xFactorReducer from './XFactor/xFactorSlice'
+import ResignedxFactorReducer from './ResignedXFactor/resignedXFactorSlice'
+import VacancyXFactorReducer from './VacancyXFactor/vacancyXFactorSlice'
 import employeeManagementReducer from './EmployeeManagement/employeeManagementSlice'
 import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
 import dataUploadReducer from './DataUpload/dataUploadSlice'
+import JobPostingReducer from './JobPosting/jobListingSlice'
+import OrganizationalMappingReducer from './OrganizationalMapping/organizationalMappingSlice'
+import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -29,11 +33,15 @@ export const makeStore = () =>
       branchManagementReducer,
       vacancyManagementReducer,
       budgetManagementReducer,
-      xFactorReducer,
+      ResignedxFactorReducer,
+      VacancyXFactorReducer,
       employeeManagementReducer,
       approvalsReducer,
       resignationDataListingReducer,
-      dataUploadReducer
+      dataUploadReducer,
+      JobPostingReducer,
+      OrganizationalMappingReducer,
+      schedulerManagementSliceReducer
     }
   })
 

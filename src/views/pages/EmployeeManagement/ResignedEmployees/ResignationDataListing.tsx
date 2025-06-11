@@ -1,9 +1,9 @@
 'use client'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 
-//import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Button, Chip } from '@mui/material'
+import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Chip } from '@mui/material'
 
 //import SearchIcon from '@mui/icons-material/Search'
 import GridViewIcon from '@mui/icons-material/GridView'
@@ -13,9 +13,10 @@ import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
+
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+// import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+// import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -25,10 +26,12 @@ import type { RootState, AppDispatch } from '@/redux/store'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
-import L2ManagerDashboard from './L2ManagerDashboard'
+
+// import L2ManagerDashboard from './L2ManagerDashboard'
 
 const ResignationDataListingPage = () => {
   const dispatch = useAppDispatch<AppDispatch>()
+  const router = useRouter()
 
   const { employees, loading, error, totalCount } = useAppSelector(
     (state: RootState) => state.resignationDataListingReducer
@@ -133,6 +136,10 @@ const ResignationDataListingPage = () => {
     }
   }, [loadMoreEmployees])
 
+  const handleCardClick = (employeeId: string) => {
+    router.push(`/resignation-details/${employeeId}`)
+  }
+
   return (
     <Box className=''>
       <Card
@@ -167,8 +174,6 @@ const ResignationDataListingPage = () => {
               Resignation Data Listing
             </Typography>
           </Box>
-
-         
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 3, zIndex: 1100 }}>
             <AppReactDatepicker
@@ -235,9 +240,9 @@ const ResignationDataListingPage = () => {
         </Box>
       </Card>
 
-       <Box>
-            <L2ManagerDashboard />
-          </Box>
+      {/* <Box>
+        <L2ManagerDashboard />
+      </Box> */}
 
       {loading && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
@@ -278,6 +283,7 @@ const ResignationDataListingPage = () => {
               key={employee.id}
               className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
               sx={{ cursor: 'pointer', minHeight: '150px' }}
+              onClick={() => handleCardClick(employee.id)}
             >
               <Box className='pt-3 pl-4 pb-1 pr-2 flex justify-between items-center'>
                 <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
@@ -308,7 +314,7 @@ const ResignationDataListingPage = () => {
                   <Tooltip title='Date of Resignation'>
                     <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CalendarMonthOutlinedIcon fontSize='small' />:
-                      {employee.resignationDetails.dateOfResignation.split('T')[0]}
+                      {employee.resignationDetails?.dateOfResignation.split('T')[0]}
                     </Typography>
                   </Tooltip>
                   <Tooltip title='Last Working Day'>
@@ -333,7 +339,7 @@ const ResignationDataListingPage = () => {
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box className='mt-4 flex justify-end gap-2'>
+                {/* <Box className='mt-4 flex justify-end gap-2'>
                   <Tooltip title='Approve'>
                     <Button
                       variant='tonal'
@@ -376,7 +382,7 @@ const ResignationDataListingPage = () => {
                       Freeze
                     </Button>
                   </Tooltip>
-                </Box>
+                </Box> */}
               </Box>
             </Box>
           ))

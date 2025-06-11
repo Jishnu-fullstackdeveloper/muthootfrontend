@@ -1,9 +1,12 @@
 'use client'
 
 import React, { useMemo } from 'react'
+
 import { Typography, Card, MenuItem, Select } from '@mui/material'
-import type { TableMeta } from '@tanstack/react-table'
+
+// import type { TableMeta } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
+
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface Candidate {
@@ -20,9 +23,9 @@ interface Candidate {
   match?: string
 }
 
-interface CandidateTableMeta extends TableMeta<Candidate> {
-  updateData: (rowIndex: number, columnId: string, value: any) => void
-}
+// interface CandidateTableMeta extends TableMeta<Candidate> {
+//   updateData: (rowIndex: number, columnId: string, value: any) => void
+// }
 
 interface CandidateListingProps {
   data: Candidate[]
@@ -79,6 +82,7 @@ const CandidateListing = ({
             value={statusOptions.includes(row.original.status) ? row.original.status : ''}
             onChange={e => {
               const newStatus = e.target.value
+
               updateCandidateStatus(row.original.id, newStatus)
             }}
             displayEmpty
@@ -108,12 +112,13 @@ const CandidateListing = ({
     [columnHelper, updateCandidateStatus]
   )
 
-  const tableMeta: CandidateTableMeta = {
-    updateData: (rowIndex: number, columnId: string, value: any) => {
-      const candidateId = data[rowIndex].id
-      updateCandidateStatus(candidateId, value)
-    }
-  }
+  // const tableMeta: CandidateTableMeta = {
+  //   updateData: (rowIndex: number, columnId: string, value: any) => {
+  //     const candidateId = data[rowIndex].id
+
+  //     updateCandidateStatus(candidateId, value)
+  //   }
+  // }
 
   return (
     <Card>
@@ -125,7 +130,9 @@ const CandidateListing = ({
         totalCount={totalCount}
         onPageChange={newPage => onPageChange(newPage + 1)}
         onRowsPerPageChange={onRowsPerPageChange}
-        meta={tableMeta}
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined}
       />
     </Card>
   )

@@ -102,7 +102,7 @@ export interface BudgetManagementState {
   fetchBudgetIncreaseRequestByIdFailureMessage: string
   fetchTerritoryLoading: boolean
   fetchTerritorySuccess: boolean
-  fetchTerritoryData: TerritoryResponse['data'] | null
+  fetchTerritoryData: any
   fetchTerritoryTotal: number
   fetchTerritoryFailure: boolean
   fetchTerritoryFailureMessage: string
@@ -118,6 +118,14 @@ export interface BudgetManagementState {
   fetchCityTotal: number
   fetchCityFailure: boolean
   fetchCityFailureMessage: string
+  fetchBranchData?: any
+  fetchBranchLoading?: any
+  fetchAreaData?: any
+  fetchAreaLoading?: any
+  fetchRegionData?: any
+  fetchRegionLoading?: any
+  fetchZoneData?: any
+  fetchZoneLoading?: any
 }
 
 // Type for Budget Increase Request (POST Request Body and Response Data)

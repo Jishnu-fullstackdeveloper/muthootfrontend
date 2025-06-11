@@ -1,158 +1,20 @@
 'use client'
-import React, { useMemo, useState, useEffect } from 'react'
 
-import { Box, Card, Typography, Grid, InputAdornment } from '@mui/material'
-import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors'
-import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck'
-import PendingActionsIcon from '@mui/icons-material/PendingActions'
+import React, { useMemo, useState } from 'react'
+
+import { Box, Typography } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
-
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 
+import type { Approvals } from '@/types/approvalDashboard'
 import DynamicTable from '@/components/Table/dynamicTable'
-import DynamicTextField from '@/components/TextField/dynamicTextField'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUser, fetchApprovals, clearUser, clearApprovals } from '@/redux/Approvals/approvalsSlice'
-import { getUserId } from '@/utils/functions'
 
-interface ApprovalRow {
-  id: number
-  categoryName: string
-  description: string
-  approvedCount: number
-  pendingCount: number
-  rejectedCount: number
-  overdue?: string
-  moveTo?: any
+interface ApprovalManagementProps {
+  approvals: Approvals[]
 }
 
-interface ApprovalsState {
-  fetchUserLoading?: boolean
-  fetchUserSuccess?: boolean
-  fetchUserData?: { designation?: string | string[] } | null
-  fetchUserFailure?: boolean
-  fetchUserFailureMessage?: string
-  fetchApprovalsLoading?: boolean
-  fetchApprovalsSuccess?: boolean
-  fetchApprovalsData?: {
-    data?: ApprovalRow[]
-    approvalCount?: { approvedCount: number; rejectedCount: number; pendingCount: number }
-    totalCount?: number
-  }
-  fetchApprovalsTotalCount?: number
-  fetchApprovalsFailure?: boolean
-  fetchApprovalsFailureMessage?: string
-}
-
-const ApprovalManagement = () => {
-  const dispatch = useAppDispatch()
-
-  const approvalsState = (useAppSelector(state => state.approvalsReducer) as ApprovalsState) || {}
-
-  const {
-    fetchUserSuccess = false,
-    fetchUserData = null,
-    fetchUserFailure = false,
-    fetchUserFailureMessage = '',
-    fetchApprovalsLoading = false,
-    fetchApprovalsData = {
-      data: [],
-      approvalCount: { approvedCount: 0, rejectedCount: 0, pendingCount: 0 },
-      totalCount: 0
-    },
-    fetchApprovalsFailure = false,
-    fetchApprovalsFailureMessage = ''
-  } = approvalsState
-
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-
-  const columnHelper = createColumnHelper<ApprovalRow>()
-
-  const statusColors = {
-    Completed: '#059669',
-    Pending: '#D97706',
-    Overdue: '#F00',
-    Rejected: '#F00'
-  }
-
-  const approvals = useMemo(
-    () => [
-      {
-        id: 1,
-        title: 'Completed Approvals',
-        icon: <LibraryAddCheckIcon color='success' />,
-        status: 'completed',
-        note: `  ${fetchApprovalsData.approvalCount?.approvedCount || 0} Request Completed`
-      },
-      {
-        id: 2,
-        title: 'Pending Approvals',
-        icon: <PendingActionsIcon color='warning' />,
-        status: 'pending',
-        note: `  ${fetchApprovalsData.approvalCount?.pendingCount || 0} Request Pending`
-      },
-      {
-        id: 3,
-        title: 'Rejected Approvals',
-        icon: <RunningWithErrorsIcon color='error' />,
-        status: 'rejected',
-        note: `${fetchApprovalsData.approvalCount?.rejectedCount || 0} Request Rejected`
-      }
-    ],
-    [fetchApprovalsData.approvalCount]
-  )
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-      setPage(1)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [searchTerm])
-
-  const id = getUserId()
-
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchUser(id as string))
-    }
-
-    return () => {
-      dispatch(clearUser())
-      dispatch(clearApprovals())
-    }
-  }, [id, dispatch])
-
-  useEffect(() => {
-    if (fetchUserSuccess && fetchUserData?.designation) {
-      let normalizedDesignation: string
-
-      if (Array.isArray(fetchUserData.designation)) {
-        normalizedDesignation = fetchUserData.designation[0] || ''
-      } else if (typeof fetchUserData.designation === 'string') {
-        normalizedDesignation = fetchUserData.designation
-      } else {
-        console.warn('Invalid designation type:', fetchUserData.designation)
-
-        return
-      }
-
-      dispatch(
-        fetchApprovals({
-          page,
-          limit,
-          search: debouncedSearch,
-          approverDesignation: normalizedDesignation
-        })
-      )
-    } else {
-      console.warn('Invalid or missing designation:', fetchUserData?.designation)
-    }
-  }, [fetchUserSuccess, fetchUserData?.designation, page, limit, debouncedSearch, dispatch])
+const ApprovalManagement = ({ approvals }: ApprovalManagementProps) => {
+  const columnHelper = createColumnHelper<Approvals>()
 
   const columns = useMemo(
     () => [
@@ -192,101 +54,48 @@ const ApprovalManagement = () => {
     [columnHelper]
   )
 
-  if (fetchUserFailure) {
-    return (
-      <div className='flex justify-center items-center h-screen'>
-        <div className='text-red-500 text-lg'>{fetchUserFailureMessage}</div>
-      </div>
-    )
+  // State for pagination
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(5)
+
+  // Handlers for pagination
+  const handlePageChange = (newPageIndex: number) => {
+    setPageIndex(newPageIndex)
   }
 
-  if (fetchApprovalsFailure) {
-    return (
-      <div className='flex justify-center items-center h-screen'>
-        <div className='text-red-500 text-lg'>
-          {fetchApprovalsFailureMessage || 'Error fetching approvals. Please check the designation and try again.'}
-        </div>
-      </div>
-    )
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPageSize(newPageSize)
+    setPageIndex(0) // Reset to first page when page size changes
   }
 
-  if (!fetchUserSuccess || !fetchUserData) {
-    return (
-      <div className='flex justify-center items-center h-screen'>
-        <div className='text-gray-500 text-lg'>No user data found</div>
-      </div>
-    )
-  }
+  // Slice data for client-side pagination
+  const paginatedData = useMemo(() => {
+    const startIndex = pageIndex * pageSize
+    const endIndex = startIndex + pageSize
+
+    return approvals.slice(startIndex, endIndex)
+  }, [approvals, pageIndex, pageSize])
 
   return (
-    <>
-      <Card>
-        <Box sx={{ display: 'flex', padding: 3 }}>
-          <DynamicTextField
-            label='Search Approvals'
-            variant='outlined'
-            onChange={e => setSearchTerm(e.target.value)}
-            value={searchTerm}
-            placeholder='Search approvals...'
-            size='small'
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='end'>
-                  <i className='tabler-search text-xxl' />
-                </InputAdornment>
-              )
-            }}
-          />
-        </Box>
-      </Card>
-      <Grid item xs={12} sm={6} md={3} className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-4'>
-        {approvals.map(approval => (
-          <Card
-            key={approval.id}
-            sx={{
-              cursor: 'pointer',
-              padding: 2,
-              boxShadow: 'none',
-              borderBottom: `4px solid ${
-                statusColors[approval.status.charAt(0).toUpperCase() + approval.status.slice(1)] || 'inherit'
-              }`
-            }}
-          >
-            <Grid className='flex justify-between items-center mb-2'>
-              <Box>
-                <Typography variant='h6' component='div'>
-                  {approval.title}
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  {approval.note}
-                </Typography>
-              </Box>
-              {approval.icon}
-            </Grid>
-          </Card>
-        ))}
-      </Grid>
-      <Box className='mt-5'>
-        <DynamicTable
-          columns={columns}
-          data={fetchApprovalsData.data || []}
-          totalCount={fetchApprovalsData.totalCount || 0}
-          page={page}
-          limit={limit}
-          onPageChange={setPage}
-          onLimitChange={setLimit}
-          tableName='Approval List'
-          loading={fetchApprovalsLoading}
-          sorting={undefined}
-          onSortingChange={undefined}
-          initialState={undefined}
-          pagination={{
-            pageIndex: 0,
-            pageSize: 0
-          }}
-        />
-      </Box>
-    </>
+    <Box className='mt-5'>
+      <DynamicTable
+        columns={columns}
+        data={paginatedData}
+        totalCount={approvals.length}
+        pagination={{ pageIndex, pageSize }}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        tableName='Approval List'
+        loading={false}
+        isRowCheckbox={false} // Disable row selection
+        sorting={undefined}
+        onSortingChange={undefined}
+        initialState={undefined} // onRowSelectionChange is omitted since row selection is not needed
+        // sorting and onSortingChange are omitted since they were undefined in the original
+        // initialState is omitted since it was undefined in the original
+        // onPageCountChange is omitted since it's not needed for client-side pagination
+      />
+    </Box>
   )
 }
 

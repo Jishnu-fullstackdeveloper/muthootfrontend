@@ -25,22 +25,24 @@ export const fetchApprovals = createAsyncThunk(
     {
       page,
       limit,
-      search,
-      approverDesignation
-    }: { page: number; limit: number; search: string; approverDesignation: string },
+      search
+
+      //approverDesignation
+    }: { page: number; limit: number; search: string },
     { rejectWithValue }
   ) => {
-    if (!approverDesignation || typeof approverDesignation !== 'string') {
-      return rejectWithValue('approverDesignation must be a non-empty string')
-    }
+    // if (!approverDesignation || typeof approverDesignation !== 'string') {
+    //   return rejectWithValue('approverDesignation must be a non-empty string')
+    // }
 
     try {
       const response = await AxiosLib.get('/approval-service/approval-status', {
         params: {
           page,
           limit,
-          search,
-          approverDesignation
+          search
+
+          //approverDesignation
         }
       })
 

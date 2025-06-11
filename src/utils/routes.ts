@@ -11,6 +11,7 @@ export const ROUTES = {
     EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`
   },
   APPROVALS: '/approvals',
+  APPROVALS_VIEW: `/approvals/approval-detail/view`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
     INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',

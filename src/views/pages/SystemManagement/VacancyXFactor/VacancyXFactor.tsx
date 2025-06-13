@@ -278,7 +278,7 @@ const VacancyXFactor = ({ formik }) => {
                 }
 
                 const payload = validDesignations.map(d => ({
-                  designationName: d.name,
+                  //designationName: d.name,
                   xFactor: parseInt(d.days, 10) || 0
                 }))
 

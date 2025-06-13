@@ -12,6 +12,38 @@ export const ROUTES = {
   },
   APPROVALS: '/approvals',
   APPROVALS_VIEW: `/approvals/approval-detail/view`,
+  APPROVALS_VACANCY_GROUP: `/approvals/approval-detail/Vacancy-Request-Group`,
+  APPROVALS_VACANCY_REQUEST: ({
+    designation,
+    department,
+    branch,
+    cluster,
+    area,
+    region,
+    zone,
+    territory,
+    locationType
+  }) => {
+    const params = new URLSearchParams({ designation, department })
+
+    const locationMap: Record<string, string | undefined> = {
+      BRANCH: branch,
+      CLUSTER: cluster,
+      AREA: area,
+      REGION: region,
+      ZONE: zone,
+      TERRITORY: territory
+    }
+
+    const locationKey = locationType?.toUpperCase()
+
+    if (locationKey && locationMap[locationKey]) {
+      params.append(locationKey.toLowerCase(), locationMap[locationKey]!)
+    }
+
+    return `/approvals/approval-detail/Vacancy-Request-Group/request?${params.toString()}`
+  },
+  VACANCY_DETAIL: (id: string) => `/approvals/approval-detail/Vacancy-Request-Group/request/details?id=${id}`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
     INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',
@@ -63,10 +95,8 @@ export const ROUTES = {
 
         return `/hiring-management/vacancy-management/vacancy-list/view/vacancy-details?${params.toString()}`
       },
-
       VACANCY_LIST_VIEW_DETAIL: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-list/view/detail?id=${id}`,
-
       VACANCY_REQUEST: '/hiring-management/vacancy-management/vacancy-request',
       VACANCY_REQUEST_DETAIL: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-request/view/Detail?id=${id}`,

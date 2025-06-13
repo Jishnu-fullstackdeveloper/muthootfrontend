@@ -89,7 +89,7 @@ const VacancyListingPage = () => {
 
   // State management
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [tabMode, setTabMode] = useState<TabMode>('list')
+  const [tabMode] = useState<TabMode>('list')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [visibleVacancies, setVisibleVacancies] = useState<Vacancy[]>([])
   const [page, setPage] = useState(1)
@@ -638,7 +638,7 @@ const VacancyListingPage = () => {
         </Box>
       </Card>
 
-      <Tabs
+      {/* <Tabs
         value={tabMode}
         onChange={(e, newValue) => setTabMode(newValue as TabMode)}
         sx={{
@@ -650,7 +650,7 @@ const VacancyListingPage = () => {
       >
         <Tab label='Vacancy List' value='list' sx={{ textTransform: 'none', fontWeight: 600 }} />
         <Tab label='Vacancy Request' value='request' sx={{ textTransform: 'none', fontWeight: 600 }} />
-      </Tabs>
+      </Tabs> */}
 
       {vacancyListFailureMessage && (
         <Box sx={{ textAlign: 'center', mt: 4, color: '#757575' }}>
@@ -671,8 +671,7 @@ const VacancyListingPage = () => {
               <Grid item xs={12} sm={6} md={4} key={vacancy.id}>
                 <Card
                   onClick={() =>
-                    // router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW_DETAIL(vacancy.id))
-                    router.push(`/hiring-management/vacancy-management/vacancy-list/view/detail?id=${vacancy.id}`)
+                    router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW_DETAIL(vacancy.id))
                   }
                   sx={{
                     borderRadius: '12px',
@@ -882,7 +881,7 @@ const VacancyListingPage = () => {
         ) : (
           <Autocomplete
             multiple
-            options={selectedFilterType ? filterValuesMap[selectedFilterType].map(item => item.id) : []}
+            options={selectedFilterType ? filterValuesMap[selectedFilterType].map(item => item.name) : []}
             getOptionLabel={option =>
               selectedFilterType
                 ? filterValuesMap[selectedFilterType].find(item => item.id === option)?.name || option

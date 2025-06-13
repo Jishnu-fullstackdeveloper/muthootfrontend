@@ -11,6 +11,7 @@ interface FetchResignedEmployeesParams {
   isResigned?: boolean
   search?: string
   resignationDateFrom?: string
+  employeeCode?: string
 }
 
 // Define the state interface
@@ -41,7 +42,7 @@ const initialState: ResignationDataListingState = {
 export const fetchResignedEmployees = createAsyncThunk(
   'resignedEmployees/fetchResignedEmployees',
   async (
-    { page, limit, isResigned, search, resignationDateFrom }: FetchResignedEmployeesParams,
+    { page, limit, isResigned, search, resignationDateFrom, employeeCode }: FetchResignedEmployeesParams,
     { rejectWithValue }
   ) => {
     try {
@@ -51,7 +52,8 @@ export const fetchResignedEmployees = createAsyncThunk(
           limit,
           isResigned,
           search,
-          resignationDateFrom
+          resignationDateFrom,
+          employeeCode
         }
       })
 

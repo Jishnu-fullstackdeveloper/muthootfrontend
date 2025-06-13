@@ -32,6 +32,7 @@ import 'react-toastify/dist/ReactToastify.css'
 const DataUploadListingPage = () => {
   const dispatch = useAppDispatch()
   const { categories, categoriesStatus, categoriesError } = useAppSelector(state => state.dataUploadReducer)
+
   const [searchQuery, setSearchQuery] = useState('')
   const [openDialog, setOpenDialog] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -39,6 +40,7 @@ const DataUploadListingPage = () => {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
   const hasFetchedCategories = useRef(false) // Track if categories have been fetched
   const prevSearchQuery = useRef('') // Track previous search query
+  const [fileError, setFileError] = useState<string | null>(null)
 
   // Fetch categories only once on mount
   useEffect(() => {
@@ -49,32 +51,25 @@ const DataUploadListingPage = () => {
     }
   }, [dispatch]) // Removed categoriesStatus from dependencies
 
-  // Debounced search effect
   useEffect(() => {
-    // Clear the previous timeout
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current)
     }
 
-    // Set a new timeout
     debounceTimeout.current = setTimeout(() => {
       const trimmedQuery = searchQuery.trim()
 
-      // Only dispatch if query has changed
-      if (trimmedQuery !== prevSearchQuery.current) {
-        console.log('Fetching data uploads with search:', trimmedQuery) // Debug log
-        dispatch(
-          fetchDataUploads({
-            page: 1, // Reset to first page on new search
-            limit: 5, // Consistent with DataUploadTableList
-            search: trimmedQuery || undefined // Send search query if not empty
-          })
-        )
-        prevSearchQuery.current = trimmedQuery
-      }
-    }, 300) // 300ms delay, consistent with EmployeeListingPage
+      console.log('Fetching data uploads with search:', trimmedQuery) // Debug log
+      dispatch(
+        fetchDataUploads({
+          page: 1,
+          limit: 5,
+          search: trimmedQuery || undefined
+        })
+      )
+      prevSearchQuery.current = trimmedQuery
+    }, 300)
 
-    // Cleanup function to clear timeout
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current)
@@ -92,13 +87,30 @@ const DataUploadListingPage = () => {
     setSelectedCategory(null)
   }
 
+  // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0] || null
+
+  //   setSelectedFile(file)
+  // }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null
 
     setSelectedFile(file)
+    setFileError(file ? null : 'Please select a file')
   }
 
   const handleSubmit = async () => {
+    if (!selectedFile) {
+      setFileError('Please select a file')
+    }
+
+    if (!selectedCategory) {
+      return // Autocomplete will handle its own validation
+    }
+
+    if (!selectedFile || !selectedCategory) return
+
     if (selectedFile && selectedCategory) {
       try {
         const type = selectedCategory
@@ -225,7 +237,7 @@ const DataUploadListingPage = () => {
         <DialogTitle>Upload File</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField
+            {/* <TextField
               label='Select File'
               type='file'
               InputLabelProps={{ shrink: true }}
@@ -233,7 +245,20 @@ const DataUploadListingPage = () => {
               inputProps={{ accept: '.pdf,.csv,.xlsx,.doc,.docx' }} // Restrict file types
               fullWidth
               size='small'
+            /> */}
+
+            <TextField
+              label='Select File'
+              type='file'
+              InputLabelProps={{ shrink: true }}
+              onChange={handleFileChange}
+              inputProps={{ accept: '.pdf,.csv,.xlsx,.doc,.docx' }}
+              fullWidth
+              size='small'
+              error={!!fileError}
+              helperText={fileError}
             />
+
             <Autocomplete
               options={categories}
               value={selectedCategory}

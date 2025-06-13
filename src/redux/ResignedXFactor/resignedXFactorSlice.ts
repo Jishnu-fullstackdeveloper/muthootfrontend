@@ -44,7 +44,7 @@ export const fetchDesignation = createAsyncThunk(
 
 export const updateResignedXFactor = createAsyncThunk(
   'xFactor/updateResignedXFactor',
-  async ({ id, data }: { id: string; data: { designationName: string; xFactor: number } }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: { xFactor: number } }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.put(API_ENDPOINTS.UpdateResignedXfactorUrl(id), data)
 

@@ -97,6 +97,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   const [designationLoading, setDesignationLoading] = useState(false) // Loading state for designations
   const [levelLoading, setLevelLoading] = useState(false) // Loading state for levels
   const searchParams = useSearchParams()
+  const [initialApprovers, setInitialApprovers] = useState<any[]>([]) // Store parsed approvers for edit mode
 
   const router = useRouter()
   const dispatch = useAppDispatch()
@@ -332,20 +333,17 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
       const approvalCategory = searchParams.get('approvalCategory') || ''
       const numberOfLevels = searchParams.get('numberOfLevels') || '1'
       const description = searchParams.get('description') || ''
-      const designationName = searchParams.get('designationName') || '[]' // For Designation approverType
-      const level = searchParams.get('level') || '[]' // For Level approverType
-      const categoryId = searchParams.get('approvalCategoryId') || '' // Get approvalCategoryId from URL
+      const designationName = searchParams.get('designationName') || '[]'
+      const level = searchParams.get('level') || '[]'
+      const categoryId = searchParams.get('approvalCategoryId') || ''
 
       if (isUpdateMode) {
         ApprovalMatrixFormik.setFieldValue('id', tableId)
-
-        // Set approvalCategory as an object for Autocomplete
         ApprovalMatrixFormik.setFieldValue('approvalCategory', { id: categoryId, name: approvalCategory })
         ApprovalMatrixFormik.setFieldValue('numberOfLevels', parseInt(numberOfLevels, 10))
         ApprovalMatrixFormik.setFieldValue('description', description)
-        setApprovalCategoryId(categoryId) // Set approvalCategoryId for use in submission
+        setApprovalCategoryId(categoryId)
 
-        // Fetch approval category details to get approverType
         let fetchedApproverType: string | null = null
 
         if (categoryId) {
@@ -353,31 +351,30 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             const response = await dispatch(fetchApprovalCategoryById(categoryId)).unwrap()
 
             fetchedApproverType = response.approverType || null
-            setApproverType(fetchedApproverType) // Set approverType in edit mode
+            setApproverType(fetchedApproverType)
           } catch (error) {
             console.error('Error fetching approval category details in edit mode:', error)
             setApproverType(null)
           }
         }
 
-        // Fetch levels if approverType is 'Level' and levels are not already fetched
         let availableLevels: LevelOption[] = levels.map(lvl => ({
           ...lvl,
-          displayName: lvl.displayName || lvl.name // Ensure displayName exists
+          displayName: lvl.displayName || lvl.name
         }))
 
         if (fetchedApproverType === 'Level') {
           setLevelLoading(true)
-          const levelsResult = await dispatch(fetchLevels()).unwrap() // Directly get the result from the thunk
+          const levelsResult = await dispatch(fetchLevels()).unwrap()
 
           setLevelLoading(false)
-          availableLevels = levelsResult // Use the fetched levels directly
+          availableLevels = levelsResult
         }
 
-        // Parse the approver data based on approverType
         const parsedApprovers = fetchedApproverType === 'Level' ? JSON.parse(level) : JSON.parse(designationName)
 
-        // Generate sections based on numberOfLevels, pre-filling designation or level
+        setInitialApprovers(parsedApprovers) // Store parsed approvers
+
         const sections = Array.from({ length: parseInt(numberOfLevels, 10) }, (_, index) => {
           const approverEntry = parsedApprovers[index] || { id: '', name: '' }
 
@@ -391,7 +388,7 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
         })
 
         ApprovalMatrixFormik.setFieldValue('sections', sections)
-        setSectionsVisible(true) // Show sections immediately in edit mode
+        setSectionsVisible(true)
       }
     } catch (error) {
       console.error('Error fetching options:', error)
@@ -439,9 +436,20 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
     // Validate approvalCategory and description before proceeding
     const errors = await ApprovalMatrixFormik.validateForm()
 
-    if (errors.approvalCategory || errors.description) {
-      ApprovalMatrixFormik.setTouched({ approvalCategory: { id: true, name: true }, description: true })
+    // Set touched for all fields to trigger validation messages
+    ApprovalMatrixFormik.setTouched({
+      approvalCategory: { id: true, name: true, description: true, approverType: true },
+      description: true,
+      numberOfLevels: true,
 
+      // Set touched for all sections to trigger their validation
+      sections: ApprovalMatrixFormik.values.sections.map(() => ({
+        designationName: approverType === 'Designation' ? { id: true, name: true } : undefined,
+        level: approverType === 'Level' ? { id: true, name: true, displayName: true } : undefined
+      }))
+    })
+
+    if (errors.approvalCategory || errors.description || errors.sections) {
       return
     }
 
@@ -514,27 +522,44 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
   // }, [approverType])
 
   // Dynamically update sections when numberOfLevels changes
+
   useEffect(() => {
-    if (ApprovalMatrixFormik.values.numberOfLevels > 0) {
+    if (ApprovalMatrixFormik.values.numberOfLevels > 0 && sectionsVisible) {
       const currentSections = ApprovalMatrixFormik.values.sections
       const newSectionCount = ApprovalMatrixFormik.values.numberOfLevels
 
-      // If sections are already visible, adjust the sections array dynamically
-      if (sectionsVisible) {
-        const newSections = Array.from({ length: newSectionCount }, (_, index) => {
-          // Preserve existing sections if they exist, otherwise create a new empty section
-          return (
-            currentSections[index] || {
-              designationName: null,
-              level: null
-            }
-          )
-        })
+      const newSections = Array.from({ length: newSectionCount }, (_, index) => {
+        if (currentSections[index]) {
+          return currentSections[index] // Preserve existing sections
+        }
 
-        ApprovalMatrixFormik.setFieldValue('sections', newSections)
-      }
+        if (isUpdateMode && initialApprovers[index]) {
+          // Use initialApprovers for edit mode
+          const approverEntry = initialApprovers[index] || { id: '', name: '' }
+
+          return {
+            designationName: approverType === 'Level' ? null : approverEntry,
+            level: approverType === 'Level' ? levels.find(option => option.name === approverEntry.name) || null : null
+          }
+        }
+
+        // Default for new sections
+        return {
+          designationName: null,
+          level: null
+        }
+      })
+
+      ApprovalMatrixFormik.setFieldValue('sections', newSections)
     }
-  }, [ApprovalMatrixFormik.values.numberOfLevels, sectionsVisible])
+  }, [
+    ApprovalMatrixFormik.values.numberOfLevels,
+    sectionsVisible,
+    approverType,
+    initialApprovers,
+    isUpdateMode,
+    levels
+  ])
 
   return (
     <>
@@ -569,15 +594,15 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                         const response = await dispatch(fetchApprovalCategoryById(value.id)).unwrap()
 
                         ApprovalMatrixFormik.setFieldValue('description', response.description || '')
-                        setApproverType(response.approverType || null) // Store approverType in state
+                        setApproverType(response.approverType || null)
                       } catch (error) {
                         console.error('Error fetching approval category details:', error)
                         ApprovalMatrixFormik.setFieldValue('description', '')
-                        setApproverType(null) // Reset approverType on error
+                        setApproverType(null)
                       }
                     } else {
                       ApprovalMatrixFormik.setFieldValue('description', '')
-                      setApproverType(null) // Reset approverType if no category is selected
+                      setApproverType(null)
                     }
                   }}
                   options={approvalCategories}
@@ -596,8 +621,10 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                         Boolean(ApprovalMatrixFormik.errors.approvalCategory)
                       }
                       helperText={
-                        ApprovalMatrixFormik.touched.approvalCategory &&
-                        (ApprovalMatrixFormik.errors.approvalCategory as string)
+                        ApprovalMatrixFormik.touched.approvalCategory && ApprovalMatrixFormik.errors.approvalCategory
+                          ? (ApprovalMatrixFormik.errors.approvalCategory as any).name ||
+                            'Approval Category is required'
+                          : ''
                       }
                       InputProps={{
                         ...params.InputProps,
@@ -728,9 +755,10 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
                         updatedSections[index].level = value
                         ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
+                        ApprovalMatrixFormik.setFieldTouched(`sections[${index}].level`, true)
                       }}
-                      options={levels} // Use fetched levels
-                      getOptionLabel={(option: LevelOption) => option.displayName || ''} // Use displayName for dropdown
+                      options={levels}
+                      getOptionLabel={(option: LevelOption) => option.displayName || ''}
                       isOptionEqualToValue={(option: LevelOption, value: LevelOption | null) => option.id === value?.id}
                       renderInput={params => (
                         <TextField
@@ -738,11 +766,18 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                           placeholder='Level'
                           error={
                             ApprovalMatrixFormik.touched.sections?.[index]?.level &&
+                            ApprovalMatrixFormik.values.sections[index].level === null &&
                             Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.level)
                           }
                           helperText={
                             ApprovalMatrixFormik.touched.sections?.[index]?.level &&
-                            ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.level as string)
+                            ApprovalMatrixFormik.values.sections[index].level === null
+                              ? 'This field is required'
+                              : ApprovalMatrixFormik.touched.sections?.[index]?.level &&
+                                  (ApprovalMatrixFormik.errors.sections?.[index] as any)?.level
+                                ? ((ApprovalMatrixFormik.errors.sections?.[index] as any).level as any).name ||
+                                  'Invalid level'
+                                : ''
                           }
                           InputProps={{
                             ...params.InputProps,
@@ -755,16 +790,21 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                           }}
                         />
                       )}
-                      sx={{ flex: 1, mr: 2 }}
-                      loading={levelLoading}
-                      onOpen={() => {
-                        if (levels.length === 0 && approverType === 'Level') {
-                          setLevelLoading(true)
-                          dispatch(fetchLevels())
-                            .then(() => setLevelLoading(false))
-                            .catch(() => setLevelLoading(false))
+                      sx={{
+                        flex: 1,
+                        mr: 2,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor:
+                              ApprovalMatrixFormik.touched.sections?.[index]?.level &&
+                              ApprovalMatrixFormik.values.sections[index].level === null
+                                ? '#f44336'
+                                : 'rgba(0, 0, 0, 0.23)'
+                          }
                         }
                       }}
+                      loading={levelLoading}
+                      onBlur={() => ApprovalMatrixFormik.setFieldTouched(`sections[${index}].level`, true)}
                     />
                   ) : (
                     <Autocomplete
@@ -774,8 +814,9 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
 
                         updatedSections[index].designationName = value
                         ApprovalMatrixFormik.setFieldValue('sections', updatedSections)
+                        ApprovalMatrixFormik.setFieldTouched(`sections[${index}].designationName`, true)
                       }}
-                      options={designations} // Use fetched designations
+                      options={designations}
                       getOptionLabel={option => option.name || ''}
                       isOptionEqualToValue={(option, value) => option.id === value?.id}
                       ListboxProps={{
@@ -788,11 +829,18 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                           placeholder='Designations'
                           error={
                             ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
+                            ApprovalMatrixFormik.values.sections[index].designationName === null &&
                             Boolean((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName)
                           }
                           helperText={
                             ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
-                            ((ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName as string)
+                            ApprovalMatrixFormik.values.sections[index].designationName === null
+                              ? 'This field is required'
+                              : ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
+                                  (ApprovalMatrixFormik.errors.sections?.[index] as any)?.designationName
+                                ? ((ApprovalMatrixFormik.errors.sections?.[index] as any).designationName as any)
+                                    .name || 'Invalid designation'
+                                : ''
                           }
                           InputProps={{
                             ...params.InputProps,
@@ -805,16 +853,20 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                           }}
                         />
                       )}
-                      sx={{ flex: 1, mr: 2 }}
-                      loading={designationLoading} // Pass the loading prop
-                      onOpen={() => {
-                        if (designations.length === 0) {
-                          setDesignationLoading(true)
-                          dispatch(fetchDesignations({ limit: designationLimit }))
-                            .then(() => setDesignationLoading(false))
-                            .catch(() => setDesignationLoading(false))
+                      sx={{
+                        flex: 1,
+                        mr: 2,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor:
+                              ApprovalMatrixFormik.touched.sections?.[index]?.designationName &&
+                              ApprovalMatrixFormik.values.sections[index].designationName === null
+                                ? '#f44336'
+                                : 'rgba(0, 0, 0, 0.23)'
+                          }
                         }
                       }}
+                      onBlur={() => ApprovalMatrixFormik.setFieldTouched(`sections[${index}].designationName`, true)}
                     />
                   )}
                   <IconButton onClick={() => handleOpenDialog(index)}>
@@ -840,18 +892,59 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                 Clear
               </Button>
             )}
+
             <Button
               variant='contained'
               color='primary'
-              onClick={() => {
-                if (sectionsVisible && areAllSectionsFilled) {
-                  void ApprovalMatrixFormik.submitForm() // Second API call for designation and level
+              onClick={async () => {
+                if (sectionsVisible) {
+                  const errors = await ApprovalMatrixFormik.validateForm()
+
+                  if (Object.keys(errors).length > 0 || !areAllSectionsFilled) {
+                    toast.error('Please fill all required fields before submitting.', {
+                      position: 'top-right',
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined
+                    })
+
+                    // Set touched for all fields to show validation errors
+                    ApprovalMatrixFormik.setTouched({
+                      approvalCategory: { id: true, name: true },
+                      description: true,
+                      numberOfLevels: true,
+                      sections: ApprovalMatrixFormik.values.sections.map(() => ({
+                        designationName: approverType === 'Designation' ? { id: true, name: true } : undefined,
+                        level: approverType === 'Level' ? { id: true, name: true, displayName: true } : undefined
+                      }))
+                    })
+
+                    return
+                  }
+
+                  try {
+                    await ApprovalMatrixFormik.submitForm()
+                  } catch (error) {
+                    // This catch is unlikely to be reached since onSubmit handles errors, but included for robustness
+                    toast.error('Submission failed unexpectedly. Please try again.', {
+                      position: 'top-right',
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined
+                    })
+                  }
                 } else {
-                  void handleNextClick() // First API call for approval category and description
+                  await handleNextClick()
                 }
               }}
             >
-              {sectionsVisible && areAllSectionsFilled ? (isUpdateMode ? 'Update' : 'Create') : 'Next'}
+              {sectionsVisible ? (isUpdateMode ? 'Update' : 'Create') : 'Next'}
             </Button>
           </Box>
         </Box>

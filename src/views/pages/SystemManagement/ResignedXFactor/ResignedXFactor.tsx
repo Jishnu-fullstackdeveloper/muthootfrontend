@@ -261,6 +261,53 @@ const ResignedXFactor = ({ formik }) => {
             >
               Cancel
             </Button>
+            {/* <Button
+              variant='contained'
+              color='primary'
+              onClick={async () => {
+                const validDesignations = tempDesignations.filter(d => d.name && d.days && !isNaN(Number(d.days)))
+
+                if (validDesignations.length === 0) {
+                  toast.error('At least one valid designation is required')
+
+                  return
+                }
+
+                const payload = validDesignations.map(d => ({
+                  //designationName: d.name,
+                  xFactor: parseInt(d.days, 10) || 0
+                }))
+
+                setIsLoading(true)
+
+                try {
+                  if (editMode && editId) {
+                    await dispatch(updateResignedXFactor({ id: editId, data: payload[0] })).unwrap()
+                    toast.success('X-Factor updated successfully')
+                  } else {
+                    // Assuming createXFactor exists; add logic here if needed
+                    // await dispatch(createVacancyXFactor({ data: payload })).unwrap();
+                    toast.success('X-Factor added successfully')
+                  }
+
+                  setTempDesignations([{ name: '', days: '' }])
+                  setDrawerOpen(false)
+                  setEditMode(false)
+                  setEditId(null)
+                  dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
+                } catch (error) {
+                  toast.error(error.message || 'Failed to save X-Factor')
+                } finally {
+                  setIsLoading(false)
+                }
+              }}
+              disabled={isSaveDisabled}
+              startIcon={isLoading ? <CircularProgress size={20} /> : null}
+              aria-label={editMode ? 'Update X-Factor' : 'Save X-Factor'}
+            >
+              {editMode ? 'Update' : 'Save'}
+            </Button> */}
+
             <Button
               variant='contained'
               color='primary'
@@ -274,7 +321,6 @@ const ResignedXFactor = ({ formik }) => {
                 }
 
                 const payload = validDesignations.map(d => ({
-                  designationName: d.name,
                   xFactor: parseInt(d.days, 10) || 0
                 }))
 
@@ -282,7 +328,10 @@ const ResignedXFactor = ({ formik }) => {
 
                 try {
                   if (editMode && editId) {
-                    await dispatch(updateResignedXFactor({ id: editId, data: payload[0] })).unwrap()
+                    // Ensure only xFactor is sent in the payload
+                    await dispatch(
+                      updateResignedXFactor({ id: editId, data: { xFactor: payload[0].xFactor } })
+                    ).unwrap()
                     toast.success('X-Factor updated successfully')
                   } else {
                     // Assuming createXFactor exists; add logic here if needed

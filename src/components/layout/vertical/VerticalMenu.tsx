@@ -154,23 +154,24 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             label: 'Vacancy Management',
             iconClass: 'tabler-briefcase', // still appropriate for the main category
             permission: 'vacancyManagement',
-            read: 'HIRING_VACANCY_READ',
-            children: [
-              {
-                path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
-                label: 'Vacancy List',
-                iconClass: 'tabler-list-details', // better suited for a listing page
-                permission: 'vacancyList',
-                read: 'HIRING_VACANCY_VACANCYLIST_READ'
-              },
-              {
-                path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST,
-                label: 'Vacancy Request',
-                iconClass: 'tabler-file-plus', // represents request/adding new vacancy
-                permission: 'vacancyRequest',
-                read: 'HIRING_VACANCY_VACANCYREQUEST_READ'
-              }
-            ]
+            read: 'HIRING_VACANCY_READ'
+
+            // children: [
+            //   {
+            //     path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
+            //     label: 'Vacancy List',
+            //     iconClass: 'tabler-list-details', // better suited for a listing page
+            //     permission: 'vacancyList',
+            //     read: 'HIRING_VACANCY_VACANCYLIST_READ'
+            //   },
+            //   {
+            //     path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST,
+            //     label: 'Vacancy Request',
+            //     iconClass: 'tabler-file-plus', // represents request/adding new vacancy
+            //     permission: 'vacancyRequest',
+            //     read: 'HIRING_VACANCY_VACANCYREQUEST_READ'
+            //   }
+            // ]
           },
           {
             path: ROUTES.HIRING_MANAGEMENT.BUDGET,

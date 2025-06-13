@@ -35,7 +35,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
 import type { VacancyManagementState, VacancyGroupByDesignationResponse } from '@/types/vacancyManagement'
 import { fetchVacanciesGroupByDesignation } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-import { ROUTES } from '@/utils/routes'
+import { buildVacancyRequestURL } from '@/utils/urlBuilders'
 
 type ViewMode = 'grid' | 'table'
 
@@ -81,12 +81,12 @@ const VacancyGroupListing = () => {
       limit: number
       search?: string
       locationType: 'BRANCH' | 'CLUSTER' | 'AREA' | 'REGION' | 'ZONE' | 'TERRITORY'
-      status: 'APPROVED'
+      status: 'PENDING'
     } = {
       page: viewMode === 'grid' ? gridPage : tablePagination.pageIndex + 1, // API expects 1-based page index
       limit: viewMode === 'grid' ? gridLimit : tablePagination.pageSize,
       locationType: selectedLocationType,
-      status: 'APPROVED'
+      status: 'PENDING'
     }
 
     if (searchDesignation) params.search = searchDesignation
@@ -135,29 +135,15 @@ const VacancyGroupListing = () => {
 
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
-  const handleViewDetails = (
-    designation: string,
-    department: string,
-    branch?: string,
-    cluster?: string,
-    area?: string,
-    region?: string,
-    zone?: string,
-    territory?: string
-  ) => {
-    router.push(
-      ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW({
-        designation,
-        department,
-        branch,
-        cluster,
-        area,
-        region,
-        zone,
-        territory,
-        locationType: selectedLocationType // assumed to be defined outside
-      })
-    )
+  const handleViewDetails = (designation: string, department: string, locationName: string) => {
+    const url = buildVacancyRequestURL({
+      designation,
+      department,
+      locationName,
+      locationType: selectedLocationType
+    })
+
+    router.push(url)
   }
 
   const filteredData = useMemo(() => {
@@ -184,7 +170,7 @@ const VacancyGroupListing = () => {
         )
       }),
       columnHelper.accessor('designationCount', {
-        header: 'VACANCY COUNT',
+        header: 'VACANCY REQUEST COUNT',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.designationCount}</Typography>
       }),
       columnHelper.accessor('designation', {
@@ -381,7 +367,7 @@ const VacancyGroupListing = () => {
                       {item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575' }}>
-                      <strong>Vacancy Count:</strong> {item.designationCount}
+                      <strong>Vacancy Request Count:</strong> {item.designationCount}
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ justifyContent: 'flex-end', p: 2, bgcolor: '#fafafa' }}>

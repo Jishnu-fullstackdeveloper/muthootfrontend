@@ -1,41 +1,65 @@
 'use client'
-import React, { useState, useMemo, useEffect } from 'react'
 
-import { useRouter } from 'next/navigation'
+import React, { useState, useMemo } from 'react'
 
-import { IconButton, Tooltip, Typography, Chip, Box } from '@mui/material'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+import { Box, Typography, Chip, IconButton, Tooltip, Button } from '@mui/material'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
-
-import VisibilityIcon from '@mui/icons-material/Visibility'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import DynamicTable from '@/components/Table/dynamicTable'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-import type { VacancyManagementState } from '@/types/vacancyManagement'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import type { RootState } from '@/redux/store'
+import type { VacancyManagementState, Vacancy } from '@/types/vacancyManagement'
+import { updateVacancyStatus, fetchVacancies } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import { ROUTES } from '@/utils/routes'
+import { getUserId } from '@/utils/functions'
 
-const VacancyListingTableView = () => {
+interface VacancyListingTableViewProps {
+  tabMode: 'list' | 'request'
+}
+
+const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+  const userId = getUserId()
+  const searchParams = useSearchParams()
 
-  const { vacancyListData, vacancyListLoading, vacancyListFailureMessage } = useAppSelector(
-    state => state.vacancyManagementReducer
+  // URL query params
+  const initialParams = useMemo(
+    () => ({
+      designation: searchParams.get('designation') ? [searchParams.get('designation')!] : undefined,
+      department: searchParams.get('department') ? [searchParams.get('department')!] : undefined,
+      branch: searchParams.get('branch') ? [searchParams.get('branch')!] : undefined,
+      cluster: searchParams.get('cluster') ? [searchParams.get('cluster')!] : undefined,
+      area: searchParams.get('area') ? [searchParams.get('area')!] : undefined,
+      region: searchParams.get('region') ? [searchParams.get('region')!] : undefined,
+      zone: searchParams.get('zone') ? [searchParams.get('zone')!] : undefined,
+      territory: searchParams.get('territory') ? [searchParams.get('territory')!] : undefined
+    }),
+    [searchParams]
+  )
+
+  // Redux selectors
+  const { vacancyListData, vacancyListLoading, vacancyListFailureMessage, updateVacancyStatusLoading } = useAppSelector(
+    (state: RootState) => state.vacancyManagementReducer
   ) as VacancyManagementState
-
-  const columnHelper = createColumnHelper<any>()
 
   // Pagination state (0-based for table, 1-based for API)
   const [pagination, setPagination] = useState({
-    pageIndex: 0, // Changed to 0-based index for table compatibility
+    pageIndex: 0,
     pageSize: 5
   })
 
-  // Fetch vacancies when pagination changes
-  useEffect(() => {
-    dispatch(fetchVacancies({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
-  }, [dispatch, pagination.pageIndex, pagination.pageSize])
+  const columnHelper = createColumnHelper<Vacancy>()
 
+  // Handle pagination changes
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({
       ...prev,
@@ -45,7 +69,7 @@ const VacancyListingTableView = () => {
 
   const handleRowsPerPageChange = (newPageSize: number) => {
     setPagination({
-      pageIndex: 0, // Reset to first page when rows per page changes
+      pageIndex: 0,
       pageSize: newPageSize
     })
   }
@@ -54,10 +78,122 @@ const VacancyListingTableView = () => {
     console.log('Page Count:', newPageCount)
   }
 
-  const columns = useMemo<ColumnDef<any, any>[]>(
+  // Check if current user is an approver with PENDING status
+  const canApproveOrFreeze = (vacancy: Vacancy) => {
+    return (
+      vacancy.approvalStatus?.some(status => status.approverId === userId && status.approvalStatus === 'PENDING') ||
+      false
+    )
+  }
+
+  // Get IDs of all eligible PENDING vacancies for bulk actions
+  const eligibleVacancyIds = useMemo(() => {
+    return (vacancyListData?.data || []).filter(vacancy => canApproveOrFreeze(vacancy)).map(vacancy => vacancy.id)
+  }, [vacancyListData, userId])
+
+  // Handle bulk actions
+  const handleBulkAction = (status: 'APPROVED' | 'FREEZED') => {
+    if (!eligibleVacancyIds.length) return
+
+    dispatch(updateVacancyStatus({ ids: eligibleVacancyIds, status }))
+      .unwrap()
+      .then(() => {
+        toast.success(`All eligible vacancies ${status.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+
+        // Refresh data
+        const params: {
+          page: number
+          limit: number
+          search?: string
+          status: 'PENDING' | 'APPROVED'
+          designation?: string[]
+          department?: string[]
+          branch?: string[]
+          cluster?: string[]
+          area?: string[]
+          region?: string[]
+          zone?: string[]
+          territory?: string[]
+        } = {
+          page: 1,
+          limit: pagination.pageSize,
+          status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
+          designation: initialParams.designation,
+          department: initialParams.department,
+          ...(initialParams.branch && { branch: initialParams.branch }),
+          ...(initialParams.cluster && { cluster: initialParams.cluster }),
+          ...(initialParams.area && { area: initialParams.area }),
+          ...(initialParams.region && { region: initialParams.region }),
+          ...(initialParams.zone && { zone: initialParams.zone }),
+          ...(initialParams.territory && { territory: initialParams.territory })
+        }
+
+        dispatch(fetchVacancies(params))
+        setPagination(prev => ({ ...prev, pageIndex: 0 }))
+      })
+      .catch(err => {
+        toast.error(`Failed to update vacancies: ${err}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      })
+  }
+
+  // Handle individual vacancy action
+  const handleVacancyAction = (id: string, status: 'APPROVED' | 'FREEZED') => {
+    dispatch(updateVacancyStatus({ ids: [id], status }))
+      .unwrap()
+      .then(() => {
+        toast.success(`Vacancy ${status.toLowerCase()} successfully`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+
+        // Refresh data
+        const params: {
+          page: number
+          limit: number
+          search?: string
+          status: 'PENDING' | 'APPROVED'
+          designation?: string[]
+          department?: string[]
+          branch?: string[]
+          cluster?: string[]
+          area?: string[]
+          region?: string[]
+          zone?: string[]
+          territory?: string[]
+        } = {
+          page: 1,
+          limit: pagination.pageSize,
+          status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
+          designation: initialParams.designation,
+          department: initialParams.department,
+          ...(initialParams.branch && { branch: initialParams.branch }),
+          ...(initialParams.cluster && { cluster: initialParams.cluster }),
+          ...(initialParams.area && { area: initialParams.area }),
+          ...(initialParams.region && { region: initialParams.region }),
+          ...(initialParams.zone && { zone: initialParams.zone }),
+          ...(initialParams.territory && { territory: initialParams.territory })
+        }
+
+        dispatch(fetchVacancies(params))
+        setPagination(prev => ({ ...prev, pageIndex: 0 }))
+      })
+      .catch(err => {
+        toast.error(`Failed to update vacancy: ${err}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      })
+  }
+
+  const columns = useMemo<ColumnDef<Vacancy, any>[]>(
     () => [
       columnHelper.accessor('jobTitle', {
-        // Match the actual data key
         header: 'JOB TITLE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -66,7 +202,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('designation', {
-        // Match the actual data key
         header: 'DESIGNATION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -75,7 +210,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('jobRole', {
-        // Match the actual data key
         header: 'JOB ROLE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -84,7 +218,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('openings', {
-        // Match the actual data key
         header: 'OPENINGS',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -92,9 +225,7 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-
       columnHelper.accessor('status', {
-        // Match the actual data key
         header: 'STATUS',
         cell: ({ row }) => (
           <Chip
@@ -114,18 +245,7 @@ const VacancyListingTableView = () => {
           />
         )
       }),
-
-      // columnHelper.accessor('businessRole', {
-      //   // Match the actual data key
-      //   header: 'BUSINESS ROLE',
-      //   cell: ({ row }) => (
-      //     <Typography color='text.primary' className='font-medium'>
-      //       {row.original.businessRole}
-      //     </Typography>
-      //   )
-      // }),
       columnHelper.accessor('campusOrLateral', {
-        // Match the actual data key
         header: 'CAMPUS/LATERAL',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -134,7 +254,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('employeeCategory', {
-        // Match the actual data key
         header: 'EMPLOYEE CATEGORY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -142,16 +261,6 @@ const VacancyListingTableView = () => {
           </Typography>
         )
       }),
-
-      // columnHelper.accessor(row => `${row.experienceMin} - ${row.experienceMax}`, {
-      //   // Custom accessor combining experienceMin and experienceMax
-      //   header: 'EXPERIENCE',
-      //   cell: ({ row }) => (
-      //     <Typography color='text.primary' className='font-medium'>
-      //       {row.original.experienceMin} - {row.original.experienceMax} years
-      //     </Typography>
-      //   )
-      // }),
       columnHelper.accessor('action', {
         header: 'ACTION',
         meta: { className: 'sticky right-0' },
@@ -160,23 +269,41 @@ const VacancyListingTableView = () => {
             <Tooltip title='View' placement='top'>
               <IconButton
                 onClick={() =>
-                  router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW(row.original.id))
+                  router.push(ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW_DETAIL(row.original.id))
                 }
               >
-                <VisibilityIcon sx={{ fontSize: 10 }} />
+                <VisibilityIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
-            {/* <Tooltip title='Edit' placement='top'>
-              <IconButton onClick={() => router.push(`/vacancy-management/edit/${row.original.id}`)}>
-                <i className='tabler-edit text-[22px] text-textSecondary' />
-              </IconButton>
-            </Tooltip> */}
+            {tabMode === 'request' && canApproveOrFreeze(row.original) && (
+              <>
+                <Tooltip title='Approve' placement='top'>
+                  <IconButton
+                    color='success'
+                    onClick={() => handleVacancyAction(row.original.id, 'APPROVED')}
+                    disabled={updateVacancyStatusLoading}
+                    sx={{ '&:hover': { bgcolor: 'success.light' } }}
+                  >
+                    <CheckCircleOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Freeze' placement='top'>
+                  <IconButton
+                    color='info'
+                    onClick={() => handleVacancyAction(row.original.id, 'FREEZED')}
+                    disabled={updateVacancyStatusLoading}
+                    sx={{ '&:hover': { bgcolor: 'info.light' } }}
+                  >
+                    <PauseCircleOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
           </Box>
         ),
         enableSorting: false
       }),
       columnHelper.accessor('employeeType', {
-        // Match the actual data key
         header: 'EMPLOYEE TYPE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -185,7 +312,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('hiringManager', {
-        // Match the actual data key
         header: 'HIRING MANAGER',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -194,7 +320,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('startingDate', {
-        // Match the actual data key
         header: 'START DATE',
         cell: ({ row }) => (
           <Chip
@@ -207,7 +332,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('closingDate', {
-        // Match the actual data key
         header: 'CLOSE DATE',
         cell: ({ row }) => (
           <Chip
@@ -220,7 +344,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('company', {
-        // Match the actual data key
         header: 'COMPANY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -229,7 +352,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('businessUnit', {
-        // Match the actual data key
         header: 'BUSINESS UNIT',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -238,7 +360,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('department', {
-        // Match the actual data key
         header: 'DEPARTMENT',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -247,7 +368,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('territory', {
-        // Match the actual data key
         header: 'TERRITORY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -256,7 +376,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('zone', {
-        // Match the actual data key
         header: 'ZONE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -265,7 +384,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('region', {
-        // Match the actual data key
         header: 'REGION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -274,7 +392,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('area', {
-        // Match the actual data key
         header: 'AREA',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -283,7 +400,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('cluster', {
-        // Match the actual data key
         header: 'CLUSTER',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -292,7 +408,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('branch', {
-        // Match the actual data key
         header: 'BRANCH',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -301,7 +416,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('branchCode', {
-        // Match the actual data key
         header: 'BRANCH CODE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -310,7 +424,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('city', {
-        // Match the actual data key
         header: 'CITY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -319,7 +432,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('state', {
-        // Match the actual data key
         header: 'STATE',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -328,7 +440,6 @@ const VacancyListingTableView = () => {
         )
       }),
       columnHelper.accessor('origin', {
-        // Match the actual data key
         header: 'ORIGIN',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
@@ -337,41 +448,48 @@ const VacancyListingTableView = () => {
         )
       })
     ],
-    [columnHelper, router]
+    [userId]
   )
 
-  // return (
-  //   <Box>
-  //     {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
-  //     {vacancyListFailureMessage && (
-  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>
-  //         {/* Error: {vacancyListFailureMessage} */} No vacancy found
-  //       </Typography>
-  //     )}
-  //     {!vacancyListLoading && !vacancyListFailureMessage && vacancyListData?.length === 0 ? (
-  //       <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No vacancy found</Typography>
-  //     ) : (
-  //       !vacancyListLoading &&
-  //       !vacancyListFailureMessage && (
-  //         <DynamicTable
-  //           columns={columns}
-  //           data={vacancyListData?.data || []}
-  //           totalCount={vacancyListData?.totalCount}
-  //           pagination={pagination}
-  //           onPageChange={handlePageChange}
-  //           onRowsPerPageChange={handleRowsPerPageChange}
-  //           onPageCountChange={handlePageCountChange}
-  //           tableName='Vacancy Listing Table'
-  //           sorting={undefined}
-  //           onSortingChange={undefined}
-  //           initialState={undefined}
-  //         />
-  //       )
-  //     )}
-  //   </Box>
-  // )
   return (
     <Box>
+      <ToastContainer position='top-right' autoClose={3000} />
+      {tabMode === 'request' && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 3 }}>
+          <Button
+            variant='outlined'
+            color='success'
+            startIcon={<CheckCircleOutlineIcon />}
+            onClick={() => handleBulkAction('APPROVED')}
+            disabled={!eligibleVacancyIds.length || updateVacancyStatusLoading}
+            sx={{
+              borderColor: 'success.main',
+              color: 'success.main',
+              borderRadius: '8px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: 'success.main' }
+            }}
+          >
+            Approve All
+          </Button>
+          <Button
+            variant='outlined'
+            color='info'
+            startIcon={<PauseCircleOutlineIcon />}
+            onClick={() => handleBulkAction('FREEZED')}
+            disabled={!eligibleVacancyIds.length || updateVacancyStatusLoading}
+            sx={{
+              borderColor: 'info.main',
+              color: 'info.main',
+              borderRadius: '8px',
+              textTransform: 'none',
+              '&:hover': { bgcolor: 'info.main' }
+            }}
+          >
+            Freeze All
+          </Button>
+        </Box>
+      )}
       {vacancyListLoading && <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading...</Typography>}
       {vacancyListFailureMessage && (
         <Typography sx={{ mt: 2, textAlign: 'center', color: 'error.main' }}>No record is found</Typography>
@@ -392,8 +510,9 @@ const VacancyListingTableView = () => {
             onRowsPerPageChange={handleRowsPerPageChange}
             onPageCountChange={handlePageCountChange}
             tableName='Vacancy Listing Table'
-            sorting={undefined}
+            sorting={null}
             onSortingChange={undefined}
+            isRowCheckbox={false}
             initialState={undefined}
           />
         )

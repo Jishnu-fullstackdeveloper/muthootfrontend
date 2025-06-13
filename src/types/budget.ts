@@ -108,7 +108,7 @@ export interface BudgetManagementState {
   fetchTerritoryFailureMessage: string
   fetchClusterLoading: boolean
   fetchClusterSuccess: boolean
-  fetchClusterData: ClusterResponse['data'] | null
+  fetchClusterData: ClusterResponse | null
   fetchClusterTotal: number
   fetchClusterFailure: boolean
   fetchClusterFailureMessage: string

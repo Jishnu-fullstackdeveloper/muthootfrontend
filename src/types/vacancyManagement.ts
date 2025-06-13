@@ -397,6 +397,9 @@ export interface Vacancy {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
+  action?: any
+  jobDescription: any
+  roleSummary: any
 }
 
 export interface VacancyListResponse {
@@ -406,6 +409,7 @@ export interface VacancyListResponse {
   totalCount: number
   currentPage: number
   limit: number
+  jobDescription: any
 }
 
 export interface VacancyDetailsResponse {
@@ -501,7 +505,6 @@ export interface AutoApproveVacancyRequestsResponse {
 export interface VacancyManagementState {
   vacancyListLoading: boolean
   vacancyListSuccess: boolean
-
   vacancyListData: VacancyListResponse | null
   vacancyListTotal: number
   vacancyListFailure: boolean

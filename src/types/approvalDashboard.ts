@@ -1,10 +1,12 @@
 export interface Approvals {
   id: string
   categoryName: string
-  description: string | null
+  description?: string | null
   approvedCount: number
-  rejectedCount: number
+  rejectedCount?: number
   pendingCount: number
+  freezeCount: number
+  transferCount?: number
   overdue?: string | null
   moveTo?: string | null
 }

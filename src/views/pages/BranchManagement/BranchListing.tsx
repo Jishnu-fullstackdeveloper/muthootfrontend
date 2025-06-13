@@ -7,13 +7,15 @@ import { useRouter } from 'next/navigation'
 import {
   Box,
   Card,
-  FormControl,
+
+  // FormControl,
   Grid,
   IconButton,
   InputAdornment,
-  InputLabel,
-  MenuItem,
-  Select,
+
+  // InputLabel,
+  // MenuItem,
+  // Select,
   Typography,
   Tooltip,
   Drawer,
@@ -24,7 +26,7 @@ import {
   CircularProgress
 } from '@mui/material'
 
-import Pagination from '@mui/material/Pagination'
+// import Pagination from '@mui/material/Pagination'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 
@@ -132,8 +134,8 @@ const BranchListing = () => {
     }
   }
 
-  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => handlePaginationChange('page', value)
-  const handleChangeLimit = (value: number) => handlePaginationChange('limit', value)
+  // const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => handlePaginationChange('page', value)
+  // const handleChangeLimit = (value: number) => handlePaginationChange('limit', value)
 
   const handleBranchClick = (branch: Branch) => router.push(`/branch-management/view/employees-details?id=${branch.id}`)
 
@@ -372,19 +374,19 @@ const BranchListing = () => {
                               <strong>Bucket Name</strong> {branch?.bucketName}
                             </Typography>
                             <Typography>
-                              <strong>Territory:</strong> {branch.area?.regionId}
+                              <strong>Territory:</strong> {branch.cluster?.area?.region?.zone?.territory?.name}
                             </Typography>
                             <Typography>
-                              <strong>Zonal:</strong> {branch.area?.name}
-                            </Typography>
-                            {/* <Typography>
-                              <strong>Region:</strong> {branch.area?.regionId}
-                            </Typography> */}
-                            <Typography>
-                              <strong>Area:</strong> {branch.area?.name}
+                              <strong>Zonal:</strong> {branch.cluster?.area?.region?.zone?.name}
                             </Typography>
                             <Typography>
-                              <strong>Cluster:</strong> {branch.bucket?.name}
+                              <strong>Region:</strong> {branch.cluster?.area?.region?.name}
+                            </Typography>
+                            <Typography>
+                              <strong>Area:</strong> {branch?.cluster?.area?.name}
+                            </Typography>
+                            <Typography>
+                              <strong>Cluster:</strong> {branch.cluster?.name}
                             </Typography>
                             <Typography>
                               <strong>City Classification:</strong> {branch.district?.name}
@@ -401,25 +403,25 @@ const BranchListing = () => {
                           {branch.name}
                         </Typography>
                         <Typography>
-                          <strong>Branch Code:</strong> {branch.branchCode}
+                          <strong>Branch Code:</strong> {branch?.branchCode}
                         </Typography>
                         <Typography>
-                          <strong>Territory:</strong> {branch.area.regionId}
+                          <strong>Territory:</strong> {branch.cluster?.area?.region?.zone?.territory?.name}
                         </Typography>
                         <Typography>
-                          <strong>Zonal:</strong> {branch.area.name}
+                          <strong>Zonal:</strong> {branch.cluster?.area?.region?.zone?.name}
                         </Typography>
                         <Typography>
-                          <strong>Region:</strong> {branch.area.regionId}
+                          <strong>Region:</strong> {branch.cluster?.area?.region?.name}
                         </Typography>
                         <Typography>
-                          <strong>Area:</strong> {branch.area.name}
+                          <strong>Area:</strong> {branch?.cluster?.area?.name}
                         </Typography>
                         <Typography>
-                          <strong>Cluster:</strong> {branch.bucket.name}
+                          <strong>Cluster:</strong> {branch.cluster?.name}
                         </Typography>
                         <Typography>
-                          <strong>City Classification:</strong> {branch.district.name}
+                          <strong>City Classification:</strong> {branch?.district?.name}
                         </Typography>
                         <Typography>
                           <strong>State:</strong> {branch.state.name}
@@ -437,7 +439,7 @@ const BranchListing = () => {
             </Box>
           )}
           {viewMode === 'table' && <BranchListingTableView branchData={branchListData?.data || []} />}
-          {(viewMode === 'list' || viewMode === 'table') && (
+          {/* {(viewMode === 'list' || viewMode === 'table') && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
               <FormControl size='small' sx={{ minWidth: 70 }}>
                 <InputLabel>Count</InputLabel>
@@ -464,7 +466,7 @@ const BranchListing = () => {
                 onChange={handlePageChange}
               />
             </Box>
-          )}
+          )} */}
         </>
       )}
     </Box>

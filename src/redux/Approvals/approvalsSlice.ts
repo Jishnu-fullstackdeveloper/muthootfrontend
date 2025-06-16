@@ -23,12 +23,10 @@ export const fetchApprovals = createAsyncThunk(
   'approvals/fetchApprovals',
   async (
     {
-      page,
-      limit,
-      search
+      groupByCategory
 
       //approverDesignation
-    }: { page: number; limit: number; search: string },
+    }: { groupByCategory: boolean },
     { rejectWithValue }
   ) => {
     // if (!approverDesignation || typeof approverDesignation !== 'string') {
@@ -36,11 +34,9 @@ export const fetchApprovals = createAsyncThunk(
     // }
 
     try {
-      const response = await AxiosLib.get('/approval-service/approval-status', {
+      const response = await AxiosLib.get('/approval-service/approval-status/report', {
         params: {
-          page,
-          limit,
-          search
+          groupByCategory
 
           //approverDesignation
         }

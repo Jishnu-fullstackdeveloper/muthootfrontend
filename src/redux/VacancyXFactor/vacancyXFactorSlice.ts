@@ -44,7 +44,7 @@ export const fetchDesignation = createAsyncThunk(
 
 export const updateVacancyXFactor = createAsyncThunk(
   'xFactor/updateVacancyXFactor',
-  async ({ id, data }: { id: string; data: { designationName: string; xFactor: number } }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: { xFactor: number } }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.put(API_ENDPOINTS.UpdateVacancyXfactorUrl(id), data)
 

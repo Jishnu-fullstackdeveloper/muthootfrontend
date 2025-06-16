@@ -212,7 +212,7 @@ const DataUploadTableList = () => {
 
   return (
     <>
-      {status === 'loading' && (
+      {/* {status === 'loading' && (
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress />
         </Box>
@@ -231,7 +231,38 @@ const DataUploadTableList = () => {
           onSortingChange={undefined}
           initialState={undefined}
         />
+      )} */}
+
+      {status === 'loading' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress />
+        </Box>
       )}
+      {status === 'failed' && (
+        <Typography align='center' color='text.primary'>
+          No Data Found
+        </Typography>
+      )}
+      {status === 'succeeded' && tableData.data.length === 0 && (
+        <Typography align='center' color='text.primary'>
+          No Data Found
+        </Typography>
+      )}
+      {status === 'succeeded' && tableData.data.length > 0 && (
+        <DynamicTable
+          columns={columns}
+          data={tableData.data}
+          totalCount={tableData.totalCount}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          tableName='Data Upload List'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
+        />
+      )}
+
       {/* <ConfirmModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

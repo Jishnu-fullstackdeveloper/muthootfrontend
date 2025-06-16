@@ -247,21 +247,21 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               <strong>Branch Code:</strong> {branchData.branchCode}
             </Typography>
             <Typography variant='body1'>
-              <strong>Territory:</strong> {branchData.area?.regionId || 'N/A'}
+              <strong>Territory:</strong> {branchData.cluster?.area?.region?.zone?.territory?.name || 'N/A'}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>Zonal:</strong> {branchData.area?.name || 'N/A'}
+              <strong>Zonal:</strong> {branchData.cluster?.area?.region?.zone?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Region:</strong> {branchData.area?.regionId || 'N/A'}
+              <strong>Region:</strong> {branchData.cluster?.area?.region?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Area:</strong> {branchData.area?.name || 'N/A'}
+              <strong>Area:</strong> {branchData?.cluster?.area?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
-              <strong>Cluster:</strong> {branchData?.bucket?.name || 'N/A'}
+              <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>

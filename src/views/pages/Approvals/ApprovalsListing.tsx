@@ -1,35 +1,26 @@
 'use client'
 
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, CircularProgress, InputAdornment, Grid } from '@mui/material'
+import { Box, Card, Typography, IconButton, Tooltip, InputAdornment, Grid, CircularProgress } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
-
-//import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined'
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined'
-
-//import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
-import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors'
-import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck'
-import PendingActionsIcon from '@mui/icons-material/PendingActions'
-
+import SearchIcon from '@mui/icons-material/Search'
 import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import { getUserId } from '@/utils/functions'
 import { fetchUser, fetchApprovals, clearUser, clearApprovals } from '@/redux/Approvals/approvalsSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import 'react-toastify/dist/ReactToastify.css'
-
-import type { Approvals, ViewMode } from '@/types/approvalDashboard'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
-import ApprovalManagement from './Approvals' // Updated table view component
+import ApprovalManagement from './Approvals'
 import { ROUTES } from '@/utils/routes'
+import type { Approvals } from '@/types/approvalDashboard'
 
 interface ApprovalsState {
   fetchUserLoading?: boolean
@@ -40,8 +31,8 @@ interface ApprovalsState {
   fetchApprovalsLoading?: boolean
   fetchApprovalsSuccess?: boolean
   fetchApprovalsData?: {
-    data?: Approvals[]
-    approvalCount?: { approvedCount: number; rejectedCount: number; pendingCount: number }
+    data?: { approvalStatus: string; categoryName: string; count: string }[]
+    approvalCount?: { approvedCount: number; freezeCount: number; pendingCount: number }
     totalCount?: number
   }
   fetchApprovalsTotalCount?: number
@@ -62,61 +53,26 @@ const ApprovalsListing = () => {
     fetchApprovalsLoading = false,
     fetchApprovalsData = {
       data: [],
-      approvalCount: { approvedCount: 0, rejectedCount: 0, pendingCount: 0 },
+      approvalCount: { approvedCount: 0, freezeCount: 0, pendingCount: 0 },
       totalCount: 0
     },
     fetchApprovalsFailure = false,
     fetchApprovalsFailureMessage = ''
   } = approvalsState
 
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [visibleApprovals, setVisibleApprovals] = useState<Approvals[]>([])
-  const [page, setPage] = useState(1)
-  const [limit] = useState(6)
-  const [noMoreData, setNoMoreData] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  // Status cards data
-  const statusColors = {
-    Completed: '#059669',
-    Pending: '#D97706',
-    Rejected: '#F00'
-  }
-
-  const approvalsSummary = [
-    {
-      id: 1,
-      title: 'Completed Approvals',
-      icon: <LibraryAddCheckIcon color='success' />,
-      status: 'Completed',
-      note: `${fetchApprovalsData.approvalCount?.approvedCount || 0} Request Completed`
-    },
-    {
-      id: 2,
-      title: 'Pending Approvals',
-      icon: <PendingActionsIcon color='warning' />,
-      status: 'Pending',
-      note: `${fetchApprovalsData.approvalCount?.pendingCount || 0} Request Pending`
-    },
-    {
-      id: 3,
-      title: 'Rejected Approvals',
-      icon: <RunningWithErrorsIcon color='error' />,
-      status: 'Rejected',
-      note: `${fetchApprovalsData.approvalCount?.rejectedCount || 0} Request Rejected`
-    }
-  ]
+  debouncedSearch
 
   // Handle search debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm)
-      setPage(1)
     }, 500)
 
     return () => clearTimeout(timer)
@@ -139,29 +95,14 @@ const ApprovalsListing = () => {
   // Fetch approvals when user data is available
   useEffect(() => {
     if (fetchUserSuccess && fetchUserData?.designation) {
-      let normalizedDesignation: string
-
-      if (Array.isArray(fetchUserData.designation)) {
-        normalizedDesignation = fetchUserData.designation[0] || ''
-      } else if (typeof fetchUserData.designation === 'string') {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        normalizedDesignation = fetchUserData.designation
-      } else {
-        console.warn('Invalid designation type:', fetchUserData.designation)
-
-        return
-      }
-
       setLoading(true)
       dispatch(
         fetchApprovals({
-          page,
-          limit,
-          search: debouncedSearch
+          groupByCategory: true
         })
       )
     }
-  }, [fetchUserSuccess, fetchUserData?.designation, page, limit, debouncedSearch, dispatch])
+  }, [fetchUserSuccess, fetchUserData?.designation, dispatch])
 
   // Update visible approvals with API data
   useEffect(() => {
@@ -171,84 +112,59 @@ const ApprovalsListing = () => {
       setLoading(false)
       setError(null)
 
-      const mappedData = fetchApprovalsData.data.map((item, index) => ({
-        ...item,
-        id: item.id || `${index + 1}`, // Generate ID if not provided by API
-        approvedCount: Number(item.approvedCount) || 0,
-        rejectedCount: Number(item.rejectedCount) || 0,
-        pendingCount: Number(item.pendingCount) || 0
-      }))
-
-      if (page === 1) {
-        setVisibleApprovals(mappedData)
-      } else {
-        setVisibleApprovals(prev => [
-          ...prev,
-          ...mappedData.filter(approval => !prev.some(existing => existing.id === approval.id))
-        ])
+      // Transform API response into a single Approvals object
+      const approval: Approvals = {
+        id: '1',
+        categoryName: fetchApprovalsData.data[0]?.categoryName || 'Vacancy Approval',
+        approvedCount: 0,
+        pendingCount: 0,
+        freezeCount: 0
       }
 
-      setNoMoreData(
-        fetchApprovalsData.data.length < limit || visibleApprovals.length >= (fetchApprovalsData.totalCount ?? 0)
-      )
+      fetchApprovalsData.data.forEach(item => {
+        const count = Number(item.count) || 0
+
+        switch (item.approvalStatus) {
+          case 'APPROVED':
+            approval.approvedCount = count
+            break
+          case 'PENDING':
+            approval.pendingCount = count
+            break
+          case 'FREEZED':
+            approval.freezeCount = count
+            break
+
+          // Ignore REJECTED
+        }
+      })
+
+      setVisibleApprovals([approval])
     } else if (fetchApprovalsFailure) {
       setLoading(false)
       setVisibleApprovals([])
       setError(fetchApprovalsFailureMessage || 'No approvals found')
     }
-  }, [
-    fetchApprovalsLoading,
-
-    //fetchApprovalsSuccess,
-    fetchApprovalsData,
-    fetchApprovalsFailure,
-    fetchApprovalsFailureMessage,
-    page,
-    limit,
-    visibleApprovals.length
-  ])
-
-  // Lazy loading
-  const loadMoreApprovals = useCallback(() => {
-    if (
-      loading ||
-      noMoreData ||
-      (fetchApprovalsData?.totalCount && visibleApprovals.length >= fetchApprovalsData.totalCount)
-    )
-      return
-    const nextPage = page + 1
-
-    setPage(nextPage)
-  }, [loading, noMoreData, page, fetchApprovalsData?.totalCount, visibleApprovals.length])
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      entries => {
-        console.log('IntersectionObserver entry:', {
-          isIntersecting: entries[0].isIntersecting,
-          boundingClientRect: entries[0].target.getBoundingClientRect()
-        })
-
-        if (entries[0].isIntersecting) {
-          loadMoreApprovals()
-        }
-      },
-      { threshold: 0.1, rootMargin: '300px' }
-    )
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current)
-    }
-
-    return () => {
-      if (observerRef.current && loadMoreRef.current) {
-        observerRef.current.unobserve(loadMoreRef.current)
-      }
-    }
-  }, [loadMoreApprovals])
+  }, [fetchApprovalsLoading, fetchApprovalsData, fetchApprovalsFailure, fetchApprovalsFailureMessage])
 
   const handleCardClick = () => {
-    router.push(ROUTES.APPROVALS_VIEW)
+    router.push(ROUTES.APPROVALS_VACANCY_GROUP)
+  }
+
+  // Conditional overview for cards
+  const getOverview = (approval: Approvals) => {
+    const counts = [
+      { status: 'Approved', count: approval.approvedCount, color: 'green' },
+      { status: 'Pending', count: approval.pendingCount, color: 'orange' },
+      { status: 'Freeze', count: approval.freezeCount, color: 'info.main' }
+    ]
+
+    const maxCount = Math.max(...counts.map(c => c.count))
+
+    if (maxCount === 0) return 'No approvals yet'
+    const dominant = counts.find(c => c.count === maxCount)
+
+    return `Mostly ${dominant?.status} (${dominant?.count})`
   }
 
   if (fetchUserFailure) {
@@ -282,36 +198,36 @@ const ApprovalsListing = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh' }}>
-      <ToastContainer
-        position='top-right'
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', p: 3 }}>
+      <ToastContainer position='top-right' autoClose={5000} />
       <Card
         sx={{
-          mb: 4,
-          position: 'sticky',
-          top: 70,
-          zIndex: 1,
-          backgroundColor: 'white',
-          height: 'auto',
-          paddingBottom: 2
+          bgcolor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          p: 3
         }}
       >
-        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
-          <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
-            <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 5 }}>
+        <Box
+          sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', gap: 2 }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333' }}>
               Approvals List
             </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.9rem', color: 'green', fontWeight: 500 }}>
+                Completed ({fetchApprovalsData.approvalCount?.approvedCount || 0})
+              </Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: 'orange', fontWeight: 500 }}>
+                Pending ({fetchApprovalsData.approvalCount?.pendingCount || 0})
+              </Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: 'info.main', fontWeight: 500 }}>
+                Freeze ({fetchApprovalsData.approvalCount?.freezeCount || 0})
+              </Typography>
+            </Box>
           </Box>
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'center', mt: 3, zIndex: 1100 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <DynamicTextField
               label='Search Approvals'
               variant='outlined'
@@ -319,10 +235,18 @@ const ApprovalsListing = () => {
               value={searchTerm}
               placeholder='Search approvals...'
               size='small'
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: '#e0e0e0' },
+                  '&:hover fieldset': { borderColor: '#1976d2' }
+                }
+              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
-                    <i className='tabler-search text-xxl' />
+                    <SearchIcon sx={{ color: '#757575' }} />
                   </InputAdornment>
                 )
               }}
@@ -331,13 +255,11 @@ const ApprovalsListing = () => {
               sx={{
                 display: 'flex',
                 gap: 0.5,
-                alignItems: 'center',
                 padding: '2px',
-                backgroundColor: '#f5f5f5',
+                bgcolor: '#f5f5f5',
                 borderRadius: '6px',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' },
-                width: 'fit-content'
+                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
               }}
             >
               <Tooltip title='Grid View'>
@@ -365,34 +287,8 @@ const ApprovalsListing = () => {
         </Box>
       </Card>
 
-      <Grid item xs={12} sm={6} md={3} className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-4'>
-        {approvalsSummary.map(approval => (
-          <Card
-            key={approval.id}
-            sx={{
-              cursor: 'pointer',
-              padding: 2,
-              boxShadow: 'none',
-              borderBottom: `4px solid ${statusColors[approval.status] || 'inherit'}`
-            }}
-          >
-            <Grid className='flex justify-between items-center mb-2'>
-              <Box>
-                <Typography variant='h6' component='div'>
-                  {approval.title}
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  {approval.note}
-                </Typography>
-              </Box>
-              {approval.icon}
-            </Grid>
-          </Card>
-        ))}
-      </Grid>
-
       {loading && viewMode === 'grid' && (
-        <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
+        <Box sx={{ mb: 4, textAlign: 'center', pt: 20 }}>
           <CircularProgress color='primary' />
         </Box>
       )}
@@ -401,12 +297,12 @@ const ApprovalsListing = () => {
         <Box
           sx={{
             mb: 4,
-            mx: 6,
             height: '30vh',
             textAlign: 'center',
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
+            pt: 20
           }}
         >
           <Typography variant='h6' color='secondary'>
@@ -415,115 +311,67 @@ const ApprovalsListing = () => {
         </Box>
       )}
 
-      <Box
-        className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6 mt-3' : 'space-y-6'}`}
-
-        //sx={{ borderRadius: 2, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}
-      >
-        {viewMode === 'grid' ? (
-          visibleApprovals?.map(approval => (
-            <Box
-              key={approval.id}
-              className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1'
-              sx={{
-                minHeight: '110px',
-                borderRadius: 2,
-                borderLeft: '4px solid',
-                borderLeftColor: 'secondary.main'
-              }}
-              onClick={() => handleCardClick()}
-            >
-              <Box className='p-1 flex justify-center items-center'>
-                <Tooltip title='Approval Category'>
-                  <Typography mt={2} fontWeight='bold' fontSize='13px' gutterBottom>
-                    {approval.categoryName}
+      <Box sx={{ mt: 6 }}>
+        {viewMode === 'grid' && visibleApprovals.length > 0 ? (
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                onClick={handleCardClick}
+                sx={{
+                  maxHeight: '200px',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  bgcolor: '#fff',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+                  },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: 'pointer',
+                  borderLeft: '4px solid',
+                  borderLeftColor: 'secondary.main',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box sx={{ p: 1.5, flexGrow: 1 }}>
+                  <Typography fontWeight='bold' fontSize='0.9rem' sx={{ color: '#333', mb: 1 }}>
+                    {visibleApprovals[0].categoryName}
                   </Typography>
-                </Tooltip>
-                {/* <Tooltip title='Approval ID'>
-                  <Chip
-                    label={approval.id}
-                    size='small'
-                    variant='outlined'
-                    sx={{ fontSize: '10px' }}
-                    color='secondary'
-                  />
-                </Tooltip> */}
-              </Box>
-              <Box className='p-2 border-t'>
-                <Box className='text-sm text-gray-700 grid grid-cols-1 gap-y-2'>
-                  {/* <Tooltip title='Approval Category'>
-                    <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CategoryOutlinedIcon fontSize='small' />: {approval.categoryName}
-                    </Typography>
-                  </Tooltip> */}
-                  <Tooltip title='Description'>
-                    <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DescriptionOutlinedIcon fontSize='small' />
-                      <strong>Description:</strong> {approval.description || '-'}
-                    </Typography>
-                  </Tooltip>
-                  <Box className='text-sm text-gray-700 grid grid-cols-3'>
+                  <Typography fontSize='0.7rem' color='text.secondary' sx={{ mb: 1.5 }}>
+                    {getOverview(visibleApprovals[0])}
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.5, fontSize: '0.7rem' }}>
                     <Tooltip title='Approved'>
-                      <Typography
-                        variant='body2'
-                        fontSize='10px'
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'green' }}
-                      >
+                      <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'green' }}>
                         <CheckCircleOutlineIcon fontSize='small' />
-                        <strong>Approved:</strong> {approval.approvedCount || '0'}
-                      </Typography>
-                    </Tooltip>
-                    <Tooltip title='Rejected'>
-                      <Typography
-                        variant='body2'
-                        fontSize='10px'
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'red' }}
-                      >
-                        <CancelOutlinedIcon fontSize='small' />
-                        <strong>Rejected:</strong> {approval.rejectedCount || '0'}
+                        Approved: {visibleApprovals[0].approvedCount || 0}
                       </Typography>
                     </Tooltip>
                     <Tooltip title='Pending'>
-                      <Typography
-                        variant='body2'
-                        fontSize='10px'
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'orange' }}
-                      >
+                      <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'orange' }}>
                         <HourglassEmptyOutlinedIcon fontSize='small' />
-                        <strong>Pending:</strong> {approval.pendingCount || '0'}
+                        Pending: {visibleApprovals[0].pendingCount || 0}
+                      </Typography>
+                    </Tooltip>
+                    <Tooltip title='Freeze'>
+                      <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'info.main' }}>
+                        <PauseCircleOutlineIcon fontSize='small' />
+                        Freeze: {visibleApprovals[0].freezeCount || 0}
                       </Typography>
                     </Tooltip>
                   </Box>
-                  {/* <Tooltip title='Move to'>
-                    <Typography variant='body2' fontSize='10px' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <ArrowForwardOutlinedIcon fontSize='small' />: {approval.moveTo || '-'}
-                    </Typography>
-                  </Tooltip> */}
                 </Box>
-              </Box>
-            </Box>
-          ))
+              </Card>
+            </Grid>
+          </Grid>
+        ) : viewMode === 'grid' ? (
+          <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>No approvals available</Typography>
         ) : (
           <ApprovalManagement approvals={visibleApprovals} />
         )}
       </Box>
-
-      {viewMode === 'grid' &&
-        fetchApprovalsData?.totalCount &&
-        visibleApprovals.length < fetchApprovalsData.totalCount &&
-        !noMoreData && (
-          <Box
-            ref={loadMoreRef}
-            sx={{ textAlign: 'center', mt: 6, minHeight: '200px', padding: '40px', backgroundColor: '#f0f0f0' }}
-          >
-            <Typography>{loading ? 'Loading more...' : 'Scroll to load more'}</Typography>
-          </Box>
-        )}
-      {/* {viewMode === 'grid' && noMoreData && visibleApprovals.length > 0 && (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography>No more approvals to load</Typography>
-        </Box>
-      )} */}
     </Box>
   )
 }

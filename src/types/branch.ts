@@ -32,6 +32,21 @@ export interface Branch {
     updatedAt: string
     deletedAt: string | null
   }
+  cluster: {
+    name: any
+    area?: {
+      name?: any
+      region?: {
+        name?: any
+        zone?: {
+          name?: any
+          territory?: {
+            name?: any
+          }
+        }
+      }
+    }
+  }
   area: {
     id: string
     name: string

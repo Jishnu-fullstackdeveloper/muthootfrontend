@@ -34,6 +34,21 @@ interface Branch {
     updatedAt: string
     deletedAt: string | null
   }
+  cluster: {
+    name: any
+    area?: {
+      name?: any
+      region?: {
+        name?: any
+        zone?: {
+          name?: any
+          territory?: {
+            name?: any
+          }
+        }
+      }
+    }
+  }
   area: {
     id: string
     name: string
@@ -114,7 +129,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'TERRITORY',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area?.regionId}
+            {row.original.cluster?.area?.region?.zone?.territory?.name}
           </Typography>
         )
       }),
@@ -124,7 +139,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'ZONAL',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area?.name}
+            {row.original.cluster?.area?.region?.zone?.name}
           </Typography>
         )
       }),
@@ -134,7 +149,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'REGION',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area?.regionId}
+            {row.original.cluster?.area?.region?.name}
           </Typography>
         )
       }),
@@ -144,7 +159,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'AREA',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.area?.name}
+            {row.original.cluster?.area?.name}
           </Typography>
         )
       }),
@@ -154,7 +169,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         header: 'CLUSTER',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {row.original.bucket?.name}
+            {row.original.cluster?.name}
           </Typography>
         )
       }),

@@ -13,7 +13,8 @@ import type {
   ResignedEmployeesResponse,
   BranchReportResponse,
   VacancyReportResponse,
-  BubblePositionResponse,
+
+  //BubblePositionResponse,
   VacancyResponse
 } from '@/types/branch'
 
@@ -189,25 +190,25 @@ export const fetchVacancyReport = createAsyncThunk<VacancyReportResponse, { filt
 )
 
 // Thunk for fetching bubble positions
-export const fetchBubblePositions = createAsyncThunk<BubblePositionResponse, { branchId: string }>(
-  'branchManagement/fetchBubblePositions',
-  async ({ branchId }, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.get(API_ENDPOINTS.fetchBubblePositionsUrl(branchId))
+// export const fetchBubblePositions = createAsyncThunk<BubblePositionResponse, { branchId: string }>(
+//   'branchManagement/fetchBubblePositions',
+//   async ({ branchId }, { rejectWithValue }) => {
+//     try {
+//       const response = await AxiosLib.get(API_ENDPOINTS.fetchBubblePositionsUrl(branchId))
 
-      return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response.data)
-    }
-  }
-)
+//       return response.data
+//     } catch (error: any) {
+//       return rejectWithValue(error.response.data)
+//     }
+//   }
+// )
 
 // Thunk for fetching vacancies
-export const fetchVacancies = createAsyncThunk<VacancyResponse, { branchId: string }>(
+export const fetchVacancies = createAsyncThunk<VacancyResponse, { branchName: string }>(
   'branchManagement/fetchVacancies',
-  async ({ branchId }, { rejectWithValue }) => {
+  async ({ branchName }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.fetchVacanciesUrl(branchId))
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchVacanciesUrl(branchName))
 
       return response.data
     } catch (error: any) {
@@ -281,7 +282,8 @@ export const branchManagementSlice = createSlice({
     handleAsyncThunkStates(builder, fetchResignedEmployees, 'resignedEmployees')
     handleAsyncThunkStates(builder, fetchBranchReport, 'fetchBranchReport')
     handleAsyncThunkStates(builder, fetchVacancyReport, 'fetchVacancyReport')
-    handleAsyncThunkStates(builder, fetchBubblePositions, 'fetchBubblePositions')
+
+    //handleAsyncThunkStates(builder, fetchBubblePositions, 'fetchBubblePositions')
     handleAsyncThunkStates(builder, fetchVacancies, 'fetchVacancies')
   }
 })

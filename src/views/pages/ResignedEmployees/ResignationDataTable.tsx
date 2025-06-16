@@ -6,11 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
-
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 
 import type { ResignedEmployee } from '@/types/resignationDataListing'
-
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import DynamicTable from '@/components/Table/dynamicTable'
 import type { RootState, AppDispatch } from '@/redux/store'
@@ -19,13 +17,16 @@ import { ROUTES } from '@/utils/routes'
 
 interface ResignedEmployeesTableViewProps {
   fromDate?: string
+  search?: string // Add search prop
 }
 
-const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProps) => {
+const ResignedEmployeesTableView = ({ fromDate, search = '' }: ResignedEmployeesTableViewProps) => {
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
-  const { employees, totalCount } = useAppSelector((state: RootState) => state.resignationDataListingReducer)
+  const { employees, totalCount, loading, error } = useAppSelector(
+    (state: RootState) => state.resignationDataListingReducer
+  )
 
   const columnHelper = createColumnHelper<ResignedEmployee & { fullName: string }>()
 
@@ -34,25 +35,46 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
     pageSize: 5
   })
 
+  // Track previous fromDate to detect changes
+  const [prevFromDate, setPrevFromDate] = useState<string | undefined>(fromDate)
+
+  // Reset pagination when fromDate changes
+  useEffect(() => {
+    if (fromDate !== prevFromDate) {
+      console.log('TableView: fromDate changed', { fromDate, prevFromDate })
+      setPagination({ pageIndex: 0, pageSize: pagination.pageSize })
+      setPrevFromDate(fromDate)
+    }
+  }, [fromDate, prevFromDate, pagination.pageSize])
+
   // Fetch employees from API
   useEffect(() => {
+    console.log('TableView: Fetching employees', {
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      resignationDateFrom: fromDate,
+      search
+    })
     dispatch(
       fetchResignedEmployees({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         isResigned: true,
-        resignationDateFrom: fromDate
+        resignationDateFrom: fromDate,
+        search
       })
     )
-  }, [dispatch, pagination.pageIndex, pagination.pageSize, fromDate])
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, fromDate, search])
 
   // Map data to table format
   const tableData = useMemo(() => {
     const mappedData = employees.map(employee => ({
       ...employee,
-      finalApprovalLWD: employee.resignationDetails.lwd, // Map API's lwd to finalApprovalLWD
+      finalApprovalLWD: employee.resignationDetails.lwd,
       fullName: `${employee.firstName}${employee.middleName ? ` ${employee.middleName}` : ''} ${employee.lastName}`
     }))
+
+    console.log('TableView: Table data updated', { data: mappedData, totalCount })
 
     return {
       data: mappedData,
@@ -97,7 +119,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
       columnHelper.accessor('resignationDetails.lwd', {
         header: 'LAST WORKING DAY',
         cell: ({ row }) => (
-          <Typography color='text.primary'>{row.original.resignationDetails.lwd.split('T')[0]}</Typography>
+          <Typography color='text.primary'>{row.original.resignationDetails.lwd?.split('T')[0]}</Typography>
         )
       }),
       columnHelper.accessor('resignationDetails.noticePeriod', {
@@ -180,19 +202,19 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
         enableSorting: false
       })
     ],
-    [columnHelper]
+    [columnHelper, router]
   )
 
   return (
     <Box>
-      {/* {loading && (
+      {loading && (
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h6' color='text.secondary'>
             Loading...
           </Typography>
         </Box>
-      )} */}
-      {/* {error && (
+      )}
+      {error && (
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h6' color='error'>
             Error: {error}
@@ -205,7 +227,7 @@ const ResignedEmployeesTableView = ({ fromDate }: ResignedEmployeesTableViewProp
             No resigned employees found
           </Typography>
         </Box>
-      )} */}
+      )}
       <DynamicTable
         columns={columns}
         data={tableData.data}

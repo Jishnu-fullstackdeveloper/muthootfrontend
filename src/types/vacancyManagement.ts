@@ -1,3 +1,4 @@
+
 // export interface Vacancy {
 //   status: string
 //   territory: string
@@ -452,6 +453,7 @@ export interface VacancyGroupByDesignationResponse {
   data: {
     designation: string
     department: string
+    grade?: string
     branch?: string
     cluster?: string
     area?: string

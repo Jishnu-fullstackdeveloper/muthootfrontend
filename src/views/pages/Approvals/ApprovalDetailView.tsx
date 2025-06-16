@@ -305,7 +305,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
       setPage(1)
       setLimit(10)
       setHasMore(true)
-      const statusMap = ['', 'PENDING', 'FREEZED', 'APPROVED']
+      const statusMap = ['PENDING', 'FREEZED', 'APPROVED', '']
 
       const params: {
         page: number

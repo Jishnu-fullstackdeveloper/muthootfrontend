@@ -23,7 +23,8 @@ interface UserRoleState {
 
 interface AddUserRoleParams {
   designation: string
-  des_role_description: string
+
+  // des_role_description: string
   group_designation: string
   grp_role_description: string
   permissions: string[]
@@ -111,7 +112,8 @@ export const addNewUserRole = createAsyncThunk(
     try {
       const response = await AxiosLib.post('/roles', {
         designation: params.designation,
-        des_role_description: params.des_role_description,
+
+        // des_role_description: params.des_role_description,
         group_designation: params.group_designation,
         grp_role_description: params.grp_role_description,
         permissions: params.permissions

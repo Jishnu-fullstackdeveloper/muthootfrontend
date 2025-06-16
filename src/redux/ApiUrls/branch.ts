@@ -7,5 +7,5 @@ export const API_ENDPOINTS = {
   fetchBranchReportUrl: `/branch/report-branch`,
   fetchVacancyReportUrl: `/vacancy/vacancy-report`,
   fetchBubblePositionsUrl: (branchId: string) => `/bubble-position/branch/${branchId}`,
-  fetchVacanciesUrl: (branchId: string) => `/vacancy/${branchId}`
+  fetchVacanciesUrl: (branchName: string) => `/vacancy${branchName}`
 }

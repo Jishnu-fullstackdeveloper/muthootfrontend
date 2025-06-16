@@ -4,6 +4,7 @@ import { Box, Card, Typography, List, ListItem, ListItemText, Chip } from '@mui/
 
 interface BucketManagementOverviewProps {
   branchData: any // Adjust type based on branchData structure
+  branchBucket: any
 }
 
 const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ branchData }) => {

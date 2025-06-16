@@ -14,7 +14,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   getBranchDetails,
   getEmployeeDetailsWithBranchId,
-  fetchBubblePositions,
+
+  //fetchBubblePositions,
   fetchVacancies
 } from '@/redux/BranchManagement/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
@@ -172,7 +173,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     setActiveTab(newValue)
     const paths = ['employees-details', 'budget-management', 'vacancy-management']
 
-    router.push(`${paths[newValue]}?id=${id}`)
+    window.history.replaceState(null, '', `${paths[newValue]}?id=${id}`)
   }
 
   useEffect(() => {
@@ -180,8 +181,9 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     dispatch(
       getEmployeeDetailsWithBranchId({ branchId: id, page: pagination.pageIndex + 1, limit: pagination.pageSize })
     )
-    dispatch(fetchBubblePositions({ branchId: id }))
-    dispatch(fetchVacancies({ branchId: id }))
+
+    //dispatch(fetchBubblePositions({ branchId: id }))
+    dispatch(fetchVacancies({ branchName: branchData.name || '' }))
   }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
 
   if (branchDetailsLoading) return <div>Loading branch details...</div>
@@ -215,7 +217,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box>
       <Card sx={{ p: 4, mb: 4 }}>
         <Grid container spacing={2} alignItems='center'>
           <Grid className='flex justify-between' item xs={12}>
@@ -237,9 +239,9 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
         <Divider sx={{ my: 3 }} />
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            <Typography variant='body1'>
+            {/* <Typography variant='body1'>
               <strong>ID:</strong> {branchData.id}
-            </Typography>
+            </Typography> */}
             <Typography variant='body1'>
               <strong>Name:</strong> {branchData.name}
             </Typography>
@@ -252,7 +254,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant='body1'>
-              <strong>Zonal:</strong> {branchData.cluster?.area?.region?.zone?.name || 'N/A'}
+              <strong>Zone:</strong> {branchData.cluster?.area?.region?.zone?.name || 'N/A'}
             </Typography>
             <Typography variant='body1'>
               <strong>Region:</strong> {branchData.cluster?.area?.region?.name || 'N/A'}
@@ -260,11 +262,14 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             <Typography variant='body1'>
               <strong>Area:</strong> {branchData?.cluster?.area?.name || 'N/A'}
             </Typography>
+            {/* <Typography variant='body1'>
+              <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
+            </Typography> */}
+          </Grid>
+          <Grid item xs={12} md={4}>
             <Typography variant='body1'>
               <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
             </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
             <Typography variant='body1'>
               <strong>City Classification:</strong> {branchData?.district?.name || 'N/A'}
             </Typography>
@@ -314,7 +319,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             failureMessage={fetchBubblePositionsFailureMessage}
           />
         )} */}
-        {activeTab === 1 && <BucketManagementOverview branchData={branchData} />}
+        {activeTab === 1 && <BucketManagementOverview branchData={branchData} branchBucket={branchData.branchBucket} />}
         {activeTab === 2 && (
           <VacancyManagementOverview
             vacanciesData={fetchVacanciesData?.data || []}

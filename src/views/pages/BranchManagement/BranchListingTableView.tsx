@@ -213,7 +213,7 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
         cell: ({ row }) => (
           <div className='flex items-center'>
             <Tooltip title='View' placement='top'>
-              <IconButton onClick={() => router.push(`/branch-management/view/${row.original.id}`)}>
+              <IconButton onClick={() => router.push(`/branch-management/view/employee-details?id=${row.original.id}`)}>
                 <i className='tabler-eye text-textSecondary'></i>
               </IconButton>
             </Tooltip>

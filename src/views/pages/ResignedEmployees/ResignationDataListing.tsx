@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -51,10 +50,15 @@ const ResignationDataListingPage = () => {
   const [limit] = useState(6)
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const [noMoreData, setNoMoreData] = useState<boolean>(false)
-  const [search, setSearch] = useState('') // Add this state
+  const [search, setSearch] = useState('')
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  // Log fromDate and search changes for debugging
+  useEffect(() => {
+    console.log('ResignationDataListingPage: State updated', { fromDate, search, viewMode })
+  }, [fromDate, search, viewMode])
 
   // Fetch employees with debounced filters
   useEffect(() => {
@@ -67,7 +71,13 @@ const ResignationDataListingPage = () => {
         ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
         : undefined
 
-      // Reset states for new filter
+      console.log('Fetching employees for grid view:', {
+        page: 1,
+        limit,
+        resignationDateFrom: formattedFromDate,
+        search
+      })
+
       setVisibleEmployees([])
       setPage(1)
       setNoMoreData(false)
@@ -77,7 +87,7 @@ const ResignationDataListingPage = () => {
           limit,
           isResigned: true,
           resignationDateFrom: formattedFromDate,
-          search 
+          search
         })
       )
     }, 300)
@@ -87,7 +97,7 @@ const ResignationDataListingPage = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [dispatch, limit, fromDate, search]) // Add search to dependencies
+  }, [dispatch, limit, fromDate, search])
 
   // Update visible employees based on employees from Redux store
   useEffect(() => {
@@ -95,7 +105,7 @@ const ResignationDataListingPage = () => {
       // Replace visibleEmployees with new employees for page 1, append for subsequent pages
       setVisibleEmployees((prev: ResignedEmployee[]) => {
         if (page === 1) {
-          return [...employees] // Reset for first page
+          return [...employees]// Reset for first page
         }
 
         const newEmployees = employees.filter(employee => !prev.some(existing => existing.id === employee.id))
@@ -120,15 +130,18 @@ const ResignationDataListingPage = () => {
       ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
       : undefined
 
+    console.log('Loading more employees:', { page: nextPage, limit, resignationDateFrom: formattedFromDate, search })
+
     dispatch(
       fetchResignedEmployees({
         page: nextPage,
         limit,
         isResigned: true,
-        resignationDateFrom: formattedFromDate
+        resignationDateFrom: formattedFromDate,
+        search
       })
     )
-  }, [loading, visibleEmployees.length, totalCount, noMoreData, page, dispatch, limit, fromDate])
+  }, [loading, visibleEmployees.length, totalCount, noMoreData, page, dispatch, limit, fromDate, search])
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -234,12 +247,10 @@ const ResignationDataListingPage = () => {
             <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
               Resignation Data List
             </Typography>
-          
-           
           </Box>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 3, zIndex: 1100 }}>
-             <TextField
+            <TextField
               label='Search'
               variant='outlined'
               size='small'
@@ -256,7 +267,10 @@ const ResignationDataListingPage = () => {
             />
             <DatePicker
               selected={fromDate}
-              onChange={(date: Date | null) => setFromDate(date)}
+              onChange={(date: Date | null) => {
+                console.log('DatePicker changed:', date ? date.toISOString() : null)
+                setFromDate(date)
+              }}
               placeholderText='Select from date'
               isClearable
               customInput={
@@ -450,7 +464,13 @@ const ResignationDataListingPage = () => {
             </Box>
           ))
         ) : (
-          <ResignedEmployeesTableView fromDate={fromDate ? fromDate.toISOString().split('T')[0] : undefined} />
+          <ResignedEmployeesTableView
+            fromDate={
+              fromDate
+                ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
+                : undefined
+            }
+          />
         )}
       </Box>
 

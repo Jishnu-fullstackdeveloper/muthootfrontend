@@ -50,7 +50,7 @@ const ResignationDataListingPage = () => {
   const [limit] = useState(6)
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const [noMoreData, setNoMoreData] = useState<boolean>(false)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState('') // Add this state
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
@@ -71,13 +71,7 @@ const ResignationDataListingPage = () => {
         ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
         : undefined
 
-      console.log('Fetching employees for grid view:', {
-        page: 1,
-        limit,
-        resignationDateFrom: formattedFromDate,
-        search
-      })
-
+      // Reset states for new filter
       setVisibleEmployees([])
       setPage(1)
       setNoMoreData(false)
@@ -97,7 +91,7 @@ const ResignationDataListingPage = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [dispatch, limit, fromDate, search])
+  }, [dispatch, limit, fromDate, search]) // Add search to dependencies
 
   // Update visible employees based on employees from Redux store
   useEffect(() => {
@@ -105,7 +99,7 @@ const ResignationDataListingPage = () => {
       // Replace visibleEmployees with new employees for page 1, append for subsequent pages
       setVisibleEmployees((prev: ResignedEmployee[]) => {
         if (page === 1) {
-          return [...employees]// Reset for first page
+          return [...employees] // Reset for first page
         }
 
         const newEmployees = employees.filter(employee => !prev.some(existing => existing.id === employee.id))
@@ -356,7 +350,7 @@ const ResignationDataListingPage = () => {
 
       {loading && viewMode === 'grid' && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-            {/* <Typography variant='h6' color='text.secondary'>
+          {/* <Typography variant='h6' color='text.secondary'>
             Loading...
           </Typography> */}
           <CircularProgress color='primary' />

@@ -68,6 +68,9 @@ export const fetchLoginToken = createAsyncThunk<any, any>('login/fetchToken', as
     thunkAPI
 
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth`, {
+       headers: {
+        client : process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+      },
       params: {
         iss: params.issuer,
         code: params.code,
@@ -93,7 +96,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
     const response = await AxiosLib.get(api, {
       headers: {
         authorization: `Bearer ${accessToken}`,
-        refreshtoken: refreshToken
+        refreshtoken: refreshToken ,
       }
     })
 
@@ -112,7 +115,9 @@ export const changePasswordApi = createAsyncThunk<any, any>('change-password', a
 
     const response = await AxiosLib.get(api, {
       headers: {
-        authorization: `Bearer ${accessToken}`
+        authorization: `Bearer ${accessToken}`,
+        client : process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+
       }
     })
 
@@ -149,7 +154,9 @@ export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
 
       const response = await AxiosLib.get(api, {
         headers: {
-          authorization: `Bearer ${accessToken}`
+          authorization: `Bearer ${accessToken}`,
+        client : process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+
         }
       })
 

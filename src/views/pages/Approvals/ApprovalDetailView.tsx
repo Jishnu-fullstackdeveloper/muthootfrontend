@@ -575,7 +575,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             </IconButton>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            {selectedTab === 1 && tabMode === 'request' && (
+            {selectedTab === 0 && tabMode === 'request' && (
               <>
                 <Button
                   variant='outlined'
@@ -673,10 +673,10 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             '& .MuiTabs-indicator': { bgcolor: 'primary.main' }
           }}
         >
-          <Tab label='All' />
           <Tab label='Pending' />
           <Tab label='Freeze' />
           <Tab label='Approved' />
+          <Tab label='All' />
         </Tabs>
       </Box>
 

@@ -31,7 +31,8 @@ import {
   updateUserRole,
   resetAddUserRoleStatus,
   getUserRoleDetails,
-  fetchUserRole
+  fetchUserRole,
+  fetchDesignation
 } from '@/redux/UserRoles/userRoleSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 import 'react-toastify/dist/ReactToastify.css'
@@ -144,6 +145,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({})
   const [expandedSubModules, setExpandedSubModules] = useState<{ [key: string]: boolean }>({})
   const [groupDesignationOptions, setGroupDesignationOptions] = useState<string[]>([])
+  const [designationOptions, setDesignationOptions] = useState<string[]>([])
+  const [isDesignationLoading, setIsDesignationLoading] = useState(false)
 
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -153,7 +156,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
   const groupRoleId = searchParams.get('groupRoleId')
 
   const [activeSection, setActiveSection] = useState<'roleDetails' | 'permissions'>(
-    mode === 'edit' && (searchParams.get('editType') || 'designation') === 'designation' ? 'roleDetails' : 'permissions'
+    mode === 'add'
+      ? 'roleDetails'
+      : mode === 'edit' && (searchParams.get('editType') || 'designation') === 'designation'
+        ? 'roleDetails'
+        : 'permissions'
   )
 
   const rawDesignation = searchParams.get('name') || ''
@@ -202,6 +209,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
   useEffect(() => {
     fetchGroupRoles()
+    fetchDesignations()
   }, [dispatch])
 
   useEffect(() => {
@@ -229,6 +237,24 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       setApiErrors(['Failed to fetch group roles. Please try again.'])
     } finally {
       setIsGroupRoleLoading(false)
+    }
+  }
+
+  const fetchDesignations = async () => {
+    setIsDesignationLoading(true)
+
+    try {
+      const response = await dispatch(fetchDesignation({ limit: 100, page: 1 })).unwrap()
+
+      const newOptions =
+        response?.data?.map((designation: any) => designation.name.replace(/^des_/i, '').replace(/_/g, ' ')) || []
+
+      setDesignationOptions(prev => [...new Set([...prev, ...newOptions])])
+    } catch (error) {
+      console.error('Failed to fetch designations:', error)
+      setApiErrors(['Failed to fetch designations. Please try again.'])
+    } finally {
+      setIsDesignationLoading(false)
     }
   }
 
@@ -372,6 +398,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         fetchUpdatedRoleData()
       }
     } else if (addUserRoleSuccess && mode === 'add') {
+      setActiveSection('roleDetails')
       router.push('/user-management/role')
       fetchGroupRoles() // Refresh group roles after add
     }
@@ -409,6 +436,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       )
     }),
     onSubmit: async values => {
+      console.log('ssssssssssssss')
       setApiErrors([])
 
       const permissions = values.newPermissionNames
@@ -829,7 +857,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         pauseOnHover
       />
       <Typography variant='h5' className='mb-4'>
-        {mode === 'edit' ? (editType === 'groupRole' ? 'Edit Group Role' : 'Edit Designation') : 'Add New Role'}
+        {mode === 'edit' ? (editType === 'groupRole' ? 'Edit Group Role' : 'Edit Designation') : 'Add New Group Role'}
       </Typography>
 
       {apiErrors.length > 0 && (
@@ -859,16 +887,44 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       >
         <legend className='text-lg font-semibold text-gray-700'>Role Details</legend>
         <FormControl fullWidth margin='normal'>
-          <TextField
-            label='Designation *'
-            name='designation'
-            value={roleFormik.values.designation || ''}
-            onChange={roleFormik.handleChange}
-            onBlur={roleFormik.handleBlur}
-            error={roleFormik.touched.designation && !!roleFormik.errors.designation}
-            helperText={roleFormik.touched.designation && roleFormik.errors.designation}
-            disabled={mode === 'edit'}
-          />
+          {mode === 'add' ? (
+            <Autocomplete
+              id='designation'
+              options={designationOptions}
+              value={roleFormik.values.designation || ''}
+              onChange={(_, value) => roleFormik.setFieldValue('designation', value || '')}
+              onBlur={() => roleFormik.setFieldTouched('designation', true)}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Designation *'
+                  error={roleFormik.touched.designation && !!roleFormik.errors.designation}
+                  helperText={roleFormik.touched.designation && roleFormik.errors.designation}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {isDesignationLoading ? <CircularProgress size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    )
+                  }}
+                />
+              )}
+              disabled={editType === 'designation' && activeSection !== 'roleDetails'}
+            />
+          ) : (
+            <TextField
+              label='Designation *'
+              name='designation'
+              value={roleFormik.values.designation || ''}
+              onChange={roleFormik.handleChange}
+              onBlur={roleFormik.handleBlur}
+              error={roleFormik.touched.designation && !!roleFormik.errors.designation}
+              helperText={roleFormik.touched.designation && roleFormik.errors.designation}
+              disabled={mode === 'edit'}
+            />
+          )}
         </FormControl>
 
         {editType === 'designation' && mode === 'edit' ? (
@@ -919,8 +975,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               value={typeof roleFormik.values.groupDesignation === 'string' ? roleFormik.values.groupDesignation : ''}
               onChange={roleFormik.handleChange}
               onBlur={roleFormik.handleBlur}
-              error={roleFormik.touched.groupDesignation && !!roleFormik.errors.groupDesignation}
-              helperText={roleFormik.touched.groupDesignation && roleFormik.errors.groupDesignation}
+              error={mode === 'edit' && roleFormik.touched.groupDesignation && !!roleFormik.errors.groupDesignation}
+              helperText={mode === 'edit' && roleFormik.touched.groupDesignation && roleFormik.errors.groupDesignation}
             />
           </FormControl>
         )}
@@ -943,17 +999,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       {/* ###### Permissions ###### */}
       <Box
         component='fieldset'
-        sx={{
-          border: '1px solid',
-          borderColor: editType === 'designation' && activeSection === 'permissions' ? 'blue.500' : 'gray.200',
-          borderRadius: '8px',
-          p: 3,
-          mb: 6,
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          backgroundColor: editType === 'designation' && activeSection === 'permissions' ? 'blue.50' : 'white',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
-        }}
+        className={`border rounded p-4 mb-6 cursor-pointer transition-all duration-200 ${
+          editType === 'designation' && activeSection === 'permissions'
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300'
+        }`}
         disabled={editType === 'designation' && activeSection !== 'permissions'}
         onClick={handlePermissionsClick}
       >
@@ -1437,6 +1487,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           <DynamicButton
             type='submit'
             variant='contained'
+            onClick={roleFormik.handleSubmit}
             sx={{ backgroundColor: 'blue.500', color: 'white', '&:hover': { backgroundColor: 'blue.600' } }}
             disabled={
               isAddUserRoleLoading ||

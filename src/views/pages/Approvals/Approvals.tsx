@@ -2,18 +2,26 @@
 
 import React, { useMemo, useState } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import { Box, Typography } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
-import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 
 import type { Approvals } from '@/types/approvalDashboard'
 import DynamicTable from '@/components/Table/dynamicTable'
+import { ROUTES } from '@/utils/routes'
 
 interface ApprovalManagementProps {
   approvals: Approvals[]
 }
 
 const ApprovalManagement = ({ approvals }: ApprovalManagementProps) => {
+  const router = useRouter()
+
+  const handleCardClick = () => {
+    router.push(ROUTES.APPROVALS_VACANCY_GROUP)
+  }
+
   const columnHelper = createColumnHelper<Approvals>()
 
   const columns = useMemo(
@@ -43,10 +51,10 @@ const ApprovalManagement = ({ approvals }: ApprovalManagementProps) => {
         cell: ({ row }) => <Typography>{row.original.rejectedCount || '0'}</Typography>
       }),
       columnHelper.accessor('moveTo', {
-        header: 'Move to',
+        header: 'Action',
         cell: () => (
-          <Typography>
-            <ExitToAppIcon />
+          <Typography onClick={handleCardClick} sx={{ cursor: 'pointer', color: 'primary.main' }}>
+               <i className='tabler-eye' style={{ fontSize: '20px' }} />
           </Typography>
         )
       })

@@ -513,7 +513,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             const params: any = {
               id: roleId,
               params: {
-                designation: normalizeName(values.designation),
+                designation: values.designation.replace(/^des/i, '').trim(),
                 editType: 'designation'
               }
             }
@@ -536,7 +536,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 id: roleId,
                 groupRoleId,
                 params: {
-                  designation: normalizeName(values.designation),
+                  designation: values.designation.replace(/^des/i, '').trim(),
                   targetGroupDesignation: normalizeName(groupDesignation),
                   targetGroupPermissions: permissions,
                   groupRoleDescription: values.groupRoleDescription,
@@ -853,7 +853,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             <TextField
               label='Designation *'
               name='designation'
-              value={roleFormik.values.designation || ''}
+              value={roleFormik.values.designation.replace(/^des/i, '').trim() || ''}
               onChange={roleFormik.handleChange}
               onBlur={roleFormik.handleBlur}
               error={roleFormik.touched.designation && !!roleFormik.errors.designation}

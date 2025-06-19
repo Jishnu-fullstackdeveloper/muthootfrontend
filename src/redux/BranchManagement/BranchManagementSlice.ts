@@ -88,13 +88,15 @@ export const getBranchDetails = createAsyncThunk<BranchDetailsResponse, { id: st
 // Thunk for fetching employee details with branchId
 export const getEmployeeDetailsWithBranchId = createAsyncThunk<
   EmployeeListResponse,
-  { branchId: string; page: number; limit: number }
->('branchManagement/getEmployeeDetailsWithBranchId', async ({ branchId, page, limit }, { rejectWithValue }) => {
+  { branchId: string; page: number; limit: number; search: string }
+>('branchManagement/getEmployeeDetailsWithBranchId', async ({ branchId, page, limit, search }, { rejectWithValue }) => {
   try {
     const response = await AxiosLib.get(API_ENDPOINTS.getEmployeeDetailsWithBranchIdUrl(branchId), {
       params: {
+        branchId,
         page,
-        limit
+        limit,
+        search
       }
     })
 

@@ -9,6 +9,7 @@ export interface DataUpload {
   processStatus: string
   errorDetails: string | null
   createdAt: string
+  jobId: string
 }
 
 export interface DataUploadState {
@@ -34,4 +35,5 @@ export interface DataUploadTableRow {
   uploadDate: string
   status: string
   remarks: string[]
+  jobId: any
 }

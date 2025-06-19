@@ -21,10 +21,13 @@ const initialState: DataUploadState = {
 
 export const fetchDataUploads = createAsyncThunk(
   'dataUpload/fetchDataUploads',
-  async ({ page, limit, search }: { page: number; limit: number; search: string }, { rejectWithValue }) => {
+  async (
+    { page, limit, search, jobId }: { page: number; limit: number; search: string; jobId: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await AxiosLib.get(DATA_UPLOADS_ENDPOINT, {
-        params: { page, limit, search }
+        params: { page, limit, search, jobId }
       })
 
       return response.data

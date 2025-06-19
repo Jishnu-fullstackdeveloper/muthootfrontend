@@ -64,7 +64,8 @@ const DataUploadListingPage = () => {
         fetchDataUploads({
           page: 1,
           limit: 5,
-          search: trimmedQuery || undefined
+          search: '',
+          jobId: trimmedQuery || undefined
         })
       )
       prevSearchQuery.current = trimmedQuery
@@ -141,7 +142,8 @@ const DataUploadListingPage = () => {
           fetchDataUploads({
             page: 1,
             limit: 5,
-            search: searchQuery.trim() || undefined
+            search: '',
+            jobId: searchQuery.trim() || undefined
           })
         )
       } catch (error: any) {
@@ -192,7 +194,7 @@ const DataUploadListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
             <TextField
-              label='Search by File Name'
+              label='Search by Job ID'
               variant='outlined'
               size='small'
               value={searchQuery}

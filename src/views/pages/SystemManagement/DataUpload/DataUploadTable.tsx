@@ -26,7 +26,8 @@ const DataUploadTableList = () => {
       fetchDataUploads({
         page: pagination?.pageIndex + 1, // API uses 1-based indexing
         limit: pagination?.pageSize,
-        search: ''
+        search: '',
+        jobId: ''
       })
     )
   }, [dispatch, pagination?.pageIndex, pagination?.pageSize])
@@ -61,6 +62,7 @@ const DataUploadTableList = () => {
       fileName: upload?.processData?.originalname || '-',
       fileType: upload?.processData?.type || '-',
       fileSize: upload?.processData?.size,
+      jobId: upload?.jobId,
       time: upload?.createdAt ? new Date(upload.createdAt).toLocaleString() : '-',
       uploadDate: upload?.createdAt, // Store original timestamp for sorting
       status: upload?.processStatus || '-',
@@ -121,6 +123,10 @@ const DataUploadTableList = () => {
       columnHelper.accessor('fileSize', {
         header: 'FILE SIZE',
         cell: ({ row }) => <Typography color='text.primary'>{row?.original?.fileSize}</Typography>
+      }),
+      columnHelper.accessor('jobId', {
+        header: 'Job ID',
+        cell: ({ row }) => <Typography color='text.primary'>{row?.original?.jobId}</Typography>
       }),
 
       // columnHelper.accessor('time', {

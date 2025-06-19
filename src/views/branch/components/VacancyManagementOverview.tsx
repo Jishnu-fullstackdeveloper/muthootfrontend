@@ -11,9 +11,10 @@ interface VacancyManagementOverviewProps {
 
 const VacancyManagementOverview: React.FC<VacancyManagementOverviewProps> = ({
   vacanciesData,
-  loading,
-  failure,
-  failureMessage
+  loading
+
+  // failure,
+  // failureMessage
 }) => {
   if (loading) {
     return (
@@ -23,18 +24,18 @@ const VacancyManagementOverview: React.FC<VacancyManagementOverviewProps> = ({
     )
   }
 
-  if (failure) {
-    return (
-      <Typography variant='body1' color='error' sx={{ textAlign: 'center', p: 4 }}>
-        Error: {failureMessage}
-      </Typography>
-    )
-  }
+  // if (failure) {
+  //   return (
+  //     <Typography variant='body1' color='error' sx={{ textAlign: 'center', p: 4 }}>
+  //       Error: {failureMessage}
+  //     </Typography>
+  //   )
+  // }
 
   if (vacanciesData?.length === 0 || !vacanciesData) {
     return (
       <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
-        No vacancies found.
+        No vacancies found
       </Typography>
     )
   }

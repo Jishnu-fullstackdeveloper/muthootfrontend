@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -138,6 +137,7 @@ const VacancyGroupListing = () => {
   const handleViewDetails = (
     designation: string,
     department: string,
+    grade?: string,
     branch?: string,
     cluster?: string,
     area?: string,
@@ -375,6 +375,9 @@ const VacancyGroupListing = () => {
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575', mb: 1 }}>
                       <strong>Department:</strong> {item.department}
+                    </Typography>
+                    <Typography variant='body2' sx={{ color: '#757575', mb: 1 }}>
+                      <strong>Grade:</strong> {item.grade}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575', mb: 1, textTransform: 'capitalize' }}>
                       <strong>{selectedLocationType.toLowerCase()}:</strong>{' '}

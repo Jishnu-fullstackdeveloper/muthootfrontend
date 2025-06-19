@@ -133,8 +133,11 @@ const UserDropdown = () => {
   const handleChangePassword = () => {
     const params = {}
 
-    dispatch(changePasswordApi(params))
-    Logout()
+    dispatch(changePasswordApi(params)).then(res => {
+      window.location.replace(res.payload.url)
+    })
+
+    // Logout()
   }
 
   const pathName = usePathname()
@@ -220,6 +223,8 @@ const UserDropdown = () => {
   }, [])
 
   useEffect(() => {
+    console.log(changePasswordData)
+
     if (changePasswordData) {
       window.location.replace(changePasswordData)
     }

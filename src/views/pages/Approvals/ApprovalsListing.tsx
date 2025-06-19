@@ -4,20 +4,22 @@ import React, { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, Typography, IconButton, Tooltip, InputAdornment, Grid, CircularProgress } from '@mui/material'
+import { Box, Card, Typography, IconButton, Tooltip, Grid, CircularProgress } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined'
-import SearchIcon from '@mui/icons-material/Search'
+
+// import SearchIcon from '@mui/icons-material/Search'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import { getUserId } from '@/utils/functions'
 import { fetchUser, fetchApprovals, clearUser, clearApprovals } from '@/redux/Approvals/approvalsSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import DynamicTextField from '@/components/TextField/dynamicTextField'
+
+// import DynamicTextField from '@/components/TextField/dynamicTextField'
 import ApprovalManagement from './Approvals'
 import { ROUTES } from '@/utils/routes'
 import type { Approvals } from '@/types/approvalDashboard'
@@ -64,7 +66,7 @@ const ApprovalsListing = () => {
   const [visibleApprovals, setVisibleApprovals] = useState<Approvals[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
   debouncedSearch
@@ -198,7 +200,7 @@ const ApprovalsListing = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', p: 3 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
       <ToastContainer position='top-right' autoClose={5000} />
       <Card
         sx={{
@@ -228,7 +230,7 @@ const ApprovalsListing = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <DynamicTextField
+            {/* <DynamicTextField
               label='Search Approvals'
               variant='outlined'
               onChange={e => setSearchTerm(e.target.value)}
@@ -250,38 +252,26 @@ const ApprovalsListing = () => {
                   </InputAdornment>
                 )
               }}
-            />
+            /> */}
             <Box
               sx={{
                 display: 'flex',
                 gap: 0.5,
-                padding: '2px',
-                bgcolor: '#f5f5f5',
-                borderRadius: '6px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
+                padding: '2px'
               }}
             >
-              <Tooltip title='Grid View'>
-                <IconButton
-                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
-                  onClick={() => setViewMode('grid')}
-                  size='small'
-                  sx={{ p: 0.5 }}
-                >
-                  <GridViewIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title='Table View'>
-                <IconButton
-                  color={viewMode === 'table' ? 'primary' : 'secondary'}
-                  onClick={() => setViewMode('table')}
-                  size='small'
-                  sx={{ p: 0.5 }}
-                >
-                  <TableChartIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
+              <Box>
+                <Tooltip title='Grid View'>
+                  <IconButton onClick={() => setViewMode('grid')} color={viewMode === 'grid' ? 'primary' : 'default'}>
+                    <GridViewIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Table View'>
+                  <IconButton onClick={() => setViewMode('table')} color={viewMode === 'table' ? 'primary' : 'default'}>
+                    <TableChartIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           </Box>
         </Box>

@@ -160,6 +160,10 @@ const VacancyGroupListing = () => {
         header: 'DEPARTMENT',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.department}</Typography>
       }),
+      columnHelper.accessor('grade', {
+        header: 'GRADE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.grade}</Typography>
+      }),
       columnHelper.accessor(row => row[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse], {
         header: selectedLocationType,
         id: selectedLocationType.toLowerCase(),
@@ -361,6 +365,9 @@ const VacancyGroupListing = () => {
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575', mb: 1 }}>
                       <strong>Department:</strong> {item.department}
+                    </Typography>
+                    <Typography variant='body2' sx={{ color: '#757575', mb: 1 }}>
+                      <strong>Grade:</strong> {item.grade}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575', mb: 1, textTransform: 'capitalize' }}>
                       <strong>{selectedLocationType.toLowerCase()}:</strong>{' '}

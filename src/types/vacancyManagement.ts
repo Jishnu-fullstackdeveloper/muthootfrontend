@@ -1,3 +1,4 @@
+
 // export interface Vacancy {
 //   status: string
 //   territory: string
@@ -452,6 +453,7 @@ export interface VacancyGroupByDesignationResponse {
   data: {
     designation: string
     department: string
+    grade?: string
     branch?: string
     cluster?: string
     area?: string
@@ -466,6 +468,7 @@ export interface VacancyGroupByDesignationResponse {
   designation?: any
   department?: any
   designationCount?: any
+  grade?: any
 }
 
 export interface UpdateVacancyRequestStatusResponse {
@@ -485,6 +488,12 @@ export interface UpdateVacancyRequestStatusResponse {
 export interface UpdateVacancyStatusResponse {
   success: boolean
   message: string
+  error: {
+    success?: any
+    error: {
+      message?: any
+    }
+  }
   vacancy: {
     aknowledge: boolean
     vacancies: {

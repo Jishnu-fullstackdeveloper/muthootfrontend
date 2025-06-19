@@ -53,8 +53,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { toast, ToastContainer } from 'react-toastify'
 
 import 'react-toastify/dist/ReactToastify.css'
-import { getUserId } from '@/utils/functions' //getPermissionRenderConfig
-
+import { getUserId } from '@/utils/functions'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { ROUTES } from '@/utils/routes'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -70,8 +69,6 @@ import {
   fetchRegion,
   fetchZone
 } from '@/redux/BudgetManagement/BudgetManagementSlice'
-
-// import { stat } from 'fs'
 
 // Icon mapping for employee categories
 const iconMap: { [key: string]: React.ElementType } = {
@@ -93,8 +90,6 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const searchParams = useSearchParams()
-
-  // const permissions = getPermissionRenderConfig()
   const userId = getUserId()
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
@@ -147,7 +142,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
       Region: fetchRegionData?.data?.map(region => ({ id: region.id, name: region.name })) || [],
       Zone: fetchZoneData?.data?.map(zone => ({ id: zone.id, name: zone.name })) || [],
       Territory: fetchTerritoryData?.data?.map(territory => ({ id: territory.id, name: territory.name })) || [],
-      Department: [] // Not implemented in BudgetManagementSlice; add if needed
+      Department: []
     }),
     [fetchBranchData, fetchClusterData, fetchAreaData, fetchRegionData, fetchZoneData, fetchTerritoryData]
   )
@@ -182,7 +177,8 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
 
   // Fetch filter values
   useEffect(() => {
-    const params = { page: 1, limit: 10 }
+    setLimit(100)
+    const params = { page: 1, limit: limit }
 
     dispatch(fetchBranch(params))
     dispatch(fetchCluster(params))
@@ -228,18 +224,77 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
 
     dispatch(updateVacancyStatus({ ids: vacanciesToUpdate, status }))
       .unwrap()
-      .then(() => {
+      .then(res => {
+        if (res?.error?.success === false) {
+          throw res?.error?.error?.message || 'Failed to update vacancies'
+        }
+
         toast.success(`${vacanciesToUpdate.length} vacancies ${status.toLowerCase()} successfully`, {
           position: 'top-right',
           autoClose: 3000
         })
         setSelectedVacancyIds([])
-        setVisibleVacancies([])
-        setPage(1)
-        setLimit(10)
+
+        // Refresh vacancies
+        const statusMap = ['PENDING', 'FREEZED', 'APPROVED', '']
+
+        const params: {
+          page: number
+          limit: number
+          search?: string
+          status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+          designation?: string[]
+          department?: string[]
+          branch?: string[]
+          cluster?: string[]
+          area?: string[]
+          region?: string[]
+          zone?: string[]
+          territory?: string[]
+        } = {
+          page: 1,
+          limit,
+          status: statusMap[selectedTab] as 'PENDING' | 'APPROVED' | 'FREEZED',
+          designation: initialParams.designation,
+          department: initialParams.department,
+          ...(initialParams.branch && { branch: initialParams.branch }),
+          ...(initialParams.cluster && { cluster: initialParams.cluster }),
+          ...(initialParams.area && { area: initialParams.area }),
+          ...(initialParams.region && { region: initialParams.region }),
+          ...(initialParams.zone && { zone: initialParams.zone }),
+          ...(initialParams.territory && { territory: initialParams.territory })
+        }
+
+        if (searchQuery) params.search = searchQuery.trim()
+
+        if (selectedFilterType && selectedFilters.length > 0) {
+          ;(params as any)[selectedFilterType.toLowerCase()] = selectedFilters
+        }
+
+        dispatch(fetchVacancies(params))
+          .unwrap()
+          .then(result => {
+            const newVacancies = (result.data || []).map((vacancy: any) => ({
+              band: vacancy.band ?? '',
+              ...vacancy
+            }))
+
+            setVisibleVacancies(newVacancies)
+            setPage(1)
+            setHasMore(newVacancies.length < result.totalCount)
+          })
+          .catch(err => {
+            console.error('Fetch vacancies failed after bulk action:', err)
+            toast.error('Failed to refresh vacancies', { position: 'top-right', autoClose: 3000 })
+          })
       })
       .catch(err => {
-        toast.error(`Failed to update vacancies: ${err}`, { position: 'top-right', autoClose: 3000 })
+        const errorMsg = err || 'Failed to update vacancies'
+
+        toast.error(errorMsg, {
+          position: 'top-right',
+          autoClose: 3000
+        })
       })
   }
 
@@ -247,16 +302,76 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   const handleVacancyAction = (id: string, status: 'APPROVED' | 'FREEZED') => {
     dispatch(updateVacancyStatus({ ids: [id], status }))
       .unwrap()
-      .then(() => {
+      .then(res => {
+        if (res?.error?.success === false) {
+          throw res?.error?.error?.message || 'Failed to update vacancy'
+        }
+
         toast.success(`Vacancy ${status.toLowerCase()} successfully`, {
           position: 'top-right',
           autoClose: 3000
         })
-        setVisibleVacancies([])
-        setPage(1)
+
+        // Refresh vacancies
+        const statusMap = ['PENDING', 'FREEZED', 'APPROVED', '']
+
+        const params: {
+          page: number
+          limit: number
+          search?: string
+          status?: 'PENDING' | 'APPROVED' | 'FREEZED'
+          designation?: string[]
+          department?: string[]
+          branch?: string[]
+          cluster?: string[]
+          area?: string[]
+          region?: string[]
+          zone?: string[]
+          territory?: string[]
+        } = {
+          page: 1,
+          limit,
+          status: statusMap[selectedTab] as 'PENDING' | 'APPROVED' | 'FREEZED',
+          designation: initialParams.designation,
+          department: initialParams.department,
+          ...(initialParams.branch && { branch: initialParams.branch }),
+          ...(initialParams.cluster && { cluster: initialParams.cluster }),
+          ...(initialParams.area && { area: initialParams.area }),
+          ...(initialParams.region && { region: initialParams.region }),
+          ...(initialParams.zone && { zone: initialParams.zone }),
+          ...(initialParams.territory && { territory: initialParams.territory })
+        }
+
+        if (searchQuery) params.search = searchQuery.trim()
+
+        if (selectedFilterType && selectedFilters.length > 0) {
+          ;(params as any)[selectedFilterType.toLowerCase()] = selectedFilters
+        }
+
+        dispatch(fetchVacancies(params))
+          .unwrap()
+          .then(result => {
+            const newVacancies = (result.data || []).map((vacancy: any) => ({
+              band: vacancy.band ?? '',
+              ...vacancy
+            }))
+
+            setVisibleVacancies(newVacancies)
+            setPage(1)
+            setHasMore(newVacancies.length < result.totalCount)
+          })
+          .catch(err => {
+            console.error('Fetch vacancies failed after action:', err)
+            toast.error('Failed to refresh vacancies', { position: 'top-right', autoClose: 3000 })
+          })
       })
       .catch(err => {
-        toast.error(`Failed to update vacancy: ${err}`, { position: 'top-right', autoClose: 3000 })
+        const errorMsg = err || 'Failed to update vacancy'
+
+        toast.error(errorMsg, {
+          position: 'top-right',
+          autoClose: 3000
+        })
       })
   }
 
@@ -281,8 +396,8 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   // Handle reset filters
   const handleResetFilters = () => {
     setSelectedFilterType(null)
-
     setSelectedFilters([])
+    setSelectedFiltersMap({})
     setPage(1)
     setVisibleVacancies([])
     toast.info('Filters reset', { position: 'top-right', autoClose: 3000 })
@@ -294,6 +409,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
       [option]: newValue
     }))
     setSelectedFilterType(option as FilterKey)
+    setSelectedFilters(newValue)
   }
 
   // Fetch vacancies
@@ -301,11 +417,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current)
 
     debounceTimeoutRef.current = setTimeout(() => {
-      setVisibleVacancies([])
-      setPage(1)
-      setLimit(10)
-      setHasMore(true)
-      const statusMap = ['', 'PENDING', 'FREEZED', 'APPROVED']
+      const statusMap = ['PENDING', 'FREEZED', 'APPROVED', '']
 
       const params: {
         page: number
@@ -436,11 +548,9 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             {row?.original?.approvalStatus?.map((status, index) => (
               <>
                 {userId === status?.approverId && (
-                  <>
-                    <Typography key={index} sx={{ ml: 5, fontSize: '0.75rem', color: '#757575', mb: 0.5 }}>
-                      Level {status.level}: {status.approver} ({status.approvalStatus})
-                    </Typography>
-                  </>
+                  <Typography key={index} sx={{ ml: 5, fontSize: '0.75rem', color: '#757575', mb: 0.5 }}>
+                    Level {status.level}: {status.approver} ({status.approvalStatus})
+                  </Typography>
                 )}
               </>
             ))}
@@ -448,7 +558,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
         )
       }),
       columnHelper.accessor('finialStatus', {
-        header: 'FINIAL STATUS',
+        header: 'FINAL STATUS',
         cell: ({ row }) => (
           <Box>
             <Chip
@@ -510,7 +620,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
         enableSorting: false
       })
     ],
-    [router, tabMode, updateVacancyStatusLoading]
+    [router, tabMode, updateVacancyStatusLoading, userId]
   )
 
   return (
@@ -575,7 +685,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             </IconButton>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            {selectedTab === 1 && tabMode === 'request' && (
+            {selectedTab === 0 && tabMode === 'request' && (
               <>
                 <Button
                   variant='outlined'
@@ -673,10 +783,10 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             '& .MuiTabs-indicator': { bgcolor: 'primary.main' }
           }}
         >
-          <Tab label='All' />
           <Tab label='Pending' />
           <Tab label='Freeze' />
           <Tab label='Approved' />
+          <Tab label='All' />
         </Tabs>
       </Box>
 
@@ -731,11 +841,9 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                         {vacancy.approvalStatus?.map((status, index) => (
                           <>
                             {userId === status?.approverId && (
-                              <>
-                                <Typography key={index} sx={{ ml: 5, fontSize: '0.75rem', color: '#757575', mb: 0.5 }}>
-                                  Level {status.level}: {status.approver} ({status.approvalStatus})
-                                </Typography>
-                              </>
+                              <Typography key={index} sx={{ ml: 5, fontSize: '0.75rem', color: '#757575', mb: 0.5 }}>
+                                Level {status.level}: {status.approver} ({status.approvalStatus})
+                              </Typography>
                             )}
                           </>
                         ))}
@@ -870,7 +978,6 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                           </Box>
                         )}
                       </Box>
-
                       <Box
                         sx={{
                           p: 2,
@@ -945,10 +1052,13 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
             onPageChange={newPage => setPagination(prev => ({ ...prev, pageIndex: newPage }))}
             onRowsPerPageChange={newPageSize => setPagination({ pageIndex: 0, pageSize: newPageSize })}
             tableName='Vacancy Management'
-            isRowCheckbox={selectedTab === 1 && tabMode === 'request'}
+            isRowCheckbox={selectedTab === 0 && tabMode === 'request'}
             sorting={null}
             onSortingChange={null}
             initialState={null}
+            onRowSelectionChange={rows =>
+              setSelectedVacancyIds(Object.keys(rows).map(id => visibleVacancies[parseInt(id)].id))
+            }
           />
         )}
 
@@ -980,11 +1090,7 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                 options={filterValuesMap[option].map(item => item.name)}
                 getOptionLabel={name => filterValuesMap[option]?.find(item => item.name === name)?.name || name}
                 value={selectedFiltersMap[option] || []}
-                onChange={(e, newValue) => {
-                  setSelectedFilters(newValue)
-                  setSelectedFilterType(option)
-                  handleFilterChange(option, newValue)
-                }}
+                onChange={(e, newValue) => handleFilterChange(option, newValue)}
                 renderInput={params => (
                   <TextField {...params} label={`${option} Values`} variant='outlined' size='small' />
                 )}

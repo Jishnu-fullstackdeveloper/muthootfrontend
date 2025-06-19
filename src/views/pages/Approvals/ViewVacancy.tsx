@@ -187,14 +187,36 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
           ids: [vacancyId],
           status: selectedAction
         })
-      ).unwrap()
-      toast.success(`Vacancy ${selectedAction.toLowerCase()} successfully`, {
-        position: 'top-right',
-        autoClose: 3000
-      })
+      )
+        .unwrap()
+        .then(res => {
+          if (res?.error?.success === false) {
+            console.log(res.error.error.message)
+            const errorMsg = res.error.error.message || 'Failed to update vacancies'
+
+            toast.error(errorMsg, {
+              position: 'top-right',
+              autoClose: 3000
+            })
+            throw res?.error?.error?.message || 'Failed to update vacancies'
+          }
+
+          toast.success(`${res.message} vacancies  successfully`, {
+            position: 'top-right',
+            autoClose: 3000
+          })
+        })
+        .catch(err => {
+          const errorMsg = err || 'Failed to update vacancies'
+
+          toast.error(errorMsg, {
+            position: 'top-right',
+            autoClose: 3000
+          })
+        })
       dispatch(fetchVacancyById({ id: vacancyId })) // Refresh vacancy data
-    } catch (err: any) {
-      toast.error(`Failed to update vacancy: ${err}`, { position: 'top-right', autoClose: 3000 })
+      // } catch (err: any) {
+      //   toast.error(`Failed to update vacancy: ${err}`, { position: 'top-right', autoClose: 3000 })
     } finally {
       handleCloseDialog()
     }

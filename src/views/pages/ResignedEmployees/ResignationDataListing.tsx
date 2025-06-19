@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -23,21 +22,18 @@ import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import NoteOutlinedIcon from '@mui/icons-material/NoteOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
-
-// import SyncIcon from '@mui/icons-material/Sync'
-import { ToastContainer } from 'react-toastify' //toast
+import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DatePicker from 'react-datepicker'
 
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-
-// import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState, AppDispatch } from '@/redux/store'
-import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice' //syncResignedEmployees
+import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
 import ResignedEmployeesTableView from './ResignationDataTable'
 import type { ResignedEmployee, ViewMode } from '@/types/resignationDataListing'
-import L2ManagerDashboard from './L2ManagerDashboard'
+
+// import L2ManagerDashboard from './L2ManagerDashboard'
 import { ROUTES } from '@/utils/routes'
 
 const ResignationDataListingPage = () => {
@@ -54,9 +50,15 @@ const ResignationDataListingPage = () => {
   const [limit] = useState(6)
   const [fromDate, setFromDate] = useState<Date | null>(null)
   const [noMoreData, setNoMoreData] = useState<boolean>(false)
+  const [search, setSearch] = useState('')
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  // Log fromDate and search changes for debugging
+  useEffect(() => {
+    console.log('ResignationDataListingPage: State updated', { fromDate, search, viewMode })
+  }, [fromDate, search, viewMode])
 
   // Fetch employees with debounced filters
   useEffect(() => {
@@ -69,6 +71,13 @@ const ResignationDataListingPage = () => {
         ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
         : undefined
 
+      console.log('Fetching employees for grid view:', {
+        page: 1,
+        limit,
+        resignationDateFrom: formattedFromDate,
+        search
+      })
+
       setVisibleEmployees([])
       setPage(1)
       setNoMoreData(false)
@@ -77,7 +86,8 @@ const ResignationDataListingPage = () => {
           page: 1,
           limit,
           isResigned: true,
-          resignationDateFrom: formattedFromDate
+          resignationDateFrom: formattedFromDate,
+          search
         })
       )
     }, 300)
@@ -87,12 +97,17 @@ const ResignationDataListingPage = () => {
         clearTimeout(debounceTimeout.current)
       }
     }
-  }, [dispatch, limit, fromDate])
+  }, [dispatch, limit, fromDate, search])
 
-  // Update visible employees with unique items from API
+  // Update visible employees based on employees from Redux store
   useEffect(() => {
     if (employees?.length && viewMode === 'grid') {
+      // Replace visibleEmployees with new employees for page 1, append for subsequent pages
       setVisibleEmployees((prev: ResignedEmployee[]) => {
+        if (page === 1) {
+          return [...employees]// Reset for first page
+        }
+
         const newEmployees = employees.filter(employee => !prev.some(existing => existing.id === employee.id))
 
         return [...prev, ...newEmployees]
@@ -102,7 +117,7 @@ const ResignationDataListingPage = () => {
       setVisibleEmployees([])
       setNoMoreData(true)
     }
-  }, [employees, viewMode, loading])
+  }, [employees, viewMode, loading, page])
 
   // Lazy loading
   const loadMoreEmployees = useCallback(() => {
@@ -115,15 +130,18 @@ const ResignationDataListingPage = () => {
       ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
       : undefined
 
+    console.log('Loading more employees:', { page: nextPage, limit, resignationDateFrom: formattedFromDate, search })
+
     dispatch(
       fetchResignedEmployees({
         page: nextPage,
         limit,
         isResigned: true,
-        resignationDateFrom: formattedFromDate
+        resignationDateFrom: formattedFromDate,
+        search
       })
     )
-  }, [loading, visibleEmployees.length, totalCount, noMoreData, page, dispatch, limit, fromDate])
+  }, [loading, visibleEmployees.length, totalCount, noMoreData, page, dispatch, limit, fromDate, search])
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -232,9 +250,27 @@ const ResignationDataListingPage = () => {
           </Box>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 3, zIndex: 1100 }}>
+            <TextField
+              label='Search'
+              variant='outlined'
+              size='small'
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              sx={{ width: '350px', mt: 1 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <i className='tabler-search text-xxl' />
+                  </InputAdornment>
+                )
+              }}
+            />
             <DatePicker
               selected={fromDate}
-              onChange={(date: Date | null) => setFromDate(date)}
+              onChange={(date: Date | null) => {
+                console.log('DatePicker changed:', date ? date.toISOString() : null)
+                setFromDate(date)
+              }}
               placeholderText='Select from date'
               isClearable
               customInput={
@@ -314,13 +350,13 @@ const ResignationDataListingPage = () => {
         </Box>
       </Card>
 
-      <Box>
+      {/* <Box>
         <L2ManagerDashboard />
-      </Box>
+      </Box> */}
 
       {loading && viewMode === 'grid' && (
         <Box sx={{ mb: 4, mx: 6, textAlign: 'center' }}>
-          {/* <Typography variant='h6' color='text.secondary'>
+            {/* <Typography variant='h6' color='text.secondary'>
             Loading...
           </Typography> */}
           <CircularProgress color='primary' />
@@ -361,7 +397,7 @@ const ResignationDataListingPage = () => {
         </Box>
       )} */}
 
-      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-6' : 'space-y-6'}`}>
+      <Box className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-4' : 'space-y-6'}`}>
         {viewMode === 'grid' ? (
           visibleEmployees?.map(employee => (
             <Box
@@ -428,7 +464,13 @@ const ResignationDataListingPage = () => {
             </Box>
           ))
         ) : (
-          <ResignedEmployeesTableView fromDate={fromDate ? fromDate.toISOString().split('T')[0] : undefined} />
+          <ResignedEmployeesTableView
+            fromDate={
+              fromDate
+                ? `${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}-${fromDate.getFullYear()}`
+                : undefined
+            }
+          />
         )}
       </Box>
 

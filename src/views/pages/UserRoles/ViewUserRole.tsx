@@ -187,7 +187,9 @@ const ViewUserRole = () => {
     return permissions.includes(permString) ? `${feature} ${action} permission` : 'No description available'
   }
 
-  const isEditDisabled = ['DEFAULT-ROLE', 'DEFAULT-ROLES-HRMS', 'SUPER ADMIN'].includes(roleName.toUpperCase())
+  const isEditDisabled =
+    ['DEFAULT ROLE', 'DEFAULT-ROLES-HRMS', 'SUPER ADMIN', 'des_default_role'].includes(roleName.toUpperCase()) ||
+    roleName === 'des_default_role'
 
   const cleanName = (name, prefix, isGroupRole = false) => {
     if (!name) return ''

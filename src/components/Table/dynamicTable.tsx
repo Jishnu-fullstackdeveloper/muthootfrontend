@@ -34,6 +34,8 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import CloseIcon from '@mui/icons-material/Close'
 import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
 
+import DynamicTextField from '../TextField/dynamicTextField'
+
 const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }: any) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -117,7 +119,9 @@ const DynamicTable = ({
   onPageCountChange,
   tableName,
   isRowCheckbox, // New prop to enable/disable row checkboxes
-  onRowSelectionChange // New prop to send selected rows to parent
+  onRowSelectionChange, // New prop to send selected rows to parent
+  searchBar, // Destructure searchBar
+  onSearchChange // Destructure onSearchChange
 }: {
   columns: ColumnDef<any>[]
   data: any[]
@@ -136,6 +140,8 @@ const DynamicTable = ({
   tableName?: string
   isRowCheckbox?: boolean // Optional prop to enable row checkboxes
   onRowSelectionChange?: (selectedRows: any[]) => void // Optional prop to send selected rows to parent
+  searchBar?: boolean // New prop to enable/disable search bar
+  onSearchChange?: (searchTerm: string) => void // New prop to handle search input
 }) => {
   // Load initial column state from localStorage or use first 7 columns as default
   const [columns, setColumns] = useState<ColumnDef<any>[]>(() => {
@@ -406,12 +412,12 @@ const DynamicTable = ({
           position: 'sticky',
           top: 0,
           right: 0,
-          zIndex: 1, // Ensure it stays above the table
+          zIndex: 1,
           display: 'flex',
-          justifyContent: tableName ? 'space-between' : 'flex-end', // Conditional justification
-          alignItems: 'center', // Added to vertically center the content
+          justifyContent: tableName ? 'space-between' : 'flex-end',
+          alignItems: 'center',
           p: 2,
-          backgroundColor: 'inherit' // Match the background of the table container
+          backgroundColor: 'inherit'
         }}
       >
         {/* Table Name on the left, only if provided */}
@@ -421,20 +427,30 @@ const DynamicTable = ({
           </Typography>
         )}
 
-        {/* Filter Icon on the right */}
-        <Tooltip title='More Columns'>
-          <IconButton
-            onClick={() => setOpenColumnDrawer(true)}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)', // Light gray hover background (customizable)
-                borderRadius: '4px' // Rectangular shape
-              }
-            }}
-          >
-            <DoubleArrowOutlinedIcon className='size-4' />
-          </IconButton>
-        </Tooltip>
+        {/* Search Bar and More Columns Icon on the right */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {searchBar && (
+            <DynamicTextField
+              size='small'
+              placeholder='Search...'
+              onChange={e => onSearchChange && onSearchChange(e.target.value)}
+              sx={{ width: 200 }}
+            />
+          )}
+          <Tooltip title='More Columns'>
+            <IconButton
+              onClick={() => setOpenColumnDrawer(true)}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  borderRadius: '4px'
+                }
+              }}
+            >
+              <DoubleArrowOutlinedIcon className='size-4' />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
       <TableContainer component={Paper}>
         <Table>

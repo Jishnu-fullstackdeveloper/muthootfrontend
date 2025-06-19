@@ -58,8 +58,9 @@ const BranchListing = () => {
     branchListData,
     branchListLoading = false,
     branchListTotal,
-    branchListFailure = false,
-    branchListFailureMessage = ''
+    branchListFailure = false
+
+    //branchListFailureMessage = ''
   } = useAppSelector((state: RootState) => state.branchManagementReducer) as BranchManagementState
 
   // Fetch branches
@@ -202,7 +203,6 @@ const BranchListing = () => {
             }}
           >
             <CustomTextField
-              label='Search Branch'
               placeholder='Search by Branch Name or Code...'
               sx={{ width: { xs: '100%', sm: '400px' } }}
               value={searchQuery}
@@ -226,7 +226,7 @@ const BranchListing = () => {
             <Box
               sx={{
                 display: 'flex',
-                gap: 2,
+                gap: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '1px',
@@ -238,13 +238,21 @@ const BranchListing = () => {
               }}
             >
               <Tooltip title='Grid View'>
-                <IconButton color={viewMode === 'grid' ? 'primary' : 'secondary'} onClick={() => setViewMode('grid')}>
-                  <GridViewIcon />
+                <IconButton
+                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('grid')}
+                  sx={{ p: 0.5 }}
+                >
+                  <GridViewIcon fontSize='small' />
                 </IconButton>
               </Tooltip>
               <Tooltip title='Table View'>
-                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
-                  <TableChartIcon />
+                <IconButton
+                  color={viewMode === 'table' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('table')}
+                  sx={{ p: 0.5 }}
+                >
+                  <TableChartIcon fontSize='small' />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -296,7 +304,7 @@ const BranchListing = () => {
       </Drawer>
 
       {branchListFailure ? (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>Error: {branchListFailureMessage}</Box>
+        <Box sx={{ textAlign: 'center', mt: 4 }}>No Branch Data Found</Box>
       ) : (
         <>
           {(viewMode === 'grid' || viewMode === 'list') && (
@@ -438,7 +446,7 @@ const BranchListing = () => {
               )}
             </Box>
           )}
-          {viewMode === 'table' && <BranchListingTableView branchData={branchListData?.data || []} />}
+          {viewMode === 'table' && <BranchListingTableView branchData={branchListData} />}
           {/* {(viewMode === 'list' || viewMode === 'table') && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
               <FormControl size='small' sx={{ minWidth: 70 }}>

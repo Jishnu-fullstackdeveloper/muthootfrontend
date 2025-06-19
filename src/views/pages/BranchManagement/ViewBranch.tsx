@@ -152,21 +152,76 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
 
+  // Add search term state
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
   // Combined pagination handler
-  const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
-    setPagination(prev => ({
-      ...prev,
-      [key]: key === 'pageIndex' ? value : value,
-      pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
-    }))
-  }
+  // const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
+  //   setPagination(prev => ({
+  //     ...prev,
+  //     [key]: key === 'pageIndex' ? value : value,
+  //     pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
+  //   }))
+  // }
 
+  // const handlePageChange = (newPage: number) => {
+  //   console.log(employeeListData)
+  //   handlePaginationChange('pageIndex', newPage)
+  // }
+
+  // const handleRowsPerPageChange = (newPageSize: number) => handlePaginationChange('pageSize', newPageSize)
+
+  // Update useEffect to fetch employee data
+  // useEffect(() => {
+  //   dispatch(getBranchDetails({ id }))
+  //   dispatch(
+  //     getEmployeeDetailsWithBranchId({
+  //       branchId: id,
+  //       page: pagination.pageIndex + 1, // API uses 1-based indexing
+  //       limit: pagination.pageSize
+  //     })
+  //   )
+  //   dispatch(fetchVacancies({ branchName: branchData.name || '' }))
+  // }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
+
+  // Replace the existing useEffect with these separate useEffect hooks
+
+  // Fetch branch details only when id changes
+  useEffect(() => {
+    dispatch(getBranchDetails({ id }))
+  }, [dispatch, id])
+
+  // Fetch employee details when id or pagination changes
+  useEffect(() => {
+    dispatch(
+      getEmployeeDetailsWithBranchId({
+        branchId: id,
+        page: pagination.pageIndex + 1, // API uses 1-based indexing
+        limit: pagination.pageSize,
+        search: searchTerm || undefined // Include search term if not empty
+      })
+    )
+  }, [dispatch, id, pagination.pageIndex, pagination.pageSize, searchTerm])
+
+  // Fetch vacancies only when branchData.name changes
+  // useEffect(() => {
+  //   if (branchData.name) {
+  //     dispatch(fetchVacancies({ branchName: branchData.name }))
+  //   }
+  // }, [dispatch, branchData.name])
+
+  useEffect(() => {
+    dispatch(fetchVacancies({ branchName: branchData.name }))
+  }, [dispatch])
+
+  // Add new pagination handlers
   const handlePageChange = (newPage: number) => {
-    console.log(employeeListData)
-    handlePaginationChange('pageIndex', newPage)
+    setPagination(prev => ({ ...prev, pageIndex: newPage }))
   }
 
-  const handleRowsPerPageChange = (newPageSize: number) => handlePaginationChange('pageSize', newPageSize)
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPagination({ pageIndex: 0, pageSize: newPageSize })
+  }
 
   // Tab change handler
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -176,15 +231,15 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
     window.history.replaceState(null, '', `${paths[newValue]}?id=${id}`)
   }
 
-  useEffect(() => {
-    dispatch(getBranchDetails({ id }))
-    dispatch(
-      getEmployeeDetailsWithBranchId({ branchId: id, page: pagination.pageIndex + 1, limit: pagination.pageSize })
-    )
+  // useEffect(() => {
+  //   dispatch(getBranchDetails({ id }))
+  //   dispatch(
+  //     getEmployeeDetailsWithBranchId({ branchId: id, page: pagination.pageIndex + 1, limit: pagination.pageSize })
+  //   )
 
-    //dispatch(fetchBubblePositions({ branchId: id }))
-    dispatch(fetchVacancies({ branchName: branchData.name || '' }))
-  }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
+  //   //dispatch(fetchBubblePositions({ branchId: id }))
+  //   dispatch(fetchVacancies({ branchName: branchData.name || '' }))
+  // }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
 
   if (branchDetailsLoading) return <div>Loading branch details...</div>
   if (branchDetailsFailure) return <div>Error: {branchDetailsFailureMessage}</div>
@@ -292,7 +347,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
         </Tabs>
         <Divider sx={{ my: 3 }} />
 
-        {activeTab === 0 &&
+        {/* {activeTab === 0 &&
           (employeeData.length === 0 ? (
             <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
               No employees found for this branch.
@@ -309,6 +364,31 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
               sorting={undefined}
               onSortingChange={undefined}
               initialState={undefined}
+            />
+          ))} */}
+
+        {activeTab === 0 &&
+          (employeeData.length === 0 ? (
+            <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
+              No employees found for this branch.
+            </Typography>
+          ) : (
+            <DynamicTable
+              columns={columns}
+              data={employeeData}
+              totalCount={totalCount}
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              tableName='Employee List'
+              sorting={undefined}
+              onSortingChange={undefined}
+              initialState={undefined}
+              searchBar={true}
+              onSearchChange={(searchTerm: string) => {
+                setSearchTerm(searchTerm)
+                setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page on search
+              }}
             />
           ))}
         {/* {activeTab === 1 && (

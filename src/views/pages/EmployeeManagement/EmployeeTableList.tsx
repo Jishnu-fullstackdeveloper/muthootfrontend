@@ -408,22 +408,24 @@ const EmployeeTable = () => {
         header: 'UAN NUMBER',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.uanNumber}</Typography>
       }),
-      columnHelper.accessor('noticePeriod', {
-        header: 'NOTICE PERIOD',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.noticePeriod}</Typography>
-      }),
+
+      // columnHelper.accessor('noticePeriod', {
+      //   header: 'NOTICE PERIOD',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.noticePeriod}</Typography>
+      // }),
       columnHelper.accessor('mobileNumber', {
         header: 'MOBILE NUMBER',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.mobileNumber}</Typography>
       }),
-      columnHelper.accessor('dateOfResignation', {
-        header: 'DATE OF RESIGNATION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation.split('T')[0]}</Typography>
-      }),
-      columnHelper.accessor('finalApprovalLWD', {
-        header: 'FINAL APPROVAL LWD',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.lwd.split('T')[0]}</Typography>
-      }),
+
+      // columnHelper.accessor('dateOfResignation', {
+      //   header: 'DATE OF RESIGNATION',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.dateOfResignation.split('T')[0]}</Typography>
+      // }),
+      // columnHelper.accessor('finalApprovalLWD', {
+      //   header: 'FINAL APPROVAL LWD',
+      //   cell: ({ row }) => <Typography color='text.primary'>{row.original.lwd.split('T')[0]}</Typography>
+      // }),
       columnHelper.accessor('foodCardNumber', {
         header: 'FOOD CARD NUMBER',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.foodCardNumber}</Typography>

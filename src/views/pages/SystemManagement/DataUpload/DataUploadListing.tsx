@@ -64,8 +64,8 @@ const DataUploadListingPage = () => {
         fetchDataUploads({
           page: 1,
           limit: 5,
-          search: '',
-          jobId: trimmedQuery || undefined
+          search: trimmedQuery || undefined,
+          jobId: ''
         })
       )
       prevSearchQuery.current = trimmedQuery
@@ -142,8 +142,8 @@ const DataUploadListingPage = () => {
           fetchDataUploads({
             page: 1,
             limit: 5,
-            search: '',
-            jobId: searchQuery.trim() || undefined
+            search: searchQuery.trim() || undefined,
+            jobId: ''
           })
         )
       } catch (error: any) {

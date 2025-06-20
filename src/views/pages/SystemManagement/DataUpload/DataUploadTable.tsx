@@ -140,7 +140,7 @@ const DataUploadTableList = () => {
           const dateA = rowA.original.uploadDate ? new Date(rowA.original.uploadDate).getTime() : 0
           const dateB = rowB.original.uploadDate ? new Date(rowB.original.uploadDate).getTime() : 0
 
-          return dateA - dateB
+          return dateB - dateA
         }
       }),
 

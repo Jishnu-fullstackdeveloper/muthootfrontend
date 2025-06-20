@@ -135,10 +135,11 @@ const VacancyGroupListing = () => {
 
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
-  const handleViewDetails = (designation: string, department: string, locationName: string) => {
+  const handleViewDetails = (designation: string, department: string, grade: string, locationName: string) => {
     const url = buildVacancyRequestURL({
       designation,
       department,
+      grade,
       locationName,
       locationType: selectedLocationType
     })
@@ -188,6 +189,7 @@ const VacancyGroupListing = () => {
                 handleViewDetails(
                   row.original.designation,
                   row.original.department,
+                  row.original.grade,
                   row.original[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                 )
               }
@@ -386,6 +388,7 @@ const VacancyGroupListing = () => {
                         handleViewDetails(
                           item.designation,
                           item.department,
+                          item.grade,
                           item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                         )
                       }

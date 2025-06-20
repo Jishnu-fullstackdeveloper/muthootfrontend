@@ -34,7 +34,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
 import type { VacancyManagementState, VacancyGroupByDesignationResponse } from '@/types/vacancyManagement'
 import { fetchVacanciesGroupByDesignation } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
-import { ROUTES } from '@/utils/routes'
+import { buildVacancyListURL } from '@/utils/urlBuilders'
 
 type ViewMode = 'grid' | 'table'
 
@@ -134,30 +134,16 @@ const VacancyGroupListing = () => {
 
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
-  const handleViewDetails = (
-    designation: string,
-    department: string,
-    grade?: string,
-    branch?: string,
-    cluster?: string,
-    area?: string,
-    region?: string,
-    zone?: string,
-    territory?: string
-  ) => {
-    router.push(
-      ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST_VIEW({
-        designation,
-        department,
-        branch,
-        cluster,
-        area,
-        region,
-        zone,
-        territory,
-        locationType: selectedLocationType // assumed to be defined outside
-      })
-    )
+  const handleViewDetails = (designation: string, department: string, grade: string, locationName: string) => {
+    const url = buildVacancyListURL({
+      designation,
+      department,
+      grade,
+      locationName,
+      locationType: selectedLocationType
+    })
+
+    router.push(url)
   }
 
   const filteredData = useMemo(() => {
@@ -196,8 +182,9 @@ const VacancyGroupListing = () => {
               color='primary'
               onClick={() =>
                 handleViewDetails(
-                  row.original.designation,
-                  row.original.department,
+                  row.original?.designation,
+                  row.original?.department,
+                  row.original?.grade ,
                   row.original[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                 )
               }
@@ -396,6 +383,7 @@ const VacancyGroupListing = () => {
                         handleViewDetails(
                           item.designation,
                           item.department,
+                          item.grade,
                           item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                         )
                       }

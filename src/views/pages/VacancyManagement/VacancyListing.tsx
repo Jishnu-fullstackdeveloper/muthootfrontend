@@ -108,6 +108,7 @@ const VacancyListingPage = () => {
     () => ({
       designation: searchParams.get('designation') ? [searchParams.get('designation')!] : undefined,
       department: searchParams.get('department') ? [searchParams.get('department')!] : undefined,
+      grade: searchParams.get('grade') ? [searchParams.get('grade')!] : undefined,
       branch: searchParams.get('branch') ? [searchParams.get('branch')!] : undefined,
       cluster: searchParams.get('cluster') ? [searchParams.get('cluster')!] : undefined,
       area: searchParams.get('area') ? [searchParams.get('area')!] : undefined,
@@ -165,6 +166,7 @@ const VacancyListingPage = () => {
         search?: string
         status?: 'PENDING' | 'APPROVED' | 'FREEZED'
         designation?: string[]
+        grade?: string[]
         department?: string[]
         branch?: string[]
         cluster?: string[]
@@ -178,6 +180,7 @@ const VacancyListingPage = () => {
         status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
         designation: initialParams.designation,
         department: initialParams.department,
+        grade: initialParams.grade,
         ...(initialParams.branch && { branch: initialParams.branch }),
         ...(initialParams.cluster && { cluster: initialParams.cluster }),
         ...(initialParams.area && { area: initialParams.area }),
@@ -261,6 +264,7 @@ const VacancyListingPage = () => {
       status?: 'PENDING' | 'APPROVED' | 'FREEZED'
       designation?: string[]
       department?: string[]
+      grade?: string[]
       branch?: string[]
       cluster?: string[]
       area?: string[]
@@ -273,6 +277,7 @@ const VacancyListingPage = () => {
       status: tabMode === 'list' ? 'APPROVED' : 'PENDING',
       designation: initialParams.designation,
       department: initialParams.department,
+      grade: initialParams.grade,
       ...(initialParams.branch && { branch: initialParams.branch }),
       ...(initialParams.cluster && { cluster: initialParams.cluster }),
       ...(initialParams.area && { area: initialParams.area }),

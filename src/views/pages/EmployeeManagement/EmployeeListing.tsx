@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef } from 'react'
 // import { useRouter } from 'next/navigation'
 
 //import type { TextFieldProps } from '@mui/material'
-import { Box, Card, TextField, InputAdornment } from '@mui/material'
+import { Box, Card, TextField, InputAdornment, IconButton } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
 //import CustomTextField from '@/@core/components/mui/TextField'
 import EmployeeTable from './EmployeeTableList'
@@ -17,35 +18,6 @@ const EmployeeListingPage = () => {
   const dispatch = useAppDispatch()
   const [searchQuery, setSearchQuery] = useState('')
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
-
-  // const router = useRouter()
-
-  // const DebouncedInput = ({
-  //   value: initialValue,
-  //   onChange,
-  //   debounce = 500,
-  //   ...props
-  // }: {
-  //   value: string | number
-  //   onChange: (value: string | number) => void
-  //   debounce?: number
-  // } & Omit<TextFieldProps, 'onChange'>) => {
-  //   const [value, setValue] = useState(initialValue)
-
-  //   useEffect(() => {
-  //     setValue(initialValue)
-  //   }, [initialValue])
-
-  //   useEffect(() => {
-  //     const timeout = setTimeout(() => {
-  //       onChange(value)
-  //     }, debounce)
-
-  //     return () => clearTimeout(timeout)
-  //   }, [value])
-
-  //   return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
-  // }
 
   // Debounced search effect
   useEffect(() => {
@@ -82,22 +54,6 @@ const EmployeeListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
-            {/* <DebouncedInput
-      value={searchQuery}
-      onChange={value => {
-        setSearchQuery(value.toString())
-        dispatch(fetchEmployees({ page: 1, limit: 5, search: value.toString() }))
-      }}
-      placeholder='Search by Employee Name'
-      className='is-full sm:is-[400px]'
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-            <i className='tabler-search text-xxl' />
-          </InputAdornment>
-        )
-      }}
-    /> */}
             <TextField
               label='Search by Employee Name'
               variant='outlined'
@@ -108,6 +64,11 @@ const EmployeeListingPage = () => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
+                    {searchQuery && (
+                      <IconButton size='small' onClick={() => setSearchQuery('')} edge='end'>
+                        <ClearIcon fontSize='small' />
+                      </IconButton>
+                    )}
                     <SearchIcon />
                   </InputAdornment>
                 )

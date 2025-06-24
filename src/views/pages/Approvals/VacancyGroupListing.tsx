@@ -376,10 +376,17 @@ const VacancyGroupListing = () => {
                       {item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575' }}>
-                      <strong>Vacancy Request Count:</strong> {item.designationCount}
+                      <strong>Vacancy Pending Request:</strong> {item.designationCount}
                     </Typography>
                   </CardContent>
-                  <CardActions sx={{ justifyContent: 'flex-end', p: 2, bgcolor: '#fafafa' }}>
+                  <CardActions
+                    className='flex items-center p-2'
+                    sx={{
+                      justifyContent: 'flex-end',
+                      p: 2,
+                      bgcolor: '#fafafa'
+                    }}
+                  >
                     <Button
                       size='small'
                       color='primary'

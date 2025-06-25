@@ -223,6 +223,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 iconClass: 'tabler-briefcase',
                 permission: 'vacancyXFactor',
                 read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+              },
+              {
+                path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.NOTICE_PERIOD,
+                label: 'Notice Period',
+                iconClass: 'tabler-calendar-time',
+                permission: 'noticePeriodRange',
+                read: 'SYSTEM_XFACTOR_NOTICEPERIODRANGE_READ'
               }
             ]
           },

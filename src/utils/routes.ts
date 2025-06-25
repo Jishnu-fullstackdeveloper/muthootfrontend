@@ -103,7 +103,8 @@ export const ROUTES = {
   SYSTEM_MANAGEMENT: {
     X_FACTOR: {
       RESIGNED_X_FACTOR: '/system-management/x-factor/resigned-x-factor',
-      VACANCY_X_FACTOR: '/system-management/x-factor/vacancy-x-factor'
+      VACANCY_X_FACTOR: '/system-management/x-factor/vacancy-x-factor',
+      NOTICE_PERIOD: '/system-management/x-factor/notice-period'
     },
     DATA_UPLOAD: '/system-management/data-upload',
     APPROVAL_CATEGORY: '/system-management/approval-category',

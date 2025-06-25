@@ -150,7 +150,7 @@ export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
   async (_, { rejectWithValue }) => {
     try {
       const accessToken = getAccessToken()
-      const api = '/permissions'
+      const api = 'auth/permissions'
 
       const response = await AxiosLib.get(api, {
         headers: {

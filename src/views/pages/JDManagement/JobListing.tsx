@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -9,45 +10,37 @@ import {
   Chip,
   FormControl,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
   Tooltip,
   Typography
 } from '@mui/material'
-
 import Pagination from '@mui/material/Pagination'
 import Stack from '@mui/material/Stack'
-
-import type { TextFieldProps } from '@mui/material/TextField'
-
 import GridViewIcon from '@mui/icons-material/GridView'
-
-import { RestartAlt } from '@mui/icons-material'
-
 import TableChartIcon from '@mui/icons-material/TableChart'
-
-import CustomTextField from '@/@core/components/mui/TextField'
+import { RestartAlt } from '@mui/icons-material'
 
 import DynamicButton from '@/components/Button/dynamicButton'
 import JobListingCustomFilters from '@/@core/components/dialogs/job-listing-filters'
-
 import {
   getJDManagementFiltersFromCookie,
   removeJDManagementFiltersFromCookie,
   setJDManagementFiltersToCookie
 } from '@/utils/functions'
 import FileUploadDialog from '@/components/Dialog/jdFileUploadDialog'
-
 import JobListingTableView from './JobListingTable'
 import { jobs } from '@/utils/sampleData/JobListingData'
 
 const JobListing = () => {
   const router = useRouter()
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'table'>('grid')
-  const [addMoreFilters, setAddMoreFilters] = useState<any>(false)
-  const [fileUploadDialogOpen, setFileUploadDialogOpen] = useState<any>(false)
+
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [addMoreFilters, setAddMoreFilters] = useState(false)
+  const [fileUploadDialogOpen, setFileUploadDialogOpen] = useState(false)
+  const [jobList, setJobList] = useState(jobs) // initial static jobs
+
   const FiltersFromCookie = getJDManagementFiltersFromCookie()
 
   const [selectedFilters, setSelectedFilters] = useState({
@@ -68,15 +61,23 @@ const JobListing = () => {
     jobRole: ''
   })
 
+  // Load jobs from localStorage on mount
   useEffect(() => {
-    if (FiltersFromCookie?.selectedFilters) {
-      setSelectedFilters(FiltersFromCookie?.selectedFilters)
-    }
+    const storedJobs = JSON.parse(localStorage.getItem('jdList') || '[]')
 
-    if (FiltersFromCookie?.appliedFilters) {
-      setAppliedFilters(FiltersFromCookie?.appliedFilters)
-    }
+    setJobList([...jobs, ...storedJobs])
   }, [])
+
+  // Load filters from cookies
+  useEffect(() => {
+    if (FiltersFromCookie?.selectedFilters) setSelectedFilters(FiltersFromCookie.selectedFilters)
+    if (FiltersFromCookie?.appliedFilters) setAppliedFilters(FiltersFromCookie.appliedFilters)
+  }, [])
+
+  // Save filters to cookies when changed
+  useEffect(() => {
+    setJDManagementFiltersToCookie({ selectedFilters, appliedFilters })
+  }, [selectedFilters, appliedFilters])
 
   const handleResetFilters = () => {
     setSelectedFilters({
@@ -90,52 +91,17 @@ const JobListing = () => {
     removeJDManagementFiltersFromCookie()
   }
 
-  useEffect(() => {
-    setJDManagementFiltersToCookie({
-      selectedFilters,
-      appliedFilters
-    })
-  }, [selectedFilters, appliedFilters])
-
-  const DebouncedInput = ({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    ...props
-  }: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-  } & Omit<TextFieldProps, 'onChange'>) => {
-    const [value, setValue] = useState(initialValue)
-
-    useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
-
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange(value)
-      }, debounce)
-
-      return () => clearTimeout(timeout)
-    }, [debounce, onChange, value])
-
-    return <CustomTextField variant='filled' {...props} value={value} onChange={e => setValue(e.target.value)} />
-  }
-
   const [paginationState, setPaginationState] = useState({
     page: 1,
-    limit: 10,
-    display_numbers_count: 5
+    limit: 10
   })
 
-  const handlePageChange = (event: any, value: any) => {
+  const handlePageChange = (_event: any, value: number) => {
     setPaginationState(prev => ({ ...prev, page: value }))
   }
 
-  const handleChangeLimit = (value: any) => {
-    setPaginationState(prev => ({ ...prev, limit: value }))
+  const handleChangeLimit = (value: number) => {
+    setPaginationState(prev => ({ ...prev, limit: value, page: 1 }))
   }
 
   const CheckAllFiltersEmpty = (filters: any): boolean => {
@@ -144,26 +110,18 @@ const JobListing = () => {
         return key === 'salaryRange' ? value[0] === 0 && value[1] === 0 : value.length === 0
       }
 
-      if (typeof value === 'string') {
-        return value.trim() === ''
-      }
-
-      if (typeof value === 'object' && value !== null) {
-        return Object.keys(value).length === 0
-      }
-
-      return !value
+      return typeof value === 'string' ? value.trim() === '' : !value
     })
   }
 
-  const removeSelectedFilterItem = (category: any, value: string) => {
-    setSelectedFilters((prev: any) => {
-      if (category === 'jobRole') {
-        setSelectedFilters({ ...selectedFilters, jobRole: '' })
-      } else if (Array.isArray(prev[category])) {
+  const removeSelectedFilterItem = (category: string, value: string) => {
+    setSelectedFilters(prev => {
+      if (category === 'jobRole') return { ...prev, jobRole: '' }
+
+      if (Array.isArray(prev[category as keyof typeof prev])) {
         return {
           ...prev,
-          [category]: prev[category].filter((item: string) => item !== value)
+          [category]: prev[category as keyof typeof prev].filter((item: string) => item !== value)
         }
       }
 
@@ -171,8 +129,8 @@ const JobListing = () => {
     })
   }
 
-  const toggleFilter = (filterType: any, filterValue: any) => {
-    setAppliedFilters((prev: any) => {
+  const toggleFilter = (filterType: string, filterValue: any) => {
+    setAppliedFilters(prev => {
       if (filterType === 'salaryRange') {
         return {
           ...prev,
@@ -180,20 +138,45 @@ const JobListing = () => {
             prev.salaryRange[0] === filterValue[0] && prev.salaryRange[1] === filterValue[1] ? [0, 0] : filterValue
         }
       } else if (filterType === 'jobRole') {
-        return {
-          ...prev,
-          jobRole: prev.jobRole === filterValue ? '' : filterValue
-        }
+        return { ...prev, jobRole: prev.jobRole === filterValue ? '' : filterValue }
       } else {
         return {
           ...prev,
-          [filterType]: prev[filterType]?.includes(filterValue)
-            ? prev[filterType].filter((item: any) => item !== filterValue)
-            : [...(prev[filterType] || []), filterValue]
+          [filterType]: prev[filterType as keyof typeof prev].includes(filterValue)
+            ? prev[filterType as keyof typeof prev].filter((item: any) => item !== filterValue)
+            : [...prev[filterType as keyof typeof prev], filterValue]
         }
       }
     })
   }
+
+  // Filter jobs based on applied filters
+  const filteredJobs = jobList.filter(job => {
+    const matchesJobType = appliedFilters.jobType.length === 0 || appliedFilters.jobType.includes(job.job_type)
+
+    const matchesExperience =
+      appliedFilters.experience.length === 0 || appliedFilters.experience.includes(job.experience)
+
+    const matchesEducation = appliedFilters.education.length === 0 || appliedFilters.education.includes(job.education)
+
+    const matchesSkills =
+      appliedFilters.skills.length === 0 || appliedFilters.skills.every((skill: string) => job.skills.includes(skill))
+
+    const matchesSalary =
+      appliedFilters.salaryRange[0] === 0 && appliedFilters.salaryRange[1] === 0
+        ? true
+        : job.salary_range === `${appliedFilters.salaryRange[0]} - ${appliedFilters.salaryRange[1]}`
+
+    const matchesJobRole =
+      appliedFilters.jobRole === '' || job.job_role.toLowerCase().includes(appliedFilters.jobRole.toLowerCase())
+
+    return matchesJobType && matchesExperience && matchesEducation && matchesSkills && matchesSalary && matchesJobRole
+  })
+
+  const paginatedJobs = filteredJobs.slice(
+    (paginationState.page - 1) * paginationState.limit,
+    paginationState.page * paginationState.limit
+  )
 
   return (
     <div className='min-h-screen'>
@@ -210,9 +193,9 @@ const JobListing = () => {
         open={fileUploadDialogOpen}
         onClose={() => setFileUploadDialogOpen(false)}
         onUpload={file => {
-          if (file) {
-            console.log('File uploaded:', file)
-          }
+          if (file) console.log('File uploaded:', file)
+
+          // Implement upload logic here
         }}
       />
 
@@ -226,34 +209,19 @@ const JobListing = () => {
           paddingBottom: 2
         }}
       >
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
+        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4'>
           <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
-            <DebouncedInput
-              label='Search JD'
-              value=''
-              onChange={() => {}}
-              placeholder='Search by Job Title or Job Description, Category...'
-              className='is-full sm:is-[400px]'
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-                    <i className='tabler-search text-xxl' />
-                  </InputAdornment>
-                )
-              }}
-            />
-
             <Box sx={{ mt: 5 }}>
               <DynamicButton
                 label='Add more filters'
                 variant='tonal'
                 icon={<i className='tabler-plus' />}
                 position='start'
-                children='Add more filters'
                 onClick={() => setAddMoreFilters(true)}
-              />
+              >
+                Add more filters
+              </DynamicButton>
             </Box>
-
             <Box sx={{ mt: 5, cursor: CheckAllFiltersEmpty(selectedFilters) ? 'not-allowed' : 'pointer' }}>
               <DynamicButton
                 label='Reset Filters'
@@ -261,9 +229,10 @@ const JobListing = () => {
                 icon={<RestartAlt />}
                 position='start'
                 onClick={handleResetFilters}
-                children='Reset Filters'
                 disabled={CheckAllFiltersEmpty(selectedFilters)}
-              />
+              >
+                Reset Filters
+              </DynamicButton>
             </Box>
           </div>
 
@@ -274,29 +243,29 @@ const JobListing = () => {
               icon={<i className='tabler-upload' />}
               position='start'
               onClick={() => setFileUploadDialogOpen(true)}
-              children='Upload JD'
-            />
+            >
+              Upload JD
+            </DynamicButton>
             <DynamicButton
               label='New JD'
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
               onClick={() => router.push(`/jd-management/add/jd`)}
-              children='New JD'
-            />
+            >
+              New JD
+            </DynamicButton>
+
             <Box
               sx={{
                 display: 'flex',
                 gap: 2,
                 alignItems: 'center',
-                justifyContent: 'center',
                 padding: '1px',
                 backgroundColor: '#f5f5f5',
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': {
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-                }
+                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
               }}
             >
               <Tooltip title='Grid View'>
@@ -321,17 +290,9 @@ const JobListing = () => {
               </Typography>
             )}
           </Stack>
+
           <Stack direction='row' spacing={1} ml={5}>
-            <Box
-              sx={{
-                overflow: 'hidden',
-                maxWidth: '100%',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1,
-                p: 1
-              }}
-            >
+            <Box sx={{ overflow: 'hidden', maxWidth: '100%', display: 'flex', flexWrap: 'wrap', gap: 1, p: 1 }}>
               {selectedFilters.experience.map(exp => (
                 <Chip
                   key={exp}
@@ -342,7 +303,6 @@ const JobListing = () => {
                   onDelete={() => removeSelectedFilterItem('experience', exp)}
                 />
               ))}
-
               {selectedFilters.education.map(edu => (
                 <Chip
                   key={edu}
@@ -353,7 +313,6 @@ const JobListing = () => {
                   onDelete={() => removeSelectedFilterItem('education', edu)}
                 />
               ))}
-
               {selectedFilters.jobType.map(type => (
                 <Chip
                   key={type}
@@ -364,7 +323,6 @@ const JobListing = () => {
                   onDelete={() => removeSelectedFilterItem('jobType', type)}
                 />
               ))}
-
               {selectedFilters.skills.map(skill => (
                 <Chip
                   key={skill}
@@ -375,34 +333,25 @@ const JobListing = () => {
                   onDelete={() => removeSelectedFilterItem('skills', skill)}
                 />
               ))}
-
-              {selectedFilters?.salaryRange[0] !== 0 || selectedFilters?.salaryRange[1] !== 0 ? (
+              {(selectedFilters.salaryRange[0] !== 0 || selectedFilters.salaryRange[1] !== 0) && (
                 <Chip
                   key='salary-range'
                   label={`${selectedFilters.salaryRange[0]} - ${selectedFilters.salaryRange[1]}`}
                   variant='outlined'
                   color={
-                    appliedFilters.salaryRange?.[0] !== 0 || appliedFilters.salaryRange?.[1] !== 0
-                      ? 'primary'
-                      : 'default'
+                    appliedFilters.salaryRange[0] !== 0 || appliedFilters.salaryRange[1] !== 0 ? 'primary' : 'default'
                   }
-                  onClick={() => toggleFilter('salaryRange', selectedFilters?.salaryRange)}
-                  onDelete={() => {
-                    setSelectedFilters({
-                      ...selectedFilters,
-                      salaryRange: [0, 0]
-                    })
-                  }}
+                  onClick={() => toggleFilter('salaryRange', selectedFilters.salaryRange)}
+                  onDelete={() => setSelectedFilters({ ...selectedFilters, salaryRange: [0, 0] })}
                 />
-              ) : null}
-
-              {selectedFilters?.jobRole && (
+              )}
+              {selectedFilters.jobRole && (
                 <Chip
                   key='job-role'
-                  label={selectedFilters?.jobRole}
+                  label={selectedFilters.jobRole}
                   variant='outlined'
-                  color={appliedFilters?.jobRole === selectedFilters?.jobRole ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('jobRole', selectedFilters?.jobRole)}
+                  color={appliedFilters.jobRole === selectedFilters.jobRole ? 'primary' : 'default'}
+                  onClick={() => toggleFilter('jobRole', selectedFilters.jobRole)}
                   onDelete={() => removeSelectedFilterItem('jobRole', '')}
                 />
               )}
@@ -411,47 +360,37 @@ const JobListing = () => {
         </Box>
       </Card>
 
-      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-5 ' : 'space-y-6'}`}>
+      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 gap-5' : 'space-y-6'}>
         {viewMode === 'grid' ? (
-          jobs?.map(job => (
+          paginatedJobs.map(job => (
             <Box
               onClick={() => router.push(`/jd-management/view/${job.id}`)}
               key={job.id}
-              className={`bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 border border-gray-200`}
-              sx={{
-                cursor: 'pointer',
-                minHeight: '150px'
-              }}
+              className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 border border-gray-200'
+              sx={{ cursor: 'pointer', minHeight: '150px' }}
             >
               <Box className='flex justify-between items-center p-4 border-b border-gray-200'>
                 <Typography variant='h6' fontWeight='bold' color='primary'>
                   {job.title.toUpperCase()}
                 </Typography>
-                <div className='flex space-x-2'>
-                  {/* <Tooltip title='Edit JD' placement='top'>
-                    <IconButton
-                      sx={{ ':hover': { color: 'primary.main' } }}
-                      onClick={e => {
-                        e.stopPropagation()
-                        router.push(`/jd-management/edit/${job.id}`)
-                      }}
-                    >
-                      <i className='tabler-edit' />
-                    </IconButton>
-                  </Tooltip> */}
-                  <Tooltip title='Delete JD' placement='top'>
-                    <IconButton
-                      sx={{ ':hover': { color: 'error.main' } }}
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                    >
-                      <i className='tabler-trash' />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </Box>
+                <Tooltip title='Delete JD' placement='top'>
+                  <IconButton
+                    sx={{ ':hover': { color: 'error.main' } }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      const updatedJobs = jobList.filter(j => j.id !== job.id)
 
+                      setJobList(updatedJobs)
+                      localStorage.setItem(
+                        'jdList',
+                        JSON.stringify(updatedJobs.filter(j => !jobs.some(sj => sj.id === j.id)))
+                      )
+                    }}
+                  >
+                    <i className='tabler-trash' />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Box className='p-4 grid gap-2'>
                 <Typography variant='body2' color='textSecondary'>
                   <strong>Job Role:</strong> {job.job_role}
@@ -475,7 +414,7 @@ const JobListing = () => {
             </Box>
           ))
         ) : (
-          <JobListingTableView jobs={jobs} />
+          <JobListingTableView jobs={paginatedJobs} />
         )}
       </div>
 
@@ -484,8 +423,8 @@ const JobListing = () => {
           <FormControl size='small' sx={{ minWidth: 70 }}>
             <InputLabel>Count</InputLabel>
             <Select
-              value={paginationState?.limit}
-              onChange={e => handleChangeLimit(e.target.value)}
+              value={paginationState.limit}
+              onChange={e => handleChangeLimit(Number(e.target.value))}
               label='Limit per page'
             >
               {[10, 25, 50, 100].map(option => (
@@ -495,17 +434,15 @@ const JobListing = () => {
               ))}
             </Select>
           </FormControl>
-          <div>
-            <Pagination
-              color='primary'
-              shape='rounded'
-              showFirstButton
-              showLastButton
-              count={paginationState?.display_numbers_count}
-              page={paginationState?.page}
-              onChange={handlePageChange}
-            />
-          </div>
+          <Pagination
+            color='primary'
+            shape='rounded'
+            showFirstButton
+            showLastButton
+            count={Math.ceil(filteredJobs.length / paginationState.limit)}
+            page={paginationState.page}
+            onChange={handlePageChange}
+          />
         </div>
       )}
     </div>

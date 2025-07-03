@@ -325,9 +325,9 @@ const ViewJD: React.FC<Props> = () => {
           Organizational Chart
         </Typography>
 
-        {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}> */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         {renderNode(chartData)}
-        {/* </Box> */}
+        </Box>
       </Box>
       <Grid container spacing={6}>
         {/* Left Side Content */}

@@ -16,6 +16,10 @@ import EmployeeCountPage from './DashboardComponents/EmployeeCount'
 import ShortlistedCandidatesPage from './DashboardComponents/ShortlistedCandidates'
 import EmployeeCompositionChart from './DashboardComponents/Charts/EmployeeComposition'
 import TargetVsRealityCard from './DashboardComponents/Charts/TargetVsReality'
+import RecruitmentProgressPage from './DashboardComponents/RecruitmentProgress'
+import RecentAddedJobsPage from './DashboardComponents/RecentlyAddedJobs'
+
+//import IndiaSalesMap from './DashboardComponents/Charts/MapOfIndia'
 
 const Dashboard = () => {
   return (
@@ -54,6 +58,13 @@ const Dashboard = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={4} lg={4}>
           <TotalVacancies />
+          {/* <IndiaSalesMap /> */}
+        </Grid>
+        <Grid item xs={12} sm={8} md={8} lg={8}>
+          <RecruitmentProgressPage />
+        </Grid>
+        <Grid item xs={12} sm={4} md={4} lg={4}>
+          <RecentAddedJobsPage />
         </Grid>
       </Grid>
     </Box>

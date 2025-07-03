@@ -2,8 +2,12 @@
 
 import { Card, Typography, Box, Stack } from '@mui/material'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
-import LocalMallIcon from '@mui/icons-material/LocalMall'
+
+//import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
+//import LocalMallIcon from '@mui/icons-material/LocalMall'
+
+import BagIcon from '@/icons/BagIconInChart'
+import TicketStarIcon from '@/icons/TicketStarIconChart'
 
 const data = [
   { name: 'Jan', Reality: 8, Target: 12 },
@@ -54,13 +58,13 @@ export default function TargetVsRealityCard() {
           <Box
             sx={{
               bgcolor: '#E6FBF4',
-              borderRadius: 2,
-              p: 1,
+              borderRadius: 1,
+              p: 2,
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <ShoppingBagIcon sx={{ color: '#0DBF88' }} />
+            <BagIcon />
           </Box>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='subtitle2' fontWeight={600} color='text.primary'>
@@ -70,7 +74,7 @@ export default function TargetVsRealityCard() {
               Global
             </Typography>
           </Box>
-          <Typography variant='subtitle1' fontWeight={700} color='#0DBF88'>
+          <Typography variant='subtitle1' fontWeight={600} color='#0DBF88'>
             8.823
           </Typography>
         </Stack>
@@ -79,13 +83,13 @@ export default function TargetVsRealityCard() {
           <Box
             sx={{
               bgcolor: '#FFF7E6',
-              borderRadius: 2,
-              p: 1,
+              borderRadius: 1,
+              p: 2,
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <LocalMallIcon sx={{ color: '#F5A623' }} />
+            <TicketStarIcon />
           </Box>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='subtitle2' fontWeight={600} color='text.primary'>
@@ -95,7 +99,7 @@ export default function TargetVsRealityCard() {
               Commercial
             </Typography>
           </Box>
-          <Typography variant='subtitle1' fontWeight={700} color='#F5A623'>
+          <Typography variant='subtitle1' fontWeight={600} color='#F5A623'>
             12.122
           </Typography>
         </Stack>

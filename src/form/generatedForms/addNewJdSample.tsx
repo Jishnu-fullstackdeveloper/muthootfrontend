@@ -33,23 +33,29 @@ type Props = {
 
 const steps = [
   'Organization Chart',
-  'Job Roles',
-  'Summary',
-  'Responsibilities',
-  'Challenges',
-  'Decisions',
-  'Interactions',
-  'Role Dimensions',
-  'Skills',
-  'Requirements'
+  'Roles Specification',
+  'Role Summary',
+  'Key Responsibilities',
+  'Key Challenges',
+  'Key Decisions',
+  'Key Interactions',
+  'Key Role Dimensions',
+  'Key Skills And Behavioural Attributes',
+  'Education and Experience'
 ]
 
 const validationSchema = Yup.object().shape({
-  roleTitle: Yup.string().required('Role Title is required'),
-  reportsTo: Yup.string().required('Reporting To is required'),
-  companyName: Yup.string().required('Company Name is required'),
-  functionOrDepartment: Yup.string().required('Function/Department is required'),
-  writtenBy: Yup.string().required('Written By is required'),
+  roleSpecification: Yup.object().shape({
+    roleTitle: Yup.string().required('Role Title is required'),
+    employeeInterviewed: Yup.string().required('Employee Interviewed is required'),
+    reportsTo: Yup.string().required('Reporting To is required'),
+    companyName: Yup.string().required('Company Name is required'),
+    functionOrDepartment: Yup.string().required('Function/Department is required'),
+    writtenBy: Yup.string().required('Written By is required'),
+    approvedByJobholder: Yup.string().required('Approved By (Jobholder) is required'),
+    approvedBySuperior: Yup.string().required('Approved By (Immediate Superior) is required'),
+    dateWritten: Yup.string().required('Date (Written On) is required')
+  }),
   roleSummary: Yup.string().required('Role Summary is required'),
   keyResponsibilities: Yup.array()
     .of(
@@ -61,8 +67,15 @@ const validationSchema = Yup.object().shape({
     .min(1, 'At least one responsibility must be added'),
   keyChallenges: Yup.string().required('Key Challenges is required'),
   keyDecisions: Yup.string().required('Key Decisions Taken is required'),
-  internalStakeholders: Yup.string().required('Internal Stakeholders is required'),
-  externalStakeholders: Yup.string().required('External Stakeholders is required'),
+  keyInteractions: Yup.array()
+    .of(
+      Yup.object().shape({
+        internalStakeholders: Yup.string().required('Internal Stakeholders is required'),
+        externalStakeholders: Yup.string().required('External Stakeholders is required')
+      })
+    )
+    .min(1, 'At least one interaction must be added'),
+
   skillsAndAttributesType: Yup.string().required('Skills and Attributes Type is required'),
   skillsAndAttributesDetails: Yup.array()
     .of(
@@ -132,17 +145,25 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
       formikValuesFromCache && mode === 'add'
         ? formikValuesFromCache
         : {
-            roleTitle: '',
-            reportsTo: '',
-            companyName: '',
-            functionOrDepartment: '',
-            writtenBy: '',
+            roleSpecification: [
+              {
+                roleTitle: '',
+                employeeInterviewed: '',
+                reportsTo: '',
+                companyName: '',
+                functionOrDepartment: '',
+                writtenBy: '',
+                approvedByJobholder: '',
+                approvedBySuperior: '',
+                dateWritten: ''
+              }
+            ],
             roleSummary: '',
             keyResponsibilities: [{ title: '', description: '' }],
             keyChallenges: '',
             keyDecisions: '',
-            internalStakeholders: '',
-            externalStakeholders: '',
+            keyInteractions: [{ internalStakeholders: '', externalStakeholders: '' }],
+            keyRoleDimensions: [{ portfolioSize: '', geographicalCoverage: '', teamSize: '', totalTeamSize: '' }],
             skillsAndAttributesType: 'description_only',
             skillsAndAttributesDetails: [
               {
@@ -152,12 +173,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
                 behavioural_attributes: [{ value: '' }]
               }
             ],
-            minimumQualification: '',
-            experienceDescription: '',
-            portfolioSize: '',
-            geographicalCoverage: '',
-            teamSize: '',
-            totalTeamSize: ''
+            educationAndExperience: [{ minimumQualification: '', experienceDescription: '' }]
           },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
@@ -182,7 +198,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
         handleResetForm()
         console.log('Form data saved successfully:', formDataToSave)
         console.log('Form data saved successfully:', JSON.stringify(formDataToSave))
-        router.push('/jd-management') // Redirect to JobListing page
+
+        // router.push('/jd-management') // Redirect to JobListing page
       } catch (error) {
         console.error('Error saving form data:', error)
       } finally {
@@ -225,11 +242,17 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
 
     if (
       completedSteps >= 1 &&
-      AddNewJDFormik.values.roleTitle &&
-      AddNewJDFormik.values.reportsTo &&
-      AddNewJDFormik.values.companyName &&
-      AddNewJDFormik.values.functionOrDepartment &&
-      AddNewJDFormik.values.writtenBy
+      AddNewJDFormik.values.roleSpecification.some(
+        (item: any) =>
+          item.roleTitle &&
+          item.reportsTo &&
+          item.companyName &&
+          item.functionOrDepartment &&
+          item.writtenBy &&
+          item.approvedByJobholder &&
+          item.approvedBySuperior &&
+          item.dateWritten
+      )
     ) {
       completedSteps = 2
     }
@@ -239,7 +262,10 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
       completedSteps = 4
     if (completedSteps >= 4 && AddNewJDFormik.values.keyChallenges) completedSteps = 5
     if (completedSteps >= 5 && AddNewJDFormik.values.keyDecisions) completedSteps = 6
-    if (completedSteps >= 6 && AddNewJDFormik.values.internalStakeholders && AddNewJDFormik.values.externalStakeholders)
+    if (
+      completedSteps >= 6 &&
+      AddNewJDFormik.values.keyInteractions.some((d: any) => d.internalStakeholders && d.externalStakeholders)
+    )
       completedSteps = 7
 
     if (
@@ -275,6 +301,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
       completedSteps = 10
 
     setActiveStep(completedSteps)
+    console.log('AddNewJDFormik.values', JSON.stringify(AddNewJDFormik.values))
     setJDManagementAddFormValues(AddNewJDFormik.values)
   }, [AddNewJDFormik.values, organizationChart])
 
@@ -289,17 +316,25 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
     removeJDManagementAddFormValues()
     AddNewJDFormik.resetForm({
       values: {
-        roleTitle: '',
-        reportsTo: '',
-        companyName: '',
-        functionOrDepartment: '',
-        writtenBy: '',
+        roleSpecification: [
+          {
+            roleTitle: '',
+            employeeInterviewed: '',
+            reportsTo: '',
+            companyName: '',
+            functionOrDepartment: '',
+            writtenBy: '',
+            approvedByJobholder: '',
+            approvedBySuperior: '',
+            dateWritten: ''
+          }
+        ],
         roleSummary: '',
         keyResponsibilities: [{ title: '', description: '' }],
         keyChallenges: '',
         keyDecisions: '',
-        internalStakeholders: '',
-        externalStakeholders: '',
+        keyInteractions: [{ internalStakeholders: '', externalStakeholders: '' }],
+        keyRoleDimensions: [{ portfolioSize: '', geographicalCoverage: '', teamSize: '', totalTeamSize: '' }],
         skillsAndAttributesType: 'description_only',
         skillsAndAttributesDetails: [
           {
@@ -309,12 +344,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
             behavioural_attributes: [{ value: '' }]
           }
         ],
-        minimumQualification: '',
-        experienceDescription: '',
-        portfolioSize: '',
-        geographicalCoverage: '',
-        teamSize: '',
-        totalTeamSize: ''
+        educationAndExperience: [{ minimumQualification: '', experienceDescription: '' }]
       }
     })
   }
@@ -409,89 +439,199 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
             </fieldset>
 
             {/* Role Specification */}
-            <h3>Job Roles</h3>
+            <h3>Role Specification</h3>
             <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='roleTitle' className='block text-sm font-medium text-gray-700'>
-                    Role Title *
-                  </label>
-                  <DynamicTextField
-                    id='roleTitle'
-                    name='roleTitle'
-                    type='text'
-                    value={AddNewJDFormik.values.roleTitle}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.roleTitle && Boolean(AddNewJDFormik.errors.roleTitle)}
-                    helperText={AddNewJDFormik.touched.roleTitle && AddNewJDFormik.errors.roleTitle}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='reportsTo' className='block text-sm font-medium text-gray-700'>
-                    Reporting To *
-                  </label>
-                  <DynamicSelect
-                    id='reportsTo'
-                    name='reportsTo'
-                    value={AddNewJDFormik.values.reportsTo}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.reportsTo && Boolean(AddNewJDFormik.errors.reportsTo)}
-                    helperText={AddNewJDFormik.touched.reportsTo && AddNewJDFormik.errors.reportsTo}
-                  >
-                    <MenuItem value='arun'>Arun PG</MenuItem>
-                    <MenuItem value='jeevan'>Jeevan Jose</MenuItem>
-                    <MenuItem value='vinduja'>Vinduja</MenuItem>
-                  </DynamicSelect>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
-                    Company Name *
-                  </label>
-                  <DynamicSelect
-                    id='companyName'
-                    name='companyName'
-                    value={AddNewJDFormik.values.companyName}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.companyName && Boolean(AddNewJDFormik.errors.companyName)}
-                    helperText={AddNewJDFormik.touched.companyName && AddNewJDFormik.errors.companyName}
-                  >
-                    <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
-                    <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
-                  </DynamicSelect>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='functionOrDepartment' className='block text-sm font-medium text-gray-700'>
-                    Function/Department *
-                  </label>
-                  <DynamicTextField
-                    id='functionOrDepartment'
-                    name='functionOrDepartment'
-                    type='text'
-                    value={AddNewJDFormik.values.functionOrDepartment}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.functionOrDepartment && Boolean(AddNewJDFormik.errors.functionOrDepartment)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.functionOrDepartment && AddNewJDFormik.errors.functionOrDepartment
-                    }
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='writtenBy' className='block text-sm font-medium text-gray-700'>
-                    Written By *
-                  </label>
-                  <DynamicTextField
-                    id='writtenBy'
-                    name='writtenBy'
-                    type='text'
-                    value={AddNewJDFormik.values.writtenBy}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.writtenBy && Boolean(AddNewJDFormik.errors.writtenBy)}
-                    helperText={AddNewJDFormik.touched.writtenBy && AddNewJDFormik.errors.writtenBy}
-                  />
-                </FormControl>
-              </div>
+              {AddNewJDFormik.values.roleSpecification?.map((item: any, index: number) => (
+                <>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='roleTitle' className='block text-sm font-medium text-gray-700'>
+                        Role Title *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].roleTitle`}
+                        name={`roleSpecification[${index}].roleTitle`}
+                        type='text'
+                        value={item.roleTitle}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.roleTitle &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.roleTitle)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.roleTitle &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.roleTitle
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='employeeInterviewed' className='block text-sm font-medium text-gray-700'>
+                        Employee Interviewed *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].employeeInterviewed`}
+                        name={`roleSpecification[${index}].employeeInterviewed`}
+                        type='text'
+                        value={item.employeeInterviewed}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.employeeInterviewed &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.employeeInterviewed)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.employeeInterviewed &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.employeeInterviewed
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='reportsTo' className='block text-sm font-medium text-gray-700'>
+                        Reporting To *
+                      </label>
+                      <DynamicSelect
+                        id={`roleSpecification[${index}].reportsTo`}
+                        name={`roleSpecification[${index}].reportsTo`}
+                        value={item.reportsTo}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.reportsTo &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.reportsTo)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.reportsTo &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.reportsTo
+                        }
+                      >
+                        <MenuItem value='arun'>Arun PG</MenuItem>
+                        <MenuItem value='jeevan'>Jeevan Jose</MenuItem>
+                        <MenuItem value='vinduja'>Vinduja</MenuItem>
+                      </DynamicSelect>
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
+                        Company Name *
+                      </label>
+                      <DynamicSelect
+                        id={`roleSpecification[${index}].companyName`}
+                        name={`roleSpecification[${index}].companyName`}
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.companyName}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.companyName &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.companyName)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.companyName &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.companyName
+                        }
+                      >
+                        <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
+                        <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
+                      </DynamicSelect>
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='functionOrDepartment' className='block text-sm font-medium text-gray-700'>
+                        Function/Department *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].functionOrDepartment`}
+                        name={`roleSpecification[${index}].functionOrDepartment`}
+                        type='text'
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.functionOrDepartment}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.functionOrDepartment &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.functionOrDepartment)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.functionOrDepartment &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.functionOrDepartment
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='writtenBy' className='block text-sm font-medium text-gray-700'>
+                        Written By *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].writtenBy`}
+                        name={`roleSpecification[${index}].writtenBy`}
+                        type='text'
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.writtenBy}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.writtenBy &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.writtenBy)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.writtenBy &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.writtenBy
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='approvedByJobholder' className='block text-sm font-medium text-gray-700'>
+                        Approved By (Jobholder) *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].approvedByJobholder`}
+                        name={`roleSpecification[${index}].approvedByJobholder`}
+                        type='text'
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.approvedByJobholder}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.approvedByJobholder &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.approvedByJobholder)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.approvedByJobholder &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.approvedByJobholder
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='approvedBySuperior' className='block text-sm font-medium text-gray-700'>
+                        Approved By (Immediate Superior) *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].approvedBySuperior`}
+                        name={`roleSpecification[${index}].approvedBySuperior`}
+                        type='text'
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.approvedBySuperior}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.approvedBySuperior &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.approvedBySuperior)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.approvedBySuperior &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.approvedBySuperior
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='dateWritten' className='block text-sm font-medium text-gray-700'>
+                        Date (Written On) *
+                      </label>
+                      <DynamicTextField
+                        id={`roleSpecification[${index}].dateWritten`}
+                        name={`roleSpecification[${index}].dateWritten`}
+                        type='date'
+                        value={AddNewJDFormik.values.roleSpecification?.[index]?.dateWritten}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.dateWritten &&
+                          Boolean(AddNewJDFormik.errors.roleSpecification?.[index]?.dateWritten)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.roleSpecification?.[index]?.dateWritten &&
+                          AddNewJDFormik.errors.roleSpecification?.[index]?.dateWritten
+                        }
+                      />
+                    </FormControl>
+                  </div>
+                </>
+              ))}
             </fieldset>
 
             {/* Role Summary */}
@@ -688,113 +828,154 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
             {/* Key Interactions */}
             <h3>Key Interactions</h3>
             <fieldset className='border border-gray-300 rounded p-8 mt-2 mb-6'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='internalStakeholders' className='block text-sm font-medium text-gray-700'>
-                    Internal Stakeholders *
-                  </label>
-                  <DynamicTextField
-                    id='internalStakeholders'
-                    multiline
-                    rows={4}
-                    name='internalStakeholders'
-                    value={AddNewJDFormik.values.internalStakeholders}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.internalStakeholders && Boolean(AddNewJDFormik.errors.internalStakeholders)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.internalStakeholders && AddNewJDFormik.errors.internalStakeholders
-                    }
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='externalStakeholders' className='block text-sm font-medium text-gray-700'>
-                    External Stakeholders *
-                  </label>
-                  <DynamicTextField
-                    id='externalStakeholders'
-                    multiline
-                    rows={4}
-                    name='externalStakeholders'
-                    value={AddNewJDFormik.values.externalStakeholders}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.externalStakeholders && Boolean(AddNewJDFormik.errors.externalStakeholders)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.externalStakeholders && AddNewJDFormik.errors.externalStakeholders
-                    }
-                  />
-                </FormControl>
-              </div>
+              {AddNewJDFormik.values.keyInteractions.map((item: any, index: number) => (
+                <>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='internalStakeholders' className='block text-sm font-medium text-gray-700'>
+                        Internal Stakeholders *
+                      </label>
+                      <DynamicTextField
+                        id={`keyInteractions[${index}].internalStakeholders`}
+                        multiline
+                        rows={4}
+                        name={`keyInteractions[${index}].internalStakeholders`}
+                        value={item.internalStakeholders}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyInteractions?.[index]?.internalStakeholders &&
+                          Boolean(AddNewJDFormik.errors.keyInteractions?.[index]?.internalStakeholders)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyInteractions?.[index]?.internalStakeholders &&
+                          AddNewJDFormik.errors.keyInteractions?.[index]?.internalStakeholders
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='externalStakeholders' className='block text-sm font-medium text-gray-700'>
+                        External Stakeholders *
+                      </label>
+                      <DynamicTextField
+                        id={`keyInteractions[${index}].externalStakeholders`}
+                        multiline
+                        rows={4}
+                        name={`keyInteractions[${index}].externalStakeholders`}
+                        value={item.externalStakeholders}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyInteractions?.[index]?.externalStakeholders &&
+                          Boolean(AddNewJDFormik.errors.keyInteractions?.[index]?.externalStakeholders)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyInteractions?.[index]?.externalStakeholders &&
+                          AddNewJDFormik.errors.keyInteractions?.[index]?.externalStakeholders
+                        }
+                      />
+                    </FormControl>
+                  </div>
+                </>
+              ))}
             </fieldset>
 
             {/* Key Role Dimensions */}
             <h3>Key Role Dimensions</h3>
             <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
-                    Portfolio Size *
-                  </label>
-                  <DynamicTextField
-                    id='portfolioSize'
-                    name='portfolioSize'
-                    type='text'
-                    value={AddNewJDFormik.values.portfolioSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.portfolioSize && Boolean(AddNewJDFormik.errors.portfolioSize)}
-                    helperText={AddNewJDFormik.touched.portfolioSize && AddNewJDFormik.errors.portfolioSize}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
-                    Geographical Coverage *
-                  </label>
-                  <DynamicTextField
-                    id='geographicalCoverage'
-                    name='geographicalCoverage'
-                    type='text'
-                    value={AddNewJDFormik.values.geographicalCoverage}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.geographicalCoverage && Boolean(AddNewJDFormik.errors.geographicalCoverage)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.geographicalCoverage && AddNewJDFormik.errors.geographicalCoverage
-                    }
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='teamSize' className='block text-sm font-medium text-gray-700'>
-                    Team Size *
-                  </label>
-                  <DynamicTextField
-                    id='teamSize'
-                    name='teamSize'
-                    type='text'
-                    value={AddNewJDFormik.values.teamSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.teamSize && Boolean(AddNewJDFormik.errors.teamSize)}
-                    helperText={AddNewJDFormik.touched.teamSize && AddNewJDFormik.errors.teamSize}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='totalTeamSize' className='block text-sm font-medium text-gray-700'>
-                    Total Team Size *
-                  </label>
-                  <DynamicTextField
-                    id='totalTeamSize'
-                    name='totalTeamSize'
-                    type='text'
-                    value={AddNewJDFormik.values.totalTeamSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.totalTeamSize && Boolean(AddNewJDFormik.errors.totalTeamSize)}
-                    helperText={AddNewJDFormik.touched.totalTeamSize && AddNewJDFormik.errors.totalTeamSize}
-                  />
-                </FormControl>
-              </div>
+              {AddNewJDFormik.values.keyRoleDimensions.map((item: any, index: number) => (
+                <>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
+                        Portfolio Size *
+                      </label>
+
+                      <DynamicTextField
+                        id={`keyRoleDimensions[${index}].portfolioSize`}
+                        name={`keyRoleDimensions[${index}].portfolioSize`}
+                        type='text'
+                        value={item.portfolioSize}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.portfolioSize &&
+                          Boolean(AddNewJDFormik.errors.keyRoleDimensions?.[index]?.portfolioSize)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.portfolioSize &&
+                          AddNewJDFormik.errors.keyRoleDimensions?.[index]?.portfolioSize
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
+                        Geographical Coverage *
+                      </label>
+                      <DynamicTextField
+                        id={`keyRoleDimensions[${index}].geographicalCoverage`}
+                        name={`keyRoleDimensions[${index}].geographicalCoverage`}
+                        type='text'
+                        value={item.geographicalCoverage}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.geographicalCoverage &&
+                          Boolean(AddNewJDFormik.errors.keyRoleDimensions?.[index]?.geographicalCoverage)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.geographicalCoverage &&
+                          AddNewJDFormik.errors.keyRoleDimensions?.[index]?.geographicalCoverage
+                        }
+                      />
+                    </FormControl>
+
+                    <FormControl fullWidth margin='normal'>
+                      <label
+                        htmlFor={`keyRoleDimensions[${index}].teamSize`}
+                        className='block text-sm font-medium text-gray-700'
+                      >
+                        Team Size *
+                      </label>
+                      <DynamicTextField
+                        id={`keyRoleDimensions[${index}].teamSize`}
+                        name={`keyRoleDimensions[${index}].teamSize`}
+                        type='text'
+                        value={item.teamSize}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.teamSize &&
+                          Boolean(AddNewJDFormik.errors.keyRoleDimensions?.[index]?.teamSize)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.teamSize &&
+                          AddNewJDFormik.errors.keyRoleDimensions?.[index]?.teamSize
+                        }
+                      />
+                    </FormControl>
+
+                    <FormControl fullWidth margin='normal'>
+                      <label
+                        htmlFor={`keyRoleDimensions[${index}].totalTeamSize`}
+                        className='block text-sm font-medium text-gray-700'
+                      >
+                        Total Team Size *
+                      </label>
+                      <DynamicTextField
+                        id={`keyRoleDimensions[${index}].totalTeamSize`}
+                        name={`keyRoleDimensions[${index}].totalTeamSize`}
+                        type='text'
+                        value={item.totalTeamSize}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.totalTeamSize &&
+                          Boolean(AddNewJDFormik.errors.keyRoleDimensions?.[index]?.totalTeamSize)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.keyRoleDimensions?.[index]?.totalTeamSize &&
+                          AddNewJDFormik.errors.keyRoleDimensions?.[index]?.totalTeamSize
+                        }
+                      />
+                    </FormControl>
+                  </div>
+                </>
+              ))}
             </fieldset>
 
             {/* Key Skills and Behavioural Attributes */}
@@ -1088,41 +1269,52 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
             {/* Educational and Experience Requirements */}
             <h3>Educational and Experience Requirements</h3>
             <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-              <FormControl fullWidth margin='normal'>
-                <label htmlFor='minimumQualification' className='block text-sm font-medium text-gray-700'>
-                  Minimum Qualification *
-                </label>
-                <DynamicTextField
-                  id='minimumQualification'
-                  name='minimumQualification'
-                  type='text'
-                  value={AddNewJDFormik.values.minimumQualification}
-                  onChange={AddNewJDFormik.handleChange}
-                  error={
-                    AddNewJDFormik.touched.minimumQualification && Boolean(AddNewJDFormik.errors.minimumQualification)
-                  }
-                  helperText={AddNewJDFormik.touched.minimumQualification && AddNewJDFormik.errors.minimumQualification}
-                />
-              </FormControl>
-              <FormControl fullWidth margin='normal'>
-                <label htmlFor='experienceDescription' className='block text-sm font-medium text-gray-700'>
-                  Experience Description *
-                </label>
-                <DynamicTextField
-                  id='experienceDescription'
-                  multiline
-                  rows={4}
-                  name='experienceDescription'
-                  value={AddNewJDFormik.values.experienceDescription}
-                  onChange={AddNewJDFormik.handleChange}
-                  error={
-                    AddNewJDFormik.touched.experienceDescription && Boolean(AddNewJDFormik.errors.experienceDescription)
-                  }
-                  helperText={
-                    AddNewJDFormik.touched.experienceDescription && AddNewJDFormik.errors.experienceDescription
-                  }
-                />
-              </FormControl>
+              {AddNewJDFormik.values.educationAndExperience.map((item: any, sectionIndex: number) => (
+                <>
+                  <div>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='minimumQualification' className='block text-sm font-medium text-gray-700'>
+                        Minimum Qualification *
+                      </label>
+                      <DynamicTextField
+                        id={`educationAndExperience[${sectionIndex}].minimumQualification`}
+                        name={`educationAndExperience[${sectionIndex}].minimumQualification`}
+                        type='text'
+                        value={item.minimumQualification}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.educationAndExperience?.[sectionIndex]?.minimumQualification &&
+                          Boolean(AddNewJDFormik.errors.educationAndExperience?.[sectionIndex]?.minimumQualification)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.educationAndExperience?.[sectionIndex]?.minimumQualification &&
+                          AddNewJDFormik.errors.educationAndExperience?.[sectionIndex]?.minimumQualification
+                        }
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label htmlFor='experienceDescription' className='block text-sm font-medium text-gray-700'>
+                        Experience Description *
+                      </label>
+                      <DynamicTextField
+                        id={`educationAndExperience[${sectionIndex}].experienceDescription`}
+                        name={`educationAndExperience[${sectionIndex}].experienceDescription`}
+                        type='text'
+                        value={item.experienceDescription}
+                        onChange={AddNewJDFormik.handleChange}
+                        error={
+                          AddNewJDFormik.touched.educationAndExperience?.[sectionIndex]?.experienceDescription &&
+                          Boolean(AddNewJDFormik.errors.educationAndExperience?.[sectionIndex]?.experienceDescription)
+                        }
+                        helperText={
+                          AddNewJDFormik.touched.educationAndExperience?.[sectionIndex]?.experienceDescription &&
+                          AddNewJDFormik.errors.educationAndExperience?.[sectionIndex]?.experienceDescription
+                        }
+                      />
+                    </FormControl>
+                  </div>
+                </>
+              ))}
             </fieldset>
 
             <div className='flex justify-between space-x-4'>

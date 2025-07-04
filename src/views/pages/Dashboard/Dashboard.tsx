@@ -6,7 +6,8 @@ import { Grid, Box } from '@mui/material'
 
 //import RecruitmentRequestChart from './Reports/RecruitmentRequestChart'
 //import HiringChart from './Reports/HiringCountChart'
-//import CandidatesCountChart from './Reports/CandidatesChart'
+import CandidatesCountChart from './Reports/CandidatesChart'
+
 //import RecentlyHiredChart from './Reports/RecentlyHiredChart'
 import TotalVacancies from './Reports/TotalVacanciesChart'
 import ViewDetailsPage from './DashboardComponents/ViewDetails'
@@ -18,6 +19,8 @@ import EmployeeCompositionChart from './DashboardComponents/Charts/EmployeeCompo
 import TargetVsRealityCard from './DashboardComponents/Charts/TargetVsReality'
 import RecruitmentProgressPage from './DashboardComponents/RecruitmentProgress'
 import RecentAddedJobsPage from './DashboardComponents/RecentlyAddedJobs'
+
+import EmployeeTypeCard from './DashboardComponents/EmployeeTypeCount'
 
 //import IndiaSalesMap from './DashboardComponents/Charts/MapOfIndia'
 
@@ -47,6 +50,15 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={4} lg={4}>
           {/* <ShortlistedCandidateChart /> */}
           <ShortlistedCandidatesPage />
+        </Grid>
+        <Grid item xs={12} sm={8} md={8} lg={8}>
+          <CandidatesCountChart />
+          {/* <EmployeeCompositionChart /> */}
+        </Grid>
+        <Grid item xs={12} sm={4} md={4} lg={4}>
+          {/* <RecentlyHiredChart /> */}
+          {/* <TargetVsRealityCard /> */}
+          <EmployeeTypeCard />
         </Grid>
         <Grid item xs={12} sm={6} md={4} lg={4}>
           {/* <CandidatesCountChart /> */}

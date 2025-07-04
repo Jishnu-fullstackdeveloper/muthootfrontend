@@ -10,6 +10,7 @@ const rows = [
     status: 'Tech Interview',
     avatar: '/avatar1.png',
     roleColor: '#d4e5fc',
+    roleTextColor: '#0096DA',
     statusDot: '#00AEEF'
   },
   {
@@ -18,6 +19,7 @@ const rows = [
     status: 'Machine Test',
     avatar: '/avatar2.png',
     roleColor: '#FFECCC',
+    roleTextColor: '#ED960B',
     statusDot: '#FF9F00'
   },
   {
@@ -26,6 +28,7 @@ const rows = [
     status: 'Mock Test',
     avatar: '/avatar3.png',
     roleColor: '#D3F7F3',
+    roleTextColor: '#00B798',
     statusDot: '#00C48C'
   }
 ]
@@ -36,7 +39,8 @@ const RecruitmentProgressPage = () => {
       sx={{
         borderRadius: 2,
         bgcolor: '#F5F7FF',
-        p: 3
+        p: 3,
+        height: '359px'
       }}
     >
       <Stack direction='row' justifyContent='space-between' alignItems='center' mb={2}>
@@ -56,7 +60,7 @@ const RecruitmentProgressPage = () => {
         </Button>
       </Stack>
 
-      <Stack spacing={2} mt={5}>
+      <Stack spacing={2} mt={5} gap={'7px'}>
         <Stack direction='row' spacing={3} px={2}>
           <Typography sx={{ width: '30%', fontWeight: 600 }}>Full Name</Typography>
           <Typography sx={{ width: '30%', fontWeight: 600 }}>Designation</Typography>
@@ -70,9 +74,10 @@ const RecruitmentProgressPage = () => {
               display: 'flex',
               alignItems: 'center',
               bgcolor: '#fff',
-              borderRadius: 4,
+              borderRadius: 2,
               py: 1.5,
-              px: 2
+              px: 2,
+              height: '70px'
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', width: '30%' }}>
@@ -86,7 +91,9 @@ const RecruitmentProgressPage = () => {
                 sx={{
                   bgcolor: item.roleColor,
                   fontWeight: 500,
-                  fontSize: '0.75rem'
+                  fontSize: '10px',
+                  color: item.roleTextColor,
+                  alignItems: 'center'
                 }}
               />
             </Box>

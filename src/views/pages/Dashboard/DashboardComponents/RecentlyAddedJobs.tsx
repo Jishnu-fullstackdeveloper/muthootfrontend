@@ -1,38 +1,44 @@
 'use client'
 
 import { Box, Card, Typography, Stack, Avatar } from '@mui/material'
-import WorkIcon from '@mui/icons-material/Work'
-import StoreIcon from '@mui/icons-material/Store'
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
-import CampaignIcon from '@mui/icons-material/Campaign'
+
+//import WorkIcon from '@mui/icons-material/Work'
+//import StoreIcon from '@mui/icons-material/Store'
+//import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
+//import CampaignIcon from '@mui/icons-material/Campaign'
+
+import ProjectManagerIcon from '@/icons/ProjectManagerIcon'
+import SalesManagerIcon from '@/icons/SalesManagerIcon'
+import SeniorAccountantIcon from '@/icons/SeniorAccountantIcon'
+import MarketManagerIcon from '@/icons/MarketManagerIcon'
 
 const jobs = [
   {
     title: 'Project Manager',
     location: 'Kannur, Kerala',
     time: '8 Hours ago',
-    icon: <WorkIcon />,
+    icon: <ProjectManagerIcon />,
     bgColor: '#E6FBF4'
   },
   {
     title: 'Sales Manager',
     location: 'Trivandrum, Kerala',
     time: '1 Day ago',
-    icon: <StoreIcon />,
+    icon: <SalesManagerIcon />,
     bgColor: '#FFF7E6'
   },
   {
     title: 'Senior Accountant',
     location: 'Ernakulam, Kerala',
     time: '1 Day ago',
-    icon: <AccountBalanceIcon />,
+    icon: <SeniorAccountantIcon />,
     bgColor: '#E6F0FF'
   },
   {
     title: 'Marketing Manager',
     location: 'Salem, Tamilnadu',
     time: '2 Days ago',
-    icon: <CampaignIcon />,
+    icon: <MarketManagerIcon />,
     bgColor: '#FFE6E6'
   }
 ]
@@ -43,12 +49,13 @@ export default function RecentAddedJobsPage() {
       sx={{
         borderRadius: 2,
         bgcolor: '#FFFFFF',
-        p: 3,
-        width: '100%',
-        maxWidth: 400
+        p: 4.3
+
+        //width: '100%',
+        //maxWidth: 400
       }}
     >
-      <Typography variant='h6' fontWeight={600} mb={2}>
+      <Typography variant='h6' fontWeight={600} mb={4}>
         Recent Added Jobs
       </Typography>
 
@@ -61,7 +68,7 @@ export default function RecentAddedJobsPage() {
               alignItems: 'center',
               bgcolor: '#F9F9F9',
               borderRadius: 2,
-              p: 2,
+              p: 3.2,
               boxShadow: 'none'
             }}
           >
@@ -72,13 +79,14 @@ export default function RecentAddedJobsPage() {
                 color: 'inherit',
                 width: 40,
                 height: 40,
-                mr: 2
+                mr: 2,
+                borderRadius: 4
               }}
             >
               {job.icon}
             </Avatar>
             <Box>
-              <Typography fontWeight={600} variant='subtitle2'>
+              <Typography fontWeight={600} variant='subtitle2' sx={{ color: 'black' }}>
                 {job.title}
               </Typography>
               <Typography variant='caption' color='text.secondary'>

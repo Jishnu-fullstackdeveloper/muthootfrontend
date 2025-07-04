@@ -13,7 +13,7 @@ import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import { ArrowBack } from '@mui/icons-material'
-import type { NodeProps } from 'reactflow'
+import type NodeProps  from 'reactflow'
 import ReactFlow, { Background, Handle, Position, ReactFlowProvider } from 'reactflow'
 
 import {
@@ -97,12 +97,24 @@ const validationSchema = Yup.object().shape({
 
       return skillsAndAttributesType !== 'description_only' ? Array.isArray(value) && value.length > 0 : true
     }),
-  minimumQualification: Yup.string().required('Minimum Qualification is required'),
-  experienceDescription: Yup.string().required('Experience Description is required'),
-  portfolioSize: Yup.string().required('Portfolio Size is required'),
-  geographicalCoverage: Yup.string().required('Geographical Coverage is required'),
-  teamSize: Yup.number().typeError('Team Size must be a number').required('Team Size is required'),
-  totalTeamSize: Yup.number().typeError('Total Team Size must be a number').required('Total Team Size is required')
+
+    keyRoleDimensions: Yup.array().of(
+      Yup.object().shape({
+        portfolioSize: Yup.string().required('Portfolio Size is required'),
+        geographicalCoverage: Yup.string().required('Geographical Coverage is required'),
+        teamSize: Yup.number().typeError('Team Size must be a number').required('Team Size is required'),
+        totalTeamSize: Yup.number().typeError('Total Team Size must be a number').required('Total Team Size is required')
+      })
+    ),
+
+    educationAndExperience: Yup.array().of(
+      Yup.object().shape({
+        minimumQualification: Yup.string().required('Minimum Qualification is required'),
+        experienceDescription: Yup.string().required('Experience Description is required'),
+       
+      })
+    ),
+
 })
 
 function CustomNode({ data, selected }: NodeProps) {
@@ -270,10 +282,12 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
 
     if (
       completedSteps >= 7 &&
-      AddNewJDFormik.values.portfolioSize &&
-      AddNewJDFormik.values.geographicalCoverage &&
-      AddNewJDFormik.values.teamSize &&
-      AddNewJDFormik.values.totalTeamSize
+      AddNewJDFormik.values.keyRoleDimensions.some((d: any) =>
+        d.portfolioSize &&
+        d.geographicalCoverage &&
+        d.teamSize &&
+        d.totalTeamSize
+      )
     ) {
       completedSteps = 8
     }
@@ -295,10 +309,16 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
 
     if (
       completedSteps >= 9 &&
-      AddNewJDFormik.values.minimumQualification &&
-      AddNewJDFormik.values.experienceDescription
-    )
+      AddNewJDFormik.values.educationAndExperience === 'in_detail' &&
+      Array.isArray(AddNewJDFormik.values.educationAndExperienceDetails) &&
+      AddNewJDFormik.values.educationAndExperienceDetails.every(
+        (item: any) =>
+          item.minimumQualification &&
+          item.experienceDescription
+      )
+    ) {
       completedSteps = 10
+    }
 
     setActiveStep(completedSteps)
     console.log('AddNewJDFormik.values', JSON.stringify(AddNewJDFormik.values))
@@ -985,29 +1005,12 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
                 <label htmlFor='skillsAndAttributesType' className='block text-sm font-medium text-gray-700'>
                   Skills and Attributes Type *
                 </label>
-                <DynamicSelect
-                  id='skillsAndAttributesType'
-                  name='skillsAndAttributesType'
-                  value={AddNewJDFormik.values.skillsAndAttributesType}
-                  onChange={AddNewJDFormik.handleChange}
-                  error={
-                    AddNewJDFormik.touched.skillsAndAttributesType &&
-                    Boolean(AddNewJDFormik.errors.skillsAndAttributesType)
-                  }
-                  helperText={
-                    AddNewJDFormik.touched.skillsAndAttributesType && AddNewJDFormik.errors.skillsAndAttributesType
-                  }
-                >
-                  <MenuItem value='description_only'>Description Only</MenuItem>
-                  <MenuItem value='in_detail'>In Detail</MenuItem>
-                </DynamicSelect>
+               
               </FormControl>
             </Box>
 
             <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white mt-2'>
-              {AddNewJDFormik.values.skillsAndAttributesType === 'description_only' ? (
-                <Typography>No additional details required for Description Only.</Typography>
-              ) : (
+              
                 <div className='space-y-6'>
                   {AddNewJDFormik.values.skillsAndAttributesDetails?.map((item: any, sectionIndex: number) => (
                     <div key={sectionIndex} className='p-4 border border-gray-200 rounded-lg shadow-sm'>
@@ -1263,7 +1266,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
                     </DynamicButton>
                   </div>
                 </div>
-              )}
+              
             </fieldset>
 
             {/* Educational and Experience Requirements */}

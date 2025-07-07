@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic'
 import { usePathname, useSearchParams } from 'next/navigation'
 
+import PositionMatrixTable from './PositionMatrixTable'
+
 // Dynamically import components to optimize loading
 const NewBudgetRequest = dynamic(() => import('./NewBudgetRequest'), { ssr: false })
 const ViewBudget = dynamic(() => import('./ViewBudget'), { ssr: false })
@@ -19,7 +21,10 @@ const BudgetDetails = () => {
   return (
     <>
       {mode === 'add' && <NewBudgetRequest mode={mode} id={id} />}
-      {mode === 'view' && <ViewBudget mode={mode} id={id} jobTitle={jobTitle} />}
+      {mode === 'view' && <ViewBudget mode={mode} id={id} jobTitle={jobTitle} /> && (
+        <PositionMatrixTable designation={id} />
+      )}
+      {/* {mode === 'view' && <PositionMatrixTable id={id} />} */}
       {/* {mode === 'department' && <ViewBudget mode={mode} id={id} jobTitle={jobTitle} />} */}
     </>
   )

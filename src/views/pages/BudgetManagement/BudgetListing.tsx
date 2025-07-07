@@ -403,7 +403,7 @@ const BudgetListing = () => {
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push(`/hiring-management/budget-management/add/new`)}
+              onClick={() => router.push(`/hiring-management/budget-management/budget-request/add/new`)}
               children='New Request'
             />
             <Box
@@ -462,7 +462,9 @@ const BudgetListing = () => {
                   <Grid item xs={12} sm={6} lg={4} key={index}>
                     <Card
                       onClick={() =>
-                        router.push(`/hiring-management/budget-management/view/${budget.jobTitle}?id=${budget.id}`)
+                        router.push(
+                          `/hiring-management/budget-management/budget-request/view/${budget.jobTitle}?id=${budget.id}`
+                        )
                       }
                       sx={{
                         bgcolor: 'background.paper',

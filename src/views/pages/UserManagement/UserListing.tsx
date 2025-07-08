@@ -63,7 +63,7 @@ interface Role {
   pagination?: any
 }
 
-interface DesignationRole {
+interface DesignationRoles {
   id: string
   name: string
   description: string
@@ -81,7 +81,7 @@ interface User {
   employeeCode?: string
   status?: string
   source?: string
-  designationRole?: DesignationRole // Allow both string[], Role[], or undefined for compatibility
+  designationRoles?: DesignationRoles // Allow both string[], Role[], or undefined for compatibility
   GroupRoles?: string
   designation?: string
   roles?: (Role | string)[]
@@ -136,7 +136,7 @@ const UserListing = () => {
 
   const { userManagementData, isUserManagementLoading } = useAppSelector(
     state => state.UserManagementReducer
-  ) as unknown as UserManagementResponse
+) as unknown as UserManagementResponse
 
   const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
 

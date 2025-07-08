@@ -2,46 +2,34 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 
-import { Box, Card, CardContent, Grid, Chip, IconButton, Typography, Button, CircularProgress } from '@mui/material'
-import { grey } from '@mui/material/colors'
+import { useRouter } from 'next/navigation'
 
-// interface Role {
-//   id: string
-//   name: string
-//   permissions: { id: string; name: string; description: string }[]
-//   data?: any
-// }
+// import { useDispatch } from 'react-redux'
+import { Box, Card, Grid, Chip, IconButton, Typography, CircularProgress, Divider, Button } from '@mui/material'
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 
-// interface DesignationRole {
-//   id: string
-//   name: string
-//   description: string
-//   groupRoles: Role[]
-//   permissions: string[]
-// }
+// import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
+import { ROUTES } from '@/utils/routes'
 
-// interface User {
-//   userId: string
-//   firstName?: string
-//   lastName?: string
-//   middleName?: string
-//   email?: string
-//   employeeCode?: string
-//   status?: string
-//   source?: string
-//   designationRole?: DesignationRole
-//   designation?: string
-//   data?: any
-// }
+interface User {
+  userId: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  email?: string
+  source?: string
+  employeeCode?: string
+  status?: string
+  designation?: string
+  designationRole?: { name: string }
+  groupRoles?: { name: string; description: string }[]
+}
 
 interface UserGridProps {
-  data?: any
-
-  // data?: (User & { designationRole?: string[] | Role[] })[]
+  data: User[]
   loading: boolean
   onEdit: (empCode: string | undefined, id: string) => void
   page: number
-  totalPages: number
   totalCount: number
   onLoadMore: (newPage: number) => void
 }
@@ -50,6 +38,11 @@ const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserG
   const [expandedRoles, setExpandedRoles] = useState<{ [key: string]: boolean }>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  const router = useRouter()
+
+
+  // const dispatch = useDispatch()
 
   const toggleShowRoles = (userId: string) => {
     setExpandedRoles(prev => ({
@@ -100,96 +93,234 @@ const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserG
     return name.replace(new RegExp(`^${prefix}`), '').trim()
   }
 
+  // const handleViewDetails = async (userId: string) => {
+  //   try {
+  //     await dispatch(fetchUserById(userId)).unwrap()
+
+  //     // router.push(`/user-details/${userId}`)
+
+  //     router.push(ROUTES.USER_MANAGEMENT.USER_VIEW(id))
+  //   } catch (error) {
+  //     console.error('Failed to fetch user:', error)
+  //   }
+  // }
+
   return (
     <Box>
       <Grid container spacing={3}>
         {data.map((user, index) => (
-          <Grid item xs={12} sm={6} md={4} key={user.userId || index}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant='h6'>
-                    {user.firstName || 'N/A'} {user.middleName} {user.lastName}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Chip
-                      label={user.source?.toUpperCase() || 'N/A'}
-                      size='small'
-                      sx={{ backgroundColor: grey[300], color: 'black', fontWeight: 'bold', fontSize: '10px' }}
-                    />
-                    <IconButton onClick={() => onEdit(user.employeeCode, user.userId)}>
-                      <i className='tabler-edit' style={{ fontSize: '23px' }} />
-                    </IconButton>
+          <Grid item xs={12} sm={6} md={6} key={user.userId || index}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: '14px', padding: 5 }}>
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <PersonOutlineOutlinedIcon />
+                  <Box sx={{ marginLeft: 2, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant='h6'>
+                      {user.firstName || 'N/A'} {user.middleName || ''} {user.lastName || ''}
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      {user.email || 'N/A'}
+                    </Typography>
                   </Box>
                 </Box>
-                <Grid container spacing={1}>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Status:{' '}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    label={user.source?.toUpperCase() || 'N/A'}
+                    size='small'
+                    sx={{
+                      backgroundColor: '#F2F3FF',
+                      color: 'black',
+                      fontWeight: 'bold',
+                      fontSize: '10px',
+                      border: '1px solid #EEEEEE',
+                      borderRadius: '6px',
+                      padding: 3
+                    }}
+                  />
+                  <IconButton onClick={() => onEdit(user.employeeCode, user.userId)}>
+                    <i className='tabler-edit' style={{ fontSize: '23px' }} />
+                  </IconButton>
+                </Box>
+              </Box>
+              <Divider />
+              <Grid container sx={{ paddingLeft: '10px', paddingTop: '16px' }}>
+                <Grid item xs={12}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
                       <Typography
-                        component='span'
-                        sx={{
-                          color: user.status?.toLowerCase() === 'active' ? 'success.main' : 'error.main',
-                          fontWeight: 'bold'
-                        }}
+                        color='text.secondary'
+                        sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
                       >
-                        {user.status || 'N/A'}
+                        Status
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              background:
+                                user.status?.toLowerCase() === 'active'
+                                  ? 'var(--Green, #00B798)'
+                                  : 'var(--Red, #FF0000)',
+                              opacity: 1,
+                              transform: 'rotate(0deg)'
+                            }}
+                          />
+                          <Typography
+                            component='span'
+                            sx={{
+                              color: user.status?.toLowerCase() === 'active' ? 'success.main' : 'error.main',
+                              fontWeight: 'bold',
+                              fontSize: '14px'
+                            }}
+                          >
+                            {user.status || 'N/A'}
+                          </Typography>
+                        </Box>
                       </Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Employee Code: <Typography component='span'>{user.employeeCode || 'N/A'}</Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Email: <Typography component='span'>{user.email || 'N/A'}</Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Designation:{' '}
-                      <Typography component='span'>
-                        {user.designation ? toTitleCase(user.designation) : 'N/A'}
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography
+                        color='text.secondary'
+                        sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
+                      >
+                        Employee Code
+                        <Typography component='span' sx={{ fontWeight: 'bold', fontSize: '14px' }}>
+                          {user.employeeCode || 'N/A'}
+                        </Typography>
                       </Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Default Role:{' '}
-                      <Typography component='span'>
-                        {user.designationRole?.name ? toTitleCase(cleanName(user.designationRole.name, 'des_')) : 'N/A'}
-                      </Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 'bold' }}>
-                      Group Roles:{' '}
-                      {user.designationRole?.groupRoles && user.designationRole.groupRoles.length > 0 ? (
-                        <>
-                          <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                            {user.designationRole.groupRoles
-                              .slice(0, expandedRoles[user.userId] ? undefined : 2)
-                              .map((role, index) => (
-                                <li key={index}>
-                                  <Typography variant='body2'>{cleanName(role.name, 'grp_')}</Typography>
-                                </li>
-                              ))}
-                          </ul>
-                          {user.designationRole.groupRoles.length > 2 && (
-                            <Button variant='text' size='small' onClick={() => toggleShowRoles(user.userId)}>
-                              {expandedRoles[user.userId] ? 'Show Less' : 'Show More'}
-                            </Button>
-                          )}
-                        </>
-                      ) : (
-                        <Typography component='span'>No Role</Typography>
-                      )}
-                    </Typography>
+                    </Grid>
                   </Grid>
                 </Grid>
-              </CardContent>
+                <Grid item xs={12} sx={{ paddingTop: '16px' }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography
+                        color='text.secondary'
+                        sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
+                      >
+                        Designation
+                        <Typography component='span' sx={{ fontWeight: 'bold', fontSize: '14px' }}>
+                          {user.designation ? toTitleCase(user.designation) : 'N/A'}
+                        </Typography>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography
+                        color='text.secondary'
+                        sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
+                      >
+                        Designation Role
+                        <Typography component='span' sx={{ fontWeight: 'bold', fontSize: '14px' }}>
+                          {user.designationRole?.name
+                            ? toTitleCase(cleanName(user.designationRole.name, 'des_'))
+                            : 'N/A'}
+                        </Typography>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sx={{ paddingTop: '16px' }}>
+                  <Grid container spacing={2} alignItems='flex-end'>
+                    <Grid item xs={12} sm={8}>
+                      <Typography
+                        color='text.secondary'
+                        sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
+                      >
+                        Group Roles
+                        <Box sx={{ mt: 1, display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+                          {user.groupRoles?.length > 0 ? (
+                            <>
+                              {expandedRoles[user.userId]
+                                ? user.groupRoles.map((role: { name: string; description: string }, idx: number) => (
+                                    <Box
+                                      key={idx}
+                                      sx={{
+                                        background: '#377DFF33',
+                                        color: '#0096DA',
+                                        px: 1.5,
+                                        py: 0.5,
+                                        borderRadius: '4px',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      <Typography variant='body2' sx={{ color: '#0096DA', fontSize: '14px' }}>
+                                        {role.name}
+                                      </Typography>
+                                    </Box>
+                                  ))
+                                : user.groupRoles
+                                    .slice(0, 2)
+                                    .map((role: { name: string; description: string }, idx: number) => (
+                                      <Box
+                                        key={idx}
+                                        sx={{
+                                          background: '#377DFF33',
+                                          color: '#0096DA',
+                                          px: 1.5,
+                                          py: 0.5,
+                                          borderRadius: '4px',
+                                          fontSize: '12px'
+                                        }}
+                                      >
+                                        <Typography variant='body2' sx={{ color: '#0096DA', fontSize: '14px' }}>
+                                          {role.name}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                              {user.groupRoles.length > 2 && !expandedRoles[user.userId] && (
+                                <Box
+                                  sx={{
+                                    background: '#377DFF33',
+                                    color: '#0096DA',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: '4px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => toggleShowRoles(user.userId)}
+                                >
+                                  <Typography variant='body2' sx={{ color: '#0096DA' }}>
+                                    +{user.groupRoles.length - 2} more
+                                  </Typography>
+                                </Box>
+                              )}
+                            </>
+                          ) : (
+                            <Typography variant='body2'>N/A</Typography>
+                          )}
+                        </Box>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        variant='contained'
+                        size='small'
+                        onClick={() => router.push(ROUTES.USER_MANAGEMENT.USER_VIEW(user.userId))}
+                        sx={{
+                          width: 130,
+                          height: 36,
+                          borderRadius: '8px',
+                          border: '1px solid #0096DA',
+                          backgroundColor: '#FFFFFF',
+                          color: '#0096DA',
+                          textTransform: 'none',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            backgroundColor: '#D0E4F7',
+                            borderColor: '#007BBD'
+                          }
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
             </Card>
           </Grid>
         ))}

@@ -3,6 +3,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { API_ENDPOINTS } from '../ApiUrls/userManagement'
 
+
+
 export const fetchUserManagement = createAsyncThunk(
   'userManagement/fetchUserManagement',
   async (params: any, { rejectWithValue }) => {
@@ -21,7 +23,7 @@ export const fetchUserById = createAsyncThunk(
   'userManagement/fetchUserById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`${API_ENDPOINTS.getUserByIdUrl}/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.getUserByIdUrl(id))
 
       return response.data
     } catch (error: any) {
@@ -123,7 +125,7 @@ export const UserManagementSlice = createSlice({
     addUserFailure: false,
     addUserFailureMessage: '',
 
-    selectedUser: null, // To store user data for editing
+    selectedUserData: null,
     isUserLoading: false,
     userSuccess: false,
     userFailure: false,
@@ -164,25 +166,26 @@ export const UserManagementSlice = createSlice({
     })
 
     // Fetch User by ID
-    builder.addCase(fetchUserById.pending, state => {
-      state.isUserLoading = true
-      state.userSuccess = false
-      state.userFailure = false
-      state.userFailureMessage = ''
-    })
-    builder.addCase(fetchUserById.fulfilled, (state, action) => {
-      state.selectedUser = action?.payload?.data
-      state.isUserLoading = false
-      state.userSuccess = true
-      state.userFailure = false
-    })
-    builder.addCase(fetchUserById.rejected, (state, action: any) => {
-      state.isUserLoading = false
-      state.selectedUser = null
-      state.userSuccess = false
-      state.userFailure = true
-      state.userFailureMessage = action?.payload?.message || 'Failed to fetch user'
-    })
+    builder
+      .addCase(fetchUserById.pending, state => {
+        state.isUserLoading = true
+        state.userSuccess = false
+        state.userFailure = false
+        state.userFailureMessage = ''
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.selectedUserData = action.payload?.data || null
+        state.isUserLoading = false
+        state.userSuccess = true
+        state.userFailure = false
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.isUserLoading = false
+        state.selectedUserData = null
+        state.userSuccess = false
+        state.userFailure = true
+        state.userFailureMessage = action.payload?.message || 'Failed to fetch user'
+      })
 
     // Fetch User Roles
     builder.addCase(fetchUserRole.pending, state => {

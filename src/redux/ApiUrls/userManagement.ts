@@ -4,5 +4,5 @@ export const API_ENDPOINTS = {
   getEmployeesUrl: '/employee',
   getRolesUrl: '/roles',
   addUserUrl: '/users',
-  updateUserRolesUrl: '/users/update-roles'
+  updateUserPermissionUrl: '/users/update-permissions'
 }

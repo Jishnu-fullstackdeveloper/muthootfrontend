@@ -3,7 +3,7 @@ export const ROUTES = {
   RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
-    USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,
+    USER_EDIT: (id : string) => `/user-management/user/edit/${id}`,
     USER_VIEW: (id: string) => `/user-management/user/view/${id}`,
     ROLE: '/user-management/role',
     ROLE_VIEW: (query: string, name: string) => `/user-management/role/view//${name.replace(/\s+/g, '-')}?${query}`,

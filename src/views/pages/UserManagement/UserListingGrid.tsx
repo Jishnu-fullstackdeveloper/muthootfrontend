@@ -34,7 +34,7 @@ interface UserGridProps {
   onLoadMore: (newPage: number) => void
 }
 
-const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserGridProps) => {
+const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProps) => {
   const [expandedRoles, setExpandedRoles] = useState<{ [key: string]: boolean }>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
@@ -139,7 +139,7 @@ const UserGrid = ({ data, loading, onEdit, page, totalCount, onLoadMore }: UserG
                       padding: 3
                     }}
                   />
-                  <IconButton onClick={() => onEdit(user.employeeCode, user.userId)}>
+                  <IconButton  onClick={() => router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(user.userId))}>
                     <i className='tabler-edit' style={{ fontSize: '23px' }} />
                   </IconButton>
                 </Box>

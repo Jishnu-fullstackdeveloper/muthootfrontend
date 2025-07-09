@@ -76,27 +76,27 @@ export const addNewUser = createAsyncThunk<any, any>(
   }
 )
 
-export const updateUser = createAsyncThunk<
+export const updateUserPermission = createAsyncThunk<
   any,
-  { id: string; params: { email: string; newDesignationRole?: string; newRoleNames?: string[] } }
->('userManagement/updateUser', async ({ params }, { rejectWithValue }) => {
+  { id: string; params: { email: string; newPermissions?: string[]; newDesignationRole?: string; newRoleNames?: string[] } }
+>('userManagement/updateUserPermission', async ({ params }, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserRolesUrl, {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserPermissionUrl, {
       email: params.email,
-      ...(params.newDesignationRole !== undefined ? { newDesignationRole: params.newDesignationRole } : {}),
-      ...(params.newRoleNames !== undefined ? { newRoleNames: params.newRoleNames } : {})
-    })
+      ...(params.newPermissions !== undefined ? { newPermissions: params.newPermissions } : {}),
+     
+    });
 
-    return response.data
+    return response.data;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || 'Failed to update role'
+    const errorMessage = error.response?.data?.message || 'Failed to update role';
 
     return rejectWithValue({
       message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
       statusCode: error.response?.data?.statusCode || 500
-    })
+    });
   }
-})
+});
 
 export const UserManagementSlice = createSlice({
   name: 'UserManagement',
@@ -239,18 +239,18 @@ export const UserManagementSlice = createSlice({
     })
 
     // Update User
-    builder.addCase(updateUser.pending, state => {
+    builder.addCase(updateUserPermission.pending, state => {
       state.isAddUserLoading = true
       state.addUserSuccess = false
       state.addUserFailure = false
       state.addUserFailureMessage = ''
     })
-    builder.addCase(updateUser.fulfilled, state => {
+    builder.addCase(updateUserPermission.fulfilled, state => {
       state.isAddUserLoading = false
       state.addUserSuccess = true
       state.addUserFailure = false
     })
-    builder.addCase(updateUser.rejected, (state, action: any) => {
+    builder.addCase(updateUserPermission.rejected, (state, action: any) => {
       state.isAddUserLoading = false
       state.addUserSuccess = false
       state.addUserFailure = true

@@ -34,7 +34,8 @@ import {
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
 import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
-import { ROUTES } from '@/utils/routes'
+
+// import { ROUTES } from '@/utils/routes'
 
 // Lazy load UserTable and UserGrid
 const UserTable = dynamic(() => import('./UserListingTable'), {
@@ -292,12 +293,16 @@ const UserListing = () => {
   //   }
   // })
 
-  const handleEdit = (empCode: string | undefined, id: string) => {
-    if (!empCode) return
-    const query = new URLSearchParams({ id: id }).toString()
+  // const handleEdit = (empCode: string | undefined, id: string) => {
+  //   if (!empCode) return
+  //   const query = new URLSearchParams({ id: id }).toString()
 
-    // router.push(`/user-management/edit/${empCode}?${query}`)
-    router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(empCode, query))
+  //   // router.push(`/user-management/edit/${empCode}?${query}`)
+  //   router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(empCode, query))
+  // }
+
+  const handleEdit = (userId: string) => {
+    router.push(`/user-management/edit?id=${userId}`)
   }
 
   const handleView = (role: any) => {

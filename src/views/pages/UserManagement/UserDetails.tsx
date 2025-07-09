@@ -74,6 +74,10 @@ const UserDetails = () => {
     new Map(user.inheritedPermissions?.map(p => [p.name, p]) || []).values()
   )
 
+  // const handleEdit = (userId: string) => {
+  //   router.push(`/user-management/edit?id=${userId}`)
+  // }
+
   return (
     <Box>
       <Grid

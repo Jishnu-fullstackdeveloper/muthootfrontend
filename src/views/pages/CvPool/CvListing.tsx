@@ -42,6 +42,8 @@ import Drawer from '@mui/material/Drawer'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
 import MatchingProfileIcon from '@/icons/CvPool/MatchingProfileIcon'
+import UploadIcon from '@/icons/CvPool/UploadIcon'
+import CloseIcon from '@/icons/CvPool/CloseIcon'
 
 interface Location {
   territory: string
@@ -590,7 +592,7 @@ const CvListing = () => {
             Upload CV
           </Typography>
           <IconButton onClick={() => setUploadDrawerOpen(false)}>
-            <i className='tabler-x' />
+            <CloseIcon />
           </IconButton>
         </Box>
 
@@ -609,7 +611,7 @@ const CvListing = () => {
               component='label'
               sx={{
                 width: '100%',
-                border: '1px dashed',
+                border: '2px dashed',
                 borderColor: 'divider',
                 borderRadius: 1,
                 p: 4,
@@ -628,9 +630,19 @@ const CvListing = () => {
                 onChange={e => setResumeFile(e.target.files?.[0] || null)}
               />
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <CloudUploadIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                {/* <CloudUploadIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} /> */}
+                <UploadIcon />
                 <Typography variant='body2' sx={{ mb: 1 }}>
-                  {resumeFile ? resumeFile.name : 'Click to Upload or drag and Drop'}
+                  {resumeFile ? (
+                    resumeFile.name
+                  ) : (
+                    <>
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.main' }}>
+                        Click to Upload{' '}
+                      </Typography>
+                      or drag and Drop
+                    </>
+                  )}
                 </Typography>
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                   PDF, DOC, DOCX (max. 5MB)
@@ -812,7 +824,7 @@ const CvListing = () => {
                             size='small'
                             sx={{
                               mt: 1,
-                              fontWeight: 700,
+                              fontWeight: 600,
                               borderRadius: 1,
                               px: 1.5,
                               py: 0.5,

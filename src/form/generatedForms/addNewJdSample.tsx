@@ -13,7 +13,7 @@ import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import { ArrowBack } from '@mui/icons-material'
-import type NodeProps  from 'reactflow'
+import type NodeProps from 'reactflow'
 import ReactFlow, { Background, Handle, Position, ReactFlowProvider } from 'reactflow'
 
 import {
@@ -98,23 +98,21 @@ const validationSchema = Yup.object().shape({
       return skillsAndAttributesType !== 'description_only' ? Array.isArray(value) && value.length > 0 : true
     }),
 
-    keyRoleDimensions: Yup.array().of(
-      Yup.object().shape({
-        portfolioSize: Yup.string().required('Portfolio Size is required'),
-        geographicalCoverage: Yup.string().required('Geographical Coverage is required'),
-        teamSize: Yup.number().typeError('Team Size must be a number').required('Team Size is required'),
-        totalTeamSize: Yup.number().typeError('Total Team Size must be a number').required('Total Team Size is required')
-      })
-    ),
+  keyRoleDimensions: Yup.array().of(
+    Yup.object().shape({
+      portfolioSize: Yup.string().required('Portfolio Size is required'),
+      geographicalCoverage: Yup.string().required('Geographical Coverage is required'),
+      teamSize: Yup.number().typeError('Team Size must be a number').required('Team Size is required'),
+      totalTeamSize: Yup.number().typeError('Total Team Size must be a number').required('Total Team Size is required')
+    })
+  ),
 
-    educationAndExperience: Yup.array().of(
-      Yup.object().shape({
-        minimumQualification: Yup.string().required('Minimum Qualification is required'),
-        experienceDescription: Yup.string().required('Experience Description is required'),
-       
-      })
-    ),
-
+  educationAndExperience: Yup.array().of(
+    Yup.object().shape({
+      minimumQualification: Yup.string().required('Minimum Qualification is required'),
+      experienceDescription: Yup.string().required('Experience Description is required')
+    })
+  )
 })
 
 function CustomNode({ data, selected }: NodeProps) {
@@ -157,6 +155,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
       formikValuesFromCache && mode === 'add'
         ? formikValuesFromCache
         : {
+            organizationChart: organizationChart,
             roleSpecification: [
               {
                 roleTitle: '',
@@ -282,11 +281,8 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
 
     if (
       completedSteps >= 7 &&
-      AddNewJDFormik.values.keyRoleDimensions.some((d: any) =>
-        d.portfolioSize &&
-        d.geographicalCoverage &&
-        d.teamSize &&
-        d.totalTeamSize
+      AddNewJDFormik.values.keyRoleDimensions.some(
+        (d: any) => d.portfolioSize && d.geographicalCoverage && d.teamSize && d.totalTeamSize
       )
     ) {
       completedSteps = 8
@@ -312,9 +308,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
       AddNewJDFormik.values.educationAndExperience === 'in_detail' &&
       Array.isArray(AddNewJDFormik.values.educationAndExperienceDetails) &&
       AddNewJDFormik.values.educationAndExperienceDetails.every(
-        (item: any) =>
-          item.minimumQualification &&
-          item.experienceDescription
+        (item: any) => item.minimumQualification && item.experienceDescription
       )
     ) {
       completedSteps = 10
@@ -336,6 +330,7 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
     removeJDManagementAddFormValues()
     AddNewJDFormik.resetForm({
       values: {
+        organizationChart: null,
         roleSpecification: [
           {
             roleTitle: '',
@@ -369,16 +364,17 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
     })
   }
 
-  const handleAddOrganization = () => {
-    setOpenOrgChart(true)
-  }
-
   const handleSaveOrgChart = chartData => {
     const transformedChart = transformToTree(chartData.nodes, chartData.edges)
 
     setOrganizationChart(transformedChart)
+    AddNewJDFormik.values.organizationChart = transformedChart
     setOpenOrgChart(false)
     setIsChartVisible(true)
+  }
+
+  const handleAddOrganization = () => {
+    setOpenOrgChart(true)
   }
 
   const toggleChartVisibility = () => {
@@ -1005,268 +1001,263 @@ const AddNewJdSample: React.FC<Props> = ({ mode }) => {
                 <label htmlFor='skillsAndAttributesType' className='block text-sm font-medium text-gray-700'>
                   Skills and Attributes Type *
                 </label>
-               
               </FormControl>
             </Box>
 
             <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white mt-2'>
-              
-                <div className='space-y-6'>
-                  {AddNewJDFormik.values.skillsAndAttributesDetails?.map((item: any, sectionIndex: number) => (
-                    <div key={sectionIndex} className='p-4 border border-gray-200 rounded-lg shadow-sm'>
-                      <div className='flex justify-between items-center mb-4'>
-                        <div className='flex-grow'>
-                          <h4 className='text-lg font-semibold text-gray-700'>Factor/Category *</h4>
-                          <DynamicTextField
-                            id={`skillsAndAttributesDetails[${sectionIndex}].factor`}
-                            name={`skillsAndAttributesDetails[${sectionIndex}].factor`}
-                            value={item.factor || ''}
-                            onChange={AddNewJDFormik.handleChange}
-                            placeholder='Enter Factor or Category'
-                            error={
-                              AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
-                              Boolean(AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor)
-                            }
-                            helperText={
-                              AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
-                              AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor
-                            }
-                            className='w-full'
-                          />
-                        </div>
-                        <Tooltip title='Delete Section' placement='top'>
-                          <IconButton
-                            color='secondary'
-                            disabled={AddNewJDFormik.values.skillsAndAttributesDetails.length === 1}
-                            onClick={() => {
-                              AddNewJDFormik.setFieldValue(
-                                'skillsAndAttributesDetails',
-                                AddNewJDFormik.values.skillsAndAttributesDetails.filter(
-                                  (_: any, i: number) => i !== sectionIndex
-                                )
-                              )
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
+              <div className='space-y-6'>
+                {AddNewJDFormik.values.skillsAndAttributesDetails?.map((item: any, sectionIndex: number) => (
+                  <div key={sectionIndex} className='p-4 border border-gray-200 rounded-lg shadow-sm'>
+                    <div className='flex justify-between items-center mb-4'>
+                      <div className='flex-grow'>
+                        <h4 className='text-lg font-semibold text-gray-700'>Factor/Category *</h4>
+                        <DynamicTextField
+                          id={`skillsAndAttributesDetails[${sectionIndex}].factor`}
+                          name={`skillsAndAttributesDetails[${sectionIndex}].factor`}
+                          value={item.factor || ''}
+                          onChange={AddNewJDFormik.handleChange}
+                          placeholder='Enter Factor or Category'
+                          error={
+                            AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
+                            Boolean(AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor)
+                          }
+                          helperText={
+                            AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
+                            AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor
+                          }
+                          className='w-full'
+                        />
                       </div>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>Competencies *</label>
-                          <div className='space-y-2'>
-                            {item.competency.map((competencyItem: any, competencyIndex: number) => (
-                              <div key={competencyIndex} className='flex items-center space-x-2'>
-                                <DynamicTextField
-                                  id={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
-                                  name={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
-                                  value={competencyItem.value}
-                                  onChange={AddNewJDFormik.handleChange}
-                                  placeholder='Enter Competency'
-                                  error={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
-                                      competencyIndex
-                                    ]?.value &&
-                                    Boolean(
-                                      AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
-                                        competencyIndex
-                                      ]?.value
-                                    )
-                                  }
-                                  helperText={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
-                                      competencyIndex
-                                    ]?.value &&
+                      <Tooltip title='Delete Section' placement='top'>
+                        <IconButton
+                          color='secondary'
+                          disabled={AddNewJDFormik.values.skillsAndAttributesDetails.length === 1}
+                          onClick={() => {
+                            AddNewJDFormik.setFieldValue(
+                              'skillsAndAttributesDetails',
+                              AddNewJDFormik.values.skillsAndAttributesDetails.filter(
+                                (_: any, i: number) => i !== sectionIndex
+                              )
+                            )
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </div>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      <div className='flex-grow'>
+                        <label className='block text-sm font-medium text-gray-700 mb-2'>Competencies *</label>
+                        <div className='space-y-2'>
+                          {item.competency.map((competencyItem: any, competencyIndex: number) => (
+                            <div key={competencyIndex} className='flex items-center space-x-2'>
+                              <DynamicTextField
+                                id={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
+                                name={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
+                                value={competencyItem.value}
+                                onChange={AddNewJDFormik.handleChange}
+                                placeholder='Enter Competency'
+                                error={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
+                                    competencyIndex
+                                  ]?.value &&
+                                  Boolean(
                                     AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
                                       competencyIndex
                                     ]?.value
-                                  }
-                                  className='flex-1'
-                                />
-                                <Tooltip title='Delete Competency' placement='top'>
+                                  )
+                                }
+                                helperText={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
+                                    competencyIndex
+                                  ]?.value &&
+                                  AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.competency?.[
+                                    competencyIndex
+                                  ]?.value
+                                }
+                                className='flex-1'
+                              />
+                              <Tooltip title='Delete Competency' placement='top'>
+                                <IconButton
+                                  color='secondary'
+                                  disabled={item.competency.length === 1}
+                                  onClick={() => {
+                                    AddNewJDFormik.setFieldValue(
+                                      `skillsAndAttributesDetails[${sectionIndex}].competency`,
+                                      item.competency.filter((_: any, i: number) => i !== competencyIndex)
+                                    )
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                              {competencyIndex === item.competency.length - 1 && (
+                                <Tooltip title='Add Competency' placement='top'>
                                   <IconButton
-                                    color='secondary'
-                                    disabled={item.competency.length === 1}
+                                    color='primary'
                                     onClick={() => {
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].competency`,
-                                        item.competency.filter((_: any, i: number) => i !== competencyIndex)
+                                        [...item.competency, { value: '' }]
                                       )
                                     }}
                                   >
-                                    <DeleteIcon />
+                                    <AddIcon />
                                   </IconButton>
                                 </Tooltip>
-                                {competencyIndex === item.competency.length - 1 && (
-                                  <Tooltip title='Add Competency' placement='top'>
-                                    <IconButton
-                                      color='primary'
-                                      onClick={() => {
-                                        AddNewJDFormik.setFieldValue(
-                                          `skillsAndAttributesDetails[${sectionIndex}].competency`,
-                                          [...item.competency, { value: '' }]
-                                        )
-                                      }}
-                                    >
-                                      <AddIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </div>
-                            ))}
-                          </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>Definitions *</label>
-                          <div className='space-y-2'>
-                            {item.definition.map((definitionItem: any, definitionIndex: number) => (
-                              <div key={definitionIndex} className='flex items-center space-x-2'>
-                                <DynamicTextField
-                                  id={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
-                                  name={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
-                                  value={definitionItem.value}
-                                  onChange={AddNewJDFormik.handleChange}
-                                  placeholder='Enter Definition'
-                                  error={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
-                                      definitionIndex
-                                    ]?.value &&
-                                    Boolean(
-                                      AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
-                                        definitionIndex
-                                      ]?.value
-                                    )
-                                  }
-                                  helperText={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
-                                      definitionIndex
-                                    ]?.value &&
+                      </div>
+                      <div className='flex-grow'>
+                        <label className='block text-sm font-medium text-gray-700 mb-2'>Definitions *</label>
+                        <div className='space-y-2'>
+                          {item.definition.map((definitionItem: any, definitionIndex: number) => (
+                            <div key={definitionIndex} className='flex items-center space-x-2'>
+                              <DynamicTextField
+                                id={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
+                                name={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
+                                value={definitionItem.value}
+                                onChange={AddNewJDFormik.handleChange}
+                                placeholder='Enter Definition'
+                                error={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
+                                    definitionIndex
+                                  ]?.value &&
+                                  Boolean(
                                     AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
                                       definitionIndex
                                     ]?.value
-                                  }
-                                  className='flex-1'
-                                />
-                                <Tooltip title='Delete Definition' placement='top'>
+                                  )
+                                }
+                                helperText={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
+                                    definitionIndex
+                                  ]?.value &&
+                                  AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.definition?.[
+                                    definitionIndex
+                                  ]?.value
+                                }
+                                className='flex-1'
+                              />
+                              <Tooltip title='Delete Definition' placement='top'>
+                                <IconButton
+                                  color='secondary'
+                                  disabled={item.definition.length === 1}
+                                  onClick={() => {
+                                    AddNewJDFormik.setFieldValue(
+                                      `skillsAndAttributesDetails[${sectionIndex}].definition`,
+                                      item.definition.filter((_: any, i: number) => i !== definitionIndex)
+                                    )
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                              {definitionIndex === item.definition.length - 1 && (
+                                <Tooltip title='Add Definition' placement='top'>
                                   <IconButton
-                                    color='secondary'
-                                    disabled={item.definition.length === 1}
+                                    color='primary'
                                     onClick={() => {
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].definition`,
-                                        item.definition.filter((_: any, i: number) => i !== definitionIndex)
+                                        [...item.definition, { value: '' }]
                                       )
                                     }}
                                   >
-                                    <DeleteIcon />
+                                    <AddIcon />
                                   </IconButton>
                                 </Tooltip>
-                                {definitionIndex === item.definition.length - 1 && (
-                                  <Tooltip title='Add Definition' placement='top'>
-                                    <IconButton
-                                      color='primary'
-                                      onClick={() => {
-                                        AddNewJDFormik.setFieldValue(
-                                          `skillsAndAttributesDetails[${sectionIndex}].definition`,
-                                          [...item.definition, { value: '' }]
-                                        )
-                                      }}
-                                    >
-                                      <AddIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </div>
-                            ))}
-                          </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>
-                            Behavioural Attributes *
-                          </label>
-                          <div className='space-y-2'>
-                            {item.behavioural_attributes.map((attrItem: any, attrIndex: number) => (
-                              <div key={attrIndex} className='flex items-center space-x-2'>
-                                <DynamicTextField
-                                  id={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
-                                  name={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
-                                  value={attrItem.value}
-                                  onChange={AddNewJDFormik.handleChange}
-                                  placeholder='Enter Behavioural Attribute'
-                                  error={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]
-                                      ?.behavioural_attributes?.[attrIndex]?.value &&
-                                    Boolean(
-                                      AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]
-                                        ?.behavioural_attributes?.[attrIndex]?.value
-                                    )
-                                  }
-                                  helperText={
-                                    AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]
-                                      ?.behavioural_attributes?.[attrIndex]?.value &&
+                      </div>
+                      <div className='flex-grow'>
+                        <label className='block text-sm font-medium text-gray-700 mb-2'>Behavioural Attributes *</label>
+                        <div className='space-y-2'>
+                          {item.behavioural_attributes.map((attrItem: any, attrIndex: number) => (
+                            <div key={attrIndex} className='flex items-center space-x-2'>
+                              <DynamicTextField
+                                id={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
+                                name={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
+                                value={attrItem.value}
+                                onChange={AddNewJDFormik.handleChange}
+                                placeholder='Enter Behavioural Attribute'
+                                error={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]
+                                    ?.behavioural_attributes?.[attrIndex]?.value &&
+                                  Boolean(
                                     AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]
                                       ?.behavioural_attributes?.[attrIndex]?.value
-                                  }
-                                  className='flex-1'
-                                />
-                                <Tooltip title='Delete Attribute' placement='top'>
+                                  )
+                                }
+                                helperText={
+                                  AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]
+                                    ?.behavioural_attributes?.[attrIndex]?.value &&
+                                  AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]
+                                    ?.behavioural_attributes?.[attrIndex]?.value
+                                }
+                                className='flex-1'
+                              />
+                              <Tooltip title='Delete Attribute' placement='top'>
+                                <IconButton
+                                  color='secondary'
+                                  disabled={item.behavioural_attributes.length === 1}
+                                  onClick={() => {
+                                    AddNewJDFormik.setFieldValue(
+                                      `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
+                                      item.behavioural_attributes.filter((_: any, i: number) => i !== attrIndex)
+                                    )
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                              {attrIndex === item.behavioural_attributes.length - 1 && (
+                                <Tooltip title='Add Attribute' placement='top'>
                                   <IconButton
-                                    color='secondary'
-                                    disabled={item.behavioural_attributes.length === 1}
+                                    color='primary'
                                     onClick={() => {
                                       AddNewJDFormik.setFieldValue(
                                         `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
-                                        item.behavioural_attributes.filter((_: any, i: number) => i !== attrIndex)
+                                        [...item.behavioural_attributes, { value: '' }]
                                       )
                                     }}
                                   >
-                                    <DeleteIcon />
+                                    <AddIcon />
                                   </IconButton>
                                 </Tooltip>
-                                {attrIndex === item.behavioural_attributes.length - 1 && (
-                                  <Tooltip title='Add Attribute' placement='top'>
-                                    <IconButton
-                                      color='primary'
-                                      onClick={() => {
-                                        AddNewJDFormik.setFieldValue(
-                                          `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
-                                          [...item.behavioural_attributes, { value: '' }]
-                                        )
-                                      }}
-                                    >
-                                      <AddIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </div>
-                            ))}
-                          </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      </Box>
-                    </div>
-                  ))}
-                  <div className='flex justify-end'>
-                    <DynamicButton
-                      type='button'
-                      variant='contained'
-                      onClick={() =>
-                        AddNewJDFormik.setFieldValue('skillsAndAttributesDetails', [
-                          ...AddNewJDFormik.values.skillsAndAttributesDetails,
-                          {
-                            factor: '',
-                            competency: [{ value: '' }],
-                            definition: [{ value: '' }],
-                            behavioural_attributes: [{ value: '' }]
-                          }
-                        ])
-                      }
-                      className='bg-green-600 text-white hover:bg-green-700'
-                    >
-                      Add Section
-                    </DynamicButton>
+                      </div>
+                    </Box>
                   </div>
+                ))}
+                <div className='flex justify-end'>
+                  <DynamicButton
+                    type='button'
+                    variant='contained'
+                    onClick={() =>
+                      AddNewJDFormik.setFieldValue('skillsAndAttributesDetails', [
+                        ...AddNewJDFormik.values.skillsAndAttributesDetails,
+                        {
+                          factor: '',
+                          competency: [{ value: '' }],
+                          definition: [{ value: '' }],
+                          behavioural_attributes: [{ value: '' }]
+                        }
+                      ])
+                    }
+                    className='bg-green-600 text-white hover:bg-green-700'
+                  >
+                    Add Section
+                  </DynamicButton>
                 </div>
-              
+              </div>
             </fieldset>
 
             {/* Educational and Experience Requirements */}

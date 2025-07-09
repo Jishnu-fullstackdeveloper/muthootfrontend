@@ -366,16 +366,30 @@ const JobListing = () => {
             <Box
               onClick={() => router.push(`/jd-management/view/${job.id}`)}
               key={job.id}
-              className='bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 border border-gray-200'
-              sx={{ cursor: 'pointer', minHeight: '150px' }}
+              className='rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition cursor-pointer bg-[#F9FAFB]'
+              sx={{ p: 4, width: '366px' }}
             >
-              <Box className='flex justify-between items-center p-4 border-b border-gray-200'>
-                <Typography variant='h6' fontWeight='bold' color='primary'>
-                  {job.title.toUpperCase()}
-                </Typography>
+              <Box className='flex justify-between items-center mb-2'>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: '#E0E7FF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <i className='tabler-code' />
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, ml: 2 }}>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 'bold', color: '#23262F' }}>{job.title}</Typography>
+                  <Typography sx={{ fontSize: '12px' }}>{job.job_role}</Typography>
+                </Box>
                 <Tooltip title='Delete JD' placement='top'>
                   <IconButton
-                    sx={{ ':hover': { color: 'error.main' } }}
+                    size='small'
                     onClick={e => {
                       e.stopPropagation()
                       const updatedJobs = jobList.filter(j => j.id !== job.id)
@@ -387,29 +401,46 @@ const JobListing = () => {
                       )
                     }}
                   >
-                    <i className='tabler-trash' />
+                    <i className='tabler-trash text-red-500' />
                   </IconButton>
                 </Tooltip>
               </Box>
-              <Box className='p-4 grid gap-2'>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Job Role:</strong> {job.job_role}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Experience:</strong> {job.experience}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Job Type:</strong> {job.job_type}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Education:</strong> {job.education}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Salary Range:</strong> {job.salary_range}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  <strong>Skills:</strong> {job.skills.join(', ')}
-                </Typography>
+
+              <Box sx={{ my: 2, borderBottom: '1px solid #E5E7EB' }} />
+
+              <Box className='grid grid-cols-2 gap-2 '>
+                <Box>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 'semibold' }}>Experience</Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 'semibold',color: '#23262F' }}>{job.experience}</Typography>
+                </Box>
+
+                <Box>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 'semibold' }}>
+                    Job Type
+                  </Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 'semibold',color: '#23262F' }}>{job.job_type}</Typography>
+                </Box>
+
+                <Box>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 'semibold'}}>
+                    Education
+                  </Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 'semibold',color: '#23262F' }}>{job.education}</Typography>
+                </Box>
+
+                <Box>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 'semibold'}}>
+                    Salary Range
+                  </Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 'semibold',color: '#23262F' }}>{job.salary_range}</Typography>
+                </Box>
+
+                <Box className='col-span-2'>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 'semibold'}}>
+                    Skills
+                  </Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 'semibold',color: '#23262F' }}>{job.skills.join(', ')}</Typography>
+                </Box>
               </Box>
             </Box>
           ))

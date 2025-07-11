@@ -9,15 +9,24 @@ import { Visibility as VisibilityIcon } from '@mui/icons-material'
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface JobPosting {
-  id: string // Changed to string for UUID
+  id: string
   designation: string
   jobRole: string
   location: string
-  status: 'CREATED' | 'Hiring' | 'In Progress' | 'Completed' // Added CREATED
+  status: 'Pending' | 'Posted' | 'Closed'
   openings: number
-  candidatesApplied: number
-  shortlisted: number
-  hired: number
+  jobGrade: string
+  postedDate: string
+  department?: string
+  manager?: string
+  employeeCategory?: string
+  branch?: string
+  attachments?: string[]
+  businessUnit?: string
+  branchBusiness?: string
+  zone?: string
+  area?: string
+  state?: string
 }
 
 interface JobTableProps {
@@ -60,11 +69,11 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
         cell: ({ row }) => (
           <Typography
             color={
-              row.original.status === 'Hiring'
+              row.original.status === 'Pending'
                 ? 'success.main'
-                : row.original.status === 'In Progress'
+                : row.original.status === 'Posted'
                   ? 'warning.main'
-                  : row.original.status === 'CREATED'
+                  : row.original.status === 'Closed'
                     ? 'info.main'
                     : 'error.main'
             }
@@ -73,18 +82,19 @@ const JobTable = ({ data, page, limit, totalCount, onPageChange, onRowsPerPageCh
           </Typography>
         )
       }),
-      columnHelper.accessor('candidatesApplied', {
-        header: 'No. of Candidates Applied',
-        cell: ({ row }) => <Typography>{row.original.candidatesApplied}</Typography>
-      }),
-      columnHelper.accessor('shortlisted', {
-        header: 'No. of Shortlisted Candidates',
-        cell: ({ row }) => <Typography>{row.original.shortlisted}</Typography>
-      }),
-      columnHelper.accessor('hired', {
-        header: 'No. of Hired Candidates',
-        cell: ({ row }) => <Typography>{row.original.hired}</Typography>
-      }),
+
+      // columnHelper.accessor('candidatesApplied', {
+      //   header: 'No. of Candidates Applied',
+      //   cell: ({ row }) => <Typography>{row.original.candidatesApplied}</Typography>
+      // }),
+      // columnHelper.accessor('shortlisted', {
+      //   header: 'No. of Shortlisted Candidates',
+      //   cell: ({ row }) => <Typography>{row.original.shortlisted}</Typography>
+      // }),
+      // columnHelper.accessor('hired', {
+      //   header: 'No. of Hired Candidates',
+      //   cell: ({ row }) => <Typography>{row.original.hired}</Typography>
+      // }),
       columnHelper.display({
         id: 'actions',
         header: 'Actions',

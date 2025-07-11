@@ -1,7 +1,6 @@
-// JobPostListing.tsx
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -14,18 +13,32 @@ import {
   TableView as TableChartIcon
 } from '@mui/icons-material'
 
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchJobPostings } from '@/redux/JobPosting/jobListingSlice'
 import DynamicButton from '@/components/Button/dynamicButton'
 
-const JobTable = dynamic(() => import('./jobPostTable'), {
-  loading: () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-      <CircularProgress />
-    </Box>
-  ),
-  ssr: false
-})
+interface JobPosting {
+  filter(arg0: (job: any) => any): any
+  id: string
+  designation: string
+  jobRole: string
+  location: string
+  status: 'Pending' | 'Posted' | 'Closed'
+  openings: number
+  jobGrade: string
+  postedDate: string
+  department?: string
+  manager?: string
+  employeeCategory?: string
+  branch?: string
+  attachments?: string[]
+  businessUnit?: string
+  branchBusiness?: string
+  zone?: string
+  area?: string
+  state?: string
+  candidatesApplied?: number
+  shortlisted?: number
+  hired?: number
+}
 
 const JobPostGrid = dynamic(() => import('./jobPostGrid'), {
   loading: () => (
@@ -36,6 +49,148 @@ const JobPostGrid = dynamic(() => import('./jobPostGrid'), {
   ssr: false
 })
 
+const JobTable = dynamic(() => import('./jobPostTable'), {
+  loading: () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+      <CircularProgress />
+    </Box>
+  ),
+  ssr: false
+})
+
+const dummyJobs: JobPosting[] = [
+  {
+    id: '1',
+    designation: 'Senior Customer Service Executive',
+    jobRole: 'Manager',
+    location: 'TVM, India',
+    status: 'Pending',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '12-08-2024',
+    department: 'Customer Service',
+    manager: 'Manager or Lateral',
+    employeeCategory: 'Employee Type',
+    branch: 'Permanent',
+    attachments: ['www.google.com', 'www.example.com'],
+    businessUnit: 'XCC',
+    branchBusiness: 'Territory',
+    zone: 'Kerala South',
+    area: 'Mangalore',
+    state: 'Kerala',
+    candidatesApplied: 10,
+    shortlisted: 3,
+    hired: 1,
+    filter: function () {
+      throw new Error('Function not implemented.')
+    }
+  },
+  {
+    id: '2',
+    designation: 'Product Manager',
+    jobRole: 'Technical PM',
+    location: 'New York, NY',
+    status: 'Pending',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '10-08-2024',
+    department: 'Product Development',
+    manager: 'John Doe',
+    employeeCategory: 'Full-time',
+    branch: 'Head Office',
+    attachments: ['www.report.pdf'],
+    businessUnit: 'Tech Division',
+    branchBusiness: 'North America',
+    zone: 'East Coast',
+    area: 'NY Metro',
+    state: 'New York',
+    candidatesApplied: 8,
+    shortlisted: 2,
+    hired: 0,
+    filter: function () {
+      throw new Error('Function not implemented.')
+    }
+  },
+  {
+    id: '3',
+    designation: 'UX Designer',
+    jobRole: 'UI/UX Specialist',
+    location: 'Remote',
+    status: 'Pending',
+    openings: 1,
+    jobGrade: 'JM2-60',
+    postedDate: '08-08-2024',
+    department: 'Design',
+    manager: 'Jane Smith',
+    employeeCategory: 'Contract',
+    branch: 'Remote Team',
+    attachments: ['www.design.doc'],
+    businessUnit: 'Creative Unit',
+    branchBusiness: 'Global',
+    zone: 'Online',
+    area: 'Virtual',
+    state: 'N/A',
+    candidatesApplied: 5,
+    shortlisted: 1,
+    hired: 0,
+    filter: function () {
+      throw new Error('Function not implemented.')
+    }
+  },
+  {
+    id: '4',
+    designation: 'Data Scientist',
+    jobRole: 'ML Engineer',
+    location: 'Boston, MA',
+    status: 'Closed',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '05-08-2024',
+    department: 'Data Science',
+    manager: 'Alex Brown',
+    employeeCategory: 'Full-time',
+    branch: 'Research Center',
+    attachments: ['www.data.xlsx', 'www.model.pdf'],
+    businessUnit: 'Analytics',
+    branchBusiness: 'East Region',
+    zone: 'New England',
+    area: 'Boston Area',
+    state: 'Massachusetts',
+    candidatesApplied: 12,
+    shortlisted: 4,
+    hired: 2,
+    filter: function () {
+      throw new Error('Function not implemented.')
+    }
+  },
+  {
+    id: '5',
+    designation: 'Software Engineer',
+    jobRole: 'Backend Developer',
+    location: 'San Francisco, CA',
+    status: 'Posted',
+    openings: 3,
+    jobGrade: 'JM2-60',
+    postedDate: '03-08-2024',
+    department: 'Engineering',
+    manager: 'Sarah Lee',
+    employeeCategory: 'Full-time',
+    branch: 'Main Office',
+    attachments: ['www.code.zip'],
+    businessUnit: 'DevOps',
+    branchBusiness: 'West Coast',
+    zone: 'California',
+    area: 'Bay Area',
+    state: 'California',
+    candidatesApplied: 15,
+    shortlisted: 5,
+    hired: 3,
+    filter: function () {
+      throw new Error('Function not implemented.')
+    }
+  }
+]
+
 const JobPostListing = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -43,15 +198,12 @@ const JobPostListing = () => {
   const [tablePage, setTablePage] = useState(1)
   const [tableLimit, setTableLimit] = useState(10)
   const [view, setView] = useState<'grid' | 'table'>('grid')
+  const [isLoading] = useState(false)
 
   const router = useRouter()
-  const dispatch = useAppDispatch()
-
-  const { jobPostingsData, isJobPostingsLoading, totalCount, jobPostingsFailure, jobPostingsFailureMessage } =
-    useAppSelector((state: any) => state.JobPostingReducer)
 
   // Debounce search
-  useEffect(() => {
+  React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm)
       setGridPage(1)
@@ -61,32 +213,14 @@ const JobPostListing = () => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  // Fetch jobs from API
-  useEffect(() => {
-    dispatch(
-      fetchJobPostings({
-        page: view === 'grid' ? gridPage : tablePage,
-        limit: view === 'grid' ? undefined : tableLimit,
-        search: debouncedSearch || undefined
-      })
-    )
-  }, [dispatch, view, gridPage, tablePage, tableLimit, debouncedSearch])
-
   const jobs = useMemo(() => {
-    if (!jobPostingsData) return []
-
-    const mappedJobs = jobPostingsData.map((item: any) => ({
-      ...item.job,
-      id: item.job?.id, // Ensure job ID is included
-      candidatesApplied: item.candidateStatusCounts?.APPLIED || 0,
-      shortlisted: item.candidateStatusCounts?.SHORTLISTED || 0,
-      hired: item.candidateStatusCounts?.HIRED || 0
-    }))
-
-    console.log('Mapped Jobs:', mappedJobs)
-
-    return mappedJobs.filter(job => job.id) // Filter out jobs without an ID
-  }, [jobPostingsData])
+    return dummyJobs.filter(
+      job =>
+        job.designation.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        job.jobRole.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        job.location.toLowerCase().includes(debouncedSearch.toLowerCase())
+    )
+  }, [debouncedSearch])
 
   const handleView = (jobId: string) => {
     if (!jobId) {
@@ -95,10 +229,7 @@ const JobPostListing = () => {
       return
     }
 
-    const url = `/candidateListing?jobId=${encodeURIComponent(jobId)}`
-
-    console.log('Navigating to:', url)
-    router.push(url)
+    router.push(`/candidateListing?jobId=${encodeURIComponent(jobId)}`)
   }
 
   const handleGridLoadMore = (newPage: number) => {
@@ -161,24 +292,20 @@ const JobPostListing = () => {
         </CardContent>
       </Card>
 
-      {isJobPostingsLoading && !jobs.length ? (
+      {isLoading && !jobs.length ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
         </Box>
-      ) : jobPostingsFailure ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-          <Typography color='error'>{jobPostingsFailureMessage}</Typography>
-        </Box>
       ) : jobs.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-          <Typography>No job postings available</Typography>
+          <Typography>No job postings found</Typography>
         </Box>
       ) : view === 'grid' ? (
         <JobPostGrid
           data={jobs}
-          loading={isJobPostingsLoading}
+          loading={isLoading}
           page={gridPage}
-          totalCount={totalCount}
+          totalCount={jobs.length}
           onLoadMore={handleGridLoadMore}
         />
       ) : (
@@ -186,7 +313,7 @@ const JobPostListing = () => {
           data={jobs}
           page={tablePage}
           limit={tableLimit}
-          totalCount={totalCount}
+          totalCount={jobs.length}
           onPageChange={handleTablePageChange}
           onRowsPerPageChange={handleTableRowsPerPageChange}
           handleView={handleView}

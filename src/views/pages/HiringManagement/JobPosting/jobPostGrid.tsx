@@ -1,22 +1,32 @@
 'use client'
 
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, CardContent, Grid, Typography, CircularProgress, Fade, Tooltip } from '@mui/material'
+import { Box, Card, CardContent, Grid, Typography, Button, CircularProgress, Drawer, IconButton } from '@mui/material'
+import { Business as BusinessIcon, Close as CloseIcon } from '@mui/icons-material'
 import { styled } from '@mui/material/styles'
 
 interface JobPosting {
-  id: string // Changed to string for UUID
+  id: string
   designation: string
   jobRole: string
   location: string
-  status: 'CREATED' | 'Hiring' | 'In Progress' | 'Completed' // Added CREATED
+  status: 'Pending' | 'Posted' | 'Closed'
   openings: number
-  candidatesApplied: number
-  shortlisted: number
-  hired: number // Changed from HIRED to hired
+  jobGrade: string
+  postedDate: string
+  department?: string
+  manager?: string
+  employeeCategory?: string
+  branch?: string
+  attachments?: string[]
+  businessUnit?: string
+  branchBusiness?: string
+  zone?: string
+  area?: string
+  state?: string
 }
 
 interface JobPostGridProps {
@@ -28,237 +38,549 @@ interface JobPostGridProps {
 }
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  transition: 'all 0.3s ease-in-out',
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[4],
+  alignItems: 'flex-start',
+  padding: theme.spacing(2),
+  gap: '16px',
+  width: '370.67px', // Adjusted to match HeaderWrapper width
+  height: '264px',
+  background: '#fff',
+  boxShadow: '0px 6.84894px 12.1759px rgba(208, 210, 218, 0.15)',
+  borderRadius: '14px',
+  fontFamily: "'Public Sans', 'Roboto', sans-serif"
+}))
+
+const HeaderWrapper = styled(Box)({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '0 0 16px',
+  gap: '8px',
+  width: '326.67px',
+  borderBottom: '1px solid #eee',
+  height: '64px'
+})
+
+const IconFrame = styled(Box)({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: '0px',
+  gap: '8px',
+  width: '167px',
+  height: '48px'
+})
+
+const IconWrapper = styled(Box)({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  width: '48px',
+  height: '48px',
+  background: '#F2F3FF',
+  borderRadius: '100px'
+})
+
+const DataWrapper = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  padding: '0px',
+  gap: '4px',
+  width: '111px',
+  height: '39px'
+})
+
+const StatusBadge = styled(Typography)(({}) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '7px 18px',
+  width: '91px',
+  height: '28px',
+  background: 'rgba(237, 159, 11, 0.2)',
+  border: '1px solid #eee',
+  borderRadius: '6px',
+  fontFamily: "'Public Sans', 'Roboto', sans-serif",
+  fontWeight: 500,
+  fontSize: '12px',
+  lineHeight: '14px',
+  textTransform: 'uppercase'
+}))
+
+const statusColors: Record<string, string> = {
+  Pending: '#ED960B',
+
+  // Posted: '#FFA500',
+  CREATED: '#1E90FF',
+  Closed: '#FF4500',
+  Posted: '#90EE90'
+}
+
+const Row = styled(Box)({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: '0px',
+  gap: '0px',
+  width: '420px',
+  height: '38px'
+})
+
+const Col = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  padding: '0px',
+  gap: '8px',
+  width: '250px',
+  height: '38px'
+})
+
+const ViewDetailsButton = styled(Button)({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '10px 20px',
+  width: '326.67px',
+  height: '36px',
+  border: '1px solid #0096DA',
+  borderRadius: '8px',
+  fontFamily: "'Public Sans', 'Roboto', sans-serif",
+  fontWeight: 500,
+  fontSize: '14px',
+  lineHeight: '16px',
+  color: '#0096DA',
+  textTransform: 'none',
   '&:hover': {
-    transform: 'translateY(-8px)',
-    boxShadow: theme.shadows[8],
-    backgroundColor: theme.palette.grey[50]
+    border: '1px solid #007BB8',
+    background: 'rgba(0, 150, 218, 0.05)'
+  }
+})
+
+interface DrawerContentProps {
+  status: 'Pending' | 'Posted' | 'Closed'
+}
+
+const DrawerContent = styled(Box, {
+  shouldForwardProp: prop => prop !== 'status'
+})<DrawerContentProps>(({ status }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  padding: 0,
+  width: '560px',
+  height: '1038px',
+  background: '#FFFFFF',
+  borderRadius: '8px',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  '& > div:first-child': {
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '20px',
+    gap: '351px',
+    width: '560px',
+    height: '64px',
+    borderBottom: '1px solid #EEEEEE',
+    '& h6': {
+      width: '103px',
+      height: '24px',
+      fontFamily: "'Public Sans', 'Roboto', sans-serif",
+      fontStyle: 'normal',
+      fontWeight: 600,
+      fontSize: '20px',
+      lineHeight: '24px',
+      color: '#23262F'
+    },
+    '& button': {
+      width: '24px',
+      height: '24px'
+    }
+  },
+  '& > div:nth-child(2)': {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    padding: '20px',
+    gap: '16px',
+    width: '560px',
+    height: '698px',
+    overflowY: 'auto', // Enable scrolling for the body
+    '& > div:first-child': {
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '0px 0px 16px',
+      gap: '8px',
+      width: '520px',
+      height: '64px',
+      borderBottom: '1px solid #EEEEEE',
+      '& > div:first-child': {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: '0px',
+        gap: '8px',
+        width: '167px',
+        height: '48px',
+        '& > div:first-child': {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '0px',
+          gap: '10px',
+          width: '48px',
+          height: '48px',
+          background: '#F2F3FF',
+          borderRadius: '100px',
+          '& svg': {
+            width: '24px',
+            height: '24px',
+            color: '#3D459E'
+          }
+        },
+        '& > div:nth-child(2)': {
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          padding: '0px',
+          gap: '4px',
+          width: '111px',
+          height: '39px',
+          '& > p:first-child': {
+            width: '111px',
+            height: '19px',
+            fontFamily: "'Public Sans', 'Roboto', sans-serif",
+            fontStyle: 'normal',
+            fontWeight: 600,
+            fontSize: '16px',
+            lineHeight: '19px',
+            color: '#23262F'
+          },
+          '& > p:nth-child(2)': {
+            width: '111px',
+            height: '16px',
+            fontFamily: "'Public Sans', 'Roboto', sans-serif",
+            fontStyle: 'normal',
+            fontWeight: 400,
+            fontSize: '12px',
+            lineHeight: '16px',
+            color: '#23262F'
+          }
+        }
+      },
+      '& > div:nth-child(2)': {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '7px 18px',
+        gap: '10px',
+        width: '91px',
+        height: '28px',
+        background: 'rgba(237, 150, 11, 0.2)',
+        border: '1px solid #EEEEEE',
+        borderRadius: '6px',
+        '& > span': {
+          fontFamily: "'Public Sans', 'Roboto', sans-serif",
+          fontStyle: 'normal',
+          fontWeight: 500,
+          fontSize: '12px',
+          lineHeight: '14px',
+          color: statusColors[status] || '#000'
+        }
+      }
+    },
+    '& > div:nth-child(2)': {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      padding: '0px',
+      gap: '16px',
+      width: '520px',
+      height: 'auto' // Allow dynamic height with scrolling
+    }
   }
 }))
 
-const StatusBadge = styled(Typography)(({ theme }) => ({
-  padding: theme.spacing(0.5, 1.5),
-  borderRadius: theme.shape.borderRadius,
-  fontWeight: 600,
-  display: 'inline-block'
-}))
+const dummyJobs: JobPosting[] = [
+  {
+    id: '1',
+    designation: 'Senior Customer Service Executive',
+    jobRole: 'Manager',
+    location: 'TVM, India',
+    status: 'Pending',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '12-08-2024',
+    department: 'Customer Service',
+    manager: 'Manager or Lateral',
+    employeeCategory: 'Employee Type',
+    branch: 'Permanent',
+    attachments: ['www.google.com', 'www.example.com'],
+    businessUnit: 'XCC',
+    branchBusiness: 'Territory',
+    zone: 'Kerala South',
+    area: 'Mangalore',
+    state: 'Kerala'
+  },
+  {
+    id: '2',
+    designation: 'Product Manager',
+    jobRole: 'Technical PM',
+    location: 'New York, NY',
+    status: 'Pending',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '10-08-2024',
+    department: 'Product Development',
+    manager: 'John Doe',
+    employeeCategory: 'Full-time',
+    branch: 'Head Office',
+    attachments: ['www.report.pdf'],
+    businessUnit: 'Tech Division',
+    branchBusiness: 'North America',
+    zone: 'East Coast',
+    area: 'NY Metro',
+    state: 'New York'
+  },
+  {
+    id: '3',
+    designation: 'UX Designer',
+    jobRole: 'UI/UX Specialist',
+    location: 'Remote',
+    status: 'Pending',
+    openings: 1,
+    jobGrade: 'JM2-60',
+    postedDate: '08-08-2024',
+    department: 'Design',
+    manager: 'Jane Smith',
+    employeeCategory: 'Contract',
+    branch: 'Remote Team',
+    attachments: ['www.design.doc'],
+    businessUnit: 'Creative Unit',
+    branchBusiness: 'Global',
+    zone: 'Online',
+    area: 'Virtual',
+    state: 'N/A'
+  },
+  {
+    id: '4',
+    designation: 'Data Scientist',
+    jobRole: 'ML Engineer',
+    location: 'Boston, MA',
+    status: 'Closed',
+    openings: 2,
+    jobGrade: 'JM2-60',
+    postedDate: '05-08-2024',
+    department: 'Data Science',
+    manager: 'Alex Brown',
+    employeeCategory: 'Full-time',
+    branch: 'Research Center',
+    attachments: ['www.data.xlsx', 'www.model.pdf'],
+    businessUnit: 'Analytics',
+    branchBusiness: 'East Region',
+    zone: 'New England',
+    area: 'Boston Area',
+    state: 'Massachusetts'
+  },
+  {
+    id: '5',
+    designation: 'Software Engineer',
+    jobRole: 'Backend Developer',
+    location: 'San Francisco, CA',
+    status: 'Posted',
+    openings: 3,
+    jobGrade: 'JM2-60',
+    postedDate: '03-08-2024',
+    department: 'Engineering',
+    manager: 'Sarah Lee',
+    employeeCategory: 'Full-time',
+    branch: 'Main Office',
+    attachments: ['www.code.zip'],
+    businessUnit: 'DevOps',
+    branchBusiness: 'West Coast',
+    zone: 'California',
+    area: 'Bay Area',
+    state: 'California'
+  }
+]
 
-const calculateHiredPercentage = (job: JobPosting) => {
-  return job.openings === 0 ? 0 : Math.round((job.hired / job.openings) * 100)
-}
-
-const calculateShortlistedPercentage = (job: JobPosting) => {
-  return job.candidatesApplied === 0 ? 0 : Math.round((job.shortlisted / job.candidatesApplied) * 100)
-}
-
-const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGridProps) => {
+const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
   const router = useRouter()
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null)
 
-const handleView = (jobId: string) => {
-  router.push(`/hiring-management/job-posting/view/${jobId}`)
-}
+  const handleView = (job: JobPosting) => {
+    setSelectedJob(job)
+    setDrawerOpen(true)
+  }
 
-  const loadMoreJobs = useCallback(() => {
-    if (loading || data.length >= totalCount) return
-    const nextPage = page + 1
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false)
+    setSelectedJob(null)
+  }
 
-    onLoadMore(nextPage)
-  }, [loading, data.length, totalCount, page, onLoadMore])
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          loadMoreJobs()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current)
-    }
-
-    return () => {
-      if (observerRef.current && loadMoreRef.current) {
-        observerRef.current.unobserve(loadMoreRef.current)
-      }
-    }
-  }, [loadMoreJobs])
+  const handleNavigate = (jobId: string) => {
+    router.push(`/hiring-management/job-posting/view/${jobId}`)
+    handleCloseDrawer()
+  }
 
   return (
-    <Box sx={{ py: 3 }}>
+    <Box sx={{ py: 4 }}>
       <Grid container spacing={3}>
-        {data.map((job, index) => (
+        {data.map(job => (
           <Grid item xs={12} sm={6} md={4} key={job.id}>
-            <Fade in timeout={300 + index * 100}>
-              <StyledCard onClick={() => handleView(job.id)} sx={{ cursor: 'pointer' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      mb: 2
-                    }}
-                  >
+            <StyledCard>
+              <CardContent sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <HeaderWrapper>
+                  <IconFrame>
+                    <IconWrapper>
+                      <BusinessIcon sx={{ width: '24px', height: '24px', color: '#3D459E' }} />
+                    </IconWrapper>
+                    <DataWrapper>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          lineHeight: '19px',
+                          color: '#23262F',
+                          width: '111px'
+                        }}
+                      >
+                        {job.designation}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                          fontWeight: 400,
+                          fontSize: '12px',
+                          lineHeight: '16px',
+                          color: '#23262F',
+                          width: '111px'
+                        }}
+                      >
+                        Internal job posting
+                      </Typography>
+                    </DataWrapper>
+                  </IconFrame>
+                  <StatusBadge sx={{ color: statusColors[job.status] || '#000' }}>{job.status}</StatusBadge>
+                </HeaderWrapper>
+                <Row>
+                  <Col>
                     <Typography
-                      variant='h5'
                       sx={{
-                        fontWeight: 700,
-                        color: 'primary.main',
-                        lineHeight: 1.3
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
                       }}
                     >
-                      {job.designation}
+                      Band
                     </Typography>
-                    <StatusBadge
+                    <Typography
                       sx={{
-                        backgroundColor:
-                          job.status === 'Hiring'
-                            ? 'success.light'
-                            : job.status === 'In Progress'
-                              ? 'warning.light'
-                              : job.status === 'CREATED'
-                                ? 'info.light'
-                                : 'error.light',
-                        color:
-                          job.status === 'Hiring'
-                            ? 'success.contrastText'
-                            : job.status === 'In Progress'
-                              ? 'warning.contrastText'
-                              : job.status === 'CREATED'
-                                ? 'info.contrastText'
-                                : 'error.contrastText'
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
                       }}
                     >
-                      {job.status}
-                    </StatusBadge>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <strong>Job Role:</strong> {job.jobRole}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <strong>Location:</strong> {job.location}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Tooltip title={`${calculateHiredPercentage(job)}% Hired (${job.hired}/${job.openings})`}>
-                        <Box
-                          sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                        >
-                          <CircularProgress
-                            variant='determinate'
-                            value={calculateHiredPercentage(job)}
-                            size={60}
-                            thickness={2}
-                            sx={{ color: 'primary.main' }}
-                          />
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              opacity: 1
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography
-                                variant='caption'
-                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
-                              >
-                                {`${calculateHiredPercentage(job)}%`}
-                              </Typography>
-                              <Typography>Hired</Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Tooltip>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Tooltip
-                        title={`${calculateShortlistedPercentage(job)}% Shortlisted (${job.shortlisted}/${job.candidatesApplied})`}
-                      >
-                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                          <CircularProgress
-                            variant='determinate'
-                            value={calculateShortlistedPercentage(job)}
-                            size={60}
-                            thickness={2}
-                            sx={{ color: 'secondary.main' }}
-                          />
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              opacity: 1
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography
-                                variant='caption'
-                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
-                              >
-                                {`${calculateShortlistedPercentage(job)}%`}
-                              </Typography>
-                              <Typography>Shortlist</Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Tooltip>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant='body2'>
-                        <strong>Openings:</strong> {job.openings}
-                      </Typography>
-                      <Typography variant='body2'>
-                        <strong>Hired:</strong> {job.hired}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant='body2'>
-                        <strong>Applied:</strong> {job.candidatesApplied}
-                      </Typography>
-                      <Typography variant='body2'>
-                        <strong>Shortlisted:</strong> {job.shortlisted}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </StyledCard>
-            </Fade>
+                      {job.jobGrade}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Posted
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {job.postedDate}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Openings
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {job.openings}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Area
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {job.location}
+                    </Typography>
+                  </Col>
+                </Row>
+                <ViewDetailsButton onClick={() => handleView(job)} aria-label={`View details for ${job.designation}`}>
+                  View Details
+                </ViewDetailsButton>
+              </CardContent>
+            </StyledCard>
           </Grid>
         ))}
       </Grid>
@@ -267,13 +589,628 @@ const handleView = (jobId: string) => {
           <CircularProgress />
         </Box>
       )}
-      {data.length < totalCount && (
-        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4, mb: 2 }}>
-          <Typography sx={{ color: 'text.secondary' }}>
-            {loading ? 'Loading more jobs...' : 'Scroll to load more jobs'}
-          </Typography>
-        </Box>
-      )}
+      <Drawer
+        anchor='right'
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        PaperProps={{ sx: { width: '576px', height: '1054px', position: 'absolute', right: 0, top: 0 } }}
+      >
+        {selectedJob && (
+          <DrawerContent status={selectedJob.status}>
+            <Box>
+              <Typography variant='h6'>Job Details</Typography>
+              <IconButton onClick={handleCloseDrawer} aria-label='Close drawer'>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <Box>
+              <HeaderWrapper>
+                <IconFrame>
+                  <IconWrapper>
+                    <BusinessIcon sx={{ width: '24px', height: '24px', color: '#3D459E' }} />
+                  </IconWrapper>
+                  <DataWrapper>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        lineHeight: '19px',
+                        color: '#23262F',
+                        width: '111px'
+                      }}
+                    >
+                      {selectedJob.manager || '-'}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '16px',
+                        color: '#23262F',
+                        width: '111px'
+                      }}
+                    >
+                      {selectedJob.jobRole || '-'}
+                    </Typography>
+                  </DataWrapper>
+                </IconFrame>
+                <StatusBadge sx={{ color: statusColors[selectedJob.status] || '#000' }}>
+                  {selectedJob.status}
+                </StatusBadge>
+              </HeaderWrapper>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '520px', padding: '0px' }}>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Band
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.jobGrade}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Posted
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.postedDate}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Openings
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.openings}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Area
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.location}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      ID
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.id}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Job Role
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.jobRole}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Job Title
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.designation}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Grade
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.manager || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Department
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.department || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Campus Or Lateral
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.manager || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Employee Category
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.employeeCategory || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Employee Type
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.branch || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Attachments
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#0096DA',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      {selectedJob.attachments?.join(', ') || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Company
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.businessUnit || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Business Unit
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.businessUnit || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Branch Business
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.branchBusiness || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Zone
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.zone || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Region
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.area || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Area
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.area || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      City
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.area || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      State
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.state || '-'}
+                    </Typography>
+                  </Col>
+                  <Col>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        color: '#5E6E78'
+                      }}
+                    >
+                      Date
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Public Sans', 'Roboto', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                        color: '#23262F'
+                      }}
+                    >
+                      {selectedJob.postedDate || '-'}
+                    </Typography>
+                  </Col>
+                </Row>
+              </Box>
+              <Button
+                variant='contained'
+                sx={{
+                  mt: 2,
+                  backgroundColor: '#0096DA',
+                  color: '#fff',
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: '#007BB8' }
+                }}
+                onClick={() => handleNavigate(selectedJob.id)}
+                aria-label={`Go to full details for ${selectedJob.designation}`}
+              >
+                Go to Full Details
+              </Button>
+            </Box>
+          </DrawerContent>
+        )}
+      </Drawer>
     </Box>
   )
 }

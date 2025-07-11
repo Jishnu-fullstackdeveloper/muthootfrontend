@@ -96,9 +96,11 @@ export const ROUTES = {
       RESIGNED_DETAILS: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-request/resignation-detail?id=${id}`
     },
-    BUDGET: '/hiring-management/budget-management',
-    BUDGET_ADD: '/hiring-management/budget-management/add/new',
-    BUDGET_VIEW: (jobTitle: string, id: string) => `/hiring-management/budget-management/view/${jobTitle}?id=${id}`
+    BUDGET: '/hiring-management/budget-management/budget-request',
+    BUDGET_ADD: '/hiring-management/budget-management/budget-request/add/new',
+    BUDGET_VIEW: (jobTitle: string, id: string) =>
+      `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`,
+    POSITION_MATRIX: '/hiring-management/budget-management/position-budget-matrix'
   },
   JD_MANAGEMENT: '/jd-management',
   BRANCH_MANAGEMENT: '/branch-management',

@@ -1,557 +1,160 @@
-import React from 'react'
+'use client'
+import React, { useEffect } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
-import {
-  Box,
-  Card,
-  Typography,
-  Grid,
-  Button,
-  TableCell,
-  TableContainer,
-  TableBody,
-  TableRow,
-  Table
-} from '@mui/material'
+import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 
-import { ArrowBack } from '@mui/icons-material'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchJdById } from '@/redux/jdManagemenet/jdManagemnetSlice'
 
-type Props = {
-  mode: any
-  id: any
-}
+const JobRoleDetails = () => {
+  const { id } = useParams()
+  const dispatch = useAppDispatch()
 
-const ViewJD: React.FC<Props> = () => {
-  const router = useRouter()
+  const { selectedJd, isSelectedJdLoading, selectedJdSuccess, selectedJdFailure, selectedJdFailureMessage } =
+    useAppSelector(state => state.jdManagementReducer)
 
-  const keyResponsibilities = [
-    {
-      title: 'Operational Governance',
-      description: ['Cascade and communicate branch-wise targets to the team, create daily/weekly/monthly targets, ']
-    },
-    {
-      title: 'Business Development',
-      description: [
-        'Leverage market and customer insights to support product strategy, market opportunities and potential new branch locations within the assigned area.'
-      ]
+  console.log('Job Role ID from useParams:', id)
+
+  useEffect(() => {
+    console.log(fetchJdById, 'fetchJd dispatched with ID:', id)
+
+    if (id && typeof id === 'string') {
+      console.log('Dispatching fetchJdById with ID:', id)
+      dispatch(fetchJdById(id))
     }
-  ]
+  }, [id, dispatch])
 
-  const keyInteractions = [
-    {
-      type: 'Internal Stakeholders',
-      description: [
-        'RM: For review of operational performance and approvals.',
-        'SULB: For credit checks, collections, and disbursements.',
-        'Internal Team: Branch Manager for operational matters, guidance and support.'
-      ]
-    },
-    {
-      type: 'External Stakeholders',
-      description: ['Key customers and relationships.', 'Regulatory bodies for compliance related matters.']
-    }
-  ]
+  console.log('Selected JD:', selectedJd)
 
-  const keySkillsAndAttributes = [
-    {
-      factor: 'Technical Expertise',
-      competencies: ['Java', 'Spring Boot', 'API Integration'],
-      definitions: ['Java development', 'Backend design'],
-      behavioralAttributes: ['Adaptability', 'Problem-solving']
-    },
-    {
-      factor: 'Communication Skills',
-      competencies: ['Stakeholder Engagement'],
-      definitions: ['Effective communication with clients'],
-      behavioralAttributes: ['Team leadership', 'Cross-functional collaboration']
-    }
-  ]
-
-  const keyRoleDimentions = [
-    {
-      portfolioSize: ' 100+',
-      geographicalCoverage: ' 10-14',
-      branchesTeamSize: '12-15',
-      totalTeamSize: ' 40-50'
-    }
-  ]
-
-  const chartData = {
-    title: 'CEO',
-    children: [
-      {
-        title: 'CTO',
-        children: [{ title: 'Lead Developer' }, { title: 'QA Manager' }]
-      },
-      {
-        title: 'CFO',
-        children: [{ title: 'Finance Manager' }, { title: 'Accountant' }]
-      }
-    ]
+  if (isSelectedJdLoading) {
+    return <CircularProgress />
   }
 
-  // Recursive function to render the tree
-  // const renderNode = (node: any) => (
-  //   <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
-  //     {/* Parent Node */}
-  //     <Box
-  //       sx={{
-  //         width: 160,
-  //         height: 50,
-  //         backgroundColor: '#2196F3',
-  //         borderRadius: 8,
-  //         display: 'flex',
-  //         alignItems: 'center',
-  //         justifyContent: 'center',
-  //         fontWeight: 'bold',
-  //         color: '#fff',
-  //         margin: '0 auto'
-  //       }}
-  //     >
-  //       {node.title}
-  //     </Box>
+  if (selectedJdFailure) {
+    return <Alert severity='error'>{selectedJdFailureMessage}</Alert>
+  }
 
-  //     {/* Render children recursively */}
-  //     {node.children && (
-  //       <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-  //         {/* Vertical line connecting parent to the children */}
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 0,
-  //             left: '50%',
-  //             width: 2,
-  //             height: 30,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-
-  //         {/* Horizontal lines to connect left and right children */}
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 30,
-  //             // left: 0,
-  //             width: '20%',
-  //             height: 2,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 30,
-  //             // right: 0,
-  //             width: '20%',
-  //             height: 2,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-
-  //         {/* Render child nodes */}
-  //         <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '50%' }}>
-  //           {node.children.map((child: any, index: number) => (
-  //             <Box
-  //               key={index}
-  //               sx={{
-  //                 display: 'flex',
-  //                 flexDirection: 'column',
-  //                 alignItems: 'center',
-  //                 position: 'relative'
-  //               }}
-  //             >
-  //               {/* Child Node */}
-  //               <Box
-  //                 sx={{
-  //                   width: 140,
-  //                   height: 50,
-  //                   marginTop: 2,
-  //                   backgroundColor: '#e3f2fd',
-  //                   borderRadius: 8,
-  //                   display: 'flex',
-  //                   alignItems: 'center',
-  //                   justifyContent: 'center',
-  //                   fontWeight: 'bold',
-  //                   color: '#1e88e5'
-  //                 }}
-  //               >
-  //                 {child.title}
-  //               </Box>
-
-  //               {/* Recursively render child nodes */}
-  //               {child.children && (
-  //                 <Box sx={{ mt: 3 }}>
-  //                   {child.children.map((subChild: any, subIndex: number) => (
-  //                     <Box
-  //                       key={subIndex}
-  //                       sx={{
-  //                         display: 'flex',
-  //                         flexDirection: 'row',
-  //                         alignItems: 'center',
-  //                         position: 'relative'
-  //                       }}
-  //                     >
-  //                       {/* Render sub-child node */}
-  //                       <Box
-  //                         sx={{
-  //                           width: 140,
-  //                           height: 50,
-  //                           backgroundColor: '#e3f2fd',
-  //                           borderRadius: 8,
-  //                           display: 'flex',
-  //                           alignItems: 'center',
-  //                           justifyContent: 'center',
-  //                           fontWeight: 'bold',
-  //                           color: '#1e88e5'
-  //                         }}
-  //                       >
-  //                         {subChild.title}
-  //                       </Box>
-  //                     </Box>
-  //                   ))}
-  //                 </Box>
-  //               )}
-  //             </Box>
-  //           ))}
-  //         </Box>
-  //       </Box>
-  //     )}
-  //   </Box>
-  // )
-
-  const renderNode = (node: any) => (
-    <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
-      {/* Parent Node */}
-      <Box
-        sx={{
-          width: 160,
-          height: 50,
-          backgroundColor: '#2196F3',
-          borderRadius: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 'bold',
-          color: '#fff',
-          margin: '0 auto'
-        }}
-      >
-        {node.title}
-      </Box>
-
-      {/* Render children recursively */}
-      {node.children && (
-        <Box sx={{ position: 'relative' }}>
-          {/* Vertical Line */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -16,
-              left: '50%',
-              width: 2,
-              height: 62,
-              backgroundColor: '#3f51b5'
-
-              // transform: 'translateX(-50%)'
-            }}
-          />
-
-          {/* Children Container */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 4 }}>
-            {node.children.map((child: any, index: number) => (
-              <Box key={index} sx={{ position: '', textAlign: 'center' }}>
-                {/* Horizontal Line */}
-                {node.children.length > 1 && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 45,
-                      left: '50%',
-                      width: index === 0 ? 'calc(50% + 40px)' : '0',
-                      height: 2,
-                      backgroundColor: '#3f51b5',
-                      transform: 'translateX(-50%)'
-                    }}
-                  />
-                )}
-
-                {/* Render Child Node */}
-                <Box sx={{ mt: 5, zIndex: 100, marginRight: 10, marginLeft: 10 }}>{renderNode(child)}</Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
-    </Box>
-  )
+  if (!selectedJdSuccess || !selectedJd) {
+    return <Alert severity='info'>No job role data found.</Alert>
+  }
 
   return (
-    <>
-      <Box display='flex' alignItems='center' justifyContent='space-between' marginBottom={4}>
-        <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
-          Back to JD List
-        </Button>
-      </Box>
-      {/* Header Section */}
-      <Box
-        sx={{
-          mb: 4,
-          backgroundColor: '#f5f5f5',
-          padding: 2,
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}
-      >
-        <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#3f51b5' }}>
-          ASST. BRANCH MANAGER
-        </Typography>
-      </Box>
-
-      {/* Oragnizational chart */}
-
-      <Box
-        sx={{
-          // position: 'sticky',
-          top: 0,
-          mb: 4,
-          backgroundColor: '#fff',
-          padding: 2,
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}
-      >
-        <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#3f51b5', mb: 2, pl: 4, pt: 2 }}>
-          Organizational Chart
-        </Typography>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        {renderNode(chartData)}
-        </Box>
-      </Box>
-      <Grid container spacing={6}>
-        {/* Left Side Content */}
-        <Grid item xs={8}>
-          {/* Role Summary */}
-          <Card
-            variant='outlined'
-            sx={{
-              mb: 3,
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              '&:hover': { boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }
-            }}
-          >
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Role Summary
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-              Proven hands-on experience in leadership and full-stack development within a corporate setting. Candidates
-              should demonstrate strong decision-making and communication skills, with proven expertise in technical
-              design and agile project delivery.
-            </Typography>
-          </Card>
-
-          {/* Key Responsibilities */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Responsibilities
-            </Typography>
-            {keyResponsibilities.map((item, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <TableContainer sx={{ maxHeight: 'none', overflow: 'hidden' }}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '30%', paddingRight: 2 }}>
-                          <Typography variant='body1' sx={{ fontWeight: 'bold', color: '#444' }}>
-                            {item.title}
-                          </Typography>
-                        </TableCell>
-                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '70%' }}>
-                          {item.description.map((desc, idx) => {
-                            const words = desc.split(' ')
-                            const lines = []
-                            let currentLine = ''
-
-                            words.forEach((word, i) => {
-                              if ((currentLine + word).split(' ').length > 10 || i === words.length - 1) {
-                                lines.push(currentLine.trim())
-                                currentLine = word + ' '
-                              } else {
-                                currentLine += word + ' '
-                              }
-                            })
-
-                            return lines.map((line, lineIdx) => (
-                              <Typography key={`${idx}-${lineIdx}`} variant='body2' sx={{ color: '#666', mb: 1 }}>
-                                {line}
-                              </Typography>
-                            ))
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            ))}
-          </Card>
-
-          {/* Key Challenges */}
-
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Challenges
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-              Adapting to evolving market trends, driving technical innovation while maintaining compliance, and
-              ensuring cross-functional collaboration with varying business unit objectives.
-            </Typography>
-          </Card>
-
-          {/* Key Interactions */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Interactions
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              {keyInteractions.map((interaction, index) => (
-                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
-                  <Typography
-                    variant='body2'
-                    sx={{ color: '#444', mb: 2, backgroundColor: '#f5f5f5', padding: '6px 10px', borderRadius: '4px' }}
-                  >
-                    <strong>{interaction.type}</strong>
-                  </Typography>
-                  <Typography variant='body2' sx={{ color: '#666', paddingLeft: 2 }}>
-                    {interaction.description.map((item, idx) => (
-                      <span key={idx}>
-                        {item.trim()}
-                        <br />
-                        <br />
-                      </span>
-                    ))}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
-
-       {/* Education & Experience */}
-
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Educational & Experience 
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-            <strong>Minimum Qualification:</strong>  Bachelor’s Degree in Computer Science/Related Fields 
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-            <strong>Nature of Experience::</strong> 5+ years of experience in software development, with at least 2 years in a leadership role.
-            </Typography>
-          </Card>
-
-        </Grid>
-
-        {/* Right Side Content */}
-        <Grid item xs={4}>
-          {/* Company & Reporting Details */}
-          <Card
-            variant='outlined'
-            sx={{
-              mb: 3,
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              '&:hover': { boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }
-            }}
-          >
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Role Details
-            </Typography>
-            <Typography>
-              <strong>Role Title:</strong> ABC Developer
-            </Typography>
-            <Typography>
-              <strong>Employee Interviewed:</strong> ABC Ltd.
-            </Typography>
-            <Typography>
-              <strong>Reports To:</strong>Regional Manager
-            </Typography>
-            <Typography>
-              <strong>Company Name:</strong> ABC Ltd.
-            </Typography>
-            <Typography>
-              <strong>Function/Department:</strong>Branch Business
-            </Typography>
-            <Typography>
-              <strong>Written By:</strong> Korn Ferry
-            </Typography>
-            <Typography>
-              <strong>Approved By (Jobholder):</strong> HR Department
-            </Typography>
-            <Typography>
-              <strong>Approved By (Immediate Superior):</strong> HR Department
-            </Typography>
-            <Typography>
-              <strong>Date (Written On):</strong> 10-01-2023
-            </Typography>
-          </Card>
-
-          {/* Skills & Attributes */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Skills & Attributes
-            </Typography>
-            {keySkillsAndAttributes.map((section, index) => (
-              <Box key={index} sx={{ mb: 3, borderBottom: '1px solid #ddd', pb: 2 }}>
-                <Typography variant='body2' sx={{ fontWeight: 'bold', mb: 1, color: '#444' }}>
-                  Factor/Category: {section.factor}
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                  <strong>Competencies:</strong> {section.competencies.join(', ')}
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                  <strong>Definitions:</strong> {section.definitions.join(', ')}
-                </Typography>
-                <Typography variant='body2' sx={{ color: '#666' }}>
-                  <strong>Behavioral Attributes:</strong> {section.behavioralAttributes.join(', ')}
-                </Typography>
-              </Box>
-            ))}
-          </Card>
-
-          {/* KEY ROLE DIMENTIONS */}
-
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              KEY ROLE DIMENSIONS
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              {keyRoleDimentions.map((dimentions, index) => (
-                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Portfolio Size:</strong> {dimentions.portfolioSize}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Geographical Coverage:</strong> {dimentions.geographicalCoverage}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Branches Team Size:</strong> {dimentions.branchesTeamSize}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Total Team Size:</strong> {dimentions.totalTeamSize}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
-    </>
+    <Box sx={{ p: 4 }}>
+      <Typography variant='h4'>Job Role Details</Typography>
+      <Typography variant='body1'>
+        <strong>ID:</strong> {selectedJd.id}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Job Role ID:</strong> {selectedJd.jobRoleId}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Title:</strong> {selectedJd.details.roleSpecification[0]?.roleTitle || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Company:</strong> {selectedJd.details.roleSpecification[0]?.companyName || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Department:</strong> {selectedJd.details.roleSpecification[0]?.functionOrDepartment || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Approval Status:</strong> {selectedJd.approvalStatus}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Created At:</strong> {new Date(selectedJd.createdAt).toLocaleDateString()}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Role Summary:</strong> {selectedJd.details.roleSummary || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Key Decisions:</strong> {selectedJd.details.keyDecisions || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Key Challenges:</strong> {selectedJd.details.keyChallenges || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>External Stakeholders:</strong> {selectedJd.details.keyInteractions[0]?.externalStakeholders || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Internal Stakeholders:</strong> {selectedJd.details.keyInteractions[0]?.internalStakeholders || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Team Size:</strong> {selectedJd.details.keyRoleDimensions[0]?.teamSize || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Portfolio Size:</strong> {selectedJd.details.keyRoleDimensions[0]?.portfolioSize || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Total Team Size:</strong> {selectedJd.details.keyRoleDimensions[0]?.totalTeamSize || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Geographical Coverage:</strong> {selectedJd.details.keyRoleDimensions[0]?.geographicalCoverage || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Organization Chart Name:</strong> {selectedJd.details.organizationChart?.name || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Reports To:</strong> {selectedJd.details.roleSpecification[0]?.reportsTo || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Written By:</strong> {selectedJd.details.roleSpecification[0]?.writtenBy || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Date Written:</strong>{' '}
+        {selectedJd.details.roleSpecification[0]?.dateWritten
+          ? new Date(selectedJd.details.roleSpecification[0].dateWritten).toLocaleDateString()
+          : 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Approved By Superior:</strong> {selectedJd.details.roleSpecification[0]?.approvedBySuperior || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Approved By Jobholder:</strong> {selectedJd.details.roleSpecification[0]?.approvedByJobholder || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Employee Interviewed:</strong> {selectedJd.details.roleSpecification[0]?.employeeInterviewed || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Key Responsibilities:</strong> {selectedJd.details.keyResponsibilities[0]?.title || 'N/A'} -{' '}
+        {selectedJd.details.keyResponsibilities[0]?.description || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Minimum Qualification:</strong>{' '}
+        {selectedJd.details.educationAndExperience[0]?.minimumQualification || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Experience Description:</strong>{' '}
+        {selectedJd.details.educationAndExperience[0]?.experienceDescription || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Skills and Attributes Type:</strong> {selectedJd.details.skillsAndAttributesType || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Skills Factor:</strong> {selectedJd.details.skillsAndAttributesDetails[0]?.factor || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Competency:</strong> {selectedJd.details.skillsAndAttributesDetails[0]?.competency[0]?.value || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Definition:</strong> {selectedJd.details.skillsAndAttributesDetails[0]?.definition[0]?.value || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Behavioural Attributes:</strong>{' '}
+        {selectedJd.details.skillsAndAttributesDetails[0]?.behavioural_attributes[0]?.value || 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Updated At:</strong> {new Date(selectedJd.updatedAt).toLocaleDateString()}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Deleted At:</strong>{' '}
+        {selectedJd.deletedAt ? new Date(selectedJd.deletedAt).toLocaleDateString() : 'N/A'}
+      </Typography>
+      <Typography variant='body1'>
+        <strong>Deleted By:</strong> {selectedJd.deletedBy || 'N/A'}
+      </Typography>
+    </Box>
   )
 }
 
-export default ViewJD
+export default JobRoleDetails

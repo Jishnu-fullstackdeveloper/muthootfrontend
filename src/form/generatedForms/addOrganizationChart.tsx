@@ -13,12 +13,13 @@ import ReactFlow, {
   Position,
   ReactFlowProvider
 } from 'reactflow'
+
 import 'reactflow/dist/style.css'
 
 const roles = ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
 
 // Editable dropdown node
-function CustomNode({ data, selected, id }: NodeProps) {
+export function CustomNode({ data, selected, id }: NodeProps) {
   const shape = data.shape || 'rectangle'
   const base = 'p-2 text-sm text-center shadow border'
 

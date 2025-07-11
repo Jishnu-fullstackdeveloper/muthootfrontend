@@ -25,7 +25,6 @@ const platformName = ['LinkedIn', 'Naukri']
 const JobCustomizationPage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
   const [formData, setFormData] = useState({
     band: [],
@@ -42,36 +41,8 @@ const JobCustomizationPage = () => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleDrawerOpen = (data: any = null, index: number | null = null) => {
-    if (data) {
-      setFormData({
-        band: data.band?.split(', ').filter(Boolean) || [],
-        jobRole: data.jobRole?.split(', ').filter(Boolean) || [],
-        employeeCategory: data.employeeCategory?.split(', ').filter(Boolean) || [],
-        platformName: data.platformName?.split(', ').filter(Boolean) || [],
-        priority: data.priority,
-        platformAge: data.platformAge
-      })
-      setEditingIndex(index)
-    } else {
-      setFormData({
-        band: [],
-        jobRole: [],
-        employeeCategory: [],
-        platformName: [],
-        priority: '',
-        platformAge: ''
-      })
-      setEditingIndex(null)
-    }
-
-    setDrawerOpen(true)
-  }
-
-  const handleDrawerClose = () => {
-    setDrawerOpen(false)
-    setEditingIndex(null)
-  }
+  const handleDrawerOpen = () => setDrawerOpen(true)
+  const handleDrawerClose = () => setDrawerOpen(false)
 
   const handleSubmit = () => {
     const newEntry = {
@@ -83,15 +54,7 @@ const JobCustomizationPage = () => {
       platformAge: formData.platformAge
     }
 
-    if (editingIndex !== null) {
-      const updatedList = [...customList]
-
-      updatedList[editingIndex] = newEntry
-      setCustomList(updatedList)
-    } else {
-      setCustomList(prev => [...prev, newEntry])
-    }
-
+    setCustomList(prev => [...prev, newEntry])
     setFormData({
       band: [],
       jobRole: [],
@@ -100,7 +63,6 @@ const JobCustomizationPage = () => {
       priority: '',
       platformAge: ''
     })
-    setEditingIndex(null)
     handleDrawerClose()
   }
 
@@ -135,12 +97,12 @@ const JobCustomizationPage = () => {
               }}
             />
           </Box>
-          <Button onClick={() => handleDrawerOpen()}>Add</Button>
+          <Button onClick={handleDrawerOpen}>Add</Button>
         </Box>
       </Card>
 
-      {/* Table with onEdit handler */}
-      <JobPostingCustomTable data={customList} onEdit={(data, index) => handleDrawerOpen(data, index)} />
+      {/* Table */}
+      <JobPostingCustomTable data={customList} />
 
       {/* Drawer */}
       <Drawer
@@ -151,7 +113,7 @@ const JobCustomizationPage = () => {
       >
         <Box sx={{ p: 4 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            {editingIndex !== null ? 'Edit' : 'Add'} Interview Customization
+            Edit Interview Customization
           </Typography>
           <Divider sx={{ mb: 3 }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -226,7 +188,7 @@ const JobCustomizationPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit} color='primary' variant='contained'>
-              {editingIndex !== null ? 'Update' : 'Submit'}
+              Submit
             </Button>
           </Box>
         </Box>

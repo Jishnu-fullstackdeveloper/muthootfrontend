@@ -46,7 +46,7 @@ const JobPostingCustomTable = ({ data }: { data: JobPosting[] }) => {
       }),
       columnHelper.accessor('Action', {
         header: 'Action',
-        cell: ({ row }) => (
+        cell: ({}) => (
           <IconButton title='Edit' sx={{ fontSize: '30px' }} onClick={() => {}}>
             <i className='tabler-edit w-5 h-5' />
           </IconButton>
@@ -65,6 +65,11 @@ const JobPostingCustomTable = ({ data }: { data: JobPosting[] }) => {
         sorting={undefined}
         onSortingChange={undefined}
         initialState={undefined}
+        totalCount={0}
+        pagination={{
+          pageIndex: 0,
+          pageSize: 0
+        }}
       />
     </div>
   )

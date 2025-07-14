@@ -1,4 +1,5 @@
 
+
 export const API_ENDPOINTS = {
     getJobRole: '/jobRole',
     getDesignation: '/designation',
@@ -6,4 +7,5 @@ export const API_ENDPOINTS = {
     addNewJd:'/jd',
     getJd:'/jd',
     getJdById: (id: string) => `/jd/${id}`, 
+   updateJd: `/jd`,
 }

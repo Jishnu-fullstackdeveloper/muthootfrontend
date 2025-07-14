@@ -18,7 +18,7 @@ import {
   Chip,
   IconButton,
   InputAdornment,
-  Button
+  
 } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
@@ -34,6 +34,7 @@ import JobListingTableView from './JobListingTable'
 import CustomTextField from '@/@core/components/mui/TextField'
 
 import { ROUTES } from '@/utils/routes'
+import EditIcon from '@/icons/EditIcon'
 
 // Define the shape of the job role data
 interface JobRole {
@@ -422,16 +423,14 @@ const EnhancedJobRoleList = () => {
                   <Typography variant='h6' fontWeight='bold' color='#23262F'>
                     {jobRole.details.roleSpecification[0]?.roleTitle.toUpperCase() || 'N/A'}
                   </Typography>
-                  <Tooltip title='Delete JD' placement='top'>
+                  
                     <IconButton
                       sx={{ ':hover': { color: 'error.main' } }}
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
+                      onClick={() => router.push(ROUTES.JD_EDIT(jobRole.id))}
                     >
-                      <i className='tabler-trash' />
+                      <EditIcon />
                     </IconButton>
-                  </Tooltip>
+                    
                 </Box>
                 <Box className='p-4 grid grid-cols-2 gap-4'>
                   <Box className='flex flex-col gap-2'>

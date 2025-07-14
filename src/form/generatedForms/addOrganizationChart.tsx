@@ -1,7 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import type { Connection, Edge, Node, NodeProps } from 'reactflow'
+import type { Node, Edge, Connection } from 'reactflow'
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -15,11 +15,32 @@ import ReactFlow, {
 } from 'reactflow'
 
 import 'reactflow/dist/style.css'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchDesignation } from '@/redux/jdManagemenet/jdManagemnetSlice'
 
-const roles = ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
+interface NodeProps {
+  data: {
+    label: string
+    shape: string
+    options: string[]
+    usedRoles: string[]
+    onChange?: (id: string, newLabel: string) => void
+  }
+  selected: boolean
+  id: string
+}
 
-// Editable dropdown node
-export function CustomNode({ data, selected, id }: NodeProps) {
+const nodeTypes = { custom: CustomNode }
+
+let id = 1
+const getId = () => `${++id}`
+
+interface OrgChartCanvasProps {
+  onSave: (chartData: { nodes: Node[]; edges: Edge[] }) => void
+  initialChart: { nodes: Node[]; edges: Edge[] } | null
+}
+
+function CustomNode({ data, selected, id }: NodeProps) {
   const shape = data.shape || 'rectangle'
   const base = 'p-2 text-sm text-center shadow border'
 
@@ -33,6 +54,13 @@ export function CustomNode({ data, selected, id }: NodeProps) {
     data.onChange?.(id, e.target.value)
   }
 
+  const { designationData, loading, error } = useAppSelector(state => state.jdManagementReducer)
+
+  // Update roles based on fetched designationData
+  const roles = designationData?.length
+    ? designationData.map((item: { name: string }) => item.name)
+    : ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
+
   return (
     <div
       className={`${base} ${shapeStyles[shape]} ${selected ? 'ring-2 ring-blue-400' : ''}`}
@@ -44,9 +72,10 @@ export function CustomNode({ data, selected, id }: NodeProps) {
           value={data.label}
           onChange={onChange}
           className='w-full text-center bg-transparent outline-none font-medium'
+          disabled={loading}
         >
           <option value=''>Select Role</option>
-          {data.options.map((role: string) => (
+          {roles.map((role: string) => (
             <option key={role} value={role} disabled={data.usedRoles.includes(role)}>
               {role}
             </option>
@@ -54,24 +83,18 @@ export function CustomNode({ data, selected, id }: NodeProps) {
         </select>
       </div>
       <Handle type='source' position={Position.Bottom} />
+      {error && <div className='text-red-500 text-xs'>{error}</div>}
     </div>
   )
 }
 
-const nodeTypes = { custom: CustomNode }
-
-let id = 1
-const getId = () => `${++id}`
-
-interface OrgChartCanvasProps {
-  onSave: (chartData: any) => void
-  initialChart: any | null
-}
-
 export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasProps) {
+  const dispatch = useAppDispatch()
   const [usedRoles, setUsedRoles] = useState<string[]>([])
+  const [limit] = useState(10)
+  const [page] = useState(1)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>(
     initialChart?.nodes || [
       {
         id: '1',
@@ -79,7 +102,7 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
         data: {
           label: '',
           shape: 'rectangle',
-          options: roles,
+          options: [],
           usedRoles: [],
           onChange: () => {}
         },
@@ -88,7 +111,7 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     ]
   )
 
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialChart?.edges || [])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>(initialChart?.edges || [])
 
   const onConnect = useCallback((params: Edge | Connection) => setEdges(eds => addEdge(params, eds)), [])
 
@@ -121,20 +144,44 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
   }
 
   const addNode = (shape: string) => {
+    const minDistance = 150 // Minimum distance between nodes
+    let newX = Math.random() * 400 + 100
+    let newY = Math.random() * 400 + 100
+    let overlap = true
+    let attempts = 0
+    const maxAttempts = 10
+
+    // Check for overlap with existing nodes
+    while (overlap && attempts < maxAttempts) {
+      overlap = false
+
+      for (const node of nodes) {
+        const dx = newX - node.position.x
+        const dy = newY - node.position.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < minDistance) {
+          overlap = true
+          newX = Math.random() * 400 + 100
+          newY = Math.random() * 400 + 100
+          break
+        }
+      }
+
+      attempts++
+    }
+
     const newNode: Node = {
       id: getId(),
       type: 'custom',
       data: {
         label: '',
         shape,
-        options: roles,
+        options: [],
         usedRoles,
         onChange: updateNodeLabel
       },
-      position: {
-        x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100
-      }
+      position: { x: newX, y: newY }
     }
 
     setNodes(nds => [...nds, newNode])
@@ -182,6 +229,16 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
 
     onSave(chartData)
   }
+
+  useEffect(() => {
+    const params = { limit, page }
+
+    dispatch(fetchDesignation(params))
+      .unwrap()
+      .catch(error => {
+        console.error('Failed to fetch designations:', error)
+      })
+  }, [dispatch, limit, page])
 
   return (
     <ReactFlowProvider>

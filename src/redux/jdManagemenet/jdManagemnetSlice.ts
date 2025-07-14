@@ -3,6 +3,73 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { API_ENDPOINTS } from '../ApiUrls/jdManagemnetUrls'
 
+interface UpdateJdPayload {
+  id: string
+  params: {
+    jobRoleId: string
+    approvalStatus: string
+    details: {
+      roleSpecification: {
+        roleTitle: string
+        employeeInterviewed: string
+        reportsTo: string
+        companyName: string
+        functionOrDepartment: string
+        writtenBy: string
+        approvedByJobholder: string
+        approvedBySuperior: string
+        dateWritten: string
+      }[]
+      roleSummary: string
+      keyResponsibilities: { title: string; description: string }[]
+      keyChallenges: string
+      keyDecisions: string
+      keyInteractions: { internalStakeholders: string; externalStakeholders: string }[]
+      keyRoleDimensions: {
+        portfolioSize: string
+        geographicalCoverage: string
+        teamSize: string
+        totalTeamSize: string
+      }[]
+      skillsAndAttributesType: string
+      skillsAndAttributesDetails: {
+        factor: string
+        competency: { value: string }[]
+        definition: { value: string }[]
+        behavioural_attributes: { value: string }[]
+      }[]
+      educationAndExperience: {
+        minimumQualification: string
+        experienceDescription: string
+      }[]
+      organizationChart: {
+        organizationChart: {
+          id: string
+          name: string
+          parentId: string
+          children: {
+            id: string
+            name: string
+            parentId: string
+            children: any[] // Recursive structure
+          }[]
+        }
+      }
+    }
+    meta?: object
+  }
+}
+
+// export const fetchJobRole = createAsyncThunk(
+//   'jdManagement/fetchJobRole', async (params: any, { rejectWithValue }) => {
+//   try {
+//     const response = await AxiosLib.get(API_ENDPOINTS.getJobRole, { params })
+
+//     return response.data
+//   } catch (error: any) {
+//     return rejectWithValue(error.response?.data || { message: 'Failed to fetch job roles' })
+//   }
+// })
 export const fetchJobRole = createAsyncThunk('jdManagement/fetchJobRole', async (params: any, { rejectWithValue }) => {
   try {
     const response = await AxiosLib.get(API_ENDPOINTS.getJobRole, { params })
@@ -70,15 +137,34 @@ export const fetchJd = createAsyncThunk('jdManagement/fetchJd', async (params: a
   }
 })
 
-export const fetchJdById = createAsyncThunk(
-  'jdManagement/fetchJdById',
-  async (id: string, { rejectWithValue }) => {
+export const fetchJdById = createAsyncThunk('jdManagement/fetchJdById', async (id: string, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.get(API_ENDPOINTS.getJdById(id))
+
+    return response.data
+  } catch (error: any) {
+    return rejectWithValue(error.response.data)
+  }
+})
+
+export const updateJd = createAsyncThunk<any, UpdateJdPayload>(
+  'jdManagement/updateJd',
+  async ({ id, params }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getJdById(id))
+      // Construct the URL with the id as a query parameter
+      const url = `${API_ENDPOINTS.updateJd}?id=${encodeURIComponent(id)}`
+
+      // Send only the params object in the request body
+      const response = await AxiosLib.put(url, params)
 
       return response.data
     } catch (error: any) {
-      return rejectWithValue(error.response.data)
+      const errorMessage = error.response?.data?.message || 'Failed to update JD'
+
+      return rejectWithValue({
+        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+        statusCode: error.response?.data?.statusCode || 500
+      })
     }
   }
 )
@@ -125,56 +211,74 @@ export const jdManagementSlice = createSlice({
 
   reducers: {
     fetchJdDismiss: state => {
-     state.isJdLoading = false;
-      state.jdSuccess = false;
-      state.jdFailure = false;
-      state.jdFailureMessage = '';
+      state.isJdLoading = false
+      state.jdSuccess = false
+      state.jdFailure = false
+      state.jdFailureMessage = ''
     }
   },
   extraReducers: builder => {
-  builder
-      .addCase(fetchJd.pending, (state) => {
-        state.isJdLoading = true;
-        state.jdSuccess = false;
-        state.jdFailure = false;
-        state.jdFailureMessage = '';
+    builder
+      .addCase(fetchJd.pending, state => {
+        state.isJdLoading = true
+        state.jdSuccess = false
+        state.jdFailure = false
+        state.jdFailureMessage = ''
       })
       .addCase(fetchJd.fulfilled, (state, action) => {
-        state.jdData = action.payload?.data || [];
-        state.isJdLoading = false;
-        state.jdSuccess = true;
-        state.jdFailure = false;
-        state.jdFailureMessage = '';
+        state.jdData = action.payload?.data || []
+        state.isJdLoading = false
+        state.jdSuccess = true
+        state.jdFailure = false
+        state.jdFailureMessage = ''
       })
       .addCase(fetchJd.rejected, (state, action: any) => {
-        state.jdData = [];
-        state.isJdLoading = false;
-        state.jdSuccess = false;
-        state.jdFailure = true;
-        state.jdFailureMessage = action.payload?.message || 'Failed to fetch job roles';
-      });
+        state.jdData = []
+        state.isJdLoading = false
+        state.jdSuccess = false
+        state.jdFailure = true
+        state.jdFailureMessage = action.payload?.message || 'Failed to fetch job roles'
+      })
 
-
-        builder.addCase(fetchJdById.pending, state => {
-            state.isSelectedJdLoading = true
-            state.selectedJdSuccess = false
-            state.selectedJdFailure = false
-            state.selectedJdFailureMessage = ''
-          })
-          builder.addCase(fetchJdById.fulfilled, (state, action) => {
-            state.selectedJd = action?.payload?.data
-            state.isSelectedJdLoading = false
-            state.selectedJdSuccess = true
-            state.selectedJdFailure = false
-          })
-          builder.addCase(fetchJdById.rejected, (state, action: any) => {
-            state.isSelectedJdLoading = false
-            state.selectedJd = null
-            state.selectedJdSuccess = false
-            state.selectedJdFailure = true
-            state.selectedJdFailureMessage = action?.payload?.message || 'Failed to fetch user'
-          })
-      
+    builder.addCase(fetchJdById.pending, state => {
+      state.isSelectedJdLoading = true
+      state.selectedJdSuccess = false
+      state.selectedJdFailure = false
+      state.selectedJdFailureMessage = ''
+    })
+    builder.addCase(fetchJdById.fulfilled, (state, action) => {
+      state.selectedJd = action?.payload?.data
+      state.isSelectedJdLoading = false
+      state.selectedJdSuccess = true
+      state.selectedJdFailure = false
+    })
+    builder.addCase(fetchJdById.rejected, (state, action: any) => {
+      state.isSelectedJdLoading = false
+      state.selectedJd = null
+      state.selectedJdSuccess = false
+      state.selectedJdFailure = true
+      state.selectedJdFailureMessage = action?.payload?.message || 'Failed to fetch user'
+    })
+    builder.addCase(fetchJobRole.pending, state => {
+      state.isJobRoleLoading = true
+      state.jobRoleSuccess = false
+      state.jobRoleFailure = false
+      state.jobRoleFailureMessage = ''
+    })
+    builder.addCase(fetchJobRole.fulfilled, (state, action) => {
+      state.jobRoleData = action.payload?.data || []
+      state.isJobRoleLoading = false
+      state.jobRoleSuccess = true
+      state.jobRoleFailure = false
+      state.jobRoleFailureMessage = ''
+    })
+    builder.addCase(fetchJobRole.rejected, (state, action: any) => {
+      state.jobRoleData = []
+      state.isJobRoleLoading = false
+      state.jobRoleSuccess = false
+      state.jobRoleFailure = true
+      state.jobRoleFailureMessage = action.payload?.message || 'Failed to fetch job roles'
+    })
 
     builder.addCase(fetchDesignation.pending, state => {
       state.isDesignationLoading = true

@@ -430,49 +430,9 @@ export default function CreateJDForm() {
     return count
   }
 
-  // Helper function to convert to React Flow nodes
-  const convertToReactFlowNodes = (chart, parentX = 0, parentY = 0, level = 0) => {
-    const nodes = []
-    const xOffset = 200
-    const yOffset = 100
 
-    nodes.push({
-      id: chart.id,
-      type: 'custom',
-      data: { label: chart.name },
-      position: { x: parentX, y: parentY }
-    })
 
-    if (chart.children) {
-      chart.children.forEach((child, index) => {
-        const childX = parentX + (index - (chart.children.length - 1) / 2) * xOffset
-        const childY = parentY + yOffset * (level + 1)
-
-        nodes.push(...convertToReactFlowNodes(child, childX, childY, level + 1))
-      })
-    }
-
-    return nodes
-  }
-
-  // Helper function to convert to React Flow edges
-  const convertToReactFlowEdges = chart => {
-    const edges = []
-
-    if (chart.children) {
-      chart.children.forEach(child => {
-        edges.push({
-          id: `reactflow__edge-${chart.id}-${child.id}`,
-          source: chart.id,
-          target: child.id
-        })
-        edges.push(...convertToReactFlowEdges(child))
-      })
-    }
-
-    return edges
-  }
-
+ 
   const handleDeleteItem = (section, index) => {
     setFormData(prev => ({
       ...prev,
@@ -481,31 +441,28 @@ export default function CreateJDForm() {
   }
 
   const handleDeleteSubItem = (section, parentIndex, subIndex) => {
-  setFormData(prev => {
-    const updated = { ...prev };
+    setFormData(prev => {
+      const updated = { ...prev }
 
-    // Make a shallow copy of the parent array
-    const parentArray = [...updated[section]];
+      // Make a shallow copy of the parent array
+      const parentArray = [...updated[section]]
 
-    // Figure out which sub-field we’re deleting from
-    // In your structure, the competencies are in `competency`, `definition`, `behavioural_attributes`
-    const subFields = ['competency', 'definition', 'behavioural_attributes'];
+      // Figure out which sub-field we’re deleting from
+      // In your structure, the competencies are in `competency`, `definition`, `behavioural_attributes`
+      const subFields = ['competency', 'definition', 'behavioural_attributes']
 
-    subFields.forEach(subField => {
-      if (parentArray[parentIndex][subField]) {
-        parentArray[parentIndex][subField] = parentArray[parentIndex][subField].filter(
-          (_, idx) => idx !== subIndex
-        );
-      }
-    });
+      subFields.forEach(subField => {
+        if (parentArray[parentIndex][subField]) {
+          parentArray[parentIndex][subField] = parentArray[parentIndex][subField].filter((_, idx) => idx !== subIndex)
+        }
+      })
 
-    updated[section] = parentArray;
+      updated[section] = parentArray
 
-    return updated;
-  });
-};
+      return updated
+    })
+  }
 
-  
   return (
     <>
       <Card sx={{ mb: 4, pt: 3, pb: 3, position: 'sticky', top: 70, zIndex: 10, backgroundColor: 'white' }}>
@@ -789,7 +746,7 @@ export default function CreateJDForm() {
                       onClick={() => handleDeleteItem('keyResponsibilities', index)}
                       className='mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
                     >
-                      Delete Responsibility
+                      Delete
                     </Button>
                   </AccordionDetails>
                 </Accordion>
@@ -866,12 +823,7 @@ export default function CreateJDForm() {
                         }
                         modules={{
                           toolbar: {
-                            container: [
-                              [{ header: [1, 2, 3, false] }],
-                              ['bold', 'italic', 'underline'],
-                              [{ list: 'ordered' }, { list: 'bullet' }],
-                              ['clean']
-                            ]
+                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
                           }
                         }}
                       />
@@ -893,12 +845,7 @@ export default function CreateJDForm() {
                         }
                         modules={{
                           toolbar: {
-                            container: [
-                              [{ header: [1, 2, 3, false] }],
-                              ['bold', 'italic', 'underline'],
-                              [{ list: 'ordered' }, { list: 'bullet' }],
-                              ['clean']
-                            ]
+                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
                           }
                         }}
                       />
@@ -1168,17 +1115,20 @@ export default function CreateJDForm() {
             </div>
 
             {/* Submit Button */}
-            <Button
-              type='submit'
-              disabled={isAddJdLoading || activeStep < steps.length} // Disable if loading or form incomplete
-              className={`px-4 py-2 rounded ${
-                isAddJdLoading || activeStep < steps.length
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              {isAddJdLoading ? 'Submitting...' : 'Submit Job Description'}
-            </Button>
+            <div className='flex justify-end'>
+              <Button sx={{ border: '1px solid #1976d2', color: '#1976d2' }}
+                type='submit'
+                disabled={isAddJdLoading || activeStep < steps.length} // Disable if loading or form incomplete
+                className={`px-4 py-2 rounded transition
+    ${
+      isAddJdLoading || activeStep < steps.length
+        ? 'border border-gray-400 text-gray-400 cursor-not-allowed'
+        : 'border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+    }`}
+              >
+                {isAddJdLoading ? 'Submitting...' : 'Add JD'}
+              </Button>
+            </div>
           </form>
 
           {/* Organization Chart Modal */}

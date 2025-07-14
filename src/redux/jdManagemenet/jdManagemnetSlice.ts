@@ -123,19 +123,22 @@ export const addNewJd = createAsyncThunk<any, any>(
   }
 )
 
-export const fetchJd = createAsyncThunk('jdManagement/fetchJd', async (params: any, { rejectWithValue }) => {
-  try {
-    const response = await AxiosLib.get(API_ENDPOINTS.getJd, { params })
+export const fetchJd = createAsyncThunk(
+  'jdManagement/fetchJd',
+  async (params: { page: number; limit: number }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.getJd, { params })
 
-    console.log('API Response:', response.data) // Debug log
+      console.log('API Response:', response.data)
 
-    return response.data
-  } catch (error: any) {
-    console.error('API Error:', error.response?.data || error.message) // Debug log
+      return response.data
+    } catch (error: any) {
+      console.error('API Error:', error.response?.data || error.message)
 
-    return rejectWithValue(error.response?.data || { message: 'Failed to fetch job roles' })
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch job roles' })
+    }
   }
-})
+)
 
 export const fetchJdById = createAsyncThunk('jdManagement/fetchJdById', async (id: string, { rejectWithValue }) => {
   try {
@@ -173,6 +176,7 @@ export const jdManagementSlice = createSlice({
   name: 'jdManagement',
   initialState: {
     jdData: [],
+     totalCount: 0,
     isJdLoading: false,
     jdSuccess: false,
     jdFailure: false,
@@ -227,6 +231,7 @@ export const jdManagementSlice = createSlice({
       })
       .addCase(fetchJd.fulfilled, (state, action) => {
         state.jdData = action.payload?.data || []
+        state.totalCount = action.payload?.totalCount || 0
         state.isJdLoading = false
         state.jdSuccess = true
         state.jdFailure = false
@@ -234,6 +239,7 @@ export const jdManagementSlice = createSlice({
       })
       .addCase(fetchJd.rejected, (state, action: any) => {
         state.jdData = []
+        state.totalCount = 0
         state.isJdLoading = false
         state.jdSuccess = false
         state.jdFailure = true

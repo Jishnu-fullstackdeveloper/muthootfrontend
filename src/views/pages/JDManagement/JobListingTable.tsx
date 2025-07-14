@@ -1,189 +1,129 @@
-import React, { useState, useMemo } from 'react'
+'use client'
+import React, {  useMemo } from 'react'
 
 import { useRouter } from 'next/navigation'
 
 import { IconButton, Tooltip, Typography } from '@mui/material'
-
 import type { ColumnDef } from '@tanstack/react-table'
-
 import { createColumnHelper } from '@tanstack/react-table'
 
+
 import DynamicTable from '@/components/Table/dynamicTable'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
-const JobListingTableView = ({ jobs }: any) => {
+
+interface JobRole {
+  id: string
+  jobRoleId: string
+  approvalStatus: string
+  details: {
+    roleSpecification: Array<{
+      roleTitle: string
+      companyName: string
+      functionOrDepartment: string
+      reportsTo: string
+      dateWritten: string
+    }>
+  }
+  createdAt: string
+}
+
+interface JobListingTableViewProps {
+  jobs: JobRole[]
+  totalCount: number
+  pagination: {
+    pageIndex: number
+    pageSize: number
+  }
+  onPageChange: (newPage: number) => void
+  onRowsPerPageChange: (newPageSize: number) => void
+}
+
+const JobListingTableView = ({
+  jobs,
+  totalCount,
+  pagination,
+  onPageChange,
+  onRowsPerPageChange
+}: JobListingTableViewProps) => {
   const router = useRouter()
-  const columnHelper = createColumnHelper<any>()
-
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [jobIdToDelete, setJobIdToDelete] = useState<string | number | null>(null)
-
-  // Pagination state lifted to the parent component
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 5
-  })
-
-  const handlePageChange = (newPage: number) => {
-    setPagination(prev => {
-      const updatedPagination = { ...prev, pageIndex: newPage }
-
-      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-
-      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-
-      return updatedPagination
-    })
-  }
-
-  const handleRowsPerPageChange = (newPageSize: number) => {
-    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
-
-    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-
-    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-
-    setPagination(updatedPagination)
-  }
-
-  const handleDeleteClick = (id: string | number) => {
-    setJobIdToDelete(id)
-    setDeleteModalOpen(true)
-  }
-
-  const handleDeleteConfirm = (id?: string | number) => {
-    if (id) {
-      // Perform the delete operation here
-
-      console.log('Deleting job with ID:', id)
-
-      // After deletion, you might want to refresh the data or remove the item from the list
-    }
-
-    setDeleteModalOpen(false)
-  }
-
-  const columns = useMemo<ColumnDef<any, any>[]>(
+  const columnHelper = createColumnHelper<JobRole>()
+ 
+  const columns = useMemo<ColumnDef<JobRole, any>[]>(
     () => [
-      columnHelper.accessor('title', {
+      columnHelper.accessor(row => row.details.roleSpecification[0]?.roleTitle, {
         header: 'JOB TITLE',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.title}
+                {row.original.details.roleSpecification[0]?.roleTitle?.toUpperCase() || 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      columnHelper.accessor('job_type', {
-        header: 'JOB TYPE',
+      columnHelper.accessor(row => row.details.roleSpecification[0]?.companyName, {
+        header: 'COMPANY',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.job_type}
+                {row.original.details.roleSpecification[0]?.companyName || 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      columnHelper.accessor('job_role', {
-        header: 'JOB ROLE',
+      columnHelper.accessor(row => row.details.roleSpecification[0]?.functionOrDepartment, {
+        header: 'DEPARTMENT',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.job_role}
+                {row.original.details.roleSpecification[0]?.functionOrDepartment || 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      columnHelper.accessor('experience', {
-        header: 'EXPERIENCE',
+      columnHelper.accessor(row => row.details.roleSpecification[0]?.reportsTo, {
+        header: 'REPORTS TO',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.experience}
+                {row.original.details.roleSpecification[0]?.reportsTo || 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      columnHelper.accessor('education', {
-        header: 'EDUCATION',
+      columnHelper.accessor(row => row.details.roleSpecification[0]?.dateWritten, {
+        header: 'DATE WRITTEN',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.education}
+                {row.original.details.roleSpecification[0]?.dateWritten
+                  ? new Date(row.original.details.roleSpecification[0].dateWritten).toLocaleDateString()
+                  : 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      columnHelper.accessor('skills', {
-        header: 'SKILLS',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-wrap gap-2'>
-              {row.original.skills.map((skill: string, index: number) => (
-                <Typography key={index} className='font-medium'>
-                  {skill}
-                </Typography>
-              ))}
-            </div>
-          </div>
-        )
-      }),
-
-      columnHelper.accessor('salary_range', {
-        header: 'SALARY RANGE',
+      columnHelper.accessor('approvalStatus', {
+        header: 'STATUS',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.salary_range}
+                {row.original.approvalStatus || 'N/A'}
               </Typography>
             </div>
           </div>
         )
       }),
-
-      // columnHelper.accessor('location', {
-      //   header: 'LOCATION',
-      //   cell: ({ row }) => (
-      //     <div className='flex items-center gap-4'>
-      //       <div className='flex flex-col'>
-      //         <Typography color='text.primary' className='font-medium'>
-      //           {row.original.location}
-      //         </Typography>
-      //       </div>
-      //     </div>
-      //   )
-      // }),
-
-      // columnHelper.accessor('job_placement', {
-      //   header: 'JOB PLACEMENT',
-      //   cell: ({ row }) => (
-      //     <div className='flex items-center gap-4'>
-      //       <div className='flex flex-col'>
-      //         <Typography color='text.primary' className='font-medium'>
-      //           {row.original.job_placement}
-      //         </Typography>
-      //       </div>
-      //     </div>
-      //   )
-      // }),
-
       columnHelper.accessor('action', {
         header: 'ACTION',
         meta: {
@@ -196,18 +136,12 @@ const JobListingTableView = ({ jobs }: any) => {
                 <i className='tabler-eye text-textSecondary'></i>
               </IconButton>
             </Tooltip>
-
             <Tooltip title='Edit' placement='top'>
               <IconButton onClick={() => router.push(`/jd-management/edit/${row.original.id}`)}>
                 <i className='tabler-edit text-[22px] text-textSecondary' />
               </IconButton>
             </Tooltip>
-
-            <Tooltip title='Delete' placement='top'>
-              <IconButton onClick={() => handleDeleteClick(row.original.id)}>
-                <i className='tabler-trash text-textSecondary'></i>
-              </IconButton>
-            </Tooltip>
+          
           </div>
         ),
         enableSorting: false
@@ -221,20 +155,15 @@ const JobListingTableView = ({ jobs }: any) => {
       <DynamicTable
         columns={columns}
         data={jobs}
-        pagination={pagination} // Pass pagination state
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        totalCount={0}
+        pagination={pagination}
+        onPageChange={onPageChange}
+        onRowsPerPageChange={onRowsPerPageChange}
+        totalCount={totalCount}
         sorting={undefined}
         onSortingChange={undefined}
         initialState={undefined}
       />
-      <ConfirmModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        id={jobIdToDelete}
-      />
+     
     </div>
   )
 }

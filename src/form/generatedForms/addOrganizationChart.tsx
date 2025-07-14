@@ -1,6 +1,8 @@
+/* eslint-disable import/no-named-as-default */
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 
+// eslint-disable-next-line import/namespace
 import type { Node, Edge, Connection } from 'reactflow'
 import ReactFlow, {
   MiniMap,
@@ -12,6 +14,7 @@ import ReactFlow, {
   Handle,
   Position,
   ReactFlowProvider
+// eslint-disable-next-line import/namespace, import/default, import/no-named-as-default-member
 } from 'reactflow'
 
 import 'reactflow/dist/style.css'
@@ -54,7 +57,7 @@ function CustomNode({ data, selected, id }: NodeProps) {
     data.onChange?.(id, e.target.value)
   }
 
-  const { designationData, loading, error } = useAppSelector(state => state.jdManagementReducer)
+  const { designationData } = useAppSelector(state => state.jdManagementReducer)
 
   // Update roles based on fetched designationData
   const roles = designationData?.length
@@ -72,7 +75,7 @@ function CustomNode({ data, selected, id }: NodeProps) {
           value={data.label}
           onChange={onChange}
           className='w-full text-center bg-transparent outline-none font-medium'
-          disabled={loading}
+         
         >
           <option value=''>Select Role</option>
           {roles.map((role: string) => (
@@ -83,7 +86,6 @@ function CustomNode({ data, selected, id }: NodeProps) {
         </select>
       </div>
       <Handle type='source' position={Position.Bottom} />
-      {error && <div className='text-red-500 text-xs'>{error}</div>}
     </div>
   )
 }

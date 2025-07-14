@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Box, Card, Typography } from '@mui/material'
+import { Card, Typography } from '@mui/material'
 
 interface VacancyManagementOverviewProps {
   vacanciesData: any[] // Adjust type based on fetchVacanciesData.data structure
@@ -43,7 +43,7 @@ const VacancyManagementOverview: React.FC<VacancyManagementOverviewProps> = ({
   const filteredVacancies = vacanciesData.filter(item => item.designations)
 
   return (
-    <Box>
+    <Card sx={{ backgroundColor: '#FFFFFF', p: 3 }}>
       <Typography variant='h6' sx={{ mb: 3 }}>
         Vacancy Management Overview
       </Typography>
@@ -63,7 +63,7 @@ const VacancyManagementOverview: React.FC<VacancyManagementOverviewProps> = ({
           </Typography> */}
         </Card>
       ))}
-    </Box>
+    </Card>
   )
 }
 

@@ -97,6 +97,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
       headers: {
         authorization: `Bearer ${accessToken}`,
         refreshtoken: refreshToken ,
+        client : process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
       }
     })
 

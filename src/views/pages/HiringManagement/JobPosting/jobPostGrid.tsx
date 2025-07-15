@@ -27,6 +27,8 @@ interface JobPosting {
   zone?: string
   area?: string
   state?: string
+  band?: string
+  date?: string
 }
 
 interface JobPostGridProps {
@@ -498,7 +500,7 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
                         color: '#23262F'
                       }}
                     >
-                      {job.jobGrade}
+                      {job.band}
                     </Typography>
                   </Col>
                   <Col>
@@ -522,7 +524,15 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
                         color: '#23262F'
                       }}
                     >
-                      {job.postedDate}
+                      {new Date(job.date).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                        timeZone: 'Asia/Kolkata'
+                      })}
                     </Typography>
                   </Col>
                 </Row>

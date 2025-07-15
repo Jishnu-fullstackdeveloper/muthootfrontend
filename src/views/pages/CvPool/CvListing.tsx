@@ -20,7 +20,10 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
-  Slide
+  Slide,
+  Divider,
+  Autocomplete,
+  ButtonBase
 } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
@@ -34,6 +37,13 @@ import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutl
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
+
+import Drawer from '@mui/material/Drawer'
+import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+
+import MatchingProfileIcon from '@/icons/CvPool/MatchingProfileIcon'
+import UploadIcon from '@/icons/CvPool/UploadIcon'
+import CloseIcon from '@/icons/CvPool/CloseIcon'
 
 interface Location {
   territory: string
@@ -189,7 +199,7 @@ const mockCvData: Cv[] = [
     },
     isFresher: true,
     source: 'Job Fair',
-    status: 'REJECTED',
+    status: 'PENDING',
     resumeUrl: 'https://example.com/resume4.pdf'
   }
 ]
@@ -206,6 +216,8 @@ const CvListing = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [paginationState, setPaginationState] = useState({ pageIndex: 0, pageSize: 6 })
   const [openLocationFilter, setOpenLocationFilter] = useState(false)
+  const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false)
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
 
   const [selectedLocationFilters, setSelectedLocationFilters] = useState<LocationFilters>({
     territory: '',
@@ -478,7 +490,7 @@ const CvListing = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
+    <Box>
       <SimpleAreaFilterDialog
         open={openLocationFilter}
         setOpen={setOpenLocationFilter}
@@ -563,6 +575,105 @@ const CvListing = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Drawer
+        anchor='right'
+        open={uploadDrawerOpen}
+        onClose={() => setUploadDrawerOpen(false)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '100%', sm: 400 },
+            p: 4
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600 }}>
+            Upload CV
+          </Typography>
+          <IconButton onClick={() => setUploadDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Box component='form' sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <TextField fullWidth label='Name *' variant='outlined' defaultValue='Michael Smith' />
+
+          <TextField fullWidth label='Email *' variant='outlined' defaultValue='michaelsmith@gmail.com' />
+
+          <TextField fullWidth label='Phone Number *' variant='outlined' defaultValue='+1 (555) 123-4567' />
+
+          <Box>
+            <Typography variant='subtitle2' sx={{ mb: 1, color: 'text.secondary' }}>
+              Resume File *
+            </Typography>
+            <ButtonBase
+              component='label'
+              sx={{
+                width: '100%',
+                border: '2px dashed',
+                borderColor: 'divider',
+                borderRadius: 1,
+                p: 4,
+                backgroundColor: '#F7FCFF',
+                textAlign: 'center',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              <input
+                type='file'
+                accept='.pdf,.doc,.docx'
+                hidden
+                onChange={e => setResumeFile(e.target.files?.[0] || null)}
+              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* <CloudUploadIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} /> */}
+                <UploadIcon />
+                <Typography variant='body2' sx={{ mb: 1 }}>
+                  {resumeFile ? (
+                    resumeFile.name
+                  ) : (
+                    <>
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.main' }}>
+                        Click to Upload{' '}
+                      </Typography>
+                      or drag and Drop
+                    </>
+                  )}
+                </Typography>
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  PDF, DOC, DOCX (max. 5MB)
+                </Typography>
+              </Box>
+            </ButtonBase>
+          </Box>
+
+          <Autocomplete
+            fullWidth
+            options={['Job Portal', 'Referral', 'LinkedIn']}
+            renderInput={params => <TextField {...params} label='Source Type *' variant='outlined' />}
+            sx={{ mb: 2 }}
+          />
+
+          <Autocomplete
+            fullWidth
+            options={['Software Engineer', 'Product Manager', 'Data Analyst']}
+            renderInput={params => <TextField {...params} label='Job Role Interested *' variant='outlined' />}
+          />
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Button fullWidth variant='outlined' onClick={() => setUploadDrawerOpen(false)}>
+              Cancel
+            </Button>
+            <Button fullWidth variant='contained'>
+              Upload CV
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
       <Card
         sx={{
           mb: 4,
@@ -570,7 +681,7 @@ const CvListing = () => {
           top: 70,
           zIndex: 10,
           bgcolor: '#fff',
-          borderRadius: 3,
+          borderRadius: 2,
           boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
         }}
       >
@@ -584,69 +695,82 @@ const CvListing = () => {
             gap: 3
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, flexWrap: 'wrap' }}>
             <DebouncedInput
               value={search}
               onChange={setSearch}
               placeholder='Search by name or post'
-              sx={{ width: { xs: '100%', sm: '300px' } }}
+              sx={{
+                width: { xs: '100%', sm: '240px' }, // Reduced width
+                '& .MuiOutlinedInput-root': {
+                  height: 36 // Reduced height
+                }
+              }}
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-                    <i className='tabler-search text-xl' style={{ color: '#000' }} />
+                // Changed from endAdornment to startAdornment
+                startAdornment: (
+                  <InputAdornment position='start' sx={{ cursor: 'pointer', mr: 1 }}>
+                    <i className='tabler-search text-lg' style={{ color: '#000' }} /> {/* Reduced icon size */}
                   </InputAdornment>
                 )
               }}
+              size='small' // Added small size prop
             />
-            <Tooltip title='Filter by Location'>
+            {/* <Tooltip title='Filter by Location'>
               <IconButton
                 onClick={() => setOpenLocationFilter(true)}
                 sx={{ border: '1px solid #000', color: '#000', borderRadius: 2, p: 1.5 }}
               >
                 <i className='tabler-filter text-xl' />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1,
-              bgcolor: '#f5f5f5',
-              borderRadius: '16px',
-              p: 1,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
-          >
-            <Tooltip title='Grid View'>
-              <IconButton
-                color={viewMode === 'grid' ? 'primary' : 'secondary'}
-                onClick={() => setViewMode('grid')}
-                sx={{
-                  borderRadius: 2,
-                  p: 1.5,
-                  color: viewMode === 'grid' ? 'primary.main' : '#000',
-                  '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.1)', transform: 'scale(1.1)' },
-                  transition: 'transform 0.2s, background-color 0.2s'
-                }}
-              >
-                <GridViewIcon sx={{ fontSize: 32 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Table View'>
-              <IconButton
-                color={viewMode === 'table' ? 'primary' : 'secondary'}
-                onClick={() => setViewMode('table')}
-                sx={{
-                  borderRadius: 2,
-                  p: 1.5,
-                  color: viewMode === 'table' ? 'primary.main' : '#000',
-                  '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.1)', transform: 'scale(1.1)' },
-                  transition: 'transform 0.2s, background-color 0.2s'
-                }}
-              >
-                <TableChartIcon sx={{ fontSize: 32 }} />
-              </IconButton>
-            </Tooltip>
+          <Box className='flex'>
+            <Button variant='contained' size='small' sx={{ borderRadius: 2 }} onClick={() => setUploadDrawerOpen(true)}>
+              Upload CV
+            </Button>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 0.2,
+                bgcolor: '#f5f5f5',
+                borderRadius: '16px',
+                p: 0.1,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                ml: 2
+              }}
+            >
+              <Tooltip title='Grid View'>
+                <IconButton
+                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('grid')}
+                  sx={{
+                    borderRadius: 2,
+                    p: 1,
+                    color: viewMode === 'grid' ? 'primary.main' : '#000',
+                    '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.1)', transform: 'scale(1.1)' },
+                    transition: 'transform 0.2s, background-color 0.2s'
+                  }}
+                >
+                  <GridViewIcon sx={{ fontSize: 32 }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Table View'>
+                <IconButton
+                  color={viewMode === 'table' ? 'primary' : 'secondary'}
+                  onClick={() => setViewMode('table')}
+                  sx={{
+                    borderRadius: 2,
+                    p: 1.5,
+                    color: viewMode === 'table' ? 'primary.main' : '#000',
+                    '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.1)', transform: 'scale(1.1)' },
+                    transition: 'transform 0.2s, background-color 0.2s'
+                  }}
+                >
+                  <TableChartIcon sx={{ fontSize: 32 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
         </Box>
       </Card>
@@ -659,178 +783,137 @@ const CvListing = () => {
       ) : (
         <>
           {viewMode === 'grid' && (
-            <Box sx={{ padding: 3 }}>
+            <Box>
               <Grid container spacing={4}>
                 {paginatedData.map((cv, index) => (
                   <Grid item xs={12} sm={6} lg={4} key={cv.id}>
                     <Card
                       sx={{
                         bgcolor: '#fff',
-                        borderRadius: 3,
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                         transition: 'transform 0.3s',
-                        '&:hover': { transform: 'scale(1.03)', boxShadow: '0 12px 30px rgba(0,0,0,0.15)' },
-                        minHeight: 350,
+                        '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
+
+                        //minHeight: 300,
                         display: 'flex',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
+                        border: '1px solid #e0e0e0'
                       }}
                     >
-                      <Box
-                        sx={{
-                          bgcolor: '#fff',
-                          p: 4,
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          borderBottom: '1px solid #e0e0e0'
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#000' }}>
-                          {cv.fullName}
-                        </Typography>
-                        <Chip
-                          label={cv.status}
-                          sx={{
-                            fontSize: '0.7rem',
-                            bgcolor:
-                              cv.status === 'APPROVED'
-                                ? '#4caf50'
-                                : cv.status === 'REJECTED'
-                                  ? '#f44336'
-                                  : cv.status === 'SHORTLISTED'
-                                    ? '#0288d1'
-                                    : '#fbc02d',
-                            color: '#fff',
-                            borderRadius: 1
-                          }}
-                        />
-                      </Box>
-                      <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                        <Box sx={{ mb: 'auto' }}>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              fontSize: '0.9rem',
-                              color: '#000',
-                              mb: 2
-                            }}
-                          >
-                            <WorkOutlineOutlinedIcon fontSize='small' sx={{ color: '#000' }} />
-                            {cv.postForApply}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              fontSize: '0.9rem',
-                              color: '#000',
-                              mb: 2
-                            }}
-                          >
-                            <LocationOnOutlinedIcon fontSize='small' sx={{ color: '#000' }} />
-                            {`${cv.location.territory || ''}, ${cv.location.zone || ''}, ${cv.location.region || ''}, ${cv.location.area || ''}, ${cv.location.cluster || ''}, ${cv.location.branch || ''}`}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              fontSize: '0.9rem',
-                              color: '#000',
-                              mb: 2
-                            }}
-                          >
-                            <SourceOutlinedIcon fontSize='small' sx={{ color: '#000' }} />
-                            {cv.source}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              fontSize: '0.9rem',
-                              color: '#000',
-                              mb: 2
-                            }}
-                          >
-                            <AssignmentTurnedInOutlinedIcon fontSize='small' sx={{ color: '#000' }} />
-                            {cv.status}
-                          </Typography>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              fontSize: '0.9rem',
-                              mb: 2,
-                              cursor: 'pointer'
-                            }}
-                            onClick={() => handleDialogOpen(index, 'document')}
-                            onMouseEnter={() => setHoveredDocCompletion(cv.id)}
-                            onMouseLeave={() => setHoveredDocCompletion(null)}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              <DescriptionOutlinedIcon
-                                fontSize='small'
-                                sx={{ color: hoveredDocCompletion === cv.id ? 'primary.main' : '#000' }}
-                              />
-                              <Typography
-                                variant='body2'
-                                sx={{
-                                  color: hoveredDocCompletion === cv.id ? 'primary.main' : '#000',
-                                  transition: 'color 0.2s'
-                                }}
-                              >
-                                Document Completion
+                      <CardContent sx={{ p: 3, flexGrow: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box>
+                            <Typography variant='h6' sx={{ fontWeight: 600, color: '#000' }}>
+                              {cv.fullName}
+                            </Typography>
+                            <Box className='flex'>
+                              <Box sx={{ mt: 0.5 }}>
+                                <MatchingProfileIcon />
+                              </Box>
+                              <Typography variant='body2' sx={{ mb: 1, ml: 1 }}>
+                                Profile Matching:{' '}
+                                <strong style={{ color: 'black', fontSize: 'semi-bold' }}>
+                                  {calculateDocumentPercentage(cv)}%
+                                </strong>
                               </Typography>
                             </Box>
-                            <Tooltip title={`${calculateDocumentPercentage(cv)}% Complete`}>
-                              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                                <CircularProgress
-                                  variant='determinate'
-                                  value={calculateDocumentPercentage(cv)}
-                                  size={40}
-                                  thickness={5}
-                                  sx={{ color: hoveredDocCompletion === cv.id ? 'primary.main' : 'primary.main' }}
-                                />
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    opacity: 1
-                                  }}
-                                >
-                                  <Typography
-                                    variant='caption'
-                                    sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
-                                  >{`${calculateDocumentPercentage(cv)}%`}</Typography>
-                                </Box>
-                              </Box>
-                            </Tooltip>
                           </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 3, flexWrap: 'wrap' }}>
-                          <Button
-                            variant='outlined'
+                          <Chip
+                            label={cv.status}
                             size='small'
-                            onClick={() => handleDialogOpen(index, 'resume')}
-                            sx={{ color: '#000', borderColor: '#0288d1', borderRadius: 2, px: 3, py: 1.5 }}
-                            startIcon={<VisibilityOutlinedIcon />}
-                          >
-                            View Resume
-                          </Button>
-                          {cv.status === 'PENDING' && <ActionButtons cv={cv} index={index} />}
+                            sx={{
+                              mt: 1,
+                              fontWeight: 600,
+                              borderRadius: 1,
+                              px: 1.5,
+                              py: 0.5,
+                              bgcolor:
+                                cv.status === 'PENDING'
+                                  ? '#fff3e0' // Yellow for PENDING
+                                  : cv.status === 'APPROVED'
+                                    ? '#e8f5e9' // Green for APPROVED
+                                    : cv.status === 'REJECTED'
+                                      ? '#ffebee' // Red for REJECTED
+                                      : '#e3f2fd', // Blue for SHORTLISTED
+                              color:
+                                cv.status === 'PENDING'
+                                  ? '#ff8f00' // Darker yellow text
+                                  : cv.status === 'APPROVED'
+                                    ? '#00B798' // Darker green text
+                                    : cv.status === 'REJECTED'
+                                      ? '#c62828' // Darker red text
+                                      : '#0096DA' // Darker blue text
+                            }}
+                          />
                         </Box>
+
+                        <Box sx={{ mb: 3 }}>
+                          {/* <Box className='flex'>
+                            <Box sx={{ mt: 0.5 }}>
+                              <MatchingProfileIcon />
+                            </Box>
+                            <Typography variant='body2' sx={{ color: '#666', fontSize: '0.875rem', mb: 1, ml: 1 }}>
+                              Profile Matching: {calculateDocumentPercentage(cv)}%
+                            </Typography>
+                          </Box> */}
+                          <Divider sx={{ my: 1 }} />
+                        </Box>
+
+                        <Grid container spacing={4} sx={{ mb: 2 }}>
+                          {/* First Row */}
+                          <Grid item xs={6}>
+                            <Typography variant='subtitle2' sx={{ color: 'gray', mb: 1 }}>
+                              Designation
+                            </Typography>
+                            <Typography variant='body2' sx={{ color: '#000', fontWeight: 600 }}>
+                              {cv.postForApply}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant='subtitle2' sx={{ color: 'gray', mb: 1 }}>
+                              Location
+                            </Typography>
+                            <Typography variant='body2' sx={{ color: '#000', fontWeight: 600 }}>
+                              {`${cv.location.territory}, ${cv.location.zone}, ${cv.location.region}`}
+                            </Typography>
+                          </Grid>
+
+                          {/* Second Row */}
+                          <Grid item xs={6}>
+                            <Typography variant='subtitle2' sx={{ color: 'gray', mb: 1 }}>
+                              Openings
+                            </Typography>
+                            <Typography variant='body2' sx={{ color: '#000', fontWeight: 600 }}>
+                              {cv.source} {/* Assuming source represents openings */}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant='subtitle2' sx={{ color: 'gray', mb: 1 }}>
+                              Area
+                            </Typography>
+                            <Typography variant='body2' sx={{ color: '#000', fontWeight: 600 }}>
+                              {cv.location.area}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+
+                        <Button
+                          fullWidth
+                          variant='outlined'
+                          onClick={() => handleDialogOpen(index, 'resume')}
+
+                          // sx={{
+                          //   mt: 2,
+                          //   bgcolor: '#1976d2',
+                          //   color: '#fff',
+                          //   borderRadius: 1,
+                          //   py: 1,
+                          //   '&:hover': { bgcolor: '#1565c0' }
+                          // }}
+                        >
+                          View Resume
+                        </Button>
                       </CardContent>
                     </Card>
                   </Grid>

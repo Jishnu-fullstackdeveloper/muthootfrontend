@@ -26,7 +26,8 @@ import {
   Select,
   MenuItem,
   Pagination,
-  PaginationItem
+  PaginationItem,
+  InputAdornment
 } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
@@ -34,7 +35,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import CloseIcon from '@mui/icons-material/Close'
 import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined'
 
-import DynamicTextField from '../TextField/dynamicTextField'
+import CustomTextField from '@/@core/components/mui/TextField'
 
 const ClientSideTablePagination = ({ totalCount, pagination, onPageChange, onRowsPerPageChange }: any) => {
   const [isMounted, setIsMounted] = useState(false)
@@ -430,11 +431,18 @@ const DynamicTable = ({
         {/* Search Bar and More Columns Icon on the right */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {searchBar && (
-            <DynamicTextField
+            <CustomTextField
               size='small'
               placeholder='Search...'
               onChange={e => onSearchChange && onSearchChange(e.target.value)}
-              sx={{ width: 200 }}
+              sx={{ width: '300px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start' sx={{ cursor: 'pointer' }}>
+                    <i className='tabler-search text-xxl' />
+                  </InputAdornment>
+                )
+              }}
             />
           )}
           <Tooltip title='More Columns'>

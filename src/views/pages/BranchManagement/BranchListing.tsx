@@ -27,8 +27,8 @@ import {
 } from '@mui/material'
 
 // import Pagination from '@mui/material/Pagination'
-import GridViewIcon from '@mui/icons-material/GridView'
-import TableChartIcon from '@mui/icons-material/TableChart'
+//import GridViewIcon from '@mui/icons-material/GridView'
+//import TableChartIcon from '@mui/icons-material/TableChart'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -36,6 +36,11 @@ import BranchListingTableView from './BranchListingTableView'
 import { getBranchList } from '@/redux/BranchManagement/BranchManagementSlice'
 import type { RootState } from '@/redux/store'
 import type { Branch, BranchManagementState } from '@/types/branch'
+
+//import GridIcon from '@/icons/GridAndTableIcons/Grid.svg'
+
+import GridIcon from '@/icons/GridAndTableIcons/Grid'
+import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
 
 const BranchListing = () => {
   const router = useRouter()
@@ -208,17 +213,25 @@ const BranchListing = () => {
               value={searchQuery}
               onChange={handleSearch}
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
+                startAdornment: (
+                  <InputAdornment position='start' sx={{ cursor: 'pointer' }}>
                     <i className='tabler-search text-xxl' />
                   </InputAdornment>
                 )
               }}
             />
             <Tooltip title='Filter Branches'>
-              <IconButton onClick={toggleDrawer}>
+              {/* <IconButton onClick={toggleDrawer}>
                 <i className='tabler-filter text-xl' />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                onClick={toggleDrawer}
+                variant='outlined'
+                color='secondary'
+                startIcon={<i className='tabler-filter text-xl' />}
+              >
+                Filter
+              </Button>
             </Tooltip>
           </Box>
 
@@ -231,28 +244,46 @@ const BranchListing = () => {
                 justifyContent: 'center',
                 padding: '1px',
                 borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': {
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-                }
+
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+
+                // '&:hover': {
+                //   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+                // }
               }}
             >
-              <Tooltip title='Grid View'>
-                <IconButton
-                  color={viewMode === 'grid' ? 'primary' : 'secondary'}
-                  onClick={() => setViewMode('grid')}
-                  sx={{ p: 0.5 }}
-                >
-                  <GridViewIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
+              {/* <Tooltip title='Grid View'> */}
+              <IconButton
+                className='hover:bg-[primary]'
+                onClick={() => setViewMode('grid')}
+                sx={{
+                  p: 2.7,
+                  borderRadius: 1,
+                  color: viewMode === 'grid' ? '#FFFFFF' : undefined, // White color when active
+                  bgcolor: viewMode === 'grid' ? 'primary.main' : undefined // Blue background when active
+                }}
+              >
+                <GridIcon
+                  className={`w-4 h-4 ${viewMode === 'grid' ? 'text-white' : 'text-gray-500'} hover:text-gray-500`}
+                />
+                {/* <GridViewIcon sx={{ fontSize: '18px' }} /> */}
+              </IconButton>
+              {/* </Tooltip> */}
               <Tooltip title='Table View'>
                 <IconButton
-                  color={viewMode === 'table' ? 'primary' : 'secondary'}
+                  className='hover:bg-[primary]'
                   onClick={() => setViewMode('table')}
-                  sx={{ p: 0.5 }}
+                  sx={{
+                    p: 2.7,
+                    borderRadius: 1,
+                    color: viewMode === 'table' ? '#FFFFFF' : undefined, // White color when active
+                    bgcolor: viewMode === 'table' ? 'primary.main' : undefined // Blue background when active
+                  }}
                 >
-                  <TableChartIcon fontSize='small' />
+                  {/* <TableChartIcon fontSize='small' /> */}
+                  <TableIcon
+                    className={`w-4 h-4 ${viewMode === 'table' ? 'text-white' : 'text-gray-500'} hover:text-gray-500`}
+                  />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -311,8 +342,8 @@ const BranchListing = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr' },
-                gap: 6,
+                gridTemplateColumns: { xs: '1fr', md: viewMode === 'grid' ? 'repeat(2, 1fr)' : '1fr' },
+                gap: 4,
                 ...(viewMode !== 'grid' && { '& > * + *': { mt: 6 } }) // Space between items in list view
               }}
             >
@@ -323,7 +354,6 @@ const BranchListing = () => {
               ) : (
                 (branchListData?.data || []).map(branch => (
                   <Box
-                    onClick={() => handleBranchClick(branch)}
                     key={branch.id}
                     sx={{
                       bgcolor: 'white',
@@ -334,32 +364,37 @@ const BranchListing = () => {
                         boxShadow: 6,
                         transform: 'translateY(-4px)'
                       },
-                      cursor: 'pointer',
+
                       minHeight: viewMode !== 'grid' ? '150px' : 'auto',
-                      p: viewMode !== 'grid' ? 6 : 0
+                      p: 3
+
+                      //p: viewMode !== 'grid' ? 6 : 0
                     }}
                   >
                     {viewMode === 'grid' ? (
                       <>
-                        <Box
-                          sx={{
-                            pt: 2,
-                            pl: 2,
-                            pb: 2,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant='h6' sx={{ mt: 1, fontWeight: 'bold' }} gutterBottom>
+                        <Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Typography
+                              variant='subtitle2'
+                              sx={{ mt: 1, fontWeight: 'bold', color: '#23262F' }}
+                              gutterBottom
+                            >
                               {branch.name}
+                            </Typography>
+                            <Typography>
+                              Branch Code: <strong>{branch?.branchCode}</strong>
                             </Typography>
                           </Box>
                         </Box>
                         <Box
                           sx={{
-                            p: 4,
                             borderTop: 1,
                             borderColor: 'divider',
                             display: 'flex',
@@ -370,39 +405,72 @@ const BranchListing = () => {
                             sx={{
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: 1,
+                              gap: 2,
                               color: 'text.secondary',
-                              fontSize: '0.575rem'
+                              fontSize: '0.575rem',
+                              mt: 2
                             }}
+                            className='grid grid-cols-2 gap-x-24'
                           >
-                            <Typography>
-                              <strong>Branch Code:</strong> {branch?.branchCode}
+                            <Typography variant='body1'>
+                              Bucket Name <br />
+                              <strong>{branch?.bucketName}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Bucket Name</strong> {branch?.bucketName}
+                            <Typography variant='body1'>
+                              Territory
+                              <br />
+                              <strong>{branch.cluster?.area?.region?.zone?.territory?.name || 'TERRITORY-1'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Territory:</strong> {branch.cluster?.area?.region?.zone?.territory?.name}
+                            <Typography variant='body1'>
+                              Zonal
+                              <br />
+                              <strong>{branch.cluster?.area?.region?.zone?.name || 'KERALA SOUTH'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Zonal:</strong> {branch.cluster?.area?.region?.zone?.name}
+                            <Typography variant='body1'>
+                              Region
+                              <br />
+                              <strong>{branch.cluster?.area?.region?.name || 'KOLLAM'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Region:</strong> {branch.cluster?.area?.region?.name}
+                            <Typography variant='body1'>
+                              Area
+                              <br />
+                              <strong>{branch?.cluster?.area?.name || 'KOTTARAKKARA'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Area:</strong> {branch?.cluster?.area?.name}
+                            <Typography variant='body1'>
+                              Cluster
+                              <br />
+                              <strong>{branch.cluster?.name || 'KOTTARAKKARA'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>Cluster:</strong> {branch.cluster?.name}
+                            <Typography variant='body1'>
+                              City Classification
+                              <br />
+                              <strong>{branch.district?.name || 'THRISSUR'}</strong>
                             </Typography>
-                            <Typography>
-                              <strong>City Classification:</strong> {branch.district?.name}
-                            </Typography>
-                            <Typography>
-                              <strong>State:</strong> {branch.state?.name}
+                            <Typography variant='body1'>
+                              State
+                              <br />
+                              <strong>{branch.state?.name || 'KERALA'}</strong>
                             </Typography>
                           </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            pt: 2,
+
+                            //borderTop: '1px solid',
+
+                            //borderColor: 'divider',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Button
+                            variant='outlined'
+                            color='primary'
+                            sx={{ width: '100%' }}
+                            onClick={() => handleBranchClick(branch)}
+                          >
+                            View Details
+                          </Button>
                         </Box>
                       </>
                     ) : (
@@ -446,6 +514,7 @@ const BranchListing = () => {
               )}
             </Box>
           )}
+
           {viewMode === 'table' && <BranchListingTableView branchData={branchListData} />}
           {/* {(viewMode === 'list' || viewMode === 'table') && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>

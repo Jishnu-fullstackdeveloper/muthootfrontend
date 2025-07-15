@@ -21,11 +21,10 @@ const initialState: PositionBudgetState = {
   limit: 10
 }
 
-//locationType
 // Fetch position matrix data
 export const fetchPositionMatrix = createAsyncThunk(
   'positionBudget/fetchPositionMatrix',
-  async (params: { page: number; limit: number; filterType: [] }, { rejectWithValue }) => {
+  async (params: { page: number; limit: number; filterType?: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getPositionMatrixUrl, { params })
       const { data = [], pagination = { totalCount: 0 } } = response.data || {}
@@ -33,6 +32,30 @@ export const fetchPositionMatrix = createAsyncThunk(
       return { data, totalCount: pagination.totalCount, page: params.page, limit: params.limit }
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error?.message || 'Failed to fetch position matrix data')
+    }
+  }
+)
+
+// Create position matrix data
+export const createPositionMatrix = createAsyncThunk(
+  'positionBudget/createPositionMatrix',
+  async (
+    data: {
+      expectedCount: number
+      actualCount: number
+      additionalCount: number
+      temporaryCount: number
+      employeeCodes: string[]
+      employees: any[]
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await AxiosLib.post(API_ENDPOINTS.createPositionMatrixUrl, data)
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error?.message || 'Failed to create position matrix data')
     }
   }
 )
@@ -66,6 +89,21 @@ const positionBudgetSlice = createSlice({
         state.error = null
       })
       .addCase(fetchPositionMatrix.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.payload as string
+      })
+
+      // Create Position Matrix
+      .addCase(createPositionMatrix.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(createPositionMatrix.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.positionMatrixData.push(action.payload)
+        state.totalCount += 1
+        state.error = null
+      })
+      .addCase(createPositionMatrix.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload as string
       })

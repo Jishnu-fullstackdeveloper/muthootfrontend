@@ -170,12 +170,13 @@ const PositionBudgetMatrix = () => {
   const fetchData = useCallback(
     (pageNum: number, reset: boolean = false) => {
       if (status === 'loading' || (!reset && positionMatrixData.length >= totalCount)) return
+      const selectedLocation = selectedLocationType.toLowerCase()
 
       dispatch(
         fetchPositionMatrix({
           page: pageNum,
           limit,
-          filterType: selectedLocationType.toLowerCase()
+          filterType: selectedLocation
         })
       )
     },
@@ -232,7 +233,7 @@ const PositionBudgetMatrix = () => {
   // Fallback Data
   const budgetData = positionMatrixData.length > 0 ? positionMatrixData : []
 
-  console.log(budgetData, 'ssssssssssssssssss', positionMatrixData)
+  // console.log(budgetData, 'ssssssssssssssssss', positionMatrixData)
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative' }}>
@@ -476,135 +477,165 @@ const PositionBudgetMatrix = () => {
       </Box>
 
       <>
-        <Grid container spacing={4} className='mt-4'>
-          {positionMatrixData.map((budget, index) => {
-            const variance = budget.expectedCount - budget.actualCount
-            const fillPercentage = budget.expectedCount > 0 ? (budget.actualCount / budget.expectedCount) * 100 : 0
+        <Box>
+          {status === 'loading' && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {status === 'failed' && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4, color: 'error.main' }}>
+              <Typography>Error: {error || 'Failed to fetch budget data'}</Typography>
+            </Box>
+          )}
+          {status === 'succeeded' && positionMatrixData.length === 0 && (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant='h6' color='text.secondary'>
+                No budget data found
+              </Typography>
+            </Box>
+          )}
+          {status === 'succeeded' && positionMatrixData.length > 0 && (
+            <Grid container spacing={4} className='mt-4'>
+              {positionMatrixData.map((budget, index) => {
+                const variance = budget.expectedCount - budget.actualCount
+                const fillPercentage = budget.expectedCount > 0 ? (budget.actualCount / budget.expectedCount) * 100 : 0
 
-            return (
-              <Grid item xs={12} sm={6} lg={4} key={index}>
-                <Card
-                  onClick={() =>
-                    router.push(
-                      `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
-                    )
-                  }
-                  sx={{
-                    p: 2,
-                    bgcolor: 'background.paper',
-                    borderRadius: 1,
-                    boxShadow: 3,
-                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                    '&:hover': {
-                      boxShadow: 8,
-                      transform: 'translateY(-4px)'
-                    },
-                    cursor: 'pointer',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <Box
-                    sx={{
-                      bgcolor: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                      p: 3,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
-                      <Typography
-                        className='whitespace-nowrap overflow-hidden text-ellipsis uppercase'
-                        sx={{ fontWeight: 'bold', fontSize: 14 }}
+                return (
+                  <Grid item xs={12} sm={6} lg={4} key={index}>
+                    <Card
+                      onClick={() =>
+                        router.push(
+                          `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
+                        )
+                      }
+                      sx={{
+                        p: 2,
+                        bgcolor: 'background.paper',
+                        borderRadius: 1,
+                        boxShadow: 3,
+                        transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                        '&:hover': {
+                          boxShadow: 8,
+                          transform: 'translateY(-4px)'
+                        },
+                        cursor: 'pointer',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          bgcolor: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                          p: 3,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
                       >
-                        {budget.designation}
-                      </Typography>
-                      <Typography className='uppercase' sx={{ fontSize: 10 }}>
-                        {budget.locationUnit}
-                      </Typography>
-                    </Box>
-                  </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
+                          <Typography
+                            className='whitespace-nowrap overflow-hidden text-ellipsis uppercase'
+                            sx={{ fontWeight: 'bold', fontSize: 14 }}
+                          >
+                            {budget.designation}
+                          </Typography>
+                          <Typography className='uppercase' sx={{ fontSize: 10 }}>
+                            {budget.locationUnit}
+                          </Typography>
+                        </Box>
+                      </Box>
 
-                  <CardContent sx={{ p: 3 }}>
-                    <Grid container spacing={1}>
-                      <Grid item xs={12}>
-                        <Box className='text-sm text-gray-700 flex flex-col gap-y-3'>
-                          <Box className='grid grid-cols-2 w-full items-center'>
-                            <Typography className='w-full whitespace-nowrap' sx={{ fontWeight: 'bold', fontSize: 10 }}>
-                              Expected Budget
-                            </Typography>
-                            <Typography
-                              className='flex w-full whitespace-nowrap justify-end'
-                              variant='body2'
-                              fontSize='10px'
-                              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                            >
-                              {budget.expectedCount}
-                            </Typography>
-                          </Box>
-                          <Box className='grid grid-cols-2 w-full items-center'>
-                            <Typography className='w-full whitespace-nowrap' sx={{ fontWeight: 'bold', fontSize: 10 }}>
-                              Actual Budget
-                            </Typography>
-                            <Box className='flex gap-2 items-center'>
-                              <Typography
-                                className='flex w-full whitespace-nowrap justify-end'
-                                variant='body2'
-                                fontSize='12px'
-                                fontWeight='bold'
-                                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                              >
-                                {budget.actualCount}
-                              </Typography>
-                              <Box className='flex border border-gray-400 rounded-full justify-center items-center'>
+                      <CardContent sx={{ p: 3 }}>
+                        <Grid container spacing={1}>
+                          <Grid item xs={12}>
+                            <Box className='text-sm text-gray-700 flex flex-col gap-y-3'>
+                              <Box className='grid grid-cols-2 w-full items-center'>
                                 <Typography
-                                  className='px-2 py-0.5 whitespace-nowrap'
-                                  variant='body2'
-                                  fontWeight='bold'
-                                  fontSize='8px'
+                                  className='w-full whitespace-nowrap'
+                                  sx={{ fontWeight: 'bold', fontSize: 10 }}
                                 >
-                                  {variance === 0 ? '(No Variance)' : `(${variance > 0 ? '+' : ''}${variance})`}
+                                  Expected Budget
+                                </Typography>
+                                <Typography
+                                  className='flex w-full whitespace-nowrap justify-end'
+                                  variant='body2'
+                                  fontSize='10px'
+                                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                                >
+                                  {budget.expectedCount}
                                 </Typography>
                               </Box>
+                              <Box className='grid grid-cols-2 w-full items-center'>
+                                <Typography
+                                  className='w-full whitespace-nowrap'
+                                  sx={{ fontWeight: 'bold', fontSize: 10 }}
+                                >
+                                  Actual Budget
+                                </Typography>
+                                <Box className='flex gap-2 items-center'>
+                                  <Typography
+                                    className='flex w-full whitespace-nowrap justify-end'
+                                    variant='body2'
+                                    fontSize='12px'
+                                    fontWeight='bold'
+                                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                                  >
+                                    {budget.actualCount}
+                                  </Typography>
+                                  <Box className='flex border border-gray-400 rounded-full justify-center items-center'>
+                                    <Typography
+                                      className='px-2 py-0.5 whitespace-nowrap'
+                                      variant='body2'
+                                      fontWeight='bold'
+                                      fontSize='8px'
+                                    >
+                                      {variance === 0 ? '(No Variance)' : `(${variance > 0 ? '+' : ''}${variance})`}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Box>
+                              <Box className='flex justify-between w-full items-center'>
+                                <Typography
+                                  className='w-full whitespace-nowrap'
+                                  sx={{ fontWeight: 'bold', fontSize: 10 }}
+                                >
+                                  Temporary Position
+                                </Typography>
+                                <Typography
+                                  variant='body2'
+                                  fontSize='10px'
+                                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                                >
+                                  {budget.temporaryCount}
+                                </Typography>
+                              </Box>
+                              <Box className='flex flex-col gap-0.5'>
+                                <BorderLinearProgress variant='determinate' value={fillPercentage} />
+                                <Typography
+                                  variant='body2'
+                                  fontSize='8px'
+                                  sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'medium' }}
+                                >
+                                  {fillPercentage.toFixed(0)}% Filled
+                                </Typography>
+                              </Box>
+                              <Box className='flex w-full justify-center border border-[#0095DA] rounded-md'>
+                                <Button className='flex gap-1 items-center w-full'>
+                                  <Visibility />
+                                  View Details
+                                </Button>
+                              </Box>
                             </Box>
-                          </Box>
-                          <Box className='flex justify-between w-full items-center'>
-                            <Typography className='w-full whitespace-nowrap' sx={{ fontWeight: 'bold', fontSize: 10 }}>
-                              Temporary Position
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              fontSize='10px'
-                              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                            >
-                              {budget.temporaryCount}
-                            </Typography>
-                          </Box>
-                          <Box className='flex flex-col gap-0.5'>
-                            <BorderLinearProgress variant='determinate' value={fillPercentage} />
-                            <Typography
-                              variant='body2'
-                              fontSize='8px'
-                              sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'medium' }}
-                            >
-                              {fillPercentage.toFixed(0)}% Filled
-                            </Typography>
-                          </Box>
-                          <Box className='flex w-full justify-center border border-[#0095DA] rounded-md'>
-                            <Button className='flex gap-1 items-center w-full'>
-                              <Visibility />
-                              View Details
-                            </Button>
-                          </Box>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )
-          })}
-        </Grid>
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )
+              })}
+            </Grid>
+          )}
+        </Box>
       </>
     </Box>
   )

@@ -10,7 +10,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
-import { Group, GroupAddOutlined, GroupOutlined } from '@mui/icons-material'
+import { GroupAddOutlined, GroupOutlined, HowToRegOutlined } from '@mui/icons-material'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -176,7 +176,7 @@ const PositionMatrixTable = () => {
         <Card className='flex flex-col gap-2 p-4'>
           <Box className='flex gap-2 items-center'>
             <Typography className='font-bold'>Actual Budget</Typography>
-            <GroupOutlined sx={{ fill: '#0095DA' }} />
+            <HowToRegOutlined sx={{ fill: '#0095DA' }} />
           </Box>
           <Box className='flex gap-2 items-baseline'>
             <Typography className='text-5xl font-bold text-[#0095DA]'>4</Typography>

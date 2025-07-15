@@ -178,7 +178,23 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             label: 'Budget Management',
             iconClass: 'tabler-report-money',
             permission: 'budgetManagement',
-            read: 'HIRING_BUDGET_READ'
+            read: 'HIRING_BUDGET_READ',
+            children: [
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.BUDGET_REQUEST,
+                label: 'Budget Request',
+                iconClass: 'tabler-calendar-user',
+                permission: 'budgetRequest',
+                read: 'SYSTEM_XFACTOR_RESIGNEDXFACTOR_READ'
+              },
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.POSITION_MATRIX,
+                label: 'Position Matrix',
+                iconClass: 'tabler-brand-matrix',
+                permission: 'positionMatrix',
+                read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+              }
+            ]
           }
         ]
       },

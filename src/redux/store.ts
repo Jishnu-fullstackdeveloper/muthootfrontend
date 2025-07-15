@@ -20,6 +20,7 @@ import JobPostingReducer from './JobPosting/jobListingSlice'
 import OrganizationalMappingReducer from './OrganizationalMapping/organizationalMappingSlice'
 import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
+import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -43,7 +44,8 @@ export const makeStore = () =>
       JobPostingReducer,
       OrganizationalMappingReducer,
       schedulerManagementSliceReducer,
-      noticePeriodReducer
+      noticePeriodReducer,
+      positionBudgetMatrixReducer
     }
   })
 

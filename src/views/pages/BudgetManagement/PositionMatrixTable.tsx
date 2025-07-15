@@ -1,126 +1,52 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 
-import { Box, Typography } from '@mui/material'
+import { useSearchParams, useRouter } from 'next/navigation'
+
+import { Box, Typography, Card, TextField, InputAdornment, IconButton, CircularProgress } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { Group, GroupAddOutlined, GroupOutlined } from '@mui/icons-material'
+
 import DynamicTable from '@/components/Table/dynamicTable'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchEmployees } from '@/redux/EmployeeManagement/employeeManagementSlice'
+import { ROUTES } from '@/utils/routes'
 
 interface EmployeeDetails {
-  employeeId: string
-  fullName: string
-  designation: string
-  locationUnit: string
-  hireDate: string
-  employmentStatus: string
+  employeeId: string // Maps to employeeCode or id from API
+  fullName: string // Maps to title + firstName + middleName + lastName
+  designation: string // Maps to designation.name
+  dateOfJoining: string // Maps to employeeDetails.dateOfJoining
+  employmentStatus: string // Maps to employeeDetails.employmentStatus or type
+  id: string // For action column navigation
 }
 
-interface PositionMatrixTableProps {
-  designation: string // Filter by designation
-}
+const PositionMatrixTable = () => {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const dispatch = useAppDispatch()
 
-const EmployeeDetailsData: EmployeeDetails[] = [
-  {
-    employeeId: 'EMP001',
-    fullName: 'John Doe',
-    designation: 'Senior Developer',
-    locationUnit: 'Branch 1',
-    hireDate: '2023-01-15',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP002',
-    fullName: 'Jane Smith',
-    designation: 'Senior Developer',
-    locationUnit: 'Branch 1',
-    hireDate: '2023-03-22',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP003',
-    fullName: 'Alice Johnson',
-    designation: 'Senior Developer',
-    locationUnit: 'Branch 1',
-    hireDate: '2023-06-10',
-    employmentStatus: 'Contract'
-  },
-  {
-    employeeId: 'EMP004',
-    fullName: 'Bob Wilson',
-    designation: 'Sales Executive',
-    locationUnit: 'Branch 2',
-    hireDate: '2022-11-05',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP005',
-    fullName: 'Carol Brown',
-    designation: 'Sales Executive',
-    locationUnit: 'Branch 2',
-    hireDate: '2023-02-18',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP006',
-    fullName: 'David Lee',
-    designation: 'Sales Executive',
-    locationUnit: 'Region 1',
-    hireDate: '2023-04-12',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP007',
-    fullName: 'Emma Davis',
-    designation: 'HR Manager',
-    locationUnit: 'Zone 2',
-    hireDate: '2024-01-30',
-    employmentStatus: 'Temporary'
-  },
-  {
-    employeeId: 'EMP008',
-    fullName: 'Frank Miller',
-    designation: 'HR Manager',
-    locationUnit: 'Zone 2',
-    hireDate: '2024-03-15',
-    employmentStatus: 'Temporary'
-  },
-  {
-    employeeId: 'EMP009',
-    fullName: 'Grace Taylor',
-    designation: 'Project Lead',
-    locationUnit: 'Area 3',
-    hireDate: '2023-07-20',
-    employmentStatus: 'Temporary'
-  },
-  {
-    employeeId: 'EMP010',
-    fullName: 'Henry Clark',
-    designation: 'Finance Officer',
-    locationUnit: 'Cluster 2',
-    hireDate: '2022-09-10',
-    employmentStatus: 'Permanent'
-  },
-  {
-    employeeId: 'EMP011',
-    fullName: 'Isabella Martinez',
-    designation: 'Marketing Specialist',
-    locationUnit: 'Territory 3',
-    hireDate: '2023-05-25',
-    employmentStatus: 'Temporary'
-  },
-  {
-    employeeId: 'EMP012',
-    fullName: 'James Rodriguez',
-    designation: 'Marketing Specialist',
-    locationUnit: 'Territory 3',
-    hireDate: '2023-08-14',
-    employmentStatus: 'Temporary'
-  }
-]
+  const { employees, status, error, totalCount } = useAppSelector(state => state.employeeManagementReducer)
 
-const PositionMatrixTable = ({ designation }: PositionMatrixTableProps) => {
-  // const router = useRouter()
+  // Extract designation and employeeCodes from searchParams
+  const designation = searchParams.get('designation') || ''
+  const employeeCodes = searchParams.get('employeeCodes') ? searchParams.get('employeeCodes')!.split(',') : []
+
+  console.log(employeeCodes)
+
+  // Memoize query parameters to prevent unnecessary re-renders
+  const queryParams = useMemo(
+    () => ({
+      designation,
+      employeeCodes
+    }),
+    [searchParams]
+  )
 
   const columnHelper = createColumnHelper<EmployeeDetails>()
 
@@ -129,19 +55,56 @@ const PositionMatrixTable = ({ designation }: PositionMatrixTableProps) => {
     pageSize: 5
   })
 
-  // Map data to table format
-  const tableData = useMemo(() => {
-    const filteredData = EmployeeDetailsData.filter(
-      item => item.designation.toLowerCase() === designation?.toLowerCase()
-    )
+  const [searchQuery, setSearchQuery] = useState('')
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
-    console.log('PositionMatrixTable: Table data updated', { data: filteredData, totalCount: filteredData.length })
+  // Debounced API call
+  useEffect(() => {
+    // Clear the previous timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current)
+    }
+
+    // Set a new timeout
+    debounceTimeout.current = setTimeout(() => {
+      dispatch(
+        fetchEmployees({
+          page: pagination.pageIndex + 1, // API uses 1-based indexing
+          limit: pagination.pageSize,
+          search: searchQuery || undefined,
+          employeeCodes: queryParams.employeeCodes.length > 0 ? queryParams.employeeCodes : undefined
+        })
+      )
+    }, 300)
+
+    // Cleanup function to clear timeout
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current)
+      }
+    }
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchQuery, queryParams])
+
+  // Map API data to table format
+  const tableData = useMemo(() => {
+    const mappedData = employees.map(item => ({
+      employeeId: item.employeeCode || item.id || '', // Fallback to empty string if missing
+      fullName: `${item.title || ''} ${item.firstName || 'Unknown'}${item.middleName ? ` ${item.middleName}` : ''}${
+        item.lastName ? ` ${item.lastName}` : ''
+      }`.trim(), // Combine title, firstName, middleName, lastName
+      designation: item.designation?.name || queryParams.designation || 'Unknown', // Use query designation if missing
+      dateOfJoining: item.employeeDetails?.dateOfJoining || '', // Fallback to empty string if missing
+      employmentStatus: item.employeeDetails?.employmentStatus || 'Unknown', // Map type if needed (item.type)
+      id: item.id || '' // For action column navigation
+    }))
+
+    console.log('PositionMatrixTable: Table data updated', { data: mappedData, totalCount })
 
     return {
-      data: filteredData,
-      totalCount: filteredData.length
+      data: mappedData as EmployeeDetails[], // Ensure type matches EmployeeDetails
+      totalCount
     }
-  }, [designation])
+  }, [employees, totalCount, queryParams.designation])
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, pageIndex: newPage }))
@@ -154,7 +117,7 @@ const PositionMatrixTable = ({ designation }: PositionMatrixTableProps) => {
   const columns = useMemo<ColumnDef<EmployeeDetails, any>[]>(
     () => [
       columnHelper.accessor('employeeId', {
-        header: 'EMPLOYEE ID',
+        header: 'EMPLOYEE CODE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeId}</Typography>
       }),
       columnHelper.accessor('fullName', {
@@ -165,47 +128,139 @@ const PositionMatrixTable = ({ designation }: PositionMatrixTableProps) => {
         header: 'DESIGNATION',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.designation}</Typography>
       }),
-      columnHelper.accessor('locationUnit', {
-        header: 'LOCATION UNIT',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.locationUnit}</Typography>
-      }),
-      columnHelper.accessor('hireDate', {
-        header: 'HIRE DATE',
+      columnHelper.accessor('dateOfJoining', {
+        header: 'DATE OF JOINING',
         cell: ({ row }) => (
           <Typography color='text.primary'>
-            {row.original.hireDate ? row.original.hireDate.split('T')[0] : '-'}
+            {row.original.dateOfJoining ? row.original.dateOfJoining.split('T')[0] : '-'}
           </Typography>
         )
       }),
       columnHelper.accessor('employmentStatus', {
         header: 'EMPLOYMENT STATUS',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.employmentStatus}</Typography>
+      }),
+      columnHelper.display({
+        id: 'action',
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            <IconButton
+              onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))}
+              sx={{ fontSize: 18 }}
+            >
+              <VisibilityIcon />
+            </IconButton>
+          </Box>
+        ),
+        enableSorting: false
       })
     ],
-    [columnHelper]
+    [columnHelper, router]
   )
 
   return (
     <Box>
-      {tableData.data.length === 0 && (
+      <Box className='grid grid-cols-3 w-full gap-4 pb-4'>
+        <Card className='flex flex-col gap-2 p-4'>
+          <Box className='flex gap-2 items-center'>
+            <Typography className='font-bold'>Expected Budget</Typography>
+            <GroupOutlined sx={{ fill: '#0095DA' }} />
+          </Box>
+          <Box className='flex gap-2 items-baseline'>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>10</Typography>
+            <Typography className='font-medium'>no. of Employees</Typography>
+          </Box>
+        </Card>
+        <Card className='flex flex-col gap-2 p-4'>
+          <Box className='flex gap-2 items-center'>
+            <Typography className='font-bold'>Actual Budget</Typography>
+            <GroupOutlined sx={{ fill: '#0095DA' }} />
+          </Box>
+          <Box className='flex gap-2 items-baseline'>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>4</Typography>
+            <Typography className='font-medium'>no. of Employees</Typography>
+          </Box>
+        </Card>
+        <Card className='flex flex-col gap-2 p-4'>
+          <Box className='flex gap-2 items-center'>
+            <Typography className='font-bold'>Additional Budget</Typography>
+            <GroupAddOutlined sx={{ fill: '#0095DA' }} />
+          </Box>
+          <Box className='flex gap-2 items-baseline'>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>0</Typography>
+            <Typography className='font-medium'>no. of Employees</Typography>
+          </Box>
+        </Card>
+      </Box>
+      <Card
+        sx={{
+          mb: 4,
+          position: 'sticky',
+          top: 70,
+          zIndex: 10,
+          backgroundColor: 'white',
+          height: 'auto',
+          paddingBottom: 2
+        }}
+      >
+        <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-x-axis'>
+          <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
+            <TextField
+              label='Search by Employee Name'
+              variant='outlined'
+              size='small'
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              sx={{ width: '400px' }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    {searchQuery && (
+                      <IconButton size='small' onClick={() => setSearchQuery('')} edge='end'>
+                        <ClearIcon fontSize='small' />
+                      </IconButton>
+                    )}
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Box>
+        </Box>
+      </Card>
+      {status === 'loading' && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {status === 'failed' && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4, color: 'error.main' }}>
+          <Typography>Error: {error}</Typography>
+        </Box>
+      )}
+      {tableData.data.length === 0 && status !== 'loading' && (
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography variant='h6' color='text.secondary'>
             No employee data found
           </Typography>
         </Box>
       )}
-      <DynamicTable
-        columns={columns}
-        data={tableData.data}
-        totalCount={tableData.totalCount}
-        pagination={pagination}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        tableName='Position Matrix Table'
-        sorting={undefined}
-        onSortingChange={undefined}
-        initialState={undefined}
-      />
+      {status === 'succeeded' && (
+        <DynamicTable
+          columns={columns}
+          data={tableData.data}
+          totalCount={tableData.totalCount}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          tableName='Position Matrix Table'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
+        />
+      )}
     </Box>
   )
 }

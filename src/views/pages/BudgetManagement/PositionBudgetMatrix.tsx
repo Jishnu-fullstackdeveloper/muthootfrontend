@@ -7,8 +7,6 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 // Next Imports
 import { useRouter } from 'next/navigation'
 
-// Redux Imports
-
 // MUI Imports
 import type { TextFieldProps } from '@mui/material'
 import {
@@ -51,16 +49,11 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 
 import { ClearIcon } from '@mui/x-date-pickers'
 
-import withPermission from '@/hocs/withPermission'
-import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
-import { useAppSelector, useAppDispatch } from '@/lib/hooks'
-import { fetchUser } from '@/redux/Approvals/approvalsSlice'
-import {
-  fetchBudgetIncreaseRequestList,
-  approveRejectBudgetIncreaseRequest
-} from '@/redux/BudgetManagement/BudgetManagementSlice'
-import type { RootState } from '@/redux/store'
+import withPermission from '@/hocs/withPermission'
+
+import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
 
 // Components and Utils
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -68,76 +61,27 @@ import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
 import BudgetListingTableView from './BudgetListingTableView'
 
-const HeadcountDetailsData = [
-  {
-    designation: 'Senior Developer',
-    locationUnit: 'Branch 1',
-    count: 5,
-    'isTemporary?': false,
-    tempDate: null,
-    notes: 'standard_approval'
-  },
-  {
-    designation: 'Sales Executive',
-    locationUnit: 'Branch 2',
-    count: 5,
-    'isTemporary?': false,
-    tempDate: null,
-    notes: 'standard_approval'
-  },
-  {
-    designation: 'HR Manager',
-    locationUnit: 'Zone 2',
-    count: 2,
-    'isTemporary?': true,
-    tempDate: '2025-07-15',
-    notes: 'special_approval'
-  },
-  {
-    designation: 'Sales Executive',
-    locationUnit: 'Region 1',
-    count: 3,
-    'isTemporary?': false,
-    tempDate: null,
-    notes: 'standard_approval'
-  },
-  {
-    designation: 'Project Lead',
-    locationUnit: 'Area 3',
-    count: 4,
-    'isTemporary?': true,
-    tempDate: '2025-08-01',
-    notes: 'special_approval'
-  },
-  {
-    designation: 'Finance Officer',
-    locationUnit: 'Cluster 2',
-    count: 1,
-    'isTemporary?': false,
-    tempDate: null,
-    notes: 'standard_approval'
-  },
-  {
-    designation: 'Marketing Specialist',
-    locationUnit: 'Territory 3',
-    count: 6,
-    'isTemporary?': true,
-    tempDate: '2025-07-20',
-    notes: 'special_approval'
-  }
-]
+// Redux Imports
+import { fetchPositionMatrix, resetPositionBudgetState } from '@/redux/PositionBudgetMatrix/positionMatrixSlice'
 
 const PositionBudgetMatrix = () => {
-  const dispatch = useAppDispatch()
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
-  //Toggle View
-  const locationTypes = ['Branch', 'Area', 'Region', 'Zone']
+  // Redux State
+  const { positionMatrixData, status, error, totalCount, page, limit } = useAppSelector(
+    state => state.positionBudgetMatrixReducer
+  )
 
-  const [selectedLocationType, setSelectedLocationType] = useState<'Branch' | 'Area' | 'Region' | 'Zone'>('Branch')
+  // Toggle View
+  const locationTypes = ['Branch', 'Area', 'Cluster', 'Region', 'Zone', 'Territory', 'Corporate']
+
+  const [selectedLocationType, setSelectedLocationType] = useState<
+    'Branch' | 'Area' | 'Cluster' | 'Region' | 'Zone' | 'Territory' | 'Corporate'
+  >('Branch')
 
   const [gridLimit, setGridLimit] = useState(10) // Initial limit for grid view
-
+  const [selectedLocationFilters, setSelectedLocationFilters] = useState<Record<string, any>>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
 
@@ -146,29 +90,6 @@ const PositionBudgetMatrix = () => {
   const [viewMode, setViewMode] = useState('grid')
   const [paginationState, setPaginationState] = useState({ pageIndex: 0, pageSize: 100, display_numbers_count: 10 })
   const [openLocationFilter, setOpenLocationFilter] = useState(false)
-
-  const { designations, approvalCategories, levels } = useAppSelector(state => state.approvalMatrixReducer) // Removed grades from selector
-
-  const [selectedLocationFilters, setSelectedLocationFilters] = useState({
-    territory: '',
-    zone: '',
-    region: '',
-    area: '',
-    cluster: '',
-    branch: ''
-  })
-
-  // Redux State
-  const {
-    fetchBudgetIncreaseRequestListLoading,
-    fetchBudgetIncreaseRequestListData,
-    fetchBudgetIncreaseRequestListTotal
-  } = useAppSelector((state: RootState) => state.budgetManagementReducer) as any
-
-  const { fetchUserData } = useAppSelector((state: RootState) => state.approvalsReducer) as any
-
-  const userId = getUserId()
-  const approverDesignation = fetchUserData?.designation || ''
 
   // Filter Area Options
   const filterAreaOptions = {
@@ -187,8 +108,6 @@ const PositionBudgetMatrix = () => {
 
   const handleApplyFilters = (selectedFilters: Record<string, any>) => {
     console.log(selectedFilters)
-
-    // Add API integration for filters when available
   }
 
   const handlePageChange = (newPage: number) => {
@@ -226,12 +145,14 @@ const PositionBudgetMatrix = () => {
     }, [initialValue])
 
     useEffect(() => {
+      if (value === initialValue) return // Prevent unnecessary updates
+
       const timeout = setTimeout(() => {
         onChange(value)
       }, debounce)
 
       return () => clearTimeout(timeout)
-    }, [value, debounce, onChange])
+    }, [value, debounce, onChange, initialValue])
 
     return (
       <CustomTextField
@@ -245,117 +166,42 @@ const PositionBudgetMatrix = () => {
     )
   }
 
-  // Lazy Loading State
-  const [allBudgetData, setAllBudgetData] = useState<any[]>([])
-  const [page, setPage] = useState(1)
-  const limit = 10 // Fixed limit set to 10
-  const [isInitialLoad, setIsInitialLoad] = useState(true)
-  const [hasMore, setHasMore] = useState(true)
-
-  // Handle Approve/Reject
-  const handleApprove = (id: string, approvalRequestId: string) => {
-    dispatch(
-      approveRejectBudgetIncreaseRequest({
-        approvalRequestId,
-        status: 'APPROVED',
-        approverId: userId,
-        approverDesignation: approverDesignation.toUpperCase()
-      })
-    ).then(() => {
-      // Reset data and reload
-      setAllBudgetData([])
-      setPage(1)
-      setHasMore(true)
-      fetchData(1, true)
-    })
-  }
-
-  const handleReject = (id: string, approvalRequestId: string) => {
-    dispatch(
-      approveRejectBudgetIncreaseRequest({
-        approvalRequestId,
-        status: 'REJECTED',
-        approverId: userId,
-        approverDesignation: approverDesignation.toUpperCase()
-      })
-    ).then(() => {
-      // Reset data and reload
-      setAllBudgetData([])
-      setPage(1)
-      setHasMore(true)
-      fetchData(1, true)
-    })
-  }
-
   // Fetch data function
   const fetchData = useCallback(
     (pageNum: number, reset: boolean = false) => {
-      if (!hasMore && !reset) return
+      if (status === 'loading' || (!reset && positionMatrixData.length >= totalCount)) return
 
       dispatch(
-        fetchBudgetIncreaseRequestList({
+        fetchPositionMatrix({
           page: pageNum,
           limit,
-          search,
-          status: null // Add status filter if needed
+          filterType: selectedLocationType.toLowerCase()
         })
-      ).then((action: any) => {
-        if (action.payload?.data) {
-          const newData = action.payload.data
-
-          if (newData.length < limit) {
-            setHasMore(false)
-          }
-        }
-      })
-
-      if (reset) {
-        setAllBudgetData([])
-      }
+      )
     },
-    [dispatch, limit, search, hasMore]
+    [dispatch, limit, selectedLocationType, status, positionMatrixData.length, totalCount]
   )
 
   // Initial load and search change effect
   useEffect(() => {
-    setIsInitialLoad(true)
-    setPage(1)
-    setHasMore(true)
+    setGridLimit(10)
+
+    //dispatch(resetPositionBudgetState())
     fetchData(1, true)
-  }, [search, viewMode])
-
-  // Handle new data received
-  useEffect(() => {
-    if (!fetchBudgetIncreaseRequestListLoading && fetchBudgetIncreaseRequestListData?.data) {
-      if (isInitialLoad) {
-        setAllBudgetData(fetchBudgetIncreaseRequestListData.data)
-        setIsInitialLoad(false)
-      } else {
-        setAllBudgetData(prev => {
-          // Filter out duplicates
-          const newData = fetchBudgetIncreaseRequestListData.data.filter(
-            newItem => !prev.some(existingItem => existingItem.id === newItem.id)
-          )
-
-          return [...prev, ...newData]
-        })
-      }
-    }
-  }, [fetchBudgetIncreaseRequestListData, fetchBudgetIncreaseRequestListLoading, isInitialLoad])
+  }, [search, viewMode, selectedLocationType])
 
   // Scroll-based lazy loading
   useEffect(() => {
-    if (viewMode !== 'grid' || !hasMore) return
+    if (viewMode !== 'grid' || status === 'loading' || positionMatrixData.length >= totalCount) return
 
     const handleScroll = () => {
       const scrollPosition = window.innerHeight + document.documentElement.scrollTop
       const documentHeight = document.documentElement.offsetHeight
       const threshold = 100 // pixels from bottom
 
-      if (scrollPosition >= documentHeight - threshold && !fetchBudgetIncreaseRequestListLoading && hasMore) {
+      if (scrollPosition >= documentHeight - threshold && positionMatrixData.length < totalCount) {
         const nextPage = page + 1
 
-        setPage(nextPage)
         fetchData(nextPage)
       }
     }
@@ -363,7 +209,7 @@ const PositionBudgetMatrix = () => {
     window.addEventListener('scroll', handleScroll)
 
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [fetchBudgetIncreaseRequestListLoading, hasMore, page, fetchData, viewMode])
+  }, [positionMatrixData, totalCount, page, fetchData, viewMode, status])
 
   const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     height: 10,
@@ -384,17 +230,22 @@ const PositionBudgetMatrix = () => {
   }))
 
   // Fallback Data
-  const budgetData = allBudgetData.length > 0 ? allBudgetData : fetchBudgetIncreaseRequestListData?.data || []
+  const budgetData = positionMatrixData.length > 0 ? positionMatrixData : []
 
-  // Fetch user data
-  useEffect(() => {
-    if (userId) {
-      dispatch(fetchUser(userId as string))
-    }
-  }, [userId, dispatch])
+  console.log(budgetData, 'ssssssssssssssssss', positionMatrixData)
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative' }}>
+      {status === 'loading' && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {error && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4, color: 'error.main' }}>
+          <Typography>Error: {error}</Typography>
+        </Box>
+      )}
       <AreaFilterDialog
         open={openLocationFilter}
         setOpen={setOpenLocationFilter}
@@ -442,77 +293,83 @@ const PositionBudgetMatrix = () => {
               gap: 2
             }}
           >
-            <Autocomplete
+            {/* <Autocomplete
               disablePortal
-              options={levels}
+              options={locationTypes}
               sx={{ width: 150 }}
+              value={selectedLocationType}
+              onChange={(_, newValue) => {
+                if (newValue) {
+                  setSelectedLocationType(newValue as typeof selectedLocationType)
+                }
+              }}
               renderInput={params => (
                 <TextField
                   {...params}
                   label='Branch Type'
                   sx={{
                     '& .MuiInputBase-root': {
-                      padding: 0, // Remove default padding
+                      padding: 0,
                       display: 'flex',
-                      alignItems: 'center', // Center content vertically
-                      justifyContent: 'center', // Center content horizontally
-                      height: '30px' // Set fixed height to control size
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '30px'
                     },
                     '& .MuiInputBase-input': {
-                      padding: '8px', // Consistent padding for input text
-                      textAlign: 'center' // Center placeholder and input text
+                      padding: '8px',
+                      textAlign: 'center'
                     },
                     '& .MuiAutocomplete-endAdornment': {
-                      right: '8px', // Position ChevronDown icon
+                      right: '8px',
                       display: 'flex',
-                      alignItems: 'center' // Center icon vertically
+                      alignItems: 'center'
                     },
                     '& .MuiInputLabel-root': {
-                      top: '50%', // Center label vertically when not focused
-                      transform: 'translateY(-50%)', // Adjust for vertical centering
-                      padding: '0 8px', // Small padding to avoid overlap with input text
-                      lineHeight: 'normal' // Ensure consistent label height
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '0 8px',
+                      lineHeight: 'normal'
                     },
                     '& .MuiInputLabel-shrink': {
-                      top: 0, // Reset top when label shrinks (on focus or input)
-                      transform: 'translate(10%, -50%) scale(0.85)' // Adjust for shrunk state
+                      top: 0,
+                      transform: 'translate(10%, -50%) scale(0.85)'
                     }
                   }}
                 />
               )}
-            />
-            <Autocomplete
+            /> */}
+            {/* <Autocomplete
               disablePortal
-              options={levels}
+              options={['Department 1', 'Department 2', 'Department 3']}
               sx={{ width: 150 }}
               renderInput={params => (
                 <TextField
                   sx={{
                     '& .MuiInputBase-root': {
-                      padding: 0, // Remove default padding
+                      padding: 0,
                       display: 'flex',
-                      alignItems: 'center', // Center content vertically
-                      justifyContent: 'center', // Center content horizontally
-                      height: '30px' // Set fixed height to control size
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '30px'
                     },
                     '& .MuiInputBase-input': {
-                      padding: '8px', // Consistent padding for input text
-                      textAlign: 'center' // Center placeholder and input text
+                      padding: '8px',
+                      textAlign: 'center'
                     },
                     '& .MuiAutocomplete-endAdornment': {
-                      right: '8px', // Position ChevronDown icon
+                      right: '8px',
                       display: 'flex',
-                      alignItems: 'center' // Center icon vertically
+                      alignItems: 'center'
                     },
                     '& .MuiInputLabel-root': {
-                      top: '50%', // Center label vertically when not focused
-                      transform: 'translateY(-50%)', // Adjust for vertical centering
-                      padding: '0 8px', // Small padding to avoid overlap with input text
-                      lineHeight: 'normal' // Ensure consistent label height
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '0 8px',
+                      lineHeight: 'normal'
                     },
                     '& .MuiInputLabel-shrink': {
-                      top: 0, // Reset top when label shrinks (on focus or input)
-                      transform: 'translate(10%, -50%) scale(0.85)' // Adjust for shrunk state
+                      top: 0,
+                      transform: 'translate(10%, -50%) scale(0.85)'
                     }
                   }}
                   {...params}
@@ -522,55 +379,55 @@ const PositionBudgetMatrix = () => {
             />
             <Autocomplete
               disablePortal
-              options={levels}
+              options={[...new Set(positionMatrixData.map(item => item.designation))]}
               sx={{ width: 150 }}
               renderInput={params => (
                 <TextField
                   sx={{
                     '& .MuiInputBase-root': {
-                      padding: 0, // Remove default padding
+                      padding: 0,
                       display: 'flex',
-                      alignItems: 'center', // Center content vertically
-                      justifyContent: 'center', // Center content horizontally
-                      height: '30px' // Set fixed height to control size
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '30px'
                     },
                     '& .MuiInputBase-input': {
-                      padding: '8px', // Consistent padding for input text
-                      textAlign: 'center' // Center placeholder and input text
+                      padding: '8px',
+                      textAlign: 'center'
                     },
                     '& .MuiAutocomplete-endAdornment': {
-                      right: '8px', // Position ChevronDown icon
+                      right: '8px',
                       display: 'flex',
-                      alignItems: 'center' // Center icon vertically
+                      alignItems: 'center'
                     },
                     '& .MuiInputLabel-root': {
-                      top: '50%', // Center label vertically when not focused
-                      transform: 'translateY(-50%)', // Adjust for vertical centering
-                      padding: '0 8px', // Small padding to avoid overlap with input text
-                      lineHeight: 'normal' // Ensure consistent label height
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '0 8px',
+                      lineHeight: 'normal'
                     },
                     '& .MuiInputLabel-shrink': {
-                      top: 0, // Reset top when label shrinks (on focus or input)
-                      transform: 'translate(10%, -50%) scale(0.85)' // Adjust for shrunk state
+                      top: 0,
+                      transform: 'translate(10%, -50%) scale(0.85)'
                     }
                   }}
                   {...params}
                   label='Designation'
                 />
               )}
-            />
+            /> */}
           </Box>
         </Box>
       </Card>
 
       <Box className='flex justify-between w-full items-center'>
         <Box className='flex gap-2 rounded-md p-1 justify-center'>
-          <TextField
+          <DebouncedInput
             className='bg-white rounded-md'
             size='small'
             placeholder='Search users...'
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={value => setSearchTerm(value)}
             InputProps={{
               startAdornment: <SearchIcon sx={{ mr: 1, color: 'grey.400' }} />,
               endAdornment: searchTerm && (
@@ -596,7 +453,6 @@ const PositionBudgetMatrix = () => {
               label={type}
               onClick={() => {
                 setSelectedLocationType(type as typeof selectedLocationType)
-                setHasMore(true) // Reset hasMore to allow lazy loading
                 setGridLimit(10) // Reset grid limit on location change
               }}
               color={selectedLocationType === type ? 'primary' : 'default'}
@@ -621,13 +477,16 @@ const PositionBudgetMatrix = () => {
 
       <>
         <Grid container spacing={4} className='mt-4'>
-          {HeadcountDetailsData.filter(budget => budget.locationUnit.includes(selectedLocationType)).map(
-            (budget, index) => (
+          {positionMatrixData.map((budget, index) => {
+            const variance = budget.expectedCount - budget.actualCount
+            const fillPercentage = budget.expectedCount > 0 ? (budget.actualCount / budget.expectedCount) * 100 : 0
+
+            return (
               <Grid item xs={12} sm={6} lg={4} key={index}>
                 <Card
                   onClick={() =>
                     router.push(
-                      `/hiring-management/budget-management/position-budget-matrix/view/${budget.designation.replace(/\s+/g, '')}`
+                      `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
                     )
                   }
                   sx={{
@@ -654,8 +513,15 @@ const PositionBudgetMatrix = () => {
                     }}
                   >
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
-                      <Typography sx={{ fontWeight: 'bold', fontSize: 14 }}>{budget.designation}</Typography>
-                      <Typography sx={{ fontSize: 10 }}>{budget.locationUnit}</Typography>
+                      <Typography
+                        className='whitespace-nowrap overflow-hidden text-ellipsis uppercase'
+                        sx={{ fontWeight: 'bold', fontSize: 14 }}
+                      >
+                        {budget.designation}
+                      </Typography>
+                      <Typography className='uppercase' sx={{ fontSize: 10 }}>
+                        {budget.locationUnit}
+                      </Typography>
                     </Box>
                   </Box>
 
@@ -673,7 +539,7 @@ const PositionBudgetMatrix = () => {
                               fontSize='10px'
                               sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                             >
-                              {budget.count}
+                              {budget.expectedCount}
                             </Typography>
                           </Box>
                           <Box className='grid grid-cols-2 w-full items-center'>
@@ -688,7 +554,7 @@ const PositionBudgetMatrix = () => {
                                 fontWeight='bold'
                                 sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                               >
-                                {budget.count}
+                                {budget.actualCount}
                               </Typography>
                               <Box className='flex border border-gray-400 rounded-full justify-center items-center'>
                                 <Typography
@@ -697,7 +563,7 @@ const PositionBudgetMatrix = () => {
                                   fontWeight='bold'
                                   fontSize='8px'
                                 >
-                                  (No Variance)
+                                  {variance === 0 ? '(No Variance)' : `(${variance > 0 ? '+' : ''}${variance})`}
                                 </Typography>
                               </Box>
                             </Box>
@@ -711,17 +577,17 @@ const PositionBudgetMatrix = () => {
                               fontSize='10px'
                               sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                             >
-                              {budget['isTemporary?'] ? <WarningAmberRounded fontSize='small' /> : 'null'}
+                              {budget.temporaryCount}
                             </Typography>
                           </Box>
                           <Box className='flex flex-col gap-0.5'>
-                            <BorderLinearProgress variant='determinate' value={100} />
+                            <BorderLinearProgress variant='determinate' value={fillPercentage} />
                             <Typography
                               variant='body2'
                               fontSize='8px'
                               sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'medium' }}
                             >
-                              100% Filled
+                              {fillPercentage.toFixed(0)}% Filled
                             </Typography>
                           </Box>
                           <Box className='flex w-full justify-center border border-[#0095DA] rounded-md'>
@@ -737,7 +603,7 @@ const PositionBudgetMatrix = () => {
                 </Card>
               </Grid>
             )
-          )}
+          })}
         </Grid>
       </>
     </Box>

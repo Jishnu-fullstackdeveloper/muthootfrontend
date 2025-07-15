@@ -6,6 +6,7 @@ import { IconButton, Typography } from '@mui/material'
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface JobPosting {
+  id: string
   band: string
   jobRole: string
   employeeCategory: string
@@ -15,7 +16,7 @@ interface JobPosting {
   Action?: any
 }
 
-const JobPostingCustomTable = ({ data }: { data: JobPosting[] }) => {
+const JobPostingCustomTable = ({ data, onEdit }: { data: JobPosting[]; onEdit: (id: string) => void }) => {
   const columnHelper = createColumnHelper<JobPosting>()
 
   const columns = useMemo(
@@ -46,14 +47,14 @@ const JobPostingCustomTable = ({ data }: { data: JobPosting[] }) => {
       }),
       columnHelper.accessor('Action', {
         header: 'Action',
-        cell: ({}) => (
-          <IconButton title='Edit' sx={{ fontSize: '30px' }} onClick={() => {}}>
+        cell: ({ row }) => (
+          <IconButton title='Edit' sx={{ fontSize: '30px' }} onClick={() => onEdit(row.original.id)}>
             <i className='tabler-edit w-5 h-5' />
           </IconButton>
         )
       })
     ],
-    []
+    [onEdit]
   )
 
   return (
@@ -65,10 +66,10 @@ const JobPostingCustomTable = ({ data }: { data: JobPosting[] }) => {
         sorting={undefined}
         onSortingChange={undefined}
         initialState={undefined}
-        totalCount={0}
+        totalCount={data.length}
         pagination={{
           pageIndex: 0,
-          pageSize: 0
+          pageSize: 10
         }}
       />
     </div>

@@ -1,5 +1,6 @@
 'use client'
-import React, { useState } from 'react'
+
+import React, { useState, useEffect } from 'react'
 
 import {
   Box,
@@ -15,6 +16,13 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  fetchJobPostingCustomList,
+  createBandPlatformMapping,
+  updateBandPlatformMapping
+} from '@/redux/JobPosting/jobPostingCustomizationSlice'
+
 import JobPostingCustomTable from './JobPostingCustomTable'
 
 const bandOptions = ['Band 1', 'Band 2', 'Band 3']
@@ -23,8 +31,19 @@ const employeeCategory = ['ABC']
 const platformName = ['LinkedIn', 'Naukri']
 
 const JobCustomizationPage = () => {
+  const dispatch = useAppDispatch()
+
+  const {
+    jobPostingCustomListData,
+    isJobPostingCustomListLoading,
+    jobPostingCustomListFailure,
+    jobPostingCustomListFailureMessage
+  } = useAppSelector((state: any) => state.JobPostingCustomizationReducer)
+
   const [searchQuery, setSearchQuery] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     band: [],
@@ -35,36 +54,77 @@ const JobCustomizationPage = () => {
     platformAge: ''
   })
 
-  const [customList, setCustomList] = useState<any[]>([])
+  useEffect(() => {
+    dispatch(fetchJobPostingCustomList({ page: 1, limit: 10, search: searchQuery }))
+  }, [dispatch, searchQuery])
 
   const handleChange = (field: string, value: string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleDrawerOpen = () => setDrawerOpen(true)
-  const handleDrawerClose = () => setDrawerOpen(false)
+  const handleDrawerOpen = (id?: string) => {
+    if (id) {
+      setIsEditMode(true)
+      setSelectedId(id)
+
+      // Fetch specific data for edit if needed (using fetchBandPlatformMappingById)
+      // For now, assume data is available in jobPostingCustomListData
+      const item = jobPostingCustomListData?.find((item: any) => item.id === id)
+
+      if (item) {
+        setFormData({
+          band: item.band.split(', ') || [],
+          jobRole: item.jobRole.split(', ') || [],
+          employeeCategory: item.employeeCategory.split(', ') || [],
+          platformName: item.platformName.split(', ') || [],
+          priority: item.priority || '',
+          platformAge: item.platformAge || ''
+        })
+      }
+    } else {
+      setIsEditMode(false)
+      setSelectedId(null)
+      setFormData({
+        band: [],
+        jobRole: [],
+        employeeCategory: [],
+        platformName: [],
+        priority: '',
+        platformAge: ''
+      })
+    }
+
+    setDrawerOpen(true)
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false)
+    setIsEditMode(false)
+    setSelectedId(null)
+  }
 
   const handleSubmit = () => {
-    const newEntry = {
+    const payload = {
       band: formData.band.join(', '),
       jobRole: formData.jobRole.join(', '),
       employeeCategory: formData.employeeCategory.join(', '),
-      platformName: formData.platformName.join(', '),
-      priority: formData.priority,
-      platformAge: formData.platformAge
+      platformDetails: formData.platformName.map((name, index) => ({
+        platformName: name,
+        priority: parseInt(formData.priority) || 0,
+        platformAge: parseInt(formData.platformAge) || 0
+      }))
     }
 
-    setCustomList(prev => [...prev, newEntry])
-    setFormData({
-      band: [],
-      jobRole: [],
-      employeeCategory: [],
-      platformName: [],
-      priority: '',
-      platformAge: ''
-    })
+    if (isEditMode && selectedId) {
+      dispatch(updateBandPlatformMapping({ id: selectedId, ...payload }))
+    } else {
+      dispatch(createBandPlatformMapping(payload))
+    }
+
     handleDrawerClose()
   }
+
+  console.log('Job Posting Custom List Data:', jobPostingCustomListData)
 
   return (
     <>
@@ -97,12 +157,18 @@ const JobCustomizationPage = () => {
               }}
             />
           </Box>
-          <Button onClick={handleDrawerOpen}>Add</Button>
+          <Button
+            onClick={() => handleDrawerOpen()}
+            variant='contained'
+            sx={{ backgroundColor: '#0096DA', '&:hover': { backgroundColor: '#007BB8' } }}
+          >
+            Add
+          </Button>
         </Box>
       </Card>
 
       {/* Table */}
-      <JobPostingCustomTable data={customList} />
+      <JobPostingCustomTable data={jobPostingCustomListData || []} onEdit={handleDrawerOpen} />
 
       {/* Drawer */}
       <Drawer
@@ -113,11 +179,10 @@ const JobCustomizationPage = () => {
       >
         <Box sx={{ p: 4 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            Edit Interview Customization
+            {isEditMode ? 'Edit' : 'Add'} Interview Customization
           </Typography>
           <Divider sx={{ mb: 3 }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Multi-select fields */}
             {[
               { label: 'band', options: bandOptions },
               { label: 'jobRole', options: jobRole },
@@ -163,7 +228,6 @@ const JobCustomizationPage = () => {
               />
             ))}
 
-            {/* Number Inputs */}
             <TextField
               label='Priority'
               type='number'
@@ -188,7 +252,7 @@ const JobCustomizationPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit} color='primary' variant='contained'>
-              Submit
+              {isEditMode ? 'Update' : 'Submit'}
             </Button>
           </Box>
         </Box>

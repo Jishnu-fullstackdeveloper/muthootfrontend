@@ -65,7 +65,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     () => [
       {
         path: ROUTES.HOME,
-        label: 'Home',
+        label: 'Dashboard',
         iconClass: 'tabler-home',
         permission: 'home',
         read: 'HOME_READ'

@@ -4,19 +4,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
 // eslint-disable-next-line import/namespace
-import type { Node, Edge, Connection } from 'reactflow'
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Handle,
-  Position,
-  ReactFlowProvider
-// eslint-disable-next-line import/namespace, import/no-named-as-default-member
-} from 'reactflow'
+import type { Node, Edge, Connection } from '@reactflow/core'
+import ReactFlow, { MiniMap, Controls, Background } from 'reactflow'
+import { useNodesState, useEdgesState, addEdge, Handle, Position, ReactFlowProvider } from '@reactflow/core'
 
 import 'reactflow/dist/style.css'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -253,8 +243,7 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
           >
             ➕ Rectangle
           </button>
-         
-          
+
           <button
             onClick={handleSave}
             className='block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'

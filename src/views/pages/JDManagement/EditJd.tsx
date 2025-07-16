@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 
 import { useParams } from 'next/navigation'
 
-import { ReactFlowProvider } from 'reactflow'
+import { ReactFlowProvider } from '@reactflow/core'
 import ReactQuill from 'react-quill'
 import 'reactflow/dist/style.css'
 import Stepper from '@mui/material/Stepper'

@@ -15,6 +15,58 @@ export const fetchJobPostingCustomList = createAsyncThunk(
   }
 )
 
+export const fetchBandList = createAsyncThunk(
+  'JobPostingCustomList/fetchBandList',
+  async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/band', { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch band' })
+    }
+  }
+)
+
+export const fetchJobRole = createAsyncThunk(
+  'JobPostingCustomList/fetchJobRole',
+  async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/jobRole', { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch band' })
+    }
+  }
+)
+
+export const fetchEmployeeCategory = createAsyncThunk(
+  'JobPostingCustomList/fetchEmployeeCategory',
+  async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/employeeCategoryType', { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch employee category' })
+    }
+  }
+)
+
+export const fetchPlatform = createAsyncThunk(
+  'JobPostingCustomList/fetchPlatform',
+  async (params: { page: number; limit: number; search?: string }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get('/platform', { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch employee category' })
+    }
+  }
+)
+
 export const createBandPlatformMapping = createAsyncThunk(
   'JobPostingCustomList/createBandPlatformMapping',
   async (
@@ -49,7 +101,7 @@ export const updateBandPlatformMapping = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await AxiosLib.put(`/band-platform-mapping/${data.id}`, {
+      const response = await AxiosLib.put(`/band-platform-mapping?id=${data.id}`, {
         band: data.band,
         jobRole: data.jobRole,
         employeeCategory: data.employeeCategory,
@@ -109,7 +161,26 @@ export const JobPostingSlice = createSlice({
     fetchBandPlatformMappingByIdData: null,
     fetchBandPlatformMappingByIdSuccess: false,
     fetchBandPlatformMappingByIdFailure: false,
-    fetchBandPlatformMappingByIdFailureMessage: ''
+    fetchBandPlatformMappingByIdFailureMessage: '',
+    fetchBandData: null,
+    fetchBandSuccess: false,
+    fetchBandFailure: false,
+    fetchBandFailureMessage: '',
+
+    fetchJobRoleData: null,
+    fetchJobRoleSuccess: false,
+    fetchJobRoleFailure: false,
+    fetchJobRoleFailureMessage: '',
+
+    fetchEmployeeCategoryData: null,
+    fetchEmployeeCategorySuccess: false,
+    fetchEmployeeCategoryFailure: false,
+    fetchEmployeeCategoryFailureMessage: '',
+
+    fetchPlatformData: null,
+    fetchPlatformSuccess: false,
+    fetchPlatformFailure: false,
+    fetchPlatformFailureMessage: ''
   },
   reducers: {
     resetJobPostingCustomListStatus: state => {
@@ -138,6 +209,30 @@ export const JobPostingSlice = createSlice({
       state.fetchBandPlatformMappingByIdSuccess = false
       state.fetchBandPlatformMappingByIdFailure = false
       state.fetchBandPlatformMappingByIdFailureMessage = ''
+    },
+    resetFetchBandStatus: state => {
+      state.fetchBandData = null
+      state.fetchBandSuccess = false
+      state.fetchBandFailure = false
+      state.fetchBandFailureMessage = ''
+    },
+    resetFetchJobRoleStatus: state => {
+      state.fetchJobRoleData = null
+      state.fetchJobRoleSuccess = false
+      state.fetchJobRoleFailure = false
+      state.fetchJobRoleFailureMessage = ''
+    },
+    resetFetchEmployeeCategoryStatus: state => {
+      state.fetchEmployeeCategoryData = null
+      state.fetchEmployeeCategorySuccess = false
+      state.fetchEmployeeCategoryFailure = false
+      state.fetchEmployeeCategoryFailureMessage = ''
+    },
+    resetFetchPlatformStatus: state => {
+      state.fetchPlatformData = null
+      state.fetchPlatformSuccess = false
+      state.fetchPlatformFailure = false
+      state.fetchPlatformFailureMessage = ''
     }
   },
   extraReducers: builder => {
@@ -221,6 +316,73 @@ export const JobPostingSlice = createSlice({
           typeof action.payload === 'object' && action.payload !== null && 'message' in action.payload
             ? (action.payload as { message: string }).message
             : 'Failed to fetch band platform mapping by ID'
+      })
+
+      .addCase(fetchBandList.pending, state => {
+        state.fetchBandSuccess = false
+        state.fetchBandFailure = false
+        state.fetchBandFailureMessage = ''
+      })
+      .addCase(fetchBandList.fulfilled, (state, action) => {
+        state.fetchBandSuccess = true
+        state.fetchBandData = action.payload.data
+      })
+      .addCase(fetchBandList.rejected, (state, action) => {
+        state.fetchBandFailure = true
+        state.fetchBandFailureMessage =
+          typeof action.payload === 'object' && action.payload !== null && 'message' in action.payload
+            ? (action.payload as { message: string }).message
+            : 'Failed to fetch band'
+      })
+      .addCase(fetchJobRole.pending, state => {
+        state.fetchJobRoleSuccess = false
+        state.fetchJobRoleFailure = false
+        state.fetchJobRoleFailureMessage = ''
+      })
+      .addCase(fetchJobRole.fulfilled, (state, action) => {
+        state.fetchJobRoleSuccess = true
+        state.fetchJobRoleData = action.payload.data
+      })
+      .addCase(fetchJobRole.rejected, (state, action) => {
+        state.fetchJobRoleFailure = true
+        state.fetchJobRoleFailureMessage =
+          typeof action.payload === 'object' && action.payload !== null && 'message' in action.payload
+            ? (action.payload as { message: string }).message
+            : 'Failed to fetch job role'
+      })
+
+      .addCase(fetchEmployeeCategory.pending, state => {
+        state.fetchEmployeeCategorySuccess = false
+        state.fetchEmployeeCategoryFailure = false
+        state.fetchEmployeeCategoryFailureMessage = ''
+      })
+      .addCase(fetchEmployeeCategory.fulfilled, (state, action) => {
+        state.fetchEmployeeCategorySuccess = true
+        state.fetchEmployeeCategoryData = action.payload.data
+      })
+      .addCase(fetchEmployeeCategory.rejected, (state, action) => {
+        state.fetchEmployeeCategoryFailure = true
+        state.fetchEmployeeCategoryFailureMessage =
+          typeof action.payload === 'object' && action.payload !== null && 'message' in action.payload
+            ? (action.payload as { message: string }).message
+            : 'Failed to fetch employee category'
+      })
+
+      .addCase(fetchPlatform.pending, state => {
+        state.fetchPlatformSuccess = false
+        state.fetchPlatformFailure = false
+        state.fetchPlatformFailureMessage = ''
+      })
+      .addCase(fetchPlatform.fulfilled, (state, action) => {
+        state.fetchPlatformSuccess = true
+        state.fetchPlatformData = action.payload.data
+      })
+      .addCase(fetchPlatform.rejected, (state, action) => {
+        state.fetchPlatformFailure = true
+        state.fetchPlatformFailureMessage =
+          typeof action.payload === 'object' && action.payload !== null && 'message' in action.payload
+            ? (action.payload as { message: string }).message
+            : 'Failed to fetch platform'
       })
   }
 })

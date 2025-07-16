@@ -185,14 +185,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 label: 'Budget Request',
                 iconClass: 'tabler-calendar-user',
                 permission: 'budgetRequest',
-                read: 'SYSTEM_XFACTOR_RESIGNEDXFACTOR_READ'
+                read: 'HIRING_BUDGET_REQUEST_READ'
               },
               {
                 path: ROUTES.HIRING_MANAGEMENT.BUDGET.POSITION_MATRIX,
                 label: 'Position Matrix',
-                iconClass: 'tabler-brand-matrix',
+                iconClass: 'tabler-hierarchy-3',
                 permission: 'positionMatrix',
-                read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+                read: 'HIRING_BUDGET_POSITIONMATRIX_READ'
               }
             ]
           }
@@ -284,6 +284,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-clock',
             permission: 'scheduler',
             read: 'SYSTEM_SCHEDULER_READ'
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.JOB_POSTING_CUSTOMIZATION,
+            label: 'Job Posting Customization',
+            iconClass: 'tabler-table-options',
+            permission: 'jobPostingCustomization',
+            read: 'SYSTEM_JOBPOSTINGCUSTOMIZATION_READ'
           },
           {
             path: ROUTES.SYSTEM_MANAGEMENT.INTERVIEW_CUSTOMIZATION,

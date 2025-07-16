@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useMemo } from 'react'
 
 import { createColumnHelper } from '@tanstack/react-table'
@@ -5,7 +7,21 @@ import { IconButton, Typography } from '@mui/material'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
+interface PlatformDetail {
+  platformName: string
+  priority: number
+  platformAge: number
+}
+
 interface JobPosting {
+  id: string
+  band: string
+  jobRole: string
+  employeeCategory: string
+  platformDetails: PlatformDetail[]
+}
+
+interface FlattenedJobPosting {
   id: string
   band: string
   jobRole: string
@@ -13,11 +29,31 @@ interface JobPosting {
   platformName: string
   priority: number
   platformAge: number
-  Action?: any
 }
 
-const JobPostingCustomTable = ({ data, onEdit }: { data: JobPosting[]; onEdit: (id: string) => void }) => {
-  const columnHelper = createColumnHelper<JobPosting>()
+const JobPostingCustomTable = ({
+  data,
+  onEdit
+}: {
+  data: JobPosting[]
+  onEdit: (row: FlattenedJobPosting) => void
+}) => {
+  const columnHelper = createColumnHelper<FlattenedJobPosting>()
+
+  // Flatten the data to create a row for each platformDetails entry
+  const flattenedData = useMemo(() => {
+    return data.flatMap(item =>
+      item.platformDetails.map(detail => ({
+        id: item.id,
+        band: item.band,
+        jobRole: item.jobRole,
+        employeeCategory: item.employeeCategory,
+        platformName: detail.platformName,
+        priority: detail.priority,
+        platformAge: detail.platformAge
+      }))
+    )
+  }, [data])
 
   const columns = useMemo(
     () => [
@@ -45,10 +81,10 @@ const JobPostingCustomTable = ({ data, onEdit }: { data: JobPosting[]; onEdit: (
         header: 'Platform Age',
         cell: ({ row }) => <Typography>{row.original.platformAge || '-'}</Typography>
       }),
-      columnHelper.accessor('Action', {
+      columnHelper.accessor('id', {
         header: 'Action',
         cell: ({ row }) => (
-          <IconButton title='Edit' sx={{ fontSize: '30px' }} onClick={() => onEdit(row.original.id)}>
+          <IconButton title='Edit' sx={{ fontSize: '30px' }} onClick={() => onEdit(row.original)}>
             <i className='tabler-edit w-5 h-5' />
           </IconButton>
         )
@@ -62,11 +98,11 @@ const JobPostingCustomTable = ({ data, onEdit }: { data: JobPosting[]; onEdit: (
       <DynamicTable
         tableName='Job Posting Customization List'
         columns={columns}
-        data={data}
+        data={flattenedData}
         sorting={undefined}
         onSortingChange={undefined}
         initialState={undefined}
-        totalCount={data.length}
+        totalCount={flattenedData.length}
         pagination={{
           pageIndex: 0,
           pageSize: 10

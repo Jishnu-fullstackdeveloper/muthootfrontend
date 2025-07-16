@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import {
   Box,
   Card,
@@ -20,25 +22,30 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
   fetchJobPostingCustomList,
   createBandPlatformMapping,
-  updateBandPlatformMapping
+  updateBandPlatformMapping,
+  fetchBandList,
+  fetchJobRole,
+  fetchEmployeeCategory,
+  fetchPlatform
 } from '@/redux/JobPosting/jobPostingCustomizationSlice'
-
 import JobPostingCustomTable from './JobPostingCustomTable'
 
-const bandOptions = ['Band 1', 'Band 2', 'Band 3']
-const jobRole = ['HR', 'Manager', 'Sales Executive']
-const employeeCategory = ['ABC']
-const platformName = ['LinkedIn', 'Naukri']
+interface FlattenedJobPosting {
+  id: string
+  band: string
+  jobRole: string
+  employeeCategory: string
+  platformName: string
+  priority: number
+  platformAge: number
+}
 
 const JobCustomizationPage = () => {
   const dispatch = useAppDispatch()
+  const router = useRouter()
 
-  const {
-    jobPostingCustomListData,
-    isJobPostingCustomListLoading,
-    jobPostingCustomListFailure,
-    jobPostingCustomListFailureMessage
-  } = useAppSelector((state: any) => state.JobPostingCustomizationReducer)
+  const { jobPostingCustomListData, fetchBandData, fetchJobRoleData, fetchEmployeeCategoryData, fetchPlatformData } =
+    useAppSelector((state: any) => state.JobPostingCustomizationReducer)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -46,85 +53,120 @@ const JobCustomizationPage = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
-    band: [],
-    jobRole: [],
-    employeeCategory: [],
-    platformName: [],
+    band: '',
+    jobRole: '',
+    employeeCategory: '',
+    platformName: '',
     priority: '',
     platformAge: ''
   })
 
   useEffect(() => {
     dispatch(fetchJobPostingCustomList({ page: 1, limit: 10, search: searchQuery }))
+    dispatch(fetchBandList({ page: 1, limit: 100 }))
+    dispatch(fetchJobRole({ page: 1, limit: 100 }))
+    dispatch(fetchEmployeeCategory({ page: 1, limit: 100 }))
+    dispatch(fetchPlatform({ page: 1, limit: 100 }))
   }, [dispatch, searchQuery])
 
-  const handleChange = (field: string, value: string[]) => {
+  // Remove the useEffect that automatically opens the Drawer on refresh
+  // Instead, handle Drawer opening only via handleDrawerOpen
+
+  const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleDrawerOpen = (id?: string) => {
-    if (id) {
+  const handleDrawerOpen = (row?: FlattenedJobPosting) => {
+    if (row) {
+      // Edit mode: populate form with row data and update URL
       setIsEditMode(true)
-      setSelectedId(id)
+      setSelectedId(row.id)
+      setFormData({
+        band: row.band,
+        jobRole: row.jobRole,
+        employeeCategory: row.employeeCategory,
+        platformName: row.platformName,
+        priority: row.priority.toString(),
+        platformAge: row.platformAge.toString()
+      })
 
-      // Fetch specific data for edit if needed (using fetchBandPlatformMappingById)
-      // For now, assume data is available in jobPostingCustomListData
-      const item = jobPostingCustomListData?.find((item: any) => item.id === id)
+      const query = new URLSearchParams({
+        id: row.id,
+        band: row.band,
+        jobRole: row.jobRole,
+        employeeCategory: row.employeeCategory,
+        platformName: row.platformName,
+        priority: row.priority.toString(),
+        platformAge: row.platformAge.toString()
+      }).toString()
 
-      if (item) {
-        setFormData({
-          band: item.band.split(', ') || [],
-          jobRole: item.jobRole.split(', ') || [],
-          employeeCategory: item.employeeCategory.split(', ') || [],
-          platformName: item.platformName.split(', ') || [],
-          priority: item.priority || '',
-          platformAge: item.platformAge || ''
-        })
-      }
+      router.push(`?${query}`)
     } else {
+      // Add mode: clear form and URL
       setIsEditMode(false)
       setSelectedId(null)
       setFormData({
-        band: [],
-        jobRole: [],
-        employeeCategory: [],
-        platformName: [],
+        band: '',
+        jobRole: '',
+        employeeCategory: '',
+        platformName: '',
         priority: '',
         platformAge: ''
       })
+      router.push('')
     }
 
-    setDrawerOpen(true)
+    setDrawerOpen(true) // Open Drawer only when explicitly triggered
   }
 
   const handleDrawerClose = () => {
     setDrawerOpen(false)
     setIsEditMode(false)
     setSelectedId(null)
+    setFormData({
+      band: '',
+      jobRole: '',
+      employeeCategory: '',
+      platformName: '',
+      priority: '',
+      platformAge: ''
+    })
+    router.push('') // Clear query parameters
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const payload = {
-      band: formData.band.join(', '),
-      jobRole: formData.jobRole.join(', '),
-      employeeCategory: formData.employeeCategory.join(', '),
-      platformDetails: formData.platformName.map((name, index) => ({
-        platformName: name,
-        priority: parseInt(formData.priority) || 0,
-        platformAge: parseInt(formData.platformAge) || 0
-      }))
+      band: formData.band,
+      jobRole: formData.jobRole,
+      employeeCategory: formData.employeeCategory,
+      platformDetails: [
+        {
+          platformName: formData.platformName,
+          priority: parseInt(formData.priority) || 0,
+          platformAge: parseInt(formData.platformAge) || 0
+        }
+      ]
     }
 
-    if (isEditMode && selectedId) {
-      dispatch(updateBandPlatformMapping({ id: selectedId, ...payload }))
-    } else {
-      dispatch(createBandPlatformMapping(payload))
-    }
+    try {
+      if (isEditMode && selectedId) {
+        await dispatch(updateBandPlatformMapping({ id: selectedId, ...payload })).unwrap()
+      } else {
+        await dispatch(createBandPlatformMapping(payload)).unwrap()
+      }
 
-    handleDrawerClose()
+      await dispatch(fetchJobPostingCustomList({ page: 1, limit: 10, search: searchQuery }))
+      handleDrawerClose()
+    } catch (error) {
+      console.error('Submission failed:', error)
+    }
   }
 
-  console.log('Job Posting Custom List Data:', jobPostingCustomListData)
+  const handleNumberInput = (field: string, value: string) => {
+    if (value === '' || (/^\d+$/.test(value) && parseInt(value) >= 0)) {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
+  }
 
   return (
     <>
@@ -167,10 +209,8 @@ const JobCustomizationPage = () => {
         </Box>
       </Card>
 
-      {/* Table */}
       <JobPostingCustomTable data={jobPostingCustomListData || []} onEdit={handleDrawerOpen} />
 
-      {/* Drawer */}
       <Drawer
         anchor='right'
         open={drawerOpen}
@@ -179,51 +219,30 @@ const JobCustomizationPage = () => {
       >
         <Box sx={{ p: 4 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            {isEditMode ? 'Edit' : 'Add'} Interview Customization
+            {isEditMode ? 'Edit' : 'Add'} Job Posting Customization
           </Typography>
           <Divider sx={{ mb: 3 }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[
-              { label: 'band', options: bandOptions },
-              { label: 'jobRole', options: jobRole },
-              { label: 'employeeCategory', options: employeeCategory },
-              { label: 'platformName', options: platformName }
+              { label: 'band', options: fetchBandData?.map((band: any) => band.name) || [] },
+              { label: 'jobRole', options: fetchJobRoleData?.map((role: any) => role.name) || [] },
+              { label: 'employeeCategory', options: fetchEmployeeCategoryData?.map((cat: any) => cat.name) || [] },
+              { label: 'platformName', options: fetchPlatformData?.map((plat: any) => plat.name) || [] }
             ].map(({ label, options }) => (
               <Autocomplete
                 key={label}
-                multiple
-                options={['Select All', ...options]}
-                value={formData[label] || []}
-                onChange={(event, newValue) => {
-                  const filtered = newValue.filter(v => v !== 'Select All')
-
-                  if (newValue.includes('Select All')) {
-                    handleChange(label, options.every(opt => formData[label]?.includes(opt)) ? [] : [...options])
-                  } else {
-                    handleChange(label, filtered)
-                  }
-                }}
+                options={options}
+                value={formData[label] || ''}
+                onChange={(event, newValue) => handleChange(label, newValue || '')}
                 getOptionLabel={option => option}
                 renderInput={params => (
-                  <TextField
-                    {...params}
-                    variant='outlined'
-                    size='small'
-                    placeholder={formData[label]?.length === 0 ? `Select ${label}` : formData[label]?.join(', ')}
-                  />
+                  <TextField {...params} variant='outlined' size='small' placeholder={`Select ${label}`} />
                 )}
-                renderOption={(props, option, { selected }) => (
+                renderOption={(props, option) => (
                   <li {...props}>
-                    <ListItemText
-                      primary={
-                        <Typography variant='body2'>
-                          {option === 'Select All' ? option : `${selected ? '✔ ' : ''}${option}`}
-                        </Typography>
-                      }
-                    />
+                    <ListItemText primary={<Typography variant='body2'>{option}</Typography>} />
                   </li>
                 )}
-                renderTags={() => null}
                 sx={{ width: '100%' }}
               />
             ))}
@@ -233,7 +252,8 @@ const JobCustomizationPage = () => {
               type='number'
               size='small'
               value={formData.priority}
-              onChange={e => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+              onChange={e => handleNumberInput('priority', e.target.value)}
+              InputProps={{ inputProps: { min: 0 } }}
               sx={{ width: '100%' }}
             />
 
@@ -242,7 +262,8 @@ const JobCustomizationPage = () => {
               type='number'
               size='small'
               value={formData.platformAge}
-              onChange={e => setFormData(prev => ({ ...prev, platformAge: e.target.value }))}
+              onChange={e => handleNumberInput('platformAge', e.target.value)}
+              InputProps={{ inputProps: { min: 0 } }}
               sx={{ width: '100%' }}
             />
           </Box>

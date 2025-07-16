@@ -121,6 +121,7 @@ export const ROUTES = {
     APPROVAL_MATRIX_ADD: '/system-management/approval-matrix/add/new',
     APPROVAL_MATRIX_EDIT: (queryParams: any) => `/system-management/approval-matrix/edit/edit-approval?${queryParams}`,
     SCHEDULER: '/system-management/scheduler',
+    JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
   }
 }

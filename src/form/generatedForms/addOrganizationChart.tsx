@@ -1,3 +1,4 @@
+/* eslint-disable import/default */
 /* eslint-disable import/no-named-as-default */
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -14,7 +15,7 @@ import ReactFlow, {
   Handle,
   Position,
   ReactFlowProvider
-// eslint-disable-next-line import/namespace, import/default, import/no-named-as-default-member
+// eslint-disable-next-line import/namespace, import/no-named-as-default-member
 } from 'reactflow'
 
 import 'reactflow/dist/style.css'
@@ -75,7 +76,6 @@ function CustomNode({ data, selected, id }: NodeProps) {
           value={data.label}
           onChange={onChange}
           className='w-full text-center bg-transparent outline-none font-medium'
-         
         >
           <option value=''>Select Role</option>
           {roles.map((role: string) => (
@@ -253,18 +253,8 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
           >
             ➕ Rectangle
           </button>
-          <button
-            onClick={() => addNode('circle')}
-            className='block w-full mb-2 px-4 py-2 bg-white border rounded hover:bg-blue-50'
-          >
-            ➕ Circle
-          </button>
-          <button
-            onClick={() => addNode('diamond')}
-            className='block w-full mb-2 px-4 py-2 bg-white border rounded hover:bg-blue-50'
-          >
-            ➕ Diamond
-          </button>
+         
+          
           <button
             onClick={handleSave}
             className='block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'

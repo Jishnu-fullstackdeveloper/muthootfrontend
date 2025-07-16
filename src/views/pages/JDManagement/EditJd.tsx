@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react'
 
 import { useParams } from 'next/navigation'
 
-// eslint-disable-next-line import/namespace
-import  { ReactFlowProvider } from 'reactflow'
+import { ReactFlowProvider } from 'reactflow'
 import ReactQuill from 'react-quill'
 import 'reactflow/dist/style.css'
 import Stepper from '@mui/material/Stepper'
@@ -337,8 +336,6 @@ export default function EditJDForm() {
             [subField]: value
           }
         }
-      } else if (section === 'approvalStatus') {
-        newData.approvalStatus = value
       } else {
         newData.details[section] = value
       }
@@ -374,17 +371,17 @@ export default function EditJDForm() {
     })
   }
 
-  const handleAddSubItem = (section: keyof JobDescription, index: number, subArray: string) => {
+  const handleAddSubItem = (section: keyof JobDescription['details'], index: number, subArray: string) => {
     setFormData(prev => {
-      const newData = { ...prev }
+      const newData = deepCopy(prev)
 
       if (section === 'skillsAndAttributesDetails' && subArray === 'competency') {
-        ;(newData[section] as any)[index]['competency'].push({ value: '' }, { value: '' })
-        ;(newData[section] as any)[index]['definition'].push({ value: '' }, { value: '' })
-        ;(newData[section] as any)[index]['behavioural_attributes'].push({ value: '' }, { value: '' })
+        newData.details.skillsAndAttributesDetails[index].competency.push({ value: '' })
+        newData.details.skillsAndAttributesDetails[index].definition.push({ value: '' })
+        newData.details.skillsAndAttributesDetails[index].behavioural_attributes.push({ value: '' })
       }
 
-      updateActiveStep(newData)
+      updateActiveStep(newData.details)
 
       return newData
     })
@@ -705,7 +702,7 @@ export default function EditJDForm() {
                     </label>
                     <TextField value={formData.jobRoleId} disabled className='border p-2 rounded w-full' />
                   </FormControl>
-                  <FormControl fullWidth margin='normal'>
+                  {/* <FormControl fullWidth margin='normal'>
                     <label htmlFor='approvalStatus' className='block text-sm font-medium text-gray-700'>
                       Approval Status *
                     </label>
@@ -717,7 +714,7 @@ export default function EditJDForm() {
                       <MenuItem value='APPROVED'>Approved</MenuItem>
                       <MenuItem value='REJECTED'>Rejected</MenuItem>
                     </DynamicSelect>
-                  </FormControl>
+                  </FormControl> */}
                 </div>
               </div>
               {/* Organization Chart */}
@@ -790,7 +787,7 @@ export default function EditJDForm() {
                       options={jobRoleData.map(jobRole => jobRole.name || '')}
                       value={formData.details.roleSpecification[0].roleTitle || ''}
                       onChange={(event, newValue) =>
-                        handleInputChange({ target: { value: newValue || '' } }, 'roleSpecification', 0, 'roleTitle')
+                        handleInputChange(newValue || '', 'roleSpecification', 0, 'roleTitle')
                       }
                       renderInput={params => (
                         <TextField {...params} label='Role Title' placeholder='Select Role Title' />
@@ -815,7 +812,7 @@ export default function EditJDForm() {
                       options={designationData?.map(designation => designation.name || '')}
                       value={formData.details.roleSpecification[0].reportsTo || ''}
                       onChange={(event, newValue) =>
-                        handleInputChange({ target: { value: newValue || '' } }, 'roleSpecification', 0, 'reportsTo')
+                        handleInputChange(newValue || '', 'roleSpecification', 0, 'reportsTo')
                       }
                       renderInput={params => (
                         <TextField {...params} label='Reports To' placeholder='Select Reports To' />
@@ -831,7 +828,7 @@ export default function EditJDForm() {
                     </label>
                     <DynamicSelect
                       value={formData.details.roleSpecification[0].companyName}
-                      onChange={e => handleInputChange(e, 'roleSpecification', 0, 'companyName')}
+                      onChange={e => handleInputChange(e.target.value, 'roleSpecification', 0, 'companyName')}
                     >
                       <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
                       <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
@@ -845,12 +842,7 @@ export default function EditJDForm() {
                       options={departmentData?.map(department => department.name || '')}
                       value={formData.details.roleSpecification[0].functionOrDepartment || ''}
                       onChange={(event, newValue) =>
-                        handleInputChange(
-                          { target: { value: newValue || '' } },
-                          'roleSpecification',
-                          0,
-                          'functionOrDepartment'
-                        )
+                        handleInputChange(newValue || '', 'roleSpecification', 0, 'functionOrDepartment')
                       }
                       renderInput={params => (
                         <TextField
@@ -1040,9 +1032,7 @@ export default function EditJDForm() {
                           id={`keyInteractions[${index}].internalStakeholders`}
                           style={{ height: '40vh', marginBottom: '1rem' }}
                           value={item.internalStakeholders}
-                          onChange={value =>
-                            handleInputChange({ target: { value } }, 'keyInteractions', index, 'internalStakeholders')
-                          }
+                          onChange={value => handleInputChange(value, 'keyInteractions', index, 'internalStakeholders')}
                           modules={{
                             toolbar: {
                               container: [[{ list: 'ordered' }, { list: 'bullet' }]]
@@ -1062,9 +1052,7 @@ export default function EditJDForm() {
                           id={`keyInteractions[${index}].externalStakeholders`}
                           style={{ height: '40vh', marginBottom: '1rem' }}
                           value={item.externalStakeholders}
-                          onChange={value =>
-                            handleInputChange({ target: { value } }, 'keyInteractions', index, 'externalStakeholders')
-                          }
+                          onChange={value => handleInputChange(value, 'keyInteractions', index, 'externalStakeholders')}
                           modules={{
                             toolbar: {
                               container: [[{ list: 'ordered' }, { list: 'bullet' }]]
@@ -1316,8 +1304,9 @@ export default function EditJDForm() {
               </div>
               {/* Submit Button */}
 
-              <div className='flex justify-end' >
-                <Button sx={{border : '1px solid #e0e0e0', padding: '16px'}}
+              <div className='flex justify-end'>
+                <Button
+                  sx={{ border: '1px solid #e0e0e0', padding: '16px' }}
                   type='submit'
                   disabled={isSelectedJdLoading || activeStep < steps.length}
                   className={`px-4 py-2 rounded transition
@@ -1333,14 +1322,8 @@ export default function EditJDForm() {
             </form>
             {/* Organization Chart Modal */}
             {showOrgChart && (
-              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
-                <div className='bg-white p-4 rounded w-full h-full'>
-                  <Button
-                    onClick={() => setShowOrgChart(false)}
-                    className='mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
-                  >
-                    Close
-                  </Button>
+              <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
+                <div className='w-full ml-[230px]'>
                   <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} />
                 </div>
               </div>

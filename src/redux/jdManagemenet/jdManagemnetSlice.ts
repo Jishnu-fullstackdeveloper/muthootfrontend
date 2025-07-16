@@ -176,7 +176,7 @@ export const jdManagementSlice = createSlice({
   name: 'jdManagement',
   initialState: {
     jdData: [],
-     totalCount: 0,
+    totalCount: 0,
     isJdLoading: false,
     jdSuccess: false,
     jdFailure: false,

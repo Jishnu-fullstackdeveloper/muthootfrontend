@@ -30,7 +30,7 @@ import { Tree, TreeNode } from 'react-organizational-chart'
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import type { OrganizationChart, Node, Edge } from './types'
+import type { OrganizationChart, Node, Edge } from '../generatedForms/types'
 
 import OrgChartCanvas from './addOrganizationChart'
 
@@ -156,10 +156,11 @@ export default function CreateJDForm() {
   const dispatch = useAppDispatch()
 
   const [formData, setFormData] = useState<JobDescription>(initialFormData)
-  const [showOrgChart, setShowOrgChart] = useState(false)
+  const [isShowOrgChart, setIsShowOrgChart] = useState(false)
   const [savedOrgChart, setSavedOrgChart] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null)
   const [isChartVisible, setIsChartVisible] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
+
   const [limit] = useState(10) // Define limit for pagination
   const [page] = useState(1)
 
@@ -278,7 +279,7 @@ export default function CreateJDForm() {
 
   const handleOrgChartSave = (chartData: { nodes: Node[]; edges: Edge[] }) => {
     setSavedOrgChart(chartData)
-    setShowOrgChart(false)
+    setIsShowOrgChart(false)
 
     // Transform flat nodes and edges into hierarchical structure
     const nodeMap = new Map()
@@ -430,9 +431,6 @@ export default function CreateJDForm() {
     return count
   }
 
-
-
- 
   const handleDeleteItem = (section, index) => {
     setFormData(prev => ({
       ...prev,
@@ -506,7 +504,7 @@ export default function CreateJDForm() {
                 <Typography variant='h6'>Organization Chart</Typography>
                 <Button
                   type='button'
-                  onClick={() => setShowOrgChart(true)}
+                  onClick={() => setIsShowOrgChart(true)}
                   className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
                 >
                   {savedOrgChart ? 'Edit Organization Chart' : 'Create Organization Chart'}
@@ -570,7 +568,7 @@ export default function CreateJDForm() {
                     options={jobRoleData.map(jobRole => jobRole.name || '')}
                     value={formData.roleSpecification[0].roleTitle || ''}
                     onChange={(event, newValue) =>
-                      handleInputChange({ target: { value: newValue || '' } }, 'roleSpecification', 0, 'roleTitle')
+                      handleInputChange(newValue || '', 'roleSpecification', 0, 'roleTitle')
                     }
                     renderInput={params => <TextField {...params} placeholder='Select Role Title' />}
                     fullWidth
@@ -594,7 +592,7 @@ export default function CreateJDForm() {
                     options={designationData?.map(designation => designation.name || '')}
                     value={formData.roleSpecification[0].reportsTo || ''}
                     onChange={(event, newValue) =>
-                      handleInputChange({ target: { value: newValue || '' } }, 'roleSpecification', 0, 'reportsTo')
+                      handleInputChange(newValue || '', 'roleSpecification', 0, 'reportsTo')
                     }
                     renderInput={params => <TextField {...params} placeholder='Select Reports To' />}
                     fullWidth
@@ -608,7 +606,7 @@ export default function CreateJDForm() {
                   </label>
                   <DynamicSelect
                     value={formData.roleSpecification[0].companyName}
-                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'companyName')}
+                    onChange={e => handleInputChange(e.target.value, 'roleSpecification', 0, 'companyName')}
                   >
                     <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
                     <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
@@ -622,12 +620,7 @@ export default function CreateJDForm() {
                     options={departmentData?.map(department => department.name || '')}
                     value={formData.roleSpecification[0].functionOrDepartment || ''}
                     onChange={(event, newValue) =>
-                      handleInputChange(
-                        { target: { value: newValue || '' } },
-                        'roleSpecification',
-                        0,
-                        'functionOrDepartment'
-                      )
+                      handleInputChange(newValue || '', 'roleSpecification', 0, 'functionOrDepartment')
                     }
                     renderInput={params => <TextField {...params} placeholder='Select Function or Department' />}
                     fullWidth
@@ -730,9 +723,7 @@ export default function CreateJDForm() {
                         id={`keyResponsibilities[${index}].description`}
                         style={{ height: '40vh', paddingBottom: 50 }}
                         value={item.description}
-                        onChange={value =>
-                          handleInputChange({ target: { value } }, 'keyResponsibilities', index, 'description')
-                        }
+                        onChange={value => handleInputChange(value, 'keyResponsibilities', index, 'description')}
                         modules={{
                           toolbar: {
                             container: [[{ list: 'ordered' }, { list: 'bullet' }]]
@@ -818,9 +809,7 @@ export default function CreateJDForm() {
                         id={`keyInteractions[${index}].internalStakeholders`}
                         style={{ height: '40vh', marginBottom: '1rem' }}
                         value={item.internalStakeholders}
-                        onChange={value =>
-                          handleInputChange({ target: { value } }, 'keyInteractions', index, 'internalStakeholders')
-                        }
+                        onChange={value => handleInputChange(value, 'keyInteractions', index, 'internalStakeholders')}
                         modules={{
                           toolbar: {
                             container: [[{ list: 'ordered' }, { list: 'bullet' }]]
@@ -840,9 +829,7 @@ export default function CreateJDForm() {
                         id={`keyInteractions[${index}].externalStakeholders`}
                         style={{ height: '40vh', marginBottom: '1rem' }}
                         value={item.externalStakeholders}
-                        onChange={value =>
-                          handleInputChange({ target: { value } }, 'keyInteractions', index, 'externalStakeholders')
-                        }
+                        onChange={value => handleInputChange(value, 'keyInteractions', index, 'externalStakeholders')}
                         modules={{
                           toolbar: {
                             container: [[{ list: 'ordered' }, { list: 'bullet' }]]
@@ -1116,7 +1103,8 @@ export default function CreateJDForm() {
 
             {/* Submit Button */}
             <div className='flex justify-end'>
-              <Button sx={{ border: '1px solid #1976d2', color: '#1976d2' }}
+              <Button
+                sx={{ border: '1px solid #1976d2', color: '#1976d2' }}
                 type='submit'
                 disabled={isAddJdLoading || activeStep < steps.length} // Disable if loading or form incomplete
                 className={`px-4 py-2 rounded transition
@@ -1132,11 +1120,11 @@ export default function CreateJDForm() {
           </form>
 
           {/* Organization Chart Modal */}
-          {showOrgChart && (
-            <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
-              <div className='bg-white p-4 rounded w-full h-full'>
+          {isShowOrgChart && (
+            <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
+              <div className='w-full ml-[230px]'>
                 {/* <Button
-                    onClick={() => setShowOrgChart(false)}
+                    onClick={() => setIsShowOrgChart(false)}
                     className='mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
                   >
                     Close

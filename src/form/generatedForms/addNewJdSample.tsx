@@ -2,11 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
-// import ReactFlow, { MiniMap, Controls, Background, ReactFlowProvider } from 'reactflow'
-
 import ReactQuill from 'react-quill'
-
-import 'reactflow/dist/style.css'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
@@ -25,44 +21,22 @@ import {
   AccordionSummary,
   AccordionDetails
 } from '@mui/material'
-
 import { Tree, TreeNode } from 'react-organizational-chart'
-
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import type { OrganizationChart, Node, Edge } from '../generatedForms/types'
-
+import type { OrganizationChart } from '../generatedForms/types'
 import OrgChartCanvas from './addOrganizationChart'
-
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-
 import { fetchJobRole, fetchDesignation, fetchDepartment, addNewJd } from '@/redux/jdManagemenet/jdManagemnetSlice'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 
-const renderOrgChartNode = node => (
-  <TreeNode
-    key={node.id}
-    label={
-      <Box
-        sx={{
-          border: '1px solid #1976d2',
-          borderRadius: '8px',
-          px: 2,
-          py: 1,
-          backgroundColor: '#fff',
-          boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
-          fontSize: '14px',
-          display: 'inline-block'
-        }}
-      >
-        {node.name}
-      </Box>
-    }
-  >
-    {node.children && node.children.map(child => renderOrgChartNode(child))}
-  </TreeNode>
-)
+interface NodeData {
+  id: string
+  designation: string
+  shape: string
+  children: NodeData[]
+}
 
 interface RoleSpecification {
   roleTitle: string
@@ -152,16 +126,39 @@ const initialFormData: JobDescription = {
   organizationChart: { id: '', name: '', parentId: '', children: [] }
 }
 
+const renderOrgChartNode = (node: OrganizationChart) => (
+  <TreeNode
+    key={node.id}
+    label={
+      <Box
+        sx={{
+          border: '1px solid #1976d2',
+          borderRadius: '8px',
+          px: 2,
+          py: 1,
+          backgroundColor: '#fff',
+          boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+          fontSize: '14px',
+          display: 'inline-block'
+        }}
+      >
+        {node.name}
+      </Box>
+    }
+  >
+    {node.children && node.children.map(child => renderOrgChartNode(child))}
+  </TreeNode>
+)
+
 export default function CreateJDForm() {
   const dispatch = useAppDispatch()
-
   const [formData, setFormData] = useState<JobDescription>(initialFormData)
   const [isShowOrgChart, setIsShowOrgChart] = useState(false)
-  const [savedOrgChart, setSavedOrgChart] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null)
+  const [savedOrgChart, setSavedOrgChart] = useState<{ nodes: NodeData[] } | null>(null)
   const [isChartVisible, setIsChartVisible] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
 
-  const [limit] = useState(10) // Define limit for pagination
+  const [limit] = useState(10)
   const [page] = useState(1)
 
   const {
@@ -201,7 +198,6 @@ export default function CreateJDForm() {
   ) => {
     setFormData(prev => {
       const newData = { ...prev }
-
       const value = typeof e === 'string' ? e : e.target.value
 
       if (index !== undefined && subField) {
@@ -248,9 +244,16 @@ export default function CreateJDForm() {
       const newData = { ...prev }
 
       if (section === 'skillsAndAttributesDetails' && subArray === 'competency') {
-        ;(newData[section] as any)[index]['competency'].push({ value: '' }, { value: '' })
-        ;(newData[section] as any)[index]['definition'].push({ value: '' }, { value: '' })
-        ;(newData[section] as any)[index]['behavioural_attributes'].push({ value: '' }, { value: '' })
+        ;(newData[section] as any)[index]['competency']
+          .push(
+            { value: '' },
+            { value: '' }
+          )(newData[section] as any)
+          [index]['definition'].push(
+            { value: '' },
+            { value: '' }
+          )(newData[section] as any)
+          [index]['behavioural_attributes'].push({ value: '' }, { value: '' })
       }
 
       updateActiveStep(newData)
@@ -259,70 +262,62 @@ export default function CreateJDForm() {
     })
   }
 
-  interface FetchParams {
-    limit: number
-    page: number
-  }
-
   useEffect(() => {
-    const params: FetchParams = {
-      limit,
-      page
-    }
+    const params = { limit, page }
 
-    // Dispatch fetchJobRole action to get job roles
     dispatch(fetchDesignation(params))
     dispatch(fetchJobRole(params))
-
     dispatch(fetchDepartment(params))
   }, [dispatch, limit, page])
 
-  const handleOrgChartSave = (chartData: { nodes: Node[]; edges: Edge[] }) => {
+  const handleOrgChartSave = (chartData: { nodes: NodeData[] }) => {
     setSavedOrgChart(chartData)
     setIsShowOrgChart(false)
 
-    // Transform flat nodes and edges into hierarchical structure
-    const nodeMap = new Map()
+    console.log('Saved Organization Chart:', chartData)
+
+    // Transform flat nodes into hierarchical structure
+    const nodeMap = new Map<string, OrganizationChart>()
 
     chartData.nodes.forEach(node => {
-      nodeMap.set(node.id, { id: node.id, name: node.data.label, children: [], parentId: null })
+      nodeMap.set(node.id, { id: node.id, name: node.designation, children: [], parentId: null })
     })
 
-    chartData.edges.forEach(edge => {
-      const child = nodeMap.get(edge.target)
+    chartData.nodes.forEach(node => {
+      node.children.forEach(childId => {
+        const child = nodeMap.get(childId.id)
 
-      if (child) {
-        child.parentId = edge.source
-        const parent = nodeMap.get(edge.source)
+        if (child) {
+          child.parentId = node.id
+          const parent = nodeMap.get(node.id)
 
-        if (parent) {
-          parent.children.push(child)
+          if (parent) {
+            parent.children.push(child)
+          }
         }
-      }
+      })
     })
 
-    // Find root nodes (nodes with no parent)
     const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId)
-    const organizationChart = rootNodes.length === 1 ? rootNodes[0] : { id: 'root', name: 'Root', children: rootNodes }
 
-    // Update formData with the new organizationChart structure
+    const organizationChart: OrganizationChart =
+      rootNodes.length === 1 ? rootNodes[0] : { id: 'root', name: 'Root', children: rootNodes, parentId: null }
+
     setFormData(prev => ({
       ...prev,
       organizationChart
     }))
     updateActiveStep({ ...formData, organizationChart })
+    console.log('Updated Form Data with Organization Chart:', { ...formData, organizationChart })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      // Dispatch the addNewJd action with the form data
       const result = await dispatch(addNewJd(formData)).unwrap()
 
       console.log('Job Description Created:', result)
-
-      // Optionally reset the form on success
       setFormData(initialFormData)
       setSavedOrgChart(null)
       setActiveStep(0)
@@ -336,12 +331,10 @@ export default function CreateJDForm() {
   const updateActiveStep = (data: JobDescription) => {
     let completedSteps = 0
 
-    // Step 1: Organization Chart is complete if savedOrgChart exists
     if (savedOrgChart) {
       completedSteps = 1
     }
 
-    // Step 2: Role Specification is complete if all required fields are filled
     if (
       completedSteps >= 1 &&
       data.roleSpecification[0].roleTitle &&
@@ -356,32 +349,26 @@ export default function CreateJDForm() {
       completedSteps = 2
     }
 
-    // Step 3: Role Summary is complete if it has content
     if (completedSteps >= 2 && data.roleSummary) {
       completedSteps = 3
     }
 
-    // Step 4: Key Responsibilities is complete if at least one has title and description
     if (completedSteps >= 3 && data.keyResponsibilities.some(r => r.title && r.description)) {
       completedSteps = 4
     }
 
-    // Step 5: Key Challenges is complete if it has content
     if (completedSteps >= 4 && data.keyChallenges) {
       completedSteps = 5
     }
 
-    // Step 6: Key Decisions is complete if it has content
     if (completedSteps >= 5 && data.keyDecisions) {
       completedSteps = 6
     }
 
-    // Step 7: Key Interactions is complete if at least one has both stakeholders
     if (completedSteps >= 6 && data.keyInteractions.some(i => i.internalStakeholders && i.externalStakeholders)) {
       completedSteps = 7
     }
 
-    // Step 8: Key Role Dimensions is complete if all fields are filled
     if (
       completedSteps >= 7 &&
       data.keyRoleDimensions[0].portfolioSize &&
@@ -392,7 +379,6 @@ export default function CreateJDForm() {
       completedSteps = 8
     }
 
-    // Step 9: Skills and Attributes is complete if type and at least one detail is filled
     if (
       completedSteps >= 8 &&
       data.skillsAndAttributesType &&
@@ -407,7 +393,6 @@ export default function CreateJDForm() {
       completedSteps = 9
     }
 
-    // Step 10: Education and Experience is complete if at least one has both fields
     if (
       completedSteps >= 9 &&
       data.educationAndExperience.some(e => e.minimumQualification && e.experienceDescription)
@@ -418,8 +403,7 @@ export default function CreateJDForm() {
     setActiveStep(completedSteps)
   }
 
-  // Helper function to count nodes
-  const countNodes = chart => {
+  const countNodes = (chart: OrganizationChart): number => {
     let count = 1
 
     if (chart.children) {
@@ -431,22 +415,17 @@ export default function CreateJDForm() {
     return count
   }
 
-  const handleDeleteItem = (section, index) => {
+  const handleDeleteItem = (section: keyof JobDescription, index: number) => {
     setFormData(prev => ({
       ...prev,
       [section]: prev[section].filter((_, i) => i !== index)
     }))
   }
 
-  const handleDeleteSubItem = (section, parentIndex, subIndex) => {
+  const handleDeleteSubItem = (section: keyof JobDescription, parentIndex: number, subIndex: number) => {
     setFormData(prev => {
       const updated = { ...prev }
-
-      // Make a shallow copy of the parent array
       const parentArray = [...updated[section]]
-
-      // Figure out which sub-field we’re deleting from
-      // In your structure, the competencies are in `competency`, `definition`, `behavioural_attributes`
       const subFields = ['competency', 'definition', 'behavioural_attributes']
 
       subFields.forEach(subField => {
@@ -454,7 +433,6 @@ export default function CreateJDForm() {
           parentArray[parentIndex][subField] = parentArray[parentIndex][subField].filter((_, idx) => idx !== subIndex)
         }
       })
-
       updated[section] = parentArray
 
       return updated
@@ -466,7 +444,7 @@ export default function CreateJDForm() {
       <Card sx={{ mb: 4, pt: 3, pb: 3, position: 'sticky', top: 70, zIndex: 10, backgroundColor: 'white' }}>
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
           {steps.map((label, index) => (
-            <Step key={label} index={index}>
+            <Step key={label}>
               <StepLabel sx={{ cursor: 'pointer' }}>
                 <span>{label}</span>
               </StepLabel>
@@ -489,15 +467,13 @@ export default function CreateJDForm() {
           )}
           {addJdFailure && (
             <Alert severity='error' className='mb-4'>
-              {Array.isArray(addJdFailureMessage)
+              {Array.isaddJdFailureMessage
                 ? addJdFailureMessage.join(', ')
                 : addJdFailureMessage || 'Failed to create job description'}
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className='space-y-6 mt-6'>
-            {/* Organization Chart */}
-            {/* Organization Chart */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Organization Chart</h2>
               <div className='flex justify-between items-center mb-4'>
@@ -555,8 +531,6 @@ export default function CreateJDForm() {
                 </div>
               )}
             </div>
-
-            {/* Role Specification */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Role Specification</h2>
               <div className='grid grid-cols-2 gap-4'>
@@ -596,8 +570,8 @@ export default function CreateJDForm() {
                     }
                     renderInput={params => <TextField {...params} placeholder='Select Reports To' />}
                     fullWidth
-                    freeSolo // allow custom text entry too (optional)
-                    disableClearable={false} // allows clearing if needed
+                    freeSolo
+                    disableClearable={false}
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
@@ -624,7 +598,7 @@ export default function CreateJDForm() {
                     }
                     renderInput={params => <TextField {...params} placeholder='Select Function or Department' />}
                     fullWidth
-                    freeSolo // allows typing custom department
+                    freeSolo
                   />
                 </FormControl>
 
@@ -678,11 +652,8 @@ export default function CreateJDForm() {
                 </FormControl>
               </div>
             </div>
-
-            {/* Role Summary */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Role Summary</h2>
-
               <FormControl fullWidth>
                 <TextField
                   label='Role Summary'
@@ -694,12 +665,8 @@ export default function CreateJDForm() {
                 />
               </FormControl>
             </div>
-
-            {/* Key Responsibilities */}
-
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Key Responsibilities</h2>
-
               {formData.keyResponsibilities.map((item, index) => (
                 <Accordion key={index} defaultExpanded sx={{ mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -716,7 +683,6 @@ export default function CreateJDForm() {
                         className='border p-2 rounded w-full mb-2'
                       />
                     </FormControl>
-
                     <FormControl fullWidth>
                       <label className='block text-sm font-medium text-gray-700'>Description *</label>
                       <ReactQuill
@@ -731,7 +697,6 @@ export default function CreateJDForm() {
                         }}
                       />
                     </FormControl>
-
                     <Button
                       type='button'
                       onClick={() => handleDeleteItem('keyResponsibilities', index)}
@@ -742,7 +707,6 @@ export default function CreateJDForm() {
                   </AccordionDetails>
                 </Accordion>
               ))}
-
               <Button
                 type='button'
                 onClick={() => handleAddItem('keyResponsibilities')}
@@ -751,8 +715,6 @@ export default function CreateJDForm() {
                 Add Responsibility
               </Button>
             </div>
-
-            {/* Key Challenges */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Key Challenges</h2>
               <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
@@ -771,10 +733,8 @@ export default function CreateJDForm() {
                 </FormControl>
               </fieldset>
             </div>
-
-            {/* Key Decisions Taken */}
             <div className='border p-4 rounded'>
-              <h2 className='text-lg font-semibold mb-2'>Key Decisions Taken </h2>
+              <h2 className='text-lg font-semibold mb-2'>Key Decisions Taken</h2>
               <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
                 <FormControl fullWidth margin='normal'>
                   <ReactQuill
@@ -791,8 +751,6 @@ export default function CreateJDForm() {
                 </FormControl>
               </fieldset>
             </div>
-
-            {/* Key Interactions */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Key Interactions</h2>
               <fieldset className='border border-gray-300 rounded p-8 mt-2 mb-6'>
@@ -817,7 +775,6 @@ export default function CreateJDForm() {
                         }}
                       />
                     </FormControl>
-
                     <FormControl fullWidth margin='normal'>
                       <label
                         htmlFor={`keyInteractions[${index}].externalStakeholders`}
@@ -841,59 +798,52 @@ export default function CreateJDForm() {
                 ))}
               </fieldset>
             </div>
-
-            {/* Key Role Dimensions */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Key Role Dimensions</h2>
               <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-                <>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <FormControl fullWidth margin='normal'>
-                      <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
-                        Portfolio Size *
-                      </label>
-                      <DynamicTextField
-                        type='text'
-                        value={formData.keyRoleDimensions[0].portfolioSize}
-                        onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'portfolioSize')}
-                        className='border p-2 rounded w-full'
-                      />
-                    </FormControl>
-                    <FormControl fullWidth margin='normal'>
-                      <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
-                        Geographical Coverage *
-                      </label>
-                      <DynamicTextField
-                        value={formData.keyRoleDimensions[0].geographicalCoverage}
-                        onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'geographicalCoverage')}
-                        className='border p-2 rounded w-full'
-                      />
-                    </FormControl>
-                    <FormControl fullWidth margin='normal'>
-                      <label className='block text-sm font-medium text-gray-700'>Team Size *</label>
-                      <DynamicTextField
-                        value={formData.keyRoleDimensions[0].teamSize}
-                        onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'teamSize')}
-                        className='border p-2 rounded w-full'
-                      />
-                    </FormControl>
-                    <FormControl fullWidth margin='normal'>
-                      <label className='block text-sm font-medium text-gray-700'>Total Team Size *</label>
-                      <DynamicTextField
-                        value={formData.keyRoleDimensions[0].totalTeamSize}
-                        onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'totalTeamSize')}
-                        className='border p-2 rounded w-full'
-                      />
-                    </FormControl>
-                  </div>
-                </>
+                <div className='grid grid-cols-2 gap-4'>
+                  <FormControl fullWidth margin='normal'>
+                    <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
+                      Portfolio Size *
+                    </label>
+                    <DynamicTextField
+                      type='text'
+                      value={formData.keyRoleDimensions[0].portfolioSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'portfolioSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
+                      Geographical Coverage *
+                    </label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].geographicalCoverage}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'geographicalCoverage')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label className='block text-sm font-medium text-gray-700'>Team Size *</label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].teamSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'teamSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label className='block text-sm font-medium text-gray-700'>Total Team Size *</label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].totalTeamSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'totalTeamSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                </div>
               </fieldset>
             </div>
-
-            {/* Skills and Attributes */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Key Skills and Behavioural Attributes</h2>
-
               <FormControl fullWidth margin='normal'>
                 <label htmlFor='skillsAndAttributesType' className='block text-sm font-medium text-gray-700'>
                   Skills and Attributes Type *
@@ -906,13 +856,11 @@ export default function CreateJDForm() {
                   className='border p-2 rounded w-full mb-2'
                 />
               </FormControl>
-
               {formData.skillsAndAttributesDetails.map((item, index) => (
                 <Accordion key={index} defaultExpanded sx={{ mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <span className='text-base font-medium'>Factor #{index + 1}</span>
                   </AccordionSummary>
-
                   <AccordionDetails>
                     <FormControl fullWidth margin='normal'>
                       <label htmlFor={`factor-${index}`} className='block text-sm font-medium text-gray-700'>
@@ -926,15 +874,12 @@ export default function CreateJDForm() {
                         className='border p-2 rounded w-full mb-2'
                       />
                     </FormControl>
-
                     <h3 className='text-sm font-medium mb-2'>Competency, Definition, and Behavioural Attributes</h3>
-
                     {item.competency.map((comp, compIndex) => (
                       <Accordion key={compIndex} defaultExpanded sx={{ mb: 2 }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                           <span className='text-sm font-medium'>Competency #{compIndex + 1}</span>
                         </AccordionSummary>
-
                         <AccordionDetails>
                           <FormControl fullWidth margin='normal'>
                             <label
@@ -960,7 +905,6 @@ export default function CreateJDForm() {
                               className='border p-2 rounded w-full mb-2'
                             />
                           </FormControl>
-
                           <FormControl fullWidth margin='normal'>
                             <label
                               htmlFor={`definition-${index}-${compIndex}`}
@@ -985,7 +929,6 @@ export default function CreateJDForm() {
                               className='border p-2 rounded w-full mb-2'
                             />
                           </FormControl>
-
                           <FormControl fullWidth margin='normal'>
                             <label
                               htmlFor={`behavioural_attributes-${index}-${compIndex}`}
@@ -1010,7 +953,6 @@ export default function CreateJDForm() {
                               className='border p-2 rounded w-full mb-2'
                             />
                           </FormControl>
-
                           <Button
                             type='button'
                             onClick={() => handleDeleteSubItem('skillsAndAttributesDetails', index, compIndex)}
@@ -1021,7 +963,6 @@ export default function CreateJDForm() {
                         </AccordionDetails>
                       </Accordion>
                     ))}
-
                     <Button
                       type='button'
                       onClick={() => handleAddSubItem('skillsAndAttributesDetails', index, 'competency')}
@@ -1029,7 +970,6 @@ export default function CreateJDForm() {
                     >
                       Add Competency
                     </Button>
-
                     <Button
                       type='button'
                       onClick={() => handleDeleteItem('skillsAndAttributesDetails', index)}
@@ -1040,7 +980,6 @@ export default function CreateJDForm() {
                   </AccordionDetails>
                 </Accordion>
               ))}
-
               <Button
                 type='button'
                 onClick={() => handleAddItem('skillsAndAttributesDetails')}
@@ -1049,8 +988,6 @@ export default function CreateJDForm() {
                 Add Skill/Attribute
               </Button>
             </div>
-
-            {/* Education and Experience */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Educational and Experience Requirements</h2>
               {formData.educationAndExperience.map((item, index) => (
@@ -1100,39 +1037,30 @@ export default function CreateJDForm() {
                 Add Education/Experience
               </Button>
             </div>
-
-            {/* Submit Button */}
             <div className='flex justify-end'>
               <Button
                 sx={{ border: '1px solid #1976d2', color: '#1976d2' }}
                 type='submit'
-                disabled={isAddJdLoading || activeStep < steps.length} // Disable if loading or form incomplete
+                disabled={isAddJdLoading || activeStep < steps.length}
                 className={`px-4 py-2 rounded transition
-    ${
-      isAddJdLoading || activeStep < steps.length
-        ? 'border border-gray-400 text-gray-400 cursor-not-allowed'
-        : 'border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
-    }`}
+                  ${
+                    isAddJdLoading || activeStep < steps.length
+                      ? 'border border-gray-400 text-gray-400 cursor-not-allowed'
+                      : 'border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+                  }`}
               >
                 {isAddJdLoading ? 'Submitting...' : 'Add JD'}
               </Button>
             </div>
-          </form>
-
-          {/* Organization Chart Modal */}
-          {isShowOrgChart && (
-            <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
-              <div className='w-full ml-[230px]'>
-                {/* <Button
-                    onClick={() => setIsShowOrgChart(false)}
-                    className='mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
-                  >
-                    Close
-                  </Button> */}
-                <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} />
+            �
+            {isShowOrgChart && (
+              <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
+                <div className='w-full ml-[230px]'>
+                  <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </form>
         </div>
       </Card>
     </>

@@ -3,13 +3,14 @@
 import { useState } from 'react'
 
 import { Box, Typography, Grid, Card, CardContent, Chip, Button, IconButton, Menu, MenuItem } from '@mui/material'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import WorkIcon from '@mui/icons-material/Work'
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter'
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
-import SupportAgentIcon from '@mui/icons-material/SupportAgent'
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt'
+
+import ProjectManagerIcon from '@/icons/ProjectManagerIcon'
+import SalesManagerIcon from '@/icons/SalesManagerIcon'
+import SeniorAccountantIcon from '@/icons/SeniorAccountantIcon'
+import CustomerSupportIcon from '@/icons/DashboardRecruitHr/CustomerSupportIcon'
+import HrResourcesIcon from '@/icons/DashboardRecruitHr/HrResourcesIcon'
+import Option2Icon from '@/icons/DashboardRecruitHr/Option2Icon'
 
 interface Vacancy {
   id: number
@@ -24,7 +25,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 1,
     title: 'Project Manager',
-    icon: <WorkIcon sx={{ color: '#00B798' }} />,
+    icon: <ProjectManagerIcon />,
     badges: ['Full Time', 'Remote'],
     salary: '₹ 1,42K - ₹ 1,60K/y',
     applicants: 120
@@ -32,7 +33,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 2,
     title: 'Sales Manager',
-    icon: <BusinessCenterIcon sx={{ color: '#ED960B' }} />,
+    icon: <SalesManagerIcon />,
     badges: ['Full Time', 'On-site'],
     salary: '₹ 1,30K - ₹ 1,40K/y',
     applicants: 85
@@ -40,7 +41,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 3,
     title: 'Senior Accountant',
-    icon: <AccountBalanceIcon sx={{ color: '#0096DA' }} />,
+    icon: <SeniorAccountantIcon />,
     badges: ['Full Time', 'Remote'],
     salary: '₹ 1,60K - ₹ 1,75K/y',
     applicants: 36
@@ -48,7 +49,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 4,
     title: 'Junior Accountant',
-    icon: <AccountBalanceIcon sx={{ color: '#0096DA' }} />,
+    icon: <SeniorAccountantIcon />,
     badges: ['Full Time', 'On-site'],
     salary: '₹ 80K - ₹ 90K/y',
     applicants: 112
@@ -56,7 +57,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 5,
     title: 'Customer Support',
-    icon: <SupportAgentIcon sx={{ color: '#00B798' }} />,
+    icon: <CustomerSupportIcon />,
     badges: ['Full Time', 'On-site'],
     salary: '₹ 70K - ₹ 80K/y',
     applicants: 316
@@ -64,7 +65,7 @@ const vacanciesData: Vacancy[] = [
   {
     id: 6,
     title: 'Human Resources',
-    icon: <PeopleAltIcon sx={{ color: '#ED960B' }} />,
+    icon: <HrResourcesIcon />,
     badges: ['Full Time', 'On-site'],
     salary: '₹ 1,05K - ₹ 1,10K/y',
     applicants: 40
@@ -120,28 +121,34 @@ export default function CurrentVacanciesCard() {
         {vacanciesData.map(vacancy => (
           <Grid item xs={12} sm={6} md={4} key={vacancy.id}>
             <Card
-              //className='rounded-md shadow-sm'
               sx={{
-                height: 168,
+                //height: 168,
                 borderRadius: 2
               }}
             >
               <CardContent className='flex flex-col gap-2 p-3'>
                 <Box className='flex items-start justify-between'>
-                  <Box
-                    className='bg-[#F5F7FE] p-2 rounded-lg flex items-center justify-center'
-                    sx={{ width: 40, height: 40 }}
-                  >
-                    {vacancy.icon}
+                  <Box className='flex'>
+                    <Box
+                      className='bg-[#F5F7FE] p-2 rounded-lg flex items-center justify-center'
+                      sx={{ width: 40, height: 40 }}
+                    >
+                      {vacancy.icon}
+                    </Box>
+                    <Box className='ml-2 mt-1'>
+                      <Typography variant='subtitle1' className='font-medium mt-1'>
+                        {vacancy.title}
+                      </Typography>
+                    </Box>
                   </Box>
                   <IconButton size='small'>
-                    <MoreVertIcon fontSize='small' />
+                    <Option2Icon />
                   </IconButton>
                 </Box>
 
-                <Typography variant='subtitle1' className='font-medium mt-1'>
+                {/* <Typography variant='subtitle1' className='font-medium mt-1'>
                   {vacancy.title}
-                </Typography>
+                </Typography> */}
 
                 <Box className='flex flex-wrap gap-2 mt-1'>
                   {vacancy.badges.map((badge, idx) => (
@@ -149,8 +156,8 @@ export default function CurrentVacanciesCard() {
                   ))}
                 </Box>
 
-                <Box className='flex items-center justify-between mt-1'>
-                  <Typography variant='body2' className='font-semibold'>
+                <Box className='flex items-center justify-between mt-3'>
+                  <Typography variant='body2' className='font-semibold' sx={{ color: 'black' }}>
                     {vacancy.salary}
                   </Typography>
                   <Typography variant='body2' className='text-gray-500'>

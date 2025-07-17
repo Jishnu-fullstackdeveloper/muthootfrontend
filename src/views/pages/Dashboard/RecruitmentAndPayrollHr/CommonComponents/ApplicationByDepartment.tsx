@@ -5,6 +5,7 @@ import React from 'react'
 import type { SelectChangeEvent } from '@mui/material'
 import { Card, Box, Typography, Divider, useTheme, MenuItem, Select } from '@mui/material'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 
 const departmentData = [
   { name: 'Marketing', value: 380, color: '#1D99FF' },
@@ -36,10 +37,38 @@ export default function ApplicationsByDepartmentCard() {
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant='h6' fontWeight={600}>
+        <Typography variant='h6' fontWeight={700}>
           Applications by Department
         </Typography>
-        <Select value={period} onChange={handleChange} variant='outlined' size='small' sx={{ fontSize: 13 }}>
+
+        <Select
+          value={period}
+          onChange={handleChange}
+          size='small'
+          displayEmpty
+          sx={{
+            fontSize: 10,
+            px: 1,
+            bgcolor: '#F7F9FC',
+            '& .MuiOutlinedInput-notchedOutline': {
+              border: 'none'
+            },
+            '& .MuiSelect-select': {
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }
+          }}
+          renderValue={() => (
+            <Box display='flex' alignItems='center' gap={1}>
+              <CalendarMonthOutlinedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+
+              <Typography variant='body2' fontWeight={600} color='#2D3748'>
+                {period}
+              </Typography>
+            </Box>
+          )}
+        >
           <MenuItem value='This Month'>This Month</MenuItem>
           <MenuItem value='Last Month'>Last Month</MenuItem>
         </Select>
@@ -49,7 +78,14 @@ export default function ApplicationsByDepartmentCard() {
         <Box sx={{ width: 200, height: 200, position: 'relative' }}>
           <ResponsiveContainer width='100%' height='100%'>
             <PieChart>
-              <Pie data={departmentData} dataKey='value' innerRadius={55} outerRadius={80} paddingAngle={3}>
+              <Pie
+                data={departmentData}
+                dataKey='value'
+                innerRadius={55}
+                outerRadius={80}
+                paddingAngle={0}
+                stroke='none'
+              >
                 {departmentData.map((d, i) => (
                   <Cell key={i} fill={d.color} />
                 ))}
@@ -62,19 +98,22 @@ export default function ApplicationsByDepartmentCard() {
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              textAlign: 'center'
+              textAlign: 'center',
+              p: 2
             }}
           >
-            <Typography variant='h6' fontWeight={700}>
+            <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
               {totalApplicants}
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography variant='caption' color='text.secondary' fontWeight={500} sx={{ fontSize: '10px' }}>
               Total Applicants
             </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ flexGrow: 1 }}>
+        <Divider orientation='vertical' flexItem sx={{ mx: 2, borderColor: '#E0E0E0' }} />
+
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', rowGap: 3 }}>
           {departmentData.map((d, i) => (
             <Box
               key={i}
@@ -88,15 +127,17 @@ export default function ApplicationsByDepartmentCard() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
+                    width: '22px',
+                    height: '10px',
+                    borderRadius: '20px',
                     bgcolor: d.color
                   }}
                 />
-                <Typography variant='body2'>{d.name}</Typography>
+                <Typography variant='body2' sx={{ ml: 2 }}>
+                  {d.name}
+                </Typography>
               </Box>
-              <Typography variant='body2' fontWeight={600}>
+              <Typography variant='body2' fontWeight={600} sx={{ mr: 3, color: 'black' }}>
                 {d.value}
               </Typography>
             </Box>

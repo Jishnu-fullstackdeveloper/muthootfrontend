@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react' // { useState }
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, CardContent, Grid, Typography, Button, CircularProgress, Drawer, IconButton } from '@mui/material'
-import { Business as BusinessIcon, Close as CloseIcon } from '@mui/icons-material'
+import { Box, Card, CardContent, Grid, Typography, Button, CircularProgress } from '@mui/material' //Drawer, IconButton
+import { Business as BusinessIcon } from '@mui/icons-material' // Close as CloseIcon
 import { styled } from '@mui/material/styles'
 
 interface JobPosting {
@@ -161,158 +161,158 @@ const ViewDetailsButton = styled(Button)({
   }
 })
 
-interface DrawerContentProps {
-  status: 'Pending' | 'Posted' | 'Closed'
-}
+// interface DrawerContentProps {
+//   status: 'Pending' | 'Posted' | 'Closed'
+// }
 
-const DrawerContent = styled(Box, {
-  shouldForwardProp: prop => prop !== 'status'
-})<DrawerContentProps>(({ status }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  padding: 0,
-  width: '560px',
-  height: '1038px',
-  background: '#FFFFFF',
-  borderRadius: '8px',
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  '& > div:first-child': {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px',
-    gap: '351px',
-    width: '560px',
-    height: '64px',
-    borderBottom: '1px solid #EEEEEE',
-    '& h6': {
-      width: '103px',
-      height: '24px',
-      fontFamily: "'Public Sans', 'Roboto', sans-serif",
-      fontStyle: 'normal',
-      fontWeight: 600,
-      fontSize: '20px',
-      lineHeight: '24px',
-      color: '#23262F'
-    },
-    '& button': {
-      width: '24px',
-      height: '24px'
-    }
-  },
-  '& > div:nth-child(2)': {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    padding: '20px',
-    gap: '16px',
-    width: '560px',
-    height: '698px',
-    overflowY: 'auto', // Enable scrolling for the body
-    '& > div:first-child': {
-      boxSizing: 'border-box',
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0px 0px 16px',
-      gap: '8px',
-      width: '520px',
-      height: '64px',
-      borderBottom: '1px solid #EEEEEE',
-      '& > div:first-child': {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: '0px',
-        gap: '8px',
-        width: '167px',
-        height: '48px',
-        '& > div:first-child': {
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '0px',
-          gap: '10px',
-          width: '48px',
-          height: '48px',
-          background: '#F2F3FF',
-          borderRadius: '100px',
-          '& svg': {
-            width: '24px',
-            height: '24px',
-            color: '#3D459E'
-          }
-        },
-        '& > div:nth-child(2)': {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          padding: '0px',
-          gap: '4px',
-          width: '111px',
-          height: '39px',
-          '& > p:first-child': {
-            width: '111px',
-            height: '19px',
-            fontFamily: "'Public Sans', 'Roboto', sans-serif",
-            fontStyle: 'normal',
-            fontWeight: 600,
-            fontSize: '16px',
-            lineHeight: '19px',
-            color: '#23262F'
-          },
-          '& > p:nth-child(2)': {
-            width: '111px',
-            height: '16px',
-            fontFamily: "'Public Sans', 'Roboto', sans-serif",
-            fontStyle: 'normal',
-            fontWeight: 400,
-            fontSize: '12px',
-            lineHeight: '16px',
-            color: '#23262F'
-          }
-        }
-      },
-      '& > div:nth-child(2)': {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '7px 18px',
-        gap: '10px',
-        width: '91px',
-        height: '28px',
-        background: 'rgba(237, 150, 11, 0.2)',
-        border: '1px solid #EEEEEE',
-        borderRadius: '6px',
-        '& > span': {
-          fontFamily: "'Public Sans', 'Roboto', sans-serif",
-          fontStyle: 'normal',
-          fontWeight: 500,
-          fontSize: '12px',
-          lineHeight: '14px',
-          color: statusColors[status] || '#000'
-        }
-      }
-    },
-    '& > div:nth-child(2)': {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      padding: '0px',
-      gap: '16px',
-      width: '520px',
-      height: 'auto' // Allow dynamic height with scrolling
-    }
-  }
-}))
+// const DrawerContent = styled(Box, {
+//   shouldForwardProp: prop => prop !== 'status'
+// })<DrawerContentProps>(({ status }) => ({
+//   display: 'flex',
+//   flexDirection: 'column',
+//   alignItems: 'flex-start',
+//   padding: 0,
+//   width: '560px',
+//   height: '1038px',
+//   background: '#FFFFFF',
+//   borderRadius: '8px',
+//   position: 'absolute',
+//   right: 0,
+//   top: 0,
+//   '& > div:first-child': {
+//     boxSizing: 'border-box',
+//     display: 'flex',
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     padding: '20px',
+//     gap: '351px',
+//     width: '560px',
+//     height: '64px',
+//     borderBottom: '1px solid #EEEEEE',
+//     '& h6': {
+//       width: '103px',
+//       height: '24px',
+//       fontFamily: "'Public Sans', 'Roboto', sans-serif",
+//       fontStyle: 'normal',
+//       fontWeight: 600,
+//       fontSize: '20px',
+//       lineHeight: '24px',
+//       color: '#23262F'
+//     },
+//     '& button': {
+//       width: '24px',
+//       height: '24px'
+//     }
+//   },
+//   '& > div:nth-child(2)': {
+//     display: 'flex',
+//     flexDirection: 'column',
+//     alignItems: 'flex-start',
+//     padding: '20px',
+//     gap: '16px',
+//     width: '560px',
+//     height: '698px',
+//     overflowY: 'auto', // Enable scrolling for the body
+//     '& > div:first-child': {
+//       boxSizing: 'border-box',
+//       display: 'flex',
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       alignItems: 'center',
+//       padding: '0px 0px 16px',
+//       gap: '8px',
+//       width: '520px',
+//       height: '64px',
+//       borderBottom: '1px solid #EEEEEE',
+//       '& > div:first-child': {
+//         display: 'flex',
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         padding: '0px',
+//         gap: '8px',
+//         width: '167px',
+//         height: '48px',
+//         '& > div:first-child': {
+//           display: 'flex',
+//           flexDirection: 'row',
+//           justifyContent: 'center',
+//           alignItems: 'center',
+//           padding: '0px',
+//           gap: '10px',
+//           width: '48px',
+//           height: '48px',
+//           background: '#F2F3FF',
+//           borderRadius: '100px',
+//           '& svg': {
+//             width: '24px',
+//             height: '24px',
+//             color: '#3D459E'
+//           }
+//         },
+//         '& > div:nth-child(2)': {
+//           display: 'flex',
+//           flexDirection: 'column',
+//           alignItems: 'flex-start',
+//           padding: '0px',
+//           gap: '4px',
+//           width: '111px',
+//           height: '39px',
+//           '& > p:first-child': {
+//             width: '111px',
+//             height: '19px',
+//             fontFamily: "'Public Sans', 'Roboto', sans-serif",
+//             fontStyle: 'normal',
+//             fontWeight: 600,
+//             fontSize: '16px',
+//             lineHeight: '19px',
+//             color: '#23262F'
+//           },
+//           '& > p:nth-child(2)': {
+//             width: '111px',
+//             height: '16px',
+//             fontFamily: "'Public Sans', 'Roboto', sans-serif",
+//             fontStyle: 'normal',
+//             fontWeight: 400,
+//             fontSize: '12px',
+//             lineHeight: '16px',
+//             color: '#23262F'
+//           }
+//         }
+//       },
+//       '& > div:nth-child(2)': {
+//         display: 'flex',
+//         flexDirection: 'row',
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//         padding: '7px 18px',
+//         gap: '10px',
+//         width: '91px',
+//         height: '28px',
+//         background: 'rgba(237, 150, 11, 0.2)',
+//         border: '1px solid #EEEEEE',
+//         borderRadius: '6px',
+//         '& > span': {
+//           fontFamily: "'Public Sans', 'Roboto', sans-serif",
+//           fontStyle: 'normal',
+//           fontWeight: 500,
+//           fontSize: '12px',
+//           lineHeight: '14px',
+//           color: statusColors[status] || '#000'
+//         }
+//       }
+//     },
+//     '& > div:nth-child(2)': {
+//       display: 'flex',
+//       flexDirection: 'column',
+//       alignItems: 'flex-start',
+//       padding: '0px',
+//       gap: '16px',
+//       width: '520px',
+//       height: 'auto' // Allow dynamic height with scrolling
+//     }
+//   }
+// }))
 
 const dummyJobs: JobPosting[] = [
   {
@@ -419,17 +419,18 @@ const dummyJobs: JobPosting[] = [
 
 const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
   const router = useRouter()
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null)
 
-  const handleView = (job: JobPosting) => {
-    setSelectedJob(job)
-    setDrawerOpen(true)
-  }
+  // const [drawerOpen, setDrawerOpen] = useState(false)
+  // const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null)
+
+  // const handleView = (job: JobPosting) => {
+  //   setSelectedJob(job)
+  //   setDrawerOpen(true)
+  // }
 
   const handleCloseDrawer = () => {
-    setDrawerOpen(false)
-    setSelectedJob(null)
+    // setDrawerOpen(false)
+    // setSelectedJob(null)
   }
 
   const handleNavigate = (jobId: string) => {
@@ -586,7 +587,11 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
                     </Typography>
                   </Col>
                 </Row>
-                <ViewDetailsButton onClick={() => handleView(job)} aria-label={`View details for ${job.designation}`}>
+                {/* <ViewDetailsButton onClick={() => handleView(job)} aria-label={`View details for ${job.designation}`}> */}
+                <ViewDetailsButton
+                  onClick={() => handleNavigate(job.id)}
+                  aria-label={`View details for ${job.designation}`}
+                >
                   View Details
                 </ViewDetailsButton>
               </CardContent>
@@ -599,7 +604,7 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
           <CircularProgress />
         </Box>
       )}
-      <Drawer
+      {/* <Drawer
         anchor='right'
         open={drawerOpen}
         onClose={handleCloseDrawer}
@@ -1220,7 +1225,7 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
             </Box>
           </DrawerContent>
         )}
-      </Drawer>
+      </Drawer> */}
     </Box>
   )
 }

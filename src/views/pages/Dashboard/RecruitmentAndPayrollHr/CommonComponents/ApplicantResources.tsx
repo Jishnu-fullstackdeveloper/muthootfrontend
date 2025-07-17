@@ -7,9 +7,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 const resources = [
   { name: 'Job Boards', value: 780, color: '#00B798' },
-  { name: 'Employee Referrals', value: 456, color: '#EF6C85' },
-  { name: 'Social Media Campaigns', value: 612, color: '#1D99FF' },
-  { name: 'Recruitment Agencies', value: 218, color: '#F5A623' }
+  { name: 'Recruitment Agencies', value: 218, color: '#E66D6F' },
+  { name: 'Social Media Campaigns', value: 612, color: '#0096DA' },
+
+  { name: 'Employee Referrals', value: 456, color: '#ED960B' }
 ]
 
 const totalApplicants = resources.reduce((sum, r) => sum + r.value, 0)
@@ -26,14 +27,14 @@ export default function ApplicantResourcesCard() {
         flexDirection: 'column'
       }}
     >
-      <Typography variant='h6' fontWeight={600} mb={3}>
+      <Typography variant='h6' fontWeight={700} mb={3}>
         Applicant Resources
       </Typography>
 
       <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
         <ResponsiveContainer width='100%' height='100%'>
           <PieChart>
-            <Pie data={resources} innerRadius={55} outerRadius={80} paddingAngle={3} dataKey='value'>
+            <Pie data={resources} innerRadius={60} outerRadius={80} paddingAngle={1} cornerRadius={3} dataKey='value'>
               {resources.map((r, i) => (
                 <Cell key={i} fill={r.color} />
               ))}
@@ -49,7 +50,7 @@ export default function ApplicantResourcesCard() {
             textAlign: 'center'
           }}
         >
-          <Typography variant='h6' fontWeight={700}>
+          <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
             {totalApplicants}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
@@ -68,23 +69,23 @@ export default function ApplicantResourcesCard() {
         }}
       >
         {resources.map((r, i) => (
-          <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                bgcolor: r.color
-              }}
-            />
-            <Box>
-              <Typography variant='subtitle2' fontWeight={600}>
+          <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: '18px',
+                  height: '14px',
+                  borderRadius: '3px',
+                  bgcolor: r.color
+                }}
+              />
+              <Typography variant='subtitle2' fontWeight={700} color='#000000'>
                 {r.value}
               </Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {r.name}
-              </Typography>
             </Box>
+            <Typography color='#5E6E78' fontWeight={500} sx={{ fontSize: '9.7px', pl: '20px' }}>
+              {r.name}
+            </Typography>
           </Box>
         ))}
       </Box>

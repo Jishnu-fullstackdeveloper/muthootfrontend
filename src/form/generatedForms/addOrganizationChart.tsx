@@ -11,8 +11,10 @@ import { fetchDesignation } from '@/redux/jdManagemenet/jdManagemnetSlice'
 
 interface NodeData {
   id: string
-  designation: string
+  name: string
+  parentId: string | null
   children: NodeData[]
+  nodes?: NodeData[] // Optional for compatibility with formData.organizationChart
 }
 
 const StyledNode = styled(Box)(({ theme }) => ({
@@ -29,9 +31,10 @@ const StyledNode = styled(Box)(({ theme }) => ({
 interface OrgChartCanvasProps {
   onSave: (chartData: { nodes: NodeData[] }) => void
   initialChart: { nodes: NodeData[] } | null
+  onCancel: () => void
 }
 
-export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasProps) {
+export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleCancel }: OrgChartCanvasProps) {
   const dispatch = useAppDispatch()
   const [limit] = useState(10)
   const [page] = useState(1)
@@ -40,15 +43,16 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
   const [nodes, setNodes] = useState<NodeData[]>(
     initialChart?.nodes || [
       {
-        id: '1',
-        designation: '',
+        id: '1', // Default ID for root node
+        name: '',
+        parentId: null,
         children: []
       }
     ]
   )
 
   const [usedRoles, setUsedRoles] = useState<string[]>(
-    initialChart?.nodes.map(node => node.designation).filter(label => label) || []
+    initialChart?.nodes.map(node => node.name).filter(label => label) || []
   )
 
   // Fetch designations from Redux store
@@ -67,13 +71,13 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     ? designationData.map((item: { name: string }) => item.name)
     : ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
 
-  // Update node designation and manage used roles
+  // Update node name and manage used roles
   const updateNode = useCallback(
-    (id: string, field: 'designation', value: string) => {
+    (id: string, field: 'name', value: string) => {
       setUsedRoles(prev => {
         const newUsed = [...prev]
         const prevNode = findNode(nodes, id)
-        const prevLabel = prevNode?.designation
+        const prevLabel = prevNode?.name
 
         if (prevLabel) newUsed.splice(newUsed.indexOf(prevLabel), 1)
         if (value && !newUsed.includes(value)) newUsed.push(value)
@@ -88,13 +92,11 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
               return { ...node, [field]: value }
             }
 
-            // console.log('node', node)
-
             return { ...node, children: updateNodes(node.children) }
           })
         }
 
-        console.log('Updating nodes', nodes)
+        console.log('Updating nodes:', nodes)
 
         return updateNodes(prevNodes)
       })
@@ -118,8 +120,9 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
   const addNode = useCallback((parentId: string) => {
     const newNode: NodeData = {
       id: Date.now().toString(),
-      designation: '',
-      children: []
+      name: '',
+      children: [],
+      parentId: parentId
     }
 
     setNodes(prevNodes => {
@@ -142,8 +145,8 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     (id: string) => {
       const nodeToDelete = findNode(nodes, id)
 
-      if (nodeToDelete?.designation) {
-        setUsedRoles(prev => prev.filter(role => role !== nodeToDelete.designation))
+      if (nodeToDelete?.name) {
+        setUsedRoles(prev => prev.filter(role => role !== nodeToDelete.name))
       }
 
       setNodes(prevNodes => {
@@ -166,12 +169,9 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // For simplicity, assume the last clicked node is the target for deletion
-        // You may need to track selected nodes in a real app
         const selectedNodeId = nodes[nodes.length - 1]?.id
 
         if (selectedNodeId && selectedNodeId !== '1') {
-          // Prevent deleting root
           deleteNode(selectedNodeId)
         }
       }
@@ -188,6 +188,10 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     console.log('Nodes:', nodes)
   }
 
+  const onCancel = () => {
+    handleCancel()
+  }
+
   // Render a single node
   const renderNode = (node: NodeData) => (
     <TreeNode
@@ -195,8 +199,8 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
       label={
         <StyledNode>
           <Select
-            value={node.designation}
-            onChange={e => updateNode(node.id, 'designation', e.target.value)}
+            value={node.name} // Changed from node.designation
+            onChange={e => updateNode(node.id, 'name', e.target.value)}
             size='small'
             fullWidth
             sx={{ mt: 1 }}
@@ -227,6 +231,9 @@ export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasP
     <Box sx={{ p: 4, overflow: 'auto', height: '100vh' }}>
       <Button variant='contained' onClick={handleSave} sx={{ mb: 2 }}>
         Save Chart
+      </Button>
+      <Button variant='outlined' onClick={onCancel} sx={{ mb: 2, ml: 2 }}>
+        Cancel  
       </Button>
       <Tree
         lineWidth={'2px'}

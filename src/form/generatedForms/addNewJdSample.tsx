@@ -19,12 +19,13 @@ import {
   Typography,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Grid
 } from '@mui/material'
 import { Tree, TreeNode } from 'react-organizational-chart'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import type { OrganizationChart } from '../generatedForms/types'
+// import type { OrganizationChart } from '../generatedForms/types'
 import OrgChartCanvas from './addOrganizationChart'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchJobRole, fetchDesignation, fetchDepartment, addNewJd } from '@/redux/jdManagemenet/jdManagemnetSlice'
@@ -32,9 +33,11 @@ import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 
 interface NodeData {
+  designation: any
   id: string
-  designation: string
+  name: string
   shape: string
+  parentId: string | null
   children: NodeData[]
 }
 
@@ -91,6 +94,13 @@ interface JobDescription {
   skillsAndAttributesDetails: SkillAndAttribute[]
   educationAndExperience: EducationAndExperience[]
   organizationChart: OrganizationChart
+}
+interface OrganizationChart {
+  id: string
+  name: string
+  parentId: string | null
+  children: OrganizationChart[]
+  nodes?: NodeData[] // Add nodes field to hold the full hierarchy
 }
 
 const initialFormData: JobDescription = {
@@ -270,7 +280,18 @@ export default function CreateJDForm() {
     dispatch(fetchDepartment(params))
   }, [dispatch, limit, page])
 
+  const cancelOrgChart = () => {
+    setIsShowOrgChart(false)
+    setSavedOrgChart(null)
+  }
+
   const handleOrgChartSave = (chartData: { nodes: NodeData[] }) => {
+    if (!chartData.nodes.length) {
+      console.error('No nodes provided in chart data')
+
+      return
+    }
+
     setSavedOrgChart(chartData)
     setIsShowOrgChart(false)
 
@@ -280,19 +301,19 @@ export default function CreateJDForm() {
     const nodeMap = new Map<string, OrganizationChart>()
 
     chartData.nodes.forEach(node => {
-      nodeMap.set(node.id, { id: node.id, name: node.designation, children: [], parentId: null })
+      nodeMap.set(node.id, { id: node.id, name: node.name, children: [], parentId: node.parentId })
     })
 
     chartData.nodes.forEach(node => {
-      node.children.forEach(childId => {
-        const child = nodeMap.get(childId.id)
+      node.children.forEach(child => {
+        const childNode = nodeMap.get(child.id)
 
-        if (child) {
-          child.parentId = node.id
+        if (childNode) {
+          childNode.parentId = node.id
           const parent = nodeMap.get(node.id)
 
           if (parent) {
-            parent.children.push(child)
+            parent.children.push(childNode)
           }
         }
       })
@@ -301,7 +322,9 @@ export default function CreateJDForm() {
     const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId)
 
     const organizationChart: OrganizationChart =
-      rootNodes.length === 1 ? rootNodes[0] : { id: 'root', name: 'Root', children: rootNodes, parentId: null }
+      rootNodes.length === 1
+        ? { ...rootNodes[0], nodes: chartData.nodes } // Include the nodes field
+        : { id: 'root', name: 'Root', children: rootNodes, parentId: null, nodes: chartData.nodes }
 
     setFormData(prev => ({
       ...prev,
@@ -315,7 +338,20 @@ export default function CreateJDForm() {
     e.preventDefault()
 
     try {
-      const result = await dispatch(addNewJd(formData)).unwrap()
+      // Transform organizationChart if needed for backend
+      const transformedFormData = {
+        ...formData,
+        organizationChart: {
+          ...formData.organizationChart,
+          nodes: formData.organizationChart.nodes?.map(node => ({
+            id: node.id,
+            designation: node.designation,
+            children: node.children
+          }))
+        }
+      }
+
+      const result = await dispatch(addNewJd(transformedFormData)).unwrap()
 
       console.log('Job Description Created:', result)
       setFormData(initialFormData)
@@ -325,7 +361,7 @@ export default function CreateJDForm() {
       console.error('Failed to create job description:', error)
     }
 
-    console.log('Form Data Submitted:', { ...formData, organizationChart: formData.organizationChart })
+    // console.log('Form Data Submitted:', transformedFormData)
   }
 
   const updateActiveStep = (data: JobDescription) => {
@@ -418,22 +454,37 @@ export default function CreateJDForm() {
   const handleDeleteItem = (section: keyof JobDescription, index: number) => {
     setFormData(prev => ({
       ...prev,
-      [section]: prev[section].filter((_, i) => i !== index)
+      [section]: Array.isArray(prev[section]) ? prev[section].filter((_, i) => i !== index) : prev[section]
     }))
   }
 
   const handleDeleteSubItem = (section: keyof JobDescription, parentIndex: number, subIndex: number) => {
     setFormData(prev => {
       const updated = { ...prev }
-      const parentArray = [...updated[section]]
+      const parentSection = updated[section]
+      const parentArray = Array.isArray(parentSection) ? [...parentSection] : []
       const subFields = ['competency', 'definition', 'behavioural_attributes']
 
       subFields.forEach(subField => {
-        if (parentArray[parentIndex][subField]) {
+        if (parentArray[parentIndex] && parentArray[parentIndex][subField]) {
           parentArray[parentIndex][subField] = parentArray[parentIndex][subField].filter((_, idx) => idx !== subIndex)
         }
       })
-      updated[section] = parentArray
+
+      // Explicitly cast to correct type based on section
+      if (section === 'skillsAndAttributesDetails') {
+        updated[section] = parentArray as SkillAndAttribute[]
+      } else if (section === 'educationAndExperience') {
+        updated[section] = parentArray as EducationAndExperience[]
+      } else if (section === 'keyResponsibilities') {
+        updated[section] = parentArray as KeyResponsibility[]
+      } else if (section === 'keyInteractions') {
+        updated[section] = parentArray as KeyInteraction[]
+      } else if (section === 'keyRoleDimensions') {
+        updated[section] = parentArray as KeyRoleDimension[]
+      } else if (section === 'roleSpecification') {
+        updated[section] = parentArray as RoleSpecification[]
+      }
 
       return updated
     })
@@ -443,7 +494,7 @@ export default function CreateJDForm() {
     <>
       <Card sx={{ mb: 4, pt: 3, pb: 3, position: 'sticky', top: 70, zIndex: 10, backgroundColor: 'white' }}>
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
-          {steps.map((label, index) => (
+          {steps.map(label => (
             <Step key={label}>
               <StepLabel sx={{ cursor: 'pointer' }}>
                 <span>{label}</span>
@@ -467,7 +518,7 @@ export default function CreateJDForm() {
           )}
           {addJdFailure && (
             <Alert severity='error' className='mb-4'>
-              {Array.isaddJdFailureMessage
+              {Array.isArray(addJdFailureMessage)
                 ? addJdFailureMessage.join(', ')
                 : addJdFailureMessage || 'Failed to create job description'}
             </Alert>
@@ -508,23 +559,14 @@ export default function CreateJDForm() {
                         lineColor={'#1976d2'}
                         lineBorderRadius={'8px'}
                         label={
-                          <Box
-                            sx={{
-                              border: '1px solid #1976d2',
-                              borderRadius: '8px',
-                              px: 2,
-                              py: 1,
-                              backgroundColor: '#fff',
-                              boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
-                              fontSize: '14px',
-                              display: 'inline-block'
-                            }}
-                          >
-                            {formData.organizationChart.name}
+                          <Box>
+                            {/* {formData.organizationChart.name} */}
+                            {formData.organizationChart.nodes?.map(child => renderOrgChartNode(child))}
                           </Box>
                         }
+                        children={''}
                       >
-                        {formData.organizationChart.children?.map(child => renderOrgChartNode(child))}
+                        {/* {formData.organizationChart.nodes?.map(child => renderOrgChartNode(child))} */}
                       </Tree>
                     </div>
                   )}
@@ -1052,13 +1094,19 @@ export default function CreateJDForm() {
                 {isAddJdLoading ? 'Submitting...' : 'Add JD'}
               </Button>
             </div>
-            �
+          
             {isShowOrgChart && (
-              <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
-                <div className='w-full ml-[230px]'>
-                  <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} />
-                </div>
-              </div>
+              <Grid container spacing={3} className=''>
+                <Box className='fixed inset-0 bg-white z-20 ml-[243px] flex items-center justify-center'>
+                  <Box className='w-full pt-[150px]'>
+                    <OrgChartCanvas
+                      onSave={handleOrgChartSave}
+                      initialChart={savedOrgChart}
+                      onCancel={cancelOrgChart}
+                    />
+                  </Box>
+                </Box>
+              </Grid>
             )}
           </form>
         </div>

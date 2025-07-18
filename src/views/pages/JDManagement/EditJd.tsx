@@ -467,7 +467,24 @@ export default function EditJDForm() {
     console.log('Payload being sent:', JSON.stringify({ id: jobId, params: formData }, null, 2))
 
     try {
-      const payload = { id: jobId, params: formData }
+      // Ensure parentId is always present (even if empty string)
+      const orgChartWithParentId = {
+        ...formData.details.organizationChart,
+        parentId: formData.details.organizationChart.parentId ?? ''
+      }
+
+      const payload = {
+        id: jobId,
+        params: {
+          ...formData,
+          details: {
+            ...formData.details,
+            organizationChart: {
+              organizationChart: orgChartWithParentId
+            }
+          }
+        }
+      }
 
       await dispatch(updateJd(payload)).unwrap()
       setUpdateSuccess(true)

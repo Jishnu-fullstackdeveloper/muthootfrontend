@@ -235,24 +235,22 @@ const BranchListing = () => {
             </Tooltip>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mt: { xs: 4, md: 0 } }}>
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1px',
-                borderRadius: '8px',
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
 
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-
-                // '&:hover': {
-                //   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-                // }
-              }}
-            >
-              {/* <Tooltip title='Grid View'> */}
+              // '&:hover': {
+              //   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+              // }
+            }}
+          >
+            <Tooltip title='Grid View'>
               <IconButton
                 className='hover:bg-[primary]'
                 onClick={() => setViewMode('grid')}
@@ -266,27 +264,25 @@ const BranchListing = () => {
                 <GridIcon
                   className={`w-4 h-4 ${viewMode === 'grid' ? 'text-white' : 'text-gray-500'} hover:text-gray-500`}
                 />
-                {/* <GridViewIcon sx={{ fontSize: '18px' }} /> */}
               </IconButton>
-              {/* </Tooltip> */}
-              <Tooltip title='Table View'>
-                <IconButton
-                  className='hover:bg-[primary]'
-                  onClick={() => setViewMode('table')}
-                  sx={{
-                    p: 2.7,
-                    borderRadius: 1,
-                    color: viewMode === 'table' ? '#FFFFFF' : undefined, // White color when active
-                    bgcolor: viewMode === 'table' ? 'primary.main' : undefined // Blue background when active
-                  }}
-                >
-                  {/* <TableChartIcon fontSize='small' /> */}
-                  <TableIcon
-                    className={`w-4 h-4 ${viewMode === 'table' ? 'text-white' : 'text-gray-500'} hover:text-gray-500`}
-                  />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            </Tooltip>
+            <Tooltip title='Table View'>
+              <IconButton
+                className='hover:bg-[primary]'
+                onClick={() => setViewMode('table')}
+                sx={{
+                  p: 2.7,
+                  borderRadius: 1,
+                  color: viewMode === 'table' ? '#FFFFFF' : undefined, // White color when active
+                  bgcolor: viewMode === 'table' ? 'primary.main' : undefined // Blue background when active
+                }}
+              >
+                <TableIcon
+                  className={`w-4 h-4 ${viewMode === 'table' ? 'text-white' : 'text-gray-500'} hover:text-white`}
+                />{' '}
+                {/* Updated hover:text-white */}
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
       </Card>

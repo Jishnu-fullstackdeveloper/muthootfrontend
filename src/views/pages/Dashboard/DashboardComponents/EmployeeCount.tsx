@@ -1,6 +1,8 @@
 'use client'
 
 // MUI Imports
+import Image from 'next/image'
+
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
@@ -9,6 +11,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
 import EmployeeIcon from '@/icons/EmployeeIcon'
+import IntersectImage from '@/assets/images/dashboard/Intersect.png' // Update this path based on your project structure
+import IntersectGreenTopLeft from '@/assets/images/dashboard/IntersectGreenTopLeft.png'
 
 //import { useTheme } from '@mui/material/styles'
 
@@ -17,8 +21,8 @@ const EmployeeCountPage = () => {
   //const theme = useTheme()
 
   return (
-    <Card sx={{ bgcolor: '#00B798', borderRadius: 2 }}>
-      <CardContent className='flex justify-between gap-4' sx={{ color: 'white' }}>
+    <Card sx={{ bgcolor: '#00B798', borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
+      <CardContent className='flex justify-between gap-4' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
         <Box className='flex flex-col justify-between gap-4'>
           <Avatar sx={{ width: '60px', height: '60px', bgcolor: 'white', color: '#00B798', borderRadius: '8px' }}>
             <EmployeeIcon />
@@ -65,6 +69,28 @@ const EmployeeCountPage = () => {
           </Box>
         </Box>
       </CardContent>
+      <Image
+        src={IntersectGreenTopLeft}
+        alt='Green top decoration'
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+          opacity: 1
+        }}
+      />
+      <Image
+        src={IntersectImage}
+        alt='decorative shape'
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          zIndex: 0,
+          opacity: 0.5
+        }}
+      />
     </Card>
   )
 }

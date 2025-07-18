@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useMemo } from 'react'
+
+import Image from 'next/image'
 
 import { Card, CardContent, Typography, Box, Chip, useTheme, IconButton, Grid } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -8,6 +11,8 @@ import { styled } from '@mui/material/styles'
 import OptionIcon from '@/icons/DashboardRecruitHr/OptionIcon'
 import UpArrowIcon from '@/icons/DashboardRecruitHr/UpArrowIcon'
 import DownArrowIcon from '@/icons/DashboardRecruitHr/DownArrowIcon'
+
+import CardCirclesImage from '@assets/images/dashboard/card-circles.png'
 
 //import ApplicantResourcesCard from './ApplicantResources'
 
@@ -110,7 +115,35 @@ const StatisticCards = () => {
     <Grid container spacing={2}>
       {statCardsData.map((card, index) => (
         <Grid item xs={12} sm={6} md={4} key={index}>
-          <StatCardItem sx={{ backgroundColor: card.backgroundColor, height: 120, p: 1.5 }}>
+          {/* <StatCardItem sx={{ backgroundColor: card.backgroundColor, height: 120, p: 1.5 }}> */}
+          <StatCardItem
+            sx={{
+              backgroundColor: card.backgroundColor,
+              position: 'relative', // Required for absolute child
+              overflow: 'hidden',
+
+              //height: 120,
+              p: 1.5
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+
+                left: 80,
+                width: '100%',
+
+                //top: 0,
+                //height: '100%',
+                //opacity: 0.2,
+                //zIndex: 0,
+                //display: 'flex'
+
+                alignItems: 'center'
+              }}
+            >
+              <Image src={CardCirclesImage} alt='Wave Decoration' />
+            </Box>
             <StatCardContent>
               <StatCardHeader>
                 <StatCardTitle variant='body2'>{card.title}</StatCardTitle>

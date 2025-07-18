@@ -61,6 +61,7 @@
     "reactflow": "^11.11.4",
     "recharts": "^2.15.3",
     "server-only": "0.0.1",
+    "sharp": "^0.34.3",
     "stylis": "4.3.1",
     "stylis-plugin-rtl": "2.1.1",
     "tailwindcss": "3.4.1",

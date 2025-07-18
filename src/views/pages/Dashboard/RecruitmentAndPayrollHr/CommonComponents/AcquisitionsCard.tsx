@@ -12,7 +12,7 @@ export default function AcquisitionsCard() {
   ]
 
   return (
-    <Card className='bg-white rounded-lg shadow-sm'>
+    <Card className='bg-white rounded-lg shadow-sm p-0'>
       <CardContent>
         <Box className='flex justify-between items-center mb-4'>
           <Typography variant='h6' className='font-semibold'>
@@ -23,7 +23,8 @@ export default function AcquisitionsCard() {
             displayEmpty
             sx={{
               fontSize: 10,
-              px: 1,
+
+              // px: 1,
               bgcolor: '#F7F9FC',
               '& .MuiOutlinedInput-notchedOutline': {
                 border: 'none'
@@ -49,23 +50,31 @@ export default function AcquisitionsCard() {
           </Select>
         </Box>
 
-        <Box className='flex mb-3'>
+        <Box className='flex mb-6 overflow-hidden h-2 rounded-full'>
           {acquisitions.map((item, idx) => (
             <Box
               key={idx}
-              sx={{ flexGrow: item.percent, backgroundColor: item.color }}
-              className='h-2 rounded-full mx-0.5'
+              sx={{
+                flexGrow: item.percent,
+                backgroundColor: item.color,
+                borderTopLeftRadius: idx === 0 ? '9999px' : 0,
+                borderBottomLeftRadius: idx === 0 ? '9999px' : 0,
+                borderTopRightRadius: idx === acquisitions.length - 1 ? '9999px' : 0,
+                borderBottomRightRadius: idx === acquisitions.length - 1 ? '9999px' : 0
+              }}
             />
           ))}
         </Box>
 
         {acquisitions.map((item, idx) => (
-          <Box key={idx} className='flex justify-between items-center py-1 text-sm'>
+          <Box key={idx} className='flex justify-between items-center py-2  text-sm'>
             <Box className='flex items-center gap-2'>
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: item.color }} />
+              <Box sx={{ width: 22, height: 10, borderRadius: 2, backgroundColor: item.color }} />
               <Typography>{item.label}</Typography>
             </Box>
-            <Typography>{item.percent}%</Typography>
+            <Typography sx={{ color: 'black' }} fontWeight={500}>
+              {item.percent}%
+            </Typography>
           </Box>
         ))}
       </CardContent>

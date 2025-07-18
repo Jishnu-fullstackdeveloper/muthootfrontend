@@ -2,8 +2,12 @@
 
 import React from 'react'
 
-import { Card, Box, Typography, Divider } from '@mui/material'
+import Image from 'next/image'
+
+import { Card, Box, Typography } from '@mui/material'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+
+import LineImage from '@assets/images/dashboard/Line.png'
 
 const resources = [
   { name: 'Job Boards', value: 780, color: '#00B798' },
@@ -59,7 +63,15 @@ export default function ApplicantResourcesCard() {
         </Box>
       </Box>
 
-      <Divider sx={{ my: 3 }} />
+      <Box sx={{ my: 6, display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <Image
+          src={LineImage} // make sure this path matches your actual file location in the public folder
+          alt='line divider'
+          width={1000} // or use a suitable value
+          height={2} // adjust as needed to fit design
+          style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+        />
+      </Box>
 
       <Box
         sx={{

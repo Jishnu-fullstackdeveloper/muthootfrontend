@@ -17,6 +17,45 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchEmployees } from '@/redux/EmployeeManagement/employeeManagementSlice'
 import { ROUTES } from '@/utils/routes'
 
+interface AnimatedNumberProps {
+  number: number
+  duration?: number // in milliseconds
+}
+
+const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 }) => {
+  const [displayNumber, setDisplayNumber] = useState(0)
+  const startTimestamp = useRef<number | null>(null)
+  const startValue = useRef(0)
+  const requestRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const step = (timestamp: number) => {
+      if (!startTimestamp.current) startTimestamp.current = timestamp
+      const progress = timestamp - startTimestamp.current
+
+      const percentage = Math.min(progress / duration, 1)
+      const current = Math.floor(startValue.current + (number - startValue.current) * percentage)
+
+      setDisplayNumber(current)
+
+      if (percentage < 1) {
+        requestRef.current = requestAnimationFrame(step)
+      }
+    }
+
+    cancelAnimationFrame(requestRef.current || 0)
+    startValue.current = displayNumber
+    startTimestamp.current = null
+    requestRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [number])
+
+  return <span>{displayNumber}</span>
+}
+
 interface EmployeeDetails {
   employeeId: string // Maps to employeeCode or id from API
   fullName: string // Maps to title + firstName + middleName + lastName
@@ -32,10 +71,14 @@ const PositionMatrixTable = () => {
   const dispatch = useAppDispatch()
 
   const { employees, status, error, totalCount } = useAppSelector(state => state.employeeManagementReducer)
+  const { positionMatrixData } = useAppSelector(state => state.positionBudgetMatrixReducer)
 
   // Extract designation and employeeCodes from searchParams
   const designation = searchParams.get('designation') || ''
   const employeeCodes = searchParams.get('employeeCodes') ? searchParams.get('employeeCodes')!.split(',') : []
+
+  // Get the latest createPositionMatrix response from positionMatrixData
+  const latestPositionMatrix = positionMatrixData.length > 0 ? positionMatrixData[positionMatrixData.length - 1] : null
 
   console.log(employeeCodes)
 
@@ -87,7 +130,11 @@ const PositionMatrixTable = () => {
 
   // Map API data to table format
   const tableData = useMemo(() => {
-    const mappedData = employees.map(item => ({
+    // Use employees from the latest createPositionMatrix response if available
+    const dataSource =
+      latestPositionMatrix && latestPositionMatrix.employees ? latestPositionMatrix.employees : employees
+
+    const mappedData = dataSource.map(item => ({
       employeeId: item.employeeCode || item.id || '', // Fallback to empty string if missing
       fullName: `${item.title || ''} ${item.firstName || 'Unknown'}${item.middleName ? ` ${item.middleName}` : ''}${
         item.lastName ? ` ${item.lastName}` : ''
@@ -102,9 +149,10 @@ const PositionMatrixTable = () => {
 
     return {
       data: mappedData as EmployeeDetails[], // Ensure type matches EmployeeDetails
-      totalCount
+      totalCount:
+        latestPositionMatrix && latestPositionMatrix.employees ? latestPositionMatrix.employees.length : totalCount
     }
-  }, [employees, totalCount, queryParams.designation])
+  }, [employees, totalCount, queryParams.designation, latestPositionMatrix])
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, pageIndex: newPage }))
@@ -169,7 +217,9 @@ const PositionMatrixTable = () => {
             <GroupOutlined sx={{ fill: '#0095DA' }} />
           </Box>
           <Box className='flex gap-2 items-baseline'>
-            <Typography className='text-5xl font-bold text-[#0095DA]'>10</Typography>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>
+              <AnimatedNumber number={latestPositionMatrix ? latestPositionMatrix.expectedCount : 10} />
+            </Typography>
             <Typography className='font-medium'>no. of Employees</Typography>
           </Box>
         </Card>
@@ -179,7 +229,9 @@ const PositionMatrixTable = () => {
             <HowToRegOutlined sx={{ fill: '#0095DA' }} />
           </Box>
           <Box className='flex gap-2 items-baseline'>
-            <Typography className='text-5xl font-bold text-[#0095DA]'>4</Typography>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>
+              <AnimatedNumber number={latestPositionMatrix ? latestPositionMatrix.actualCount : 4} />
+            </Typography>
             <Typography className='font-medium'>no. of Employees</Typography>
           </Box>
         </Card>
@@ -189,7 +241,9 @@ const PositionMatrixTable = () => {
             <GroupAddOutlined sx={{ fill: '#0095DA' }} />
           </Box>
           <Box className='flex gap-2 items-baseline'>
-            <Typography className='text-5xl font-bold text-[#0095DA]'>0</Typography>
+            <Typography className='text-5xl font-bold text-[#0095DA]'>
+              <AnimatedNumber number={latestPositionMatrix ? latestPositionMatrix.additionalCount : 0} />
+            </Typography>
             <Typography className='font-medium'>no. of Employees</Typography>
           </Box>
         </Card>

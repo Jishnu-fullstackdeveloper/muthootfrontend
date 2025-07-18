@@ -62,7 +62,11 @@ import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-fi
 import BudgetListingTableView from './BudgetListingTableView'
 
 // Redux Imports
-import { fetchPositionMatrix, resetPositionBudgetState } from '@/redux/PositionBudgetMatrix/positionMatrixSlice'
+import {
+  fetchPositionMatrix,
+  resetPositionBudgetState,
+  createEmployeeCount
+} from '@/redux/PositionBudgetMatrix/positionMatrixSlice'
 
 const PositionBudgetMatrix = () => {
   const router = useRouter()
@@ -100,6 +104,14 @@ const PositionBudgetMatrix = () => {
     cluster: ['Cluster 1', 'Cluster 2', 'Cluster 3'],
     branch: ['Branch 1', 'Branch 2', 'Branch 3']
   }
+
+  // const truncateDesignation = (designation: string) => {
+  //   if (designation.length > 20) {
+  //     return `${designation.slice(0, 20)}...`
+  //   }
+
+  //   return designation
+  // }
 
   // Handle Location Filter Changes
   const handleLocationFilterChange = (filterKey: string) => (value: any) => {
@@ -237,16 +249,16 @@ const PositionBudgetMatrix = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative' }}>
-      {status === 'loading' && (
+      {/* {status === 'loading' && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      )}
-      {error && (
+      )} */}
+      {/* {error && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4, color: 'error.main' }}>
           <Typography>Error: {error}</Typography>
         </Box>
-      )}
+      )} */}
       <AreaFilterDialog
         open={openLocationFilter}
         setOpen={setOpenLocationFilter}
@@ -294,6 +306,7 @@ const PositionBudgetMatrix = () => {
               gap: 2
             }}
           >
+            {/* FILTERS */}
             {/* <Autocomplete
               disablePortal
               options={locationTypes}
@@ -499,16 +512,13 @@ const PositionBudgetMatrix = () => {
             <Grid container spacing={4} className='mt-4'>
               {positionMatrixData.map((budget, index) => {
                 const variance = budget.expectedCount - budget.actualCount
-                const fillPercentage = budget.expectedCount > 0 ? (budget.actualCount / budget.expectedCount) * 100 : 0
+
+                const fillPercentage =
+                  budget.expectedCount > 0 ? Math.min((budget.actualCount / budget.expectedCount) * 100, 100) : 0
 
                 return (
                   <Grid item xs={12} sm={6} lg={4} key={index}>
                     <Card
-                      onClick={() =>
-                        router.push(
-                          `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
-                        )
-                      }
                       sx={{
                         p: 2,
                         bgcolor: 'background.paper',
@@ -532,9 +542,9 @@ const PositionBudgetMatrix = () => {
                           alignItems: 'center'
                         }}
                       >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1, pr: 2 }}>
                           <Typography
-                            className='whitespace-nowrap overflow-hidden text-ellipsis uppercase'
+                            className='overflow-hidden text-ellipsis uppercase'
                             sx={{ fontWeight: 'bold', fontSize: 14 }}
                           >
                             {budget.designation}
@@ -620,7 +630,28 @@ const PositionBudgetMatrix = () => {
                                 </Typography>
                               </Box>
                               <Box className='flex w-full justify-center border border-[#0095DA] rounded-md'>
-                                <Button className='flex gap-1 items-center w-full'>
+                                <Button
+                                  className='flex gap-1 items-center w-full'
+                                  onClick={async () => {
+                                    try {
+                                      const response = await dispatch(
+                                        createEmployeeCount({
+                                          expectedCount: budget.expectedCount,
+                                          actualCount: budget.actualCount,
+                                          additionalCount: budget.additionalCount,
+                                          temporaryCount: budget.temporaryCount,
+                                          employeeCodes: budget.employeeCodes
+                                        })
+                                      ).unwrap()
+
+                                      router.push(
+                                        `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
+                                      )
+                                    } catch (error) {
+                                      console.error('Failed to create employee count:', error)
+                                    }
+                                  }}
+                                >
                                   <Visibility />
                                   View Details
                                 </Button>

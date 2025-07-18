@@ -122,7 +122,6 @@ export default function CurrentVacanciesCard() {
           <Grid item xs={12} sm={6} md={4} key={vacancy.id}>
             <Card
               sx={{
-                //height: 168,
                 borderRadius: 2
               }}
             >
@@ -136,7 +135,7 @@ export default function CurrentVacanciesCard() {
                       {vacancy.icon}
                     </Box>
                     <Box className='ml-2 mt-1'>
-                      <Typography variant='subtitle1' className='font-medium mt-1'>
+                      <Typography variant='subtitle1' className='font-medium mt-1' sx={{ color: 'black' }}>
                         {vacancy.title}
                       </Typography>
                     </Box>
@@ -150,13 +149,13 @@ export default function CurrentVacanciesCard() {
                   {vacancy.title}
                 </Typography> */}
 
-                <Box className='flex flex-wrap gap-2 mt-1'>
+                <Box className='flex flex-wrap gap-2 mt-4'>
                   {vacancy.badges.map((badge, idx) => (
                     <Chip key={idx} label={badge} size='small' className='!bg-[#EAEFFC] !text-[#64748B] !text-xs' />
                   ))}
                 </Box>
 
-                <Box className='flex items-center justify-between mt-3'>
+                <Box className='flex items-center justify-between mt-2 '>
                   <Typography variant='body2' className='font-semibold' sx={{ color: 'black' }}>
                     {vacancy.salary}
                   </Typography>

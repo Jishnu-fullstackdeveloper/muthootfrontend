@@ -5,20 +5,19 @@ import dynamic from 'next/dynamic'
 
 // MUI Imports
 import Card from '@mui/material/Card'
-import { useColorScheme, useTheme } from '@mui/material/styles'
+import { useColorScheme, useTheme, alpha } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import { alpha } from '@mui/material/styles'
 
 // Third-party Imports
 import type { ApexOptions } from 'apexcharts'
 
 // Type Imports
-import type { SystemMode } from '@core/types'
+// import type { SystemMode } from '@core/types'
 
 // Util Imports
-import { rgbaToHex } from '@/utils/rgbaToHex'
-import { getServerMode } from '@/@core/utils/serverHelpers'
+// import { rgbaToHex } from '@/utils/rgbaToHex'
+// import { getServerMode } from '@/@core/utils/serverHelpers'
 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
@@ -34,6 +33,7 @@ const donutColors = {
 
 const ChartSample = () => {
   const serverMode = null
+
   //  getServerMode()
   // Hooks
   const theme = useTheme()
@@ -41,6 +41,8 @@ const ChartSample = () => {
 
   // Vars
   const _mode = (mode === 'system' ? serverMode : mode) || serverMode
+
+  console.group(_mode)
   const textSecondary = alpha(theme.palette.text.secondary, 0.7)
 
   // Updated Options for Pie Chart (Bubble Positions per Branch)

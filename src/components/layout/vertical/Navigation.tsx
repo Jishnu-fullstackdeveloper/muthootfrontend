@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react'
 
 // MUI Imports
-import { styled, useColorScheme, useTheme } from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles' //useColorScheme
 
 // Type Imports
 import type { Mode, SystemMode } from '@core/types'
@@ -23,6 +23,7 @@ import navigationCustomStyles from '@core/styles/vertical/navigationCustomStyles
 
 //cusom theme json import
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
+
 type Props = {
   mode: Mode
   systemMode: SystemMode
@@ -53,7 +54,8 @@ const Navigation = (props: Props) => {
   // Hooks
   const verticalNavOptions = useVerticalNav()
   const { updateSettings, settings } = useSettings()
-  const { mode: muiMode, systemMode: muiSystemMode } = useColorScheme()
+
+  // const { mode: muiMode, systemMode: muiSystemMode } = useColorScheme()
   const theme = useTheme()
 
   // Refs
@@ -68,6 +70,7 @@ const Navigation = (props: Props) => {
   if (isServer) {
     isDark = mode === 'system' ? systemMode === 'dark' : mode === 'dark'
   }
+
   //  else {
   //   isDark = muiMode === 'system' ? muiMode === 'dark' : muiMode === 'dark'
   // }
@@ -103,6 +106,7 @@ const Navigation = (props: Props) => {
       customStyles={navigationCustomStyles(verticalNavOptions, theme)}
       collapsedWidth={71}
       backgroundColor='var(--mui-palette-background-paper)'
+      width={220}
       // eslint-disable-next-line lines-around-comment
       // The following condition adds the data-mui-color-scheme='dark' attribute to the VerticalNav component
       // when semiDark is enabled and the mode or systemMode is light

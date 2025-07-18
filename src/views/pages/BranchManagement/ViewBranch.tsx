@@ -1,0 +1,442 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+'use client'
+
+import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
+import { Box, Card, Typography, Divider, Tab, Tabs, Grid, Button } from '@mui/material'
+import AssessmentIcon from '@mui/icons-material/Assessment'
+import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  getBranchDetails,
+  getEmployeeDetailsWithBranchId,
+
+  //fetchBubblePositions,
+  fetchVacancies
+} from '@/redux/BranchManagement/BranchManagementSlice'
+import type { RootState } from '@/redux/store'
+import DynamicTable from '@/components/Table/dynamicTable'
+import type { ViewBranchProps, BranchManagementState, EmployeeDetails } from '@/types/branch'
+import { EmployeeListResponse } from '@/types/branch'
+
+import BubblePositionsOverview from '@/views/branch/components/BubblePositionsOverview'
+import BucketManagementOverview from '@/views/branch/components/BucketManagementOverview'
+import VacancyManagementOverview from '@/views/branch/components/VacancyManagementOverview'
+
+const tabMapping: { [key: string]: number } = {
+  'employees-details': 0,
+
+  // 'bubble-positions': 1,
+  'budget-management': 1,
+  'vacancy-management': 2
+}
+
+const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
+  const router = useRouter()
+  const dispatch = useAppDispatch()
+  const [activeTab, setActiveTab] = useState<number>(tabMapping[branchTab] || 0)
+
+  console.log(mode)
+
+  const {
+    branchDetailsData,
+    branchDetailsLoading,
+    branchDetailsFailure,
+    branchDetailsFailureMessage,
+    employeeListData,
+    fetchBubblePositionsData,
+    fetchBubblePositionsLoading,
+    fetchBubblePositionsFailure,
+    fetchBubblePositionsFailureMessage,
+    fetchVacanciesData,
+    fetchVacanciesLoading,
+    fetchVacanciesFailure,
+    fetchVacanciesFailureMessage
+  } = useAppSelector((state: RootState) => state.branchManagementReducer) as BranchManagementState
+
+  // Data
+  const bubblePositionData = useMemo(
+    () =>
+      fetchBubblePositionsData?.data
+        ?.filter(item => item.designations) // Filter out the branchId item
+        .map(item => ({
+          position: item.designations,
+          actualCount: item.count,
+          requiredCount: 0, // Placeholder, adjust if requiredCount is available in the future
+          employees: [] // Placeholder, adjust if employee data is available
+        })) || [],
+    [fetchBubblePositionsData]
+  )
+
+  const employeeData: EmployeeDetails[] = employeeListData?.data || []
+  const totalCount: number = employeeListData?.totalCount || 0
+
+  const columnHelper = createColumnHelper<EmployeeDetails>()
+
+  const columns = useMemo<ColumnDef<EmployeeDetails, any>[]>(
+    () => [
+      columnHelper.accessor('employeeCode', {
+        header: 'ID',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('firstName', {
+        header: 'First Name',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('middleName', {
+        header: 'Middle Name',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('lastName', {
+        header: 'Last Name',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('personalEmailAddress', {
+        header: 'Email',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue()}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('designation.name', {
+        header: 'Designation',
+        cell: info => (
+          <Typography color='text.primary' className='font-medium'>
+            {info.getValue() || 'N/A'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('resignedEmployeeId', {
+        header: 'Status',
+        cell: info => (
+          <Typography color={info.getValue() ? 'error.main' : 'success.main'} className='font-medium'>
+            {info.getValue() ? 'Resigned' : 'Active'}
+          </Typography>
+        )
+      })
+    ],
+    []
+  )
+
+  const actionButtons = useMemo(
+    () => [
+      {
+        icon: <i className='tabler-eye' style={{ fontSize: 18 }} />,
+        onClick: (rowData: any) => router.push(`/employee-details?employeeId=${rowData.employeeCode}`),
+        tooltip: 'View Details'
+      }
+    ],
+    [router]
+  )
+
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
+
+  // Add search term state
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  // Combined pagination handler
+  // const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
+  //   setPagination(prev => ({
+  //     ...prev,
+  //     [key]: key === 'pageIndex' ? value : value,
+  //     pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
+  //   }))
+  // }
+
+  // const handlePageChange = (newPage: number) => {
+  //   console.log(employeeListData)
+  //   handlePaginationChange('pageIndex', newPage)
+  // }
+
+  // const handleRowsPerPageChange = (newPageSize: number) => handlePaginationChange('pageSize', newPageSize)
+
+  // Update useEffect to fetch employee data
+  // useEffect(() => {
+  //   dispatch(getBranchDetails({ id }))
+  //   dispatch(
+  //     getEmployeeDetailsWithBranchId({
+  //       branchId: id,
+  //       page: pagination.pageIndex + 1, // API uses 1-based indexing
+  //       limit: pagination.pageSize
+  //     })
+  //   )
+  //   dispatch(fetchVacancies({ branchName: branchData.name || '' }))
+  // }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
+
+  // Replace the existing useEffect with these separate useEffect hooks
+
+  // Fetch branch details only when id changes
+  useEffect(() => {
+    dispatch(getBranchDetails({ id }))
+  }, [dispatch, id])
+
+  // Fetch employee details when id or pagination changes
+  useEffect(() => {
+    dispatch(
+      getEmployeeDetailsWithBranchId({
+        branchId: id,
+        page: pagination.pageIndex + 1, // API uses 1-based indexing
+        limit: pagination.pageSize,
+        search: searchTerm || undefined // Include search term if not empty
+      })
+    )
+  }, [dispatch, id, pagination.pageIndex, pagination.pageSize, searchTerm])
+
+  // Fetch vacancies only when branchData.name changes
+  // useEffect(() => {
+  //   if (branchData.name) {
+  //     dispatch(fetchVacancies({ branchName: branchData.name }))
+  //   }
+  // }, [dispatch, branchData.name])
+
+  useEffect(() => {
+    dispatch(fetchVacancies({ branchName: branchData.name }))
+  }, [dispatch])
+
+  // Add new pagination handlers
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, pageIndex: newPage }))
+  }
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPagination({ pageIndex: 0, pageSize: newPageSize })
+  }
+
+  // Tab change handler
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue)
+    const paths = ['employees-details', 'budget-management', 'vacancy-management']
+
+    window.history.replaceState(null, '', `${paths[newValue]}?id=${id}`)
+  }
+
+  // useEffect(() => {
+  //   dispatch(getBranchDetails({ id }))
+  //   dispatch(
+  //     getEmployeeDetailsWithBranchId({ branchId: id, page: pagination.pageIndex + 1, limit: pagination.pageSize })
+  //   )
+
+  //   //dispatch(fetchBubblePositions({ branchId: id }))
+  //   dispatch(fetchVacancies({ branchName: branchData.name || '' }))
+  // }, [dispatch, id, pagination.pageIndex, pagination.pageSize])
+
+  if (branchDetailsLoading) return <div>Loading branch details...</div>
+  if (branchDetailsFailure) return <div>Error: {branchDetailsFailureMessage}</div>
+
+  const branchData = branchDetailsData?.data || {
+    id: '',
+    name: '',
+    branchCode: '',
+    turnoverCode: '',
+    bucketName: '',
+    branchStatus: '',
+    areaId: '',
+    districtId: '',
+    stateId: '',
+    createdAt: '',
+    updatedAt: '',
+    bucket: {
+      id: '',
+      name: '',
+      positionCategories: [],
+      turnoverCode: '',
+      notes: '',
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null
+    },
+    area: { id: '', name: '', regionId: '', createdAt: '', updatedAt: '', deletedAt: null },
+    district: { id: '', name: '', createdAt: '', updatedAt: '', deletedAt: null },
+    state: { id: '', name: '', createdAt: '', updatedAt: '', deletedAt: null }
+  }
+
+  return (
+    <Box>
+      <Card sx={{ p: 3, mb: 3 }}>
+        <Grid container spacing={2} alignItems='center'>
+          <Grid className='flex justify-between' item xs={12}>
+            <Typography variant='h5'>Branch Details</Typography>
+            {/* <Button
+              className='mr-2'
+              variant='contained'
+              color='primary'
+              startIcon={<AssessmentIcon />}
+              onClick={() => router.push('/branch-management/budget-report')}
+            >
+              Branch Report Dashboard
+            </Button> */}
+          </Grid>
+          <Grid className='flex justify-between' item xs={6}>
+            {/* Action buttons commented out */}
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            {/* <Typography variant='body1'>
+              <strong>ID:</strong> {branchData.id}
+            </Typography> */}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Name: <strong>{branchData.name}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Branch Code: <strong>{branchData.branchCode}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Territory: <strong>{branchData.cluster?.area?.region?.zone?.territory?.name || 'N/A'}</strong>
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Zone: <strong>{branchData.cluster?.area?.region?.zone?.name || 'N/A'}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Region: <strong>{branchData.cluster?.area?.region?.name || 'N/A'}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Area: <strong>{branchData?.cluster?.area?.name || 'N/A'}</strong>
+            </Typography>
+            {/* <Typography variant='body1'>
+              <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
+            </Typography> */}
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Cluster: <strong>{branchData?.cluster?.name || 'N/A'}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              City Classification: <strong>{branchData?.district?.name || 'N/A'}</strong>
+            </Typography>
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              State: <strong>{branchData.state?.name || 'N/A'}</strong>
+            </Typography>
+            {/* <Typography variant='body1'>
+              <strong>Turnover Code:</strong> {branchData.turnoverCode}
+            </Typography> */}
+          </Grid>
+        </Grid>
+      </Card>
+
+      <Card
+        className='mb-3 p-0.5 '
+        sx={{
+          bgcolor: '#F9FAFB',
+
+          '& .MuiTabs-indicator': { backgroundColor: 'transparent', display: 'none' }, // Hide underline
+          '& .MuiTabs-root': { borderBottom: 'none' }
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{
+            '& .MuiTab-root': {
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: '#23262F',
+                bgcolor: '#FFFFFF', // White background for active tab
+                borderRadius: 2, // Chip-like rounded corners
+                mx: 0.5,
+                boxShadow: 1,
+                my: 1
+              },
+              '&:hover': { textDecoration: 'none', color: 'inherit', borderBottom: 'none' } // Remove underline on hover
+            }
+          }}
+        >
+          <Tab label='Employees Details' />
+          {/* <Tab label='Bubble Position' /> */}
+          <Tab label='Budget Management' />
+          <Tab label='Vacancy Management' />
+        </Tabs>
+      </Card>
+
+      <Box>
+        {/* {activeTab === 0 &&
+          (employeeData.length === 0 ? (
+            <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
+              No employees found for this branch.
+            </Typography>
+          ) : (
+            <DynamicTable
+              columns={columns}
+              data={employeeData}
+              totalCount={totalCount}
+              pagination={{ pageIndex: pagination.pageIndex, pageSize: pagination.pageSize }}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              tableName='Employee List'
+              sorting={undefined}
+              onSortingChange={undefined}
+              initialState={undefined}
+            />
+          ))} */}
+
+        {activeTab === 0 &&
+          (employeeData.length === 0 ? (
+            <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
+              No employees found for this branch.
+            </Typography>
+          ) : (
+            <DynamicTable
+              columns={columns}
+              data={employeeData}
+              totalCount={totalCount}
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              tableName='Employee List'
+              sorting={undefined}
+              onSortingChange={undefined}
+              initialState={undefined}
+              searchBar={true}
+              onSearchChange={(searchTerm: string) => {
+                setSearchTerm(searchTerm)
+                setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page on search
+              }}
+            />
+          ))}
+        {/* {activeTab === 1 && (
+          <BubblePositionsOverview
+            bubblePositionData={bubblePositionData}
+            loading={fetchBubblePositionsLoading}
+            failure={fetchBubblePositionsFailure}
+            failureMessage={fetchBubblePositionsFailureMessage}
+          />
+        )} */}
+        {activeTab === 1 && <BucketManagementOverview branchData={branchData} branchBucket={branchData.branchBucket} />}
+        {activeTab === 2 && (
+          <VacancyManagementOverview
+            vacanciesData={fetchVacanciesData?.data || []}
+            loading={fetchVacanciesLoading}
+            failure={fetchVacanciesFailure}
+            failureMessage={fetchVacanciesFailureMessage}
+          />
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+export default ViewBranch

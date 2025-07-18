@@ -1,69 +1,133 @@
 'use client'
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useRef } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import { Box, LinearProgress, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import type { Dispatch } from '@reduxjs/toolkit'
 import { jwtDecode } from 'jwt-decode'
 import { ToastContainer, toast } from 'react-toastify'
-import LogoImg from '@assets/images/connqt_icon_background_removed.png'
+
 import type { RootState } from '@/redux/store'
-import { fetchLoginToken } from '@/redux/loginSlice'
-import { setAccessToken, setRefreshToken, setUserId } from '@/utils/functions'
+import { fetchLoginToken, fetchPermissionRenderConfig } from '@/redux/loginSlice'
+import {
+  setAccessToken,
+  setPermissionRenderConfig,
+  setRefreshToken,
+  setUserId,
+  storeLoginResponse
+} from '@/utils/functions'
 import AxiosLib from '@/lib/AxiosLib'
 
 const Login2Redirect = () => {
   const router = useRouter()
-  let currentUrl
-  if (typeof window !== 'undefined') {
-    currentUrl = window?.location?.href
-  }
 
+  // Extract URL parameters once at the top level
+  const currentUrl = typeof window !== 'undefined' ? window?.location?.href : ''
   const urlParams = new URLSearchParams(currentUrl?.split('?')[1])
-  const code = urlParams.get('code')
+  const code = urlParams.get('code') //CR: Code is Not Found in redirect URL
   const issuer = urlParams.get('iss')
-  const stateFetched = urlParams.get('state')
+  const stateFetched = urlParams.get('state') //CR: State Is undefined
 
   const dispatch = useDispatch<Dispatch>()
-  const { secondLoginData }: any = useSelector((state: RootState) => state.loginReducer)
+
+  const { fetchLoginTokenData, fetchPermissionRenderConfigData }: any = useSelector(
+    (state: RootState) => state.loginReducer
+  )
+
+  const params = {
+    code,
+    issuer,
+    state: stateFetched
+  }
+
+  // Use useRef to track if the API has been dispatched
+  const hasDispatchedRef = useRef(false)
 
   useEffect(() => {
-    const params = {
-      code,
-      issuer,
-      state: stateFetched
+    // Prevent multiple dispatches
+    if (hasDispatchedRef.current) return
+
+    // Ensure parameters are available before dispatching
+    if (!code || !issuer || !stateFetched) {
+      toast.error('Login failed: Missing required parameters.', {
+        closeOnClick: true
+      })
+
+      return
     }
+
+    // Dispatch the API call
     dispatch<any>(fetchLoginToken(params))
-  }, [])
+    hasDispatchedRef.current = true // Mark as dispatched
+  }, [dispatch]) // Only depend on dispatch
 
   useEffect(() => {
     const handleLogin = () => {
-      if (secondLoginData) {
-        const accessToken = secondLoginData?.token?.access_token || ''
-        const refreshToken = secondLoginData?.token?.refresh_token || ''
+      if (!fetchLoginTokenData) return // Exit early if no login data
+
+      // Extract tokens safely
+      const accessToken = fetchLoginTokenData?.data?.token?.access_token || ''
+      const refreshToken = fetchLoginTokenData?.data?.token?.refresh_token || ''
+
+      if (!accessToken) {
+        toast.error('Login failed: No access token received.', {
+          closeOnClick: true
+        })
+
+        return
+      }
+
+      try {
+        // Decode the token to verify its format and extract claims
         const decodedToken: any = jwtDecode(accessToken)
-        if (decodedToken && decodedToken?.realm) {
-          setAccessToken(accessToken)
-          setRefreshToken(refreshToken)
-          setUserId(decodedToken?.sub)
-          AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${secondLoginData?.token?.access_token || ''}`
-          toast.success('Login Successful.', {
+
+        if (!decodedToken || !decodedToken.sub || !decodedToken.realm) {
+          toast.error('Login failed: Invalid token format.', {
             closeOnClick: true
           })
-          setTimeout(() => {
-            router.push('/home')
-          }, 2000)
+
+          return
         }
+
+        // Store tokens and user ID
+        setAccessToken(accessToken)
+        setRefreshToken(refreshToken)
+        setUserId(decodedToken.sub)
+
+        // Store login response in your storage (e.g., localStorage, context, or state management)
+        storeLoginResponse(fetchLoginTokenData.data)
+
+        // Set Authorization header for all Axios requests
+        AxiosLib.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+
+        // Show success toast and redirect
+        toast.success('Login Successful.', {
+          closeOnClick: true
+        })
+
+        dispatch<any>(fetchPermissionRenderConfig(params))
+
+        setTimeout(() => {
+          router.push('/home')
+        }, 2000)
+      } catch (error) {
+        toast.error('Login failed: Invalid token format or decoding error.', {
+          closeOnClick: true
+        })
       }
     }
 
     handleLogin()
+  }, [fetchLoginTokenData, router])
 
-    return () => {
-      // Cleanup function to remove the effect
+  // New useEffect to handle fetchPermissionRenderConfigData when it becomes available
+  useEffect(() => {
+    if (fetchPermissionRenderConfigData) {
+      setPermissionRenderConfig(fetchPermissionRenderConfigData.data)
     }
-  }, [secondLoginData])
+  }, [fetchPermissionRenderConfigData])
 
   return (
     <>

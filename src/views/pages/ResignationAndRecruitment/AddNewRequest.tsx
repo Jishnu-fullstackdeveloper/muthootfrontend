@@ -1,19 +1,20 @@
-
-import GeneratedForm from '@/form/generatedForms/addNewRequest'
 import React from 'react'
 
+import ManualRequestGeneratedForm from '@/form/generatedForms/addNewRequest'
+
 type Props = {
-    mode: string
-    id: string
-  }
+  mode: string
+  id: string
+}
 
 const AddNewRequest: React.FC<Props> = ({ mode, id }) => {
+  console.log(mode, id)
+
   return (
     <>
-      <GeneratedForm />
+      <ManualRequestGeneratedForm />
     </>
   )
 }
 
 export default AddNewRequest
-

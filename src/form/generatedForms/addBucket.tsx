@@ -1,13 +1,27 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, IconButton, InputAdornment, Autocomplete , Tooltip, Card } from '@mui/material'
-import DynamicButton from '@/components/Button/dynamicButton'
+import { FormControl, TextField, IconButton, Autocomplete } from '@mui/material'
+
 import AddIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
-import { useRouter } from 'next/navigation'
-import { Modal, Box, Button } from '@mui/material';
+
+import DynamicButton from '@/components/Button/dynamicButton'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  addNewBucket,
+  getTurnOverCode,
+  updateBucketList,
+  addNewTurnoverCode,
+  fetchBucketDetails,
+  fetchDesignationList,
+  fetchGradeList
+} from '@/redux/BucketManagementSlice'
+import TurnOverModal from '@/views/pages/BucketManagment/TurnOverModal'
 
 type Props = {
   mode: any
@@ -15,114 +29,147 @@ type Props = {
 }
 
 const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
-  console.log('mode', mode)
-  console.log('id', id)
-
-  const [roleCount, setRoleCount] = useState<string>('')
-  const [error, setError] = useState<string>('') // Error message
-  const [warning, setWarning] = useState<string>('') // Warning message
-  const [designations, setDesignations] = useState<any[]>([{ designationName: '', roleCount: 1 }])
-  const [showModal, setShowModal] = useState(false);
-  const [showTurnoverModal, setShowTurnoverModal] = useState(false); // New state for Turnover modal
-  // const [showNewTurnoverModal, setShowNewTurnoverModal] = useState(false); // Modal to create new turnover
-  const [modalData, setModalData] = useState(null);
-  // const [turnoverAmount, setTurnoverAmount] = useState<number | string>(''); // State for turnover amount
-  // const [turnoverCode, setTurnoverCode] = useState<string>('');
-  // const [isEditMode, setIsEditMode] = useState(false) // Track whether we're in edit mode
+  const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1, grade: '' }])
+  const [modalData, setModalData] = useState(null)
   const [selectedTurnover, setSelectedTurnover] = useState<any>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [hoveredRow, setHoveredRow] = useState(null);
-  const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('');
+  const [hoveredRow, setHoveredRow] = useState(null)
+  const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('')
 
-  const [showNewTurnoverModal, setShowNewTurnoverModal] = useState(false);
-const [isEditMode, setIsEditMode] = useState(false);
-const [turnoverAmount, setTurnoverAmount] = useState('');
-const [turnoverCode, setTurnoverCode] = useState('');
-// const [selectedTurnover, setSelectedTurnover] = useState(null);
+  modalData
+  showDeleteModal
+  hoveredRow
 
-  interface DataItem {
-    id: number;
-    turnover: number;
-    code: string;
+  useEffect(() => {
+    if (mode === 'edit') {
+      dispatch(fetchBucketDetails(id))
+    }
+  }, [])
+
+  const handleRadioChange = (turnoverCode: string) => {
+    setSelectedTurnoverCode(turnoverCode) 
+    console.log('Selected Turnover Code:', turnoverCode)
   }
-  const [data, setData] = useState([
-    { id: 1, turnoverCode: 'ABC123' },
-    { id: 2, turnoverCode: 'DEF456' },
-    { id: 3, turnoverCode: 'GHI789' },
-    { id: 4, turnoverCode: 'JKL012' },
-    { id: 5, turnoverCode: 'MNO345' },
-    { id: 6, turnoverCode: 'PQR678' },
-    { id: 7, turnoverCode: 'STU901' },
-    { id: 8, turnoverCode: 'VWX234' },
-    { id: 9, turnoverCode: 'YZA567' },
-    { id: 10, turnoverCode: 'BCD890' },
-    { id: 11, turnoverCode: 'EFG123' },
-    { id: 12, turnoverCode: 'HIJ456' },
-  ])
-  
-  
 
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [turnoverCode, setTurnoverCode] = useState('')
 
-  const handleIconClick = (item: any) => {
-    setModalData(item); // Set data for the modal
-    setShowModal(true);  // Show modal
-  };
+  const [modalState, setModalState] = useState({
+    showTurnOverModal: false,
+    showAddNewTurnoverModal: false
+  })
 
-  const handleCloseModal = () => {
-    setShowModal(false); // Close modal
-    setModalData(null);   // Clear modal data
-  };
+  const {
+    turnoverListData,
+    fetchBucketDetailsData,
+    fetchBucketDetailsSuccess,
+    updateBucketListSuccess,
+    designationData,
+    gradeData
+  } = useAppSelector((state: any) => state.BucketManagementReducer)
 
+  const [data, setData] = useState([{ turnoverID: 1, turnoverCode: 'ABC123' }])
+  const dispatch = useAppDispatch()
 
+  const handleClickTurnover = (item: any) => {
+    setModalData(item)
+    setModalState({ ...modalState, showTurnOverModal: true })
 
-  // Open modal to create a new turnover
+    const params = {
+      page: 1,
+      limit: 10
+    }
+
+    dispatch(getTurnOverCode(params))
+  }
+
+  const getDesignationDatas = () => {
+    const params = {
+      page: 1,
+      limit: 10
+    }
+
+    dispatch(fetchDesignationList(params))
+  }
+
+  const getGradeDatas = () => {
+    const params = {
+      page: 1,
+      limit: 10
+    }
+
+    dispatch(fetchGradeList(params))
+  }
+
+  console.log(gradeData, 'Grade Datas', designationData)
+
+  useEffect(() => {
+    getDesignationDatas()
+    getGradeDatas()
+  }, [])
+
   const handleAddNewTurnover = () => {
-    setIsEditMode(false) // Set to false when adding a new turnover
-    setTurnoverAmount('')
+    setIsEditMode(false)
     setTurnoverCode('')
-    setShowNewTurnoverModal(true)
+    setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
+
   const handleEditTurnover = (item: any) => {
-    console.log(item); // Log item to verify the data
-    setIsEditMode(true); 
-    setSelectedTurnover(item); 
-    // setTurnoverAmount(item.turnoverCode.toString());
-    setTurnoverCode(item.turnoverCode);
-    setShowNewTurnoverModal(true);
+    console.log(item)
+    setIsEditMode(true)
+    setSelectedTurnover(item)
+    setTurnoverCode(item.turnoverCode)
+    setModalState({ ...modalState, showAddNewTurnoverModal: true })
   }
-  
- const handleSubmit = () => {
-    // Handle the submit action and pass the selected turnover code to the input field
-    setTurnoverCode(selectedTurnoverCode);
-    handleCloseModal();
-  };
+
+  const submitselectedTurnoverCode = (item: any) => {
+    item
+    setTurnoverCode(selectedTurnoverCode)
+    bucketFormik.setFieldValue('turnoverCode', selectedTurnoverCode)
+    setModalState({ ...modalState, showTurnOverModal: false })
+  }
+
   const handleSaveNewTurnover = () => {
+    if (!turnoverCode.trim()) {
+      alert('Please provide a turnover code')
+
+      return
+    } else {
+      const params = {
+        turnover: turnoverCode
+      }
+
+      dispatch(addNewTurnoverCode(params))
+    }
+
     if (isEditMode && selectedTurnover) {
-      // Handle editing existing turnover
-      const updatedData = data.map((item) =>
-        item.id === selectedTurnover.id
-          ? { ...item,  turnoverCode: turnoverCode }
-          : item
+      console.log('Editing turnover: ', selectedTurnover)
+
+      const updatedData = data.map(item =>
+        item.turnoverID === selectedTurnover.turnoverID ? { ...item, turnoverCode: turnoverCode } : item
       )
+
       setData(updatedData)
     } else {
-      // Handle adding new turnover
       const newTurnover = {
-        id: data.length + 1,
-        turnoverCode: turnoverCode,
+        turnoverID: data.length + 1,
+        turnoverCode: turnoverCode
       }
+
       setData([...data, newTurnover])
     }
-    setShowNewTurnoverModal(false) // Close the modal after saving
-  }
-  const handleCancelNewTurnover = () => {
-    setShowNewTurnoverModal(false) // Close the modal without saving
+
+    // Close the modal after saving
+    setModalState({ ...modalState, showAddNewTurnoverModal: false })
+    setTurnoverCode('')
   }
 
-  const handleDeleteTurnover = () => {
-    const updatedData = data.filter((item) => item.id !== selectedTurnover?.id)
-    setData(updatedData)
-    setShowDeleteModal(false) // Close delete confirmation modal
+  const handleCancelNewTurnover = () => {
+    setModalState({ ...modalState, showAddNewTurnoverModal: false })
+  }
+
+  const handleCloseTurnoverModal = () => {
+    setModalState({ ...modalState, showTurnOverModal: false })
   }
 
   const handleOpenDeleteModal = (item: any) => {
@@ -130,90 +177,94 @@ const [turnoverCode, setTurnoverCode] = useState('');
     setShowDeleteModal(true)
   }
 
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false)
-  }
-
-  
-
-
-  // Formik Setup
   const bucketFormik = useFormik({
     initialValues: {
       bucketName: '',
       turnoverCode: '',
-      turnoverId: '',
       note: '',
-      designations: [{ designationName: '', roleCount: 1 }]
+      designations: [{ name: '', count: 1, grade: '' }]
     },
     validationSchema: Yup.object().shape({
       bucketName: Yup.string().required('Bucket Name is required'),
-      note: Yup.string(),
+      turnoverCode: Yup.string().required('Turnover Code is required'),
       designations: Yup.array()
         .of(
           Yup.object().shape({
-            designationName: Yup.string().required('Designation is required'),
-            roleCount: Yup.number().required('Role Count is required').min(1)
+            name: Yup.string().required('Designation is required'),
+            count: Yup.number().required('Role Count is required').min(1, 'Role Count must be at least 1'),
+            grade: Yup.string().required('Grade is required')
           })
         )
         .min(1, 'At least one designation is required')
     }),
+
     onSubmit: values => {
-      console.log('Form Submitted:', values)
+      const finalTurnoverCode = selectedTurnoverCode || turnoverCode
+
+      const sanitizedDesignations = values.designations.map(designation => ({
+        designationName: designation.name?.trim(),
+        count: designation.count || 1,
+        grade: designation.grade?.trim()
+      }))
+
+      const invalidDesignations = sanitizedDesignations.some(d => !d.designationName)
+
+      if (invalidDesignations) {
+        alert('All designation names must be filled.')
+
+        return
+      }
+
+      const params: any = {
+        name: values.bucketName.toUpperCase(),
+        positionCategories: sanitizedDesignations,
+        turnoverCode: finalTurnoverCode,
+        notes: values.note,
+        ...(mode === 'edit' && { id })
+      }
+
+      if (mode === 'edit') {
+        dispatch(updateBucketList(params))
+      } else {
+        dispatch(addNewBucket(params))
+      }
+
+      router.push('/bucket-management')
     }
   })
 
-  const handleSaveNewBucket = () => {
-    const bucketData = {
-      bucketName: bucketFormik.values.bucketName,
-      turnoverCode: bucketFormik.values.turnoverCode,
-      note: bucketFormik.values.note,
-      designations: bucketFormik.values.designations,
-      id: data.length + 1, // Generate a new ID based on the existing data length
-    };
-  
-    // Add the new bucket to the data state (or update if necessary)
-    setData([...data, bucketData]); // Assuming you're adding the bucket data to the state
-    bucketFormik.resetForm(); // Optionally reset the form after saving
-    setShowNewTurnoverModal(false); // Close modal after saving
-  };
-  
-  const handleBucketSubmit = (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission
-    handleSaveNewBucket(); // Call the function to save the new bucket
-  };
+  useEffect(() => {
+    if (fetchBucketDetailsSuccess && fetchBucketDetailsData) {
+      console.log('fetchBucketDetailsData', fetchBucketDetailsData)
+
+      // Set field values for name, turnoverCode, and note
+      bucketFormik.setFieldValue('bucketName', fetchBucketDetailsData?.name)
+      bucketFormik.setFieldValue('turnoverCode', fetchBucketDetailsData?.turnoverCode)
+      bucketFormik.setFieldValue('note', fetchBucketDetailsData?.notes)
+      setTurnoverCode(fetchBucketDetailsData?.turnoverCode)
+
+      // Transform positionCategories into the required format for designations
+      const tempDesignations = fetchBucketDetailsData?.positionCategories?.map((item: any) => ({
+        name: item.name || '',
+        count: item.count || 1,
+        grade: item.grade || ''
+      }))
+
+      // Update designations state and formik field value
+      setDesignations(tempDesignations)
+      bucketFormik.setFieldValue('designations', tempDesignations)
+    }
+  }, [fetchBucketDetailsSuccess, fetchBucketDetailsData, updateBucketListSuccess])
+
   const router = useRouter()
 
-  // Cancel button handler
   const handleCancel = () => {
     router.back()
-  }
-
-  const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const value = event.target.value
-    const newDesignations = [...designations]
-
-    
-    if (value === '') {
-      newDesignations[index].roleCount = '' // Empty input for backspace
-      setWarning('') // Remove warning
-      setError('')
-    } else if (parseInt(value, 10) === 0) {
-      setError('Value cannot be zero') // Show error in red
-      setWarning('')
-      newDesignations[index].roleCount = '' // Reset if zero
-    } else {
-      setError('')
-      setWarning('')
-      newDesignations[index].roleCount = parseInt(value, 10)
-    }
-    setDesignations(newDesignations)
   }
 
   return (
     <form onSubmit={bucketFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
       <h1 className='text-2xl font-bold text-gray-800 mb-4'>Bucket Management Form</h1>
-
       <fieldset className='border border-gray-300 rounded p-4 mb-6'>
         <legend className='text-lg font-semibold text-gray-700'>Bucket Details</legend>
         <div className='grid grid-cols-2 gap-4'>
@@ -222,468 +273,213 @@ const [turnoverCode, setTurnoverCode] = useState('');
               Bucket Name *
             </label>
             <TextField
+              label='Bucket Name *'
               id='bucketName'
               name='bucketName'
-              type='text'
               value={bucketFormik.values.bucketName}
               onChange={bucketFormik.handleChange}
-              onFocus={() => bucketFormik.setFieldTouched('bucketName', true)}
-              error={bucketFormik.touched.bucketName && Boolean(bucketFormik.errors.bucketName)}
-              helperText={bucketFormik.touched.bucketName && bucketFormik.errors.bucketName ? String(bucketFormik.errors.bucketName) : undefined}
+              onBlur={bucketFormik.handleBlur}
+              error={!!bucketFormik.errors.bucketName && bucketFormik.touched.bucketName}
+              helperText={bucketFormik.errors.bucketName}
             />
           </FormControl>
 
-          <FormControl fullWidth margin='normal' >
+          <FormControl fullWidth margin='normal'>
             <label htmlFor='turnoverCode' className='block text-sm font-medium text-gray-700'>
               Turnover Code
             </label>
-            <div style={{ flexDirection:'row' }}>
-            <TextField
-            onClick={() => handleIconClick(data[0])} 
-            value={turnoverCode}
-            InputProps={{
-              readOnly: true,
-            }}
-            sx={{paddingRight:'10px'}}
-              id='turnoverCode'
-              name='turnoverCode'
-             
-             
-              onChange={bucketFormik.handleChange}
-              onFocus={() => bucketFormik.setFieldTouched('turnoverCode', true)}
-              error={bucketFormik.touched.turnoverCode && Boolean(bucketFormik.errors.turnoverCode)}
-              helperText={bucketFormik.touched.turnoverCode && bucketFormik.errors.turnoverCode ? String(bucketFormik.errors.turnoverCode) : undefined}
-             
-            />
-            
-
-             </div>
-
-
-             <Modal open={showModal} onClose={handleCloseModal}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            padding: 5,
-            borderRadius: 2,
-            boxShadow: 24,
-            maxHeight: '80vh',
-            width: '50%',
-          }}
-        >
-          <Button
-            onClick={handleCloseModal}
-            sx={{
-              position: 'absolute',
-              top: 10,
-              right: 10,
-              fontSize: '24px',
-              width: '40px',
-              height: '40px',
-              borderRadius: '10%',
-              border: '1px solid #ddd',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'white',
-              '&:hover': {
-                backgroundColor: '#f0f0f0',
-                borderColor: '#bbb',
-              },
-            }}
-          >
-            <i className="tabler-x"></i>
-          </Button>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50 , marginBottom:10 }}>
-  <h2 style={{ paddingLeft: 50 }}>Turnover Details</h2>
-  <Button
-    variant="outlined"
-    onClick={handleAddNewTurnover}
-    sx={{
-      marginRight: 40,
-      borderColor: '#888',
-      color: '#888',
-      '&:hover': {
-        borderColor: '#555',
-        backgroundColor: '#f5f5f5',
-       
-      },
-    }}
-  >
-    Add
-  </Button>
-</div>
-
-
-          {/* Turnover Data Table */}
-          <div style={{ marginTop: '16px', maxHeight: '60vh', overflowY: 'auto', marginBottom: '50px' }}>
-      <table style={{ width: '80%', borderCollapse: 'collapse', marginLeft: '60px', marginBottom: "50px" }}>
-        <thead>
-          <tr>
-            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>No</th>
-            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Turnover Code</th>
-            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Actions</th>
-            <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr
-              key={item.id}
-              style={{
-                cursor: 'pointer',
-                transition: 'background-color 0.3s',
-                backgroundColor: selectedTurnoverCode === item.turnoverCode ? '#e0f7fa' : hoveredRow === item.id ? '#f0f0f0' : '', // Highlight selected row with a color
-              }}
-              onMouseEnter={() => setHoveredRow(item.id)} // Set hovered row when mouse enters
-              onMouseLeave={() => setHoveredRow(null)} // Reset hovered row when mouse leaves
-            >
-              
-              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                {item.id.toLocaleString()}
-              </td>
-
-              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                {item.turnoverCode}
-              </td>
-              <td style={{ borderBottom: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-              <Button
-        onClick={() => handleEditTurnover(item)}
-        sx={{
-          borderColor: '#888',
-          color: '#888',
-          '&:hover': {
-            borderColor: '#555',
-            backgroundColor: '#f5f5f5',
-          },
-        }}
-      >
-        <i className="tabler-edit"></i>
-      </Button>
-
-                <Button
-                  onClick={() => handleOpenDeleteModal(item)}
-                  sx={{
-                    borderColor: '#888',
-                    color: '#888',
-                    '&:hover': {
-                      backgroundColor: 'red',
-                    },
-                    marginLeft: 2,
-                  }}
-                >
-                  <i className="tabler-trash"></i>
-                  
-                </Button>
-                </td>
-<td>
-                {hoveredRow === item.id && ( // Only show radio button if this row is hovered
-                  <label>
-                    <input
-                      type="radio"
-                      name="turnoverCode"
-                      value={item.turnoverCode}
-                      checked={selectedTurnoverCode === item.turnoverCode}
-                      onChange={() => setSelectedTurnoverCode(item.turnoverCode)} // Set the selected turnover code
-                    />
-                  </label>
-                )}
-             </td>
-            
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={!selectedTurnoverCode}
-              sx={{
-                backgroundColor: '#1976d2',
-                '&:hover': {
-                  backgroundColor: '#1565c0',
-                },
-              }}
-            >
-              Submit
-            </Button>
-          </div>
-        </Box>
-      </Modal>
-
-      {/* New Turnover Modal */}
-      <Modal open={showNewTurnoverModal} onClose={handleCancelNewTurnover}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            padding: 10,
-            borderRadius: 2,
-            boxShadow: 24,
-            maxWidth: '400px',
-          }}
-        >
-          <h2>{isEditMode ? 'Edit Turnover Amount' : 'Add New Turnover Amount'}</h2>
-
-          <div className="flex flex-col space-y-4" style={{ marginTop: 10 }}>
-            <FormControl fullWidth>
-            <TextField
-  label="Turnover Code"
-  variant="outlined"
-  value={turnoverCode} // Value is bound to state
-  onChange={(e) => setTurnoverCode(e.target.value)} // OnChange handler to update state
-/>
-            </FormControl>
-
-
-            <div className="flex" style={{ paddingLeft: 50 }}>
-              <Button
-                onClick={handleSaveNewTurnover}
-                sx={{
-                  padding: 2,
-                  paddingLeft: 7,
-                  paddingRight: 7,
-                  marginRight: 4,
-                  borderColor: '#888',
-                  background: '#039be5',
-                  color: '#f5f5f5',
-                  '&:hover': {
-                    border: 1,
-                    color: 'black',
-                    borderColor: '#555',
-                    backgroundColor: '#f5f5f5',
-                  },
+            <div style={{ flexDirection: 'row' }}>
+              <TextField
+                value={bucketFormik.values.turnoverCode}
+                onClick={() => handleClickTurnover(data[0])}
+                onChange={bucketFormik.handleChange}
+                onFocus={() => bucketFormik.setFieldTouched('turnoverCode', true)}
+                id='turnoverCode'
+                name='turnoverCode'
+                error={bucketFormik.touched.turnoverCode && Boolean(bucketFormik.errors.turnoverCode)}
+                helperText={
+                  bucketFormik.touched.turnoverCode && bucketFormik.errors.turnoverCode
+                    ? String(bucketFormik.errors.turnoverCode)
+                    : undefined
+                }
+                InputProps={{
+                  readOnly: true
                 }}
-              >
-                Save
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={handleCancelNewTurnover}
-                sx={{
-                  padding: 2,
-                  paddingLeft: 7,
-                  paddingRight: 7,
-                  marginRight: 4,
-                  borderColor: '#888',
-                  background: '#616161',
-                  color: '#f5f5f5',
-                  '&:hover': {
-                    border: 1,
-                    color: 'black',
-                    borderColor: '#555',
-                    backgroundColor: '#f5f5f5',
-                  },
-                }}
-              >
-                Cancel
-              </Button>
+              />
             </div>
-          </div>
-        </Box>
-      </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal open={showDeleteModal} onClose={handleCloseDeleteModal}>
-
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            padding: 10,
-            borderRadius: 2,
-            boxShadow: 24,
-            maxWidth: '400px',
-          }}
-        >
-
-<Box sx={{
-  display: 'flex',       // Use flexbox layout
-  justifyContent: 'center', // Horizontally center the icon
-  alignItems: 'center',   // Vertically center the icon
-  height: '100%',         // Make sure the Box takes up full height
-}}>
-  <i 
-    className="tabler-exclamation-circle" 
-    style={{
-      fontSize: '100px',   // Increase the icon size
-      color: 'red',        // Set the icon color to red
-    }}
-  ></i>
-</Box>
-
-
-<Box sx={{ padding: 2, textAlign: 'center', color: 'gray', fontFamily: 'Arial, sans-serif' }}>
-  <h2>Are you sure?</h2>
-  <h5>
-    Do you really want to delete this data? This process can't be undone.
-  </h5>
-</Box>
-
-
-
-
-<div className="flex" style={{ paddingLeft: 50, marginTop:10 }}>
-  <Button
-    
-    onClick={handleDeleteTurnover}
-    sx={{
-      padding:2,
-      paddingLeft:7,
-      paddingRight:7,
-      marginRight: 4,
-      backgroundColor: '#e53935',  
-              color:'#f5f5f5',
-      '&:hover': {
-        borderColor: 'darkred',  // Darker red border color on hover
-        backgroundColor: '#ffcccc', // Light red background on hover
-        color: 'darkred',         // Darker red text color on hover
-      },
-    }}
-  >
-   Delete
-  </Button>
-
-  <Button
-    
-    onClick={handleCloseDeleteModal}
-    sx={{
-      padding:2,
-      paddingLeft:7,
-      paddingRight:7,
-      marginRight: 4,
-      backgroundColor: '#757575',  
-              color:'#f5f5f5',
-      '&:hover': {
-        borderColor: 'darkred',  // Darker red border color on hover
-        backgroundColor: '#ffcccc', // Light red background on hover
-        color: 'darkred',         // Darker red text color on hover
-      },
-    }}
-  >
-   Cancel
-  </Button>
-</div>
-
-        </Box>
-      </Modal>
-
+            {/* New Turnover Modal */}
+            <TurnOverModal
+              showNewTurnoverModal={modalState?.showAddNewTurnoverModal}
+              handleCancelNewTurnover={handleCancelNewTurnover}
+              isEditMode={isEditMode}
+              turnoverCode={turnoverCode}
+              selectedTurnoverCode={selectedTurnoverCode}
+              setTurnoverCode={setTurnoverCode}
+              handleSaveNewTurnover={handleSaveNewTurnover}
+              handleAddNewTurnover={handleAddNewTurnover}
+              showTurnOverModal={modalState?.showTurnOverModal}
+              turnoverListData={turnoverListData}
+              setHoveredRow={setHoveredRow}
+              handleEditTurnover={handleEditTurnover}
+              handleOpenDeleteModal={handleOpenDeleteModal}
+              setSelectedTurnoverCode={setSelectedTurnoverCode}
+              handleCloseTurnoverModal={handleCloseTurnoverModal}
+              handleRadioChange={handleRadioChange}
+              submitselectedTurnoverCode={submitselectedTurnoverCode}
+            />
           </FormControl>
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
-          
-          
-
-        
-        </div>
+        <div className='grid grid-cols-2 gap-4'></div>
 
         <div>
-        <label htmlFor='designation' className='block text-sm font-medium text-gray-700'>
-              Designation
-            </label>
-          {designations.map((designation, index) => (
-  <div
-    key={index}
-    style={{
-      display: 'flex',
-      flexDirection: 'row',
-      marginBottom: '16px',
-      marginTop: 10,
-      alignItems: 'center',
-      width: '100%',
-    }}
-  >
-    <div style={{ width: '300px' }}>
-      <Autocomplete
-        options={['Manager', 'Lead', 'Member', 'Assistant', 'Director']}
-        value={designation.designationName}
-        onChange={(e, value) => {
-          const newDesignations = [...designations];
-          
-          // Check if the designation is already selected in any other row
-          const isDuplicate = newDesignations.some((item, idx) => item.designationName === value && idx !== index);
+          <label htmlFor='designation' className='block text-sm font-medium text-gray-700'>
+            Designation
+          </label>
+          {designations?.map((designation, index) => (
+            <div
+              key={index}
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                marginBottom: '16px',
+                marginTop: 10,
+                alignItems: 'center',
+                width: '100%'
+              }}
+            >
+              <div style={{ width: '300px' }}>
+                <Autocomplete
+                  options={designationData}
+                  getOptionLabel={option => option.name || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  value={designationData.find(item => item.name === designation.name) || null}
+                  onChange={(e, value) => {
+                    const selectedName = value ? value.name.trim() : ''
 
-          if (isDuplicate) {
-            // If duplicate, show error message
-            newDesignations[index].designationName = value || '';
-            setDesignations([...newDesignations]);
-            setError('This designation is already selected. Please choose a different one.');
-          } else {
-            // If no duplicate, update the designation
-            newDesignations[index].designationName = value || '';
-            setError('');
-            setDesignations(newDesignations);
-          }
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={`Designation ${index + 1}`}
-            error={bucketFormik.touched.designations && Boolean(bucketFormik.errors.designations) || Boolean(error)}
-            helperText={bucketFormik.touched.designations && bucketFormik.errors.designations ? bucketFormik.errors.designations : error || ''}
-            style={{ width: '100%' }}
-          />
-        )}
-      />
-    </div>
+                    const newDesignations = [...designations]
 
-    <div style={{ width: '150px', marginLeft: '10px' }}>
-      <TextField
-        label="Role Count"
-        type="number"
-        value={designation.roleCount === '' ? '' : designation.roleCount}
-        onChange={(e) => handleTextFieldChange(e, index)}
-        onBlur={(e) => {
-          if (e.target.value === '') {
-            const newDesignations = [...designations];
-            newDesignations[index].roleCount = 1;
-            setDesignations(newDesignations);
-            setRoleCount('');
-            setWarning('');
-            setError('');
-          }
-        }}
-        error={bucketFormik.touched.designations && !!bucketFormik.errors.designations}
-        helperText={error || warning}
-        fullWidth
-      />
-    </div>
+                    newDesignations[index].name = selectedName // Update the name
+                    setDesignations(newDesignations)
+                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
+                  }}
+                  renderInput={params => {
+                    const isDuplicate =
+                      designation.name && designations.some((d, i) => d.name === designation.name && i !== index)
 
-    {designations.length > 1 && index > 0 && (
-      <IconButton
-        color="secondary"
-        onClick={() => setDesignations(designations.filter((_, i) => i !== index))}
-      >
-        <RemoveIcon />
-      </IconButton>
-    )}
+                    const showRequiredError = bucketFormik.touched.designations?.[index]?.name && !designation.name // Check if the field is touched and empty
 
-    {index === designations.length - 1 && (
-      <IconButton
-        color="primary"
-        onClick={() => setDesignations([...designations, { designationName: '', roleCount: 1 }])}
-      >
-        <AddIcon />
-      </IconButton>
-    )}
-  </div>
-))}
+                    const showError = isDuplicate || showRequiredError // Combine errors
 
+                    return (
+                      <TextField
+                        {...params}
+                        label={`Designation ${index + 1}`}
+                        error={showError}
+                        helperText={
+                          isDuplicate
+                            ? 'Duplicate designation selected' // Duplicate error message
+                            : showRequiredError
+                              ? 'Designation is required' // Required field error message
+                              : undefined
+                        }
+                      />
+                    )
+                  }}
+                />
+              </div>
+
+              <div style={{ width: '150px', marginLeft: '10px' }}>
+                <TextField
+                  label='Role Count'
+                  type='number'
+                  value={designation.count === '' ? '' : designation.count} // Allow empty value
+                  onChange={e => {
+                    const value = e.target.value
+                    const newDesignations = [...designations]
+
+                    newDesignations[index].count = value === '' ? '' : parseInt(value, 10) || 1 // Ensure valid number
+                    setDesignations(newDesignations)
+                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
+                  }}
+                  error={
+                    !!(
+                      typeof bucketFormik.errors.designations[index] === 'object' &&
+                      bucketFormik.errors.designations[index]?.count
+                    )
+                  }
+                  helperText={
+                    bucketFormik.errors.designations &&
+                    typeof bucketFormik.errors.designations[index] === 'object' &&
+                    bucketFormik.errors.designations[index]?.count
+                      ? bucketFormik.errors.designations[index].count
+                      : undefined
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div style={{ width: '300px', marginLeft: '10px' }}>
+                <Autocomplete
+                  options={gradeData || []}
+                  getOptionLabel={option => option.grade || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  value={gradeData.find(item => item.name === designation.name) || null}
+                  onChange={(e, value) => {
+                    const selectedName = value ? value.name.trim() : ''
+
+                    const newDesignations = [...designations]
+
+                    newDesignations[index].grade = selectedName // Update the name
+                    setDesignations(newDesignations)
+                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
+                  }}
+                  renderInput={params => {
+                    const isDuplicate =
+                      designation.grade && designations.some((d, i) => d.grade === designation.grade && i !== index)
+
+                    const showRequiredError = bucketFormik.touched.designations?.[index]?.grade && !designation.grade // Check if the field is touched and empty
+
+                    const showError = isDuplicate || showRequiredError // Combine errors
+
+                    return (
+                      <TextField
+                        {...params}
+                        label={`Grade ${index + 1}`}
+                        error={showError}
+                        helperText={
+                          isDuplicate
+                            ? 'Duplicate grade selected' // Duplicate error message
+                            : showRequiredError
+                              ? 'Grade is required' // Required field error message
+                              : undefined
+                        }
+                      />
+                    )
+                  }}
+                />
+              </div>
+
+              {designations.length > 1 && index > 0 && (
+                <IconButton
+                  color='secondary'
+                  onClick={() => setDesignations(designations.filter((_, i) => i !== index))}
+                >
+                  <RemoveIcon />
+                </IconButton>
+              )}
+
+              {index === designations.length - 1 && (
+                <IconButton
+                  color='primary'
+                  onClick={() => setDesignations([...designations, { name: '', count: 1, grade: '' }])}
+                >
+                  <AddIcon />
+                </IconButton>
+              )}
+            </div>
+          ))}
         </div>
 
         <FormControl fullWidth margin='normal'>
@@ -719,14 +515,8 @@ const [turnoverCode, setTurnoverCode] = useState('');
           Save
         </DynamicButton>
       </div>
-
-      
     </form>
   )
 }
 
 export default AddOrEditBucket
-
-
-
-

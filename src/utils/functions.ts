@@ -1,7 +1,76 @@
+interface DecodedToken {
+  [x: string]: any
+  realm_access?: {
+    roles?: string[]
+  }
+  roleId?: number
+}
+
 export const getAccessToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('access_token')
   }
+}
+
+export const storeLoginResponse = (response: any) => {
+  if (typeof window !== 'undefined') {
+    // Extract roles and permissions and store them separately if needed
+    const rolesAndPermissions = response.rolesAndPermissions || []
+
+    localStorage.setItem('rolesAndPermissions', JSON.stringify(rolesAndPermissions))
+  }
+}
+
+export const getCurrentPermissions = () => {
+  if (typeof window !== 'undefined') {
+    const rolesAndPermissions = localStorage.getItem('rolesAndPermissions')
+
+    return rolesAndPermissions ? JSON.parse(rolesAndPermissions) : [] // Return an empty array if no permissions found
+  }
+
+  return [] // Return an empty array if not in a browser environment
+}
+
+export const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]))
+  } catch (error) {
+    console.error('Error decoding token:', error)
+
+    return null
+  }
+}
+
+export const isAdmin = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('access_token')
+
+    if (!token) return false
+
+    const decodedToken = decodeToken(token)
+
+    if (!decodedToken?.realm_access?.roles) return false
+
+    return decodedToken.realm_access.roles.includes('admin')
+  }
+
+  return false
+}
+
+export const getRoleId = (): number | null => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('access_token')
+
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+
+    if (!decodedToken?.roleid) return null
+
+    return decodedToken.roleid
+  }
+
+  return null
 }
 
 export const setBusinessRoles = (val: any) => {
@@ -52,6 +121,15 @@ export const setAccessToken = (val: any) => {
   }
 }
 
+export const setPermissionRenderConfig = (val: any) => {
+  if (typeof window !== 'undefined') {
+    // Serialize the object/array to a JSON string before storing
+    const serializedData = JSON.stringify(val)
+
+    localStorage.setItem('permission_config', serializedData)
+  }
+}
+
 export const removeRefreshToken = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('refresh_token')
@@ -68,6 +146,17 @@ export const getRefreshToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('refresh_token')
   }
+}
+
+export const getPermissionRenderConfig = () => {
+  if (typeof window !== 'undefined') {
+    // Retrieve the JSON string and parse it back to an object/array
+    const storedData = localStorage.getItem('permission_config')
+
+    return storedData ? JSON.parse(storedData) : null
+  }
+
+  return null
 }
 
 export const setUserId = (val: any) => {
@@ -109,6 +198,7 @@ export const setJDManagementAddFormValues = (addFormikValues: any) => {
 export const getJDManagementAddFormValues = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('AddNewJDFormValues')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -130,6 +220,7 @@ export const setJDManagementFiltersToCookie = (JDManagementFilters: any) => {
 export const getJDManagementFiltersFromCookie = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('JDManagementFilters')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -151,6 +242,7 @@ export const setVacancyManagementAddFormValues = (addFormikValues: any) => {
 export const getVacancyManagementAddFormValues = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('AddNewVacancyFormValues')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -172,6 +264,7 @@ export const setVacancyManagementFiltersToCookie = (VacancyManagementFilters: an
 export const getVacancyManagementFiltersFromCookie = () => {
   if (typeof window !== 'undefined') {
     const savedValues = localStorage.getItem('VacancyManagementFilters')
+
     if (savedValues) {
       return JSON.parse(savedValues)
     }
@@ -190,4 +283,43 @@ export const Logout = () => {
   removeUserId()
   removeConnqtRoles()
   removeBusinessRoles()
+}
+
+export const handleAsyncThunkStates = (builder: any, thunk: any, statePrefix: string) => {
+  builder
+    .addMatcher(
+      action => action.type === thunk.pending.type,
+      state => {
+        state[`${statePrefix}Loading`] = true
+        state[`${statePrefix}Success`] = false
+        state[`${statePrefix}Failure`] = false
+        state[`${statePrefix}FailureMessage`] = ''
+      }
+    )
+    .addMatcher(
+      action => action.type === thunk.fulfilled.type,
+      (state, action) => {
+        state[`${statePrefix}Loading`] = false
+        state[`${statePrefix}Success`] = true
+        state[`${statePrefix}Data`] = action.payload
+      }
+    )
+    .addMatcher(
+      action => action.type === thunk.rejected.type,
+      (state, action: any) => {
+        state[`${statePrefix}Loading`] = false
+        state[`${statePrefix}Success`] = false
+        state[`${statePrefix}Failure`] = true
+        state[`${statePrefix}FailureMessage`] = action?.payload?.message || 'Failed to submit request!'
+      }
+    )
+}
+
+export const constructUrlWithParams = (baseUrl: string, params: Record<string, any>): string => {
+  const queryString = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== null) // Filter out undefined or null values
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl // Append query string if it exists
 }

@@ -1,6 +1,7 @@
 'use client'
-import DynamicDatepicker from '@/components/Datepicker/dynamicDatepicker'
 import React from 'react'
+
+import DynamicDatepicker from '@/components/Datepicker/dynamicDatePicker'
 
 function Page() {
   return (

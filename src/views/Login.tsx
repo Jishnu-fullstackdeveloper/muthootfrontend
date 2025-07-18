@@ -10,12 +10,14 @@ import { useRouter } from 'next/navigation'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
+
+// import IconButton from '@mui/material/IconButton'
+// import InputAdornment from '@mui/material/InputAdornment'
 import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Divider from '@mui/material/Divider'
+
+// import Divider from '@mui/material/Divider'
 
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -24,6 +26,14 @@ import 'react-toastify/dist/ReactToastify.css'
 import classnames from 'classnames'
 
 // Type Imports
+import { useDispatch, useSelector } from 'react-redux'
+
+import type { Dispatch } from '@reduxjs/toolkit'
+
+import { jwtDecode } from 'jwt-decode'
+
+import { Box, LinearProgress } from '@mui/material'
+
 import type { SystemMode } from '@core/types'
 
 // Component Imports
@@ -33,17 +43,14 @@ import CustomTextField from '@core/components/mui/TextField'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Config Imports
-import themeConfig from '@configs/themeConfig'
+// import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
-import { fetchInitialLoginURL } from '@/redux/loginSlice'
-import { useDispatch, useSelector } from 'react-redux'
-import { Dispatch } from '@reduxjs/toolkit'
-import { getAccessToken, getRefreshToken } from '@/utils/functions'
-import { jwtDecode } from 'jwt-decode'
-import { Box, LinearProgress } from '@mui/material'
+import { fetchInitialLoginURL, fetchPermissionRenderConfig } from '@/redux/loginSlice'
+
+import { getAccessToken } from '@/utils/functions'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -101,35 +108,50 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
     borderedDarkIllustration
   )
 
-  const handleClickShowPassword = () => setIsPasswordShown(show => !show)
+  // const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const { firstLoginData, loginErrorMessage, loginFailure }: any = useSelector((state: any) => state.loginReducer)
+  const { fetchInitialLoginURLData, loginErrorMessage, loginFailure }: any = useSelector(
+    (state: any) => state.loginReducer
+  )
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSubmit = (e: any) => {
     e.preventDefault()
     setSubmitted(true)
+
     const params = {
       email
     }
+
     dispatch<any>(fetchInitialLoginURL(params))
   }
 
   useEffect(() => {
-    if (Object?.entries(firstLoginData)?.length !== 0 && firstLoginData?.url) {
-      window.location.replace(firstLoginData?.url)
+    setDisplayLoginPage(false)
+    setIsPasswordShown(false)
+
+    if (
+      fetchInitialLoginURLData &&
+      Object.entries(fetchInitialLoginURLData).length !== 0 &&
+      fetchInitialLoginURLData?.url
+    ) {
+      window.location.replace(fetchInitialLoginURLData.url)
     }
-  }, [firstLoginData])
+  }, [fetchInitialLoginURLData])
 
   //for entering to the dashboard if their is an access token
   useEffect(() => {
     if (access_token) {
       const decodedToken: any = jwtDecode(access_token)
+
       if (decodedToken) {
         router.push('/home')
       }
     }
   }, [])
+
+  isPasswordShown
 
   useEffect(() => {
     if (loginFailure) {
@@ -162,8 +184,14 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM
   const redirectUrl: any = process.env.NEXT_PUBLIC_LOGIN_REDIRECT_URL
   const keycloakUrl: any = process.env.NEXT_PUBLIC_KEYCLOAK_LOGIN_URL
+  const state: any = process.env.NEXT_PUBLIC_KEYCLOAK_STATE || 'gnx'
+  const clientId: any = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || 'client'
 
-  const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
+  // const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=client&redirect_uri=${encodeURIComponent(
+  //   redirectUrl
+  // )}&scope=openid&response_type=code`
+
+  const url = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
     redirectUrl
   )}&scope=openid&response_type=code`
 
@@ -174,6 +202,10 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    dispatch<any>(fetchPermissionRenderConfig(''))
+  }, [dispatch])
 
   return (
     <>

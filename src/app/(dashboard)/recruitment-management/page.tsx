@@ -1,8 +1,17 @@
-import { Button } from '@mui/material'
-import ResignedEmployeesListing from '@/views/pages/ResignationAndRecruitment/ResignedDesignationsListing'
+/* eslint-disable react-hooks/rules-of-hooks */
+'use client'
+import { useEffect } from 'react'
 
-const Page = () => {
-  return <ResignedEmployeesListing />
+import { useRouter } from 'next/navigation'
+
+const page = () => {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.push('/recruitment-management/overview')
+  }, [router])
+
+  return <div></div>
 }
 
-export default Page
+export default page

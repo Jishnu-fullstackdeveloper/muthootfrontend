@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+#SonarQube
+
+/.sonar
 # testing
 /coverage
 
@@ -26,8 +29,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env*.local
-.env
+# .env*.local
+# .env
 
 # vercel
 .vercel
@@ -36,6 +39,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# icon generated file
-src/assets/iconify-icons/generated-icons.js
-src/assets/iconify-icons/generated-icons.css
+# # icon generated file
+# src/assets/iconify-icons/generated-icons.js
+# src/assets/iconify-icons/generated-icons.css

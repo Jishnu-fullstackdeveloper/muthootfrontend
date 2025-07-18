@@ -1,7 +1,10 @@
 import React from 'react'
+
 import Button from '@mui/material/Button'
-import custom_theme_settings from '@/utils/custom_theme_settings.json'
-import { SxProps, Theme } from '@mui/material/styles'
+
+import type { SxProps, Theme } from '@mui/material/styles'
+
+// import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 interface ButtonProps {
   children: React.ReactNode // Use 'children' instead of 'label'

@@ -1,10 +1,13 @@
+import { useState } from 'react'
+
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
-import { SelectChangeEvent } from '@mui/material/Select'
+
+// import { SelectChangeEvent } from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { useState } from 'react'
+
 import DynamicTextField from '../TextField/dynamicTextField'
 import DynamicSelect from '../Select/dynamicSelect'
 import DynamicButton from '../Button/dynamicButton'
@@ -18,7 +21,8 @@ type CustomRoleProps = {
   onAddRole: (newRole: Record<string, any>) => void // New prop
 }
 
-const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyRoles, onAddRole }: CustomRoleProps) => {
+const CustomRoles = ({ open, setOpen, setSelectedRole }: CustomRoleProps) => {
+  // selectedFilters, onApplyRoles, onAddRole
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -29,6 +33,7 @@ const CustomRoles = ({ open, setOpen, setSelectedRole, selectedFilters, onApplyR
     setSelectedRole(formData) // Update the selected role in the parent
     setOpen(false) // Close the dialog
   }
+
   return (
     <Dialog
       maxWidth='sm'

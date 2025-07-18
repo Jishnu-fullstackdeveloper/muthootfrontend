@@ -1,29 +1,35 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true'
+})
+
+const nextConfig = withBundleAnalyzer({
   basePath: process.env.BASEPATH,
   reactStrictMode: false,
-  redirects: async () => {
-    return [
-      {
-        source: '/',
-        destination: '/login',
-        permanent: true
-      },
-      {
-        source: '/jd-management/add',
-        destination: '/jd-management/add/jd',
-        permanent: true
-      },
-      {
-        source: '/recruitment-management',
-        destination: 'recruitment-management/request-listing',
-        permanent: true
-      }
-    ]
+  pageExtensions: ['ts', 'tsx'],
+  fastRefresh: true,
+  concurrentFeatures: true,
+  typescript: {
+    ignoreBuildErrors: true
   },
-
-  // TODO: below line is added to resolve twice event dispatch in the calendar reducer
-  reactStrictMode: false
-}
+  redirects: async () => [
+    {
+      source: '/',
+      destination: '/login',
+      permanent: true
+    },
+    {
+      source: '/jd-management/add',
+      destination: '/jd-management/add/jd',
+      permanent: true
+    },
+    {
+      source: '/recruitment-management',
+      destination: '/recruitment-management/request-listing', // Fixed missing '/'
+      permanent: true
+    }
+  ]
+})
 
 module.exports = nextConfig

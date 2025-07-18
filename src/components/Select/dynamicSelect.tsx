@@ -1,7 +1,9 @@
 import React from 'react'
+
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
+import type { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select'
 import FormHelperText from '@mui/material/FormHelperText'
 
 interface DynamicSelectProps {

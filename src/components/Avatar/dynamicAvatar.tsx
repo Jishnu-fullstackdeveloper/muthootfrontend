@@ -1,5 +1,7 @@
 'use client'
-import React, { FC, useState } from 'react'
+import type { FC } from 'react'
+import React, { useState } from 'react'
+
 import { Avatar, AvatarGroup } from '@mui/material'
 
 interface AvatarItem {
@@ -15,9 +17,10 @@ interface DynamicAvatarProps {
 }
 
 const DynamicAvatar: FC<DynamicAvatarProps> = ({ avatars, maxGroup = 4, size = 40 }) => {
+  const [hasError, setHasError] = useState(false)
+
   if (avatars.length === 1) {
     const { src, alt = 'Avatar', fallbackText = '?' } = avatars[0]
-    const [hasError, setHasError] = useState(false)
 
     return (
       <Avatar
@@ -39,7 +42,9 @@ const DynamicAvatar: FC<DynamicAvatarProps> = ({ avatars, maxGroup = 4, size = 4
   return (
     <AvatarGroup max={maxGroup}>
       {avatars.map((avatar, index) => {
-        const [hasError, setHasError] = React.useState(false)
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const [hasError, setHasError] = useState(false)
+
         return (
           <Avatar
             key={index}

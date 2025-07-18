@@ -1,11 +1,12 @@
-import { Button } from '@mui/material'
+import { Box } from '@mui/material'
+
+import Dashboard from '@/views/pages/Dashboard/Dashboard'
 
 const Page = () => {
   return (
-    <>
-      <h1>Home!</h1>
-      <Button variant='contained'>Click me</Button>
-    </>
+    <Box>
+      <Dashboard />
+    </Box>
   )
 }
 

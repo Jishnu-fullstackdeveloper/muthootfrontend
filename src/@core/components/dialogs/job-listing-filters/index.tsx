@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+// import { useState } from 'react'
 
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
@@ -16,7 +16,7 @@ import FormGroup from '@mui/material/FormGroup'
 import Slider from '@mui/material/Slider'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { Box, InputLabel, FormControl } from '@mui/material'
+import { Box, FormControl } from '@mui/material' //InputLabel
 
 // Type Imports
 type JobListingFiltersProps = {
@@ -50,9 +50,11 @@ const JobListingCustomFilters = ({
   const handleCheckboxChange = (category: string, value: string) => {
     setSelectedFilters((prev: { [x: string]: string[] }) => {
       const categoryFilters = (prev[category] as string[]) || []
+
       const updatedFilters = categoryFilters.includes(value)
         ? categoryFilters.filter(item => item !== value)
         : [...categoryFilters, value]
+
       return { ...prev, [category]: updatedFilters }
     })
   }

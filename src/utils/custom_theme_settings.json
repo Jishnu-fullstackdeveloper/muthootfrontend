@@ -12,7 +12,7 @@
     "primary_button": {
       "cornerRadius": "8px"
     },
-    "meta_text": "Muthoot Finance - India's Largest Gold Loan NBFC",
+    "meta_text": "Muthoot FinCorp - India's Largest Gold Loan NBFC",
     "images": {
       "logo": {
         "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
@@ -20,7 +20,7 @@
         "width": {
           "xs_phones": 30,
           "sm_tablets": 40,
-          "md_desktops": 50
+          "md_desktops": 40
         },
         "height": "auto"
       },
@@ -29,7 +29,7 @@
         "altText": "Website Logo"
       },
       "login_illustration": {
-        "src": "https://www.signxca.com/images/ekyclogin.png",
+        "src": "https://etimg.etb2bimg.com/photo/110793341.cms",
         "altText": "alt_img"
       }
     },

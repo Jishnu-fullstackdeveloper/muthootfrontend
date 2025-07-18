@@ -16,19 +16,31 @@ import Fade from '@mui/material/Fade'
 import Paper from '@mui/material/Paper'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import MenuList from '@mui/material/MenuList'
-import Typography from '@mui/material/Typography'
+import { Typography, Tooltip, Box } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 
 // Hook Imports
-import { useSettings } from '@core/hooks/useSettings'
 import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/redux/store'
-import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
-import { getAccessToken, getRefreshToken, Logout, setAccessToken, setRefreshToken } from '@/utils/functions'
-import { useAppSelector } from '@/lib/hooks'
+
 import { jwtDecode } from 'jwt-decode'
+
+import { useSettings } from '@core/hooks/useSettings'
+import type { AppDispatch } from '@/redux/store'
+import { changePasswordApi, signOutApi, fetchNewAccessToken, LoginDataDismiss } from '@/redux/loginSlice'
+
+import {
+  decodeToken,
+  getAccessToken,
+  getCurrentPermissions,
+  getRefreshToken,
+  Logout,
+  setAccessToken,
+  setRefreshToken
+} from '@/utils/functions'
+import { useAppSelector } from '@/lib/hooks'
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -40,23 +52,44 @@ const BadgeContentSpan = styled('span')({
   boxShadow: '0 0 0 2px var(--mui-palette-background-paper)'
 })
 
+interface Permission {
+  role: string
+  permissions: string[]
+  groupRoles: string
+  name: string
+}
+
+type CurrentPermissions = Permission[]
+
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
-  const [decodedAccessToken, setDecodedAccessToken] = useState<any>({})
+
+  const currentPermissions = getCurrentPermissions()
+
   const access_token = getAccessToken()
+  const [decodedAccessToken, setDecodedAccessToken] = useState<any>(decodeToken(access_token))
+  const [firstLetter, setFirstLetter] = useState('U')
+
+  // const firstLetter = decodedAccessToken?.given_name?.charAt(0) || 'U'
+
   const refresh_token = getRefreshToken()
 
+  // const decodedToken = decodeToken(access_token)
+
   const loginStates = useAppSelector((state: any) => state.loginReducer)
+
+  // console.log({ role:currentPermissions[0]?.role }, "currentPermissions role..........");
 
   const {
     newAccessTokenApiData,
     newAccessTokenApiSuccess,
     newAccessTokenApiFailure,
     newAccessTokenApiFailureMessage,
-    changePasswordData,
-    changePasswordFailure,
-    changePasswordFailureMessage
+    changePasswordData
+
+    // changePasswordFailure,
+    // changePasswordFailureMessage
   } = loginStates || {}
 
   // Refs
@@ -85,7 +118,7 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    let params = {}
+    const params = {}
 
     dispatch(signOutApi(params))
       .then(() => {
@@ -98,78 +131,119 @@ const UserDropdown = () => {
   }
 
   const handleChangePassword = () => {
-    let params = {}
-    dispatch(changePasswordApi(params))
+    const params = {}
+
+    dispatch(changePasswordApi(params)).then(res => {
+      window.location.replace(res.payload.url)
+    })
+
+    // Logout()
   }
 
   const pathName = usePathname()
   const guestRoutes = ['login', 'login-Redirect']
   const privateRoute = ![...guestRoutes].some(route => pathName.endsWith(route))
 
-  // useEffect(() => {
-  //   if (!access_token && privateRoute) {
-  //     setTimeout(() => {
-  //       Logout()
-  //       return router.push('/login')
-  //     }, 3000)
-  //   }
+  const fullName =
+    [decodedAccessToken?.given_name, decodedAccessToken?.middle_name, decodedAccessToken?.family_name]
+      .filter(namePart => namePart !== undefined && namePart !== null) // Remove undefined or null values
+      .join(' ') || 'John Doe'
 
-  //   var url
-  //   if (typeof window !== 'undefined') {
-  //     url = window.location.pathname
-  //   }
+  const getFilteredRoles = (permissions: CurrentPermissions): string => {
+    const filteredRoles = permissions
+      .filter(permission => permission.role !== 'default-roles-hrms')
+      .map(permission => permission.groupRoles)
 
-  //   if (url?.includes('login/pass_update')) {
-  //     setTimeout(() => {
-  //       Logout()
-  //       router.push('/login')
-  //     }, 3000)
-  //   }
-  // }, [])
+    return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
+  }
 
-  // /** Author : Siyad-M
+  const getFilteredDesignation = (permissions: CurrentPermissions): string => {
+    const filteredRoles = permissions
+      .filter(permission => permission.role !== 'default-roles-hrms')
+      .map(permission => permission.name)
+
+    return filteredRoles.length > 0 ? filteredRoles.join('\n') : 'No role assigned'
+  }
+
+  useEffect(() => {
+    if (!access_token && privateRoute) {
+      setTimeout(() => {
+        Logout()
+
+        return router.push('/login')
+      }, 3000)
+    }
+
+    let url
+
+    if (typeof window !== 'undefined') {
+      url = window.location.pathname
+    }
+
+    if (url?.includes('login/pass_update')) {
+      setTimeout(() => {
+        Logout()
+        router.push('/login')
+      }, 3000)
+    }
+  }, [])
+
   //  functionality: Fetching new access token to avoid unauthorization issue*/
-  // useEffect(() => {
-  //   if (newAccessTokenApiSuccess && newAccessTokenApiData?.access_token) {
-  //     setAccessToken(newAccessTokenApiData.access_token)
-  //     if (newAccessTokenApiData?.refresh_token) {
-  //       setRefreshToken(newAccessTokenApiData?.refresh_token)
-  //     }
-  //   }
+  useEffect(() => {
+    if (newAccessTokenApiSuccess && newAccessTokenApiData?.data?.access_token) {
+      setAccessToken(newAccessTokenApiData?.data?.access_token)
 
-  //   if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
-  //     // handleUserLogout()
-  //     dispatch(LoginDataDismiss())
-  //   }
-  // }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
+      if (newAccessTokenApiData?.data?.refresh_token) {
+        setRefreshToken(newAccessTokenApiData?.data?.refresh_token)
+      }
+    }
 
-  // // to call this api in every 2 minitues
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     if (access_token && refresh_token) {
-  //       const decodedToken: any = jwtDecode(access_token)
-  //       const params: any = {
-  //         realm: decodedToken?.realm,
-  //         refreshtoken: refresh_token
-  //       }
-  //       dispatch(fetchNewAccessToken(params))
-  //     }
-  //   }, 300000)
-  //   return () => clearInterval(intervalId)
-  // }, [])
+    if (newAccessTokenApiFailure && newAccessTokenApiFailureMessage) {
+      // handleUserLogout()
+      dispatch(LoginDataDismiss())
+    }
+  }, [newAccessTokenApiSuccess, newAccessTokenApiData, newAccessTokenApiFailure, newAccessTokenApiFailureMessage])
 
-  // useEffect(() => {
-  //   if (changePasswordData) {
-  //     window.location.replace(changePasswordData)
-  //   }
-  // }, [changePasswordData])
+  // to call this api in every 30 minutes
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (access_token && refresh_token) {
+        const decodedToken: any = jwtDecode(access_token)
 
-  // useEffect(() => {
-  //   if (access_token) {
-  //     let temp = jwtDecode(access_token)
-  //     setDecodedAccessToken(temp)
-  //   }
-  // }, [])
+        const params: any = {
+          realm: decodedToken?.realm,
+          refreshtoken: refresh_token
+        }
+
+        dispatch(fetchNewAccessToken(params))
+      }
+    }, 1800000)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
+  useEffect(() => {
+    console.log(changePasswordData)
+
+    if (changePasswordData) {
+      window.location.replace(changePasswordData)
+    }
+  }, [changePasswordData])
+
+  useEffect(() => {
+    if (access_token) {
+      const temp = jwtDecode(access_token)
+
+      setDecodedAccessToken(temp)
+    }
+  }, [])
+
+  useEffect(() => {
+    // This code runs only on the client
+    const letter = decodedAccessToken?.given_name?.charAt(0) || 'U'
+
+    setFirstLetter(letter)
+  }, [])
 
   return (
     <>
@@ -181,12 +255,18 @@ const UserDropdown = () => {
         className='mis-2'
       >
         <Avatar
-          ref={anchorRef}
-          alt='John Doe'
-          src='/images/avatars/1.png'
+          alt={decodedAccessToken?.given_name || 'Unknown User'}
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
-        />
+        >
+          <span>{firstLetter}</span>
+        </Avatar>
+        {/* <Avatar
+          ref={anchorRef}
+          alt='John Doe'
+          onClick={handleDropdownOpen}
+          className='cursor-pointer bs-[38px] is-[38px]'
+        /> */}
       </Badge>
       <Popper
         open={open}
@@ -207,32 +287,50 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={decodedAccessToken?.given_name || 'Unknown User'}>{firstLetter}</Avatar>
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        {decodedAccessToken?.given_name + ' ' + decodedAccessToken?.family_name || 'John Doe'}
+                        {fullName}
                       </Typography>
                       <Typography variant='caption'>{decodedAccessToken?.email || ' admin@vuexy.com'}</Typography>
+
+                      {/* <Typography variant='caption'>{currentPermissions[0]?.role || 'No role assigned'}</Typography> */}
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          textTransform: 'capitalize',
+                          whiteSpace: 'pre-line'
+                        }}
+                      >
+                        {getFilteredRoles(currentPermissions)} <br />
+                        <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                          Designation: {getFilteredDesignation(currentPermissions)}
+                          <Tooltip title="This is the user's designation" arrow>
+                            <InfoOutlinedIcon fontSize='small' sx={{ ml: 0.5, cursor: 'pointer' }} />
+                          </Tooltip>
+                        </Box>
+                      </Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  {/* <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-user text-[22px]' />
                     <Typography color='text.primary'>My Profile</Typography>
-                  </MenuItem>
-                  <MenuItem
-                    className='mli-2 gap-3'
-                    //  onClick={e => handleDropdownClose(e, '/account/change-password')}
-                    onClick={e => {
-                      handleDropdownClose(e)
-                      handleChangePassword()
-                    }}
-                  >
-                    <i className='tabler-key text-[22px]' />
-                    <Typography color='text.primary'>Change Password</Typography>
-                  </MenuItem>
+                  </MenuItem> */}
+                  {decodedAccessToken?.source === 'NON_AD_USER' && (
+                    <MenuItem
+                      className='mli-2 gap-3'
+                      onClick={e => {
+                        handleDropdownClose(e)
+                        handleChangePassword()
+                      }}
+                    >
+                      <i className='tabler-key text-[22px]' />
+                      <Typography color='text.primary'>Change Password</Typography>
+                    </MenuItem>
+                  )}
 
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  {/* <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-settings text-[22px]' />
                     <Typography color='text.primary'>Settings</Typography>
                   </MenuItem>
@@ -243,7 +341,7 @@ const UserDropdown = () => {
                   <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
                     <i className='tabler-help-circle text-[22px]' />
                     <Typography color='text.primary'>FAQ</Typography>
-                  </MenuItem>
+                  </MenuItem> */}
                   <div className='flex items-center plb-2 pli-3'>
                     <Button
                       fullWidth

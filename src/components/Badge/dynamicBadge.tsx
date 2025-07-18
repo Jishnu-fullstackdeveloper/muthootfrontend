@@ -1,6 +1,7 @@
 import * as React from 'react'
+
 import Badge from '@mui/material/Badge'
-import { SvgIconComponent } from '@mui/icons-material'
+import type { SvgIconComponent } from '@mui/icons-material'
 
 interface DynamicBadgeProps {
   badgeContent: number

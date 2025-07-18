@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+
 import {
   Dialog,
   DialogTitle,
@@ -18,11 +19,14 @@ type XFactorDialogProps = {
   currentXFactor: number
 }
 
-const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, currentXFactor }) => {
+const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave }) => {
+  //currentXFactor
   const [xFactor, setXFactor] = useState<string>('') // Start with an empty value
   const [error, setError] = useState<string>('')
   const [warning, setWarning] = useState<string>('') // Separate state for warnings
   const [touched, setTouched] = useState<boolean>(false)
+
+  touched
 
   useEffect(() => {
     setXFactor('') // Clear the value each time the dialog opens
@@ -33,6 +37,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     const value = newValue as number
+
     setXFactor(value.toString())
     setError('')
     setWarning('')
@@ -41,6 +46,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
+
     setXFactor(value)
     setTouched(true)
 
@@ -61,6 +67,7 @@ const XFactorDialog: React.FC<XFactorDialogProps> = ({ open, onClose, onSave, cu
 
   const handleSave = () => {
     const numericValue = parseInt(xFactor, 10)
+
     if (numericValue >= 1 && numericValue <= 30) {
       onSave(numericValue)
       onClose()

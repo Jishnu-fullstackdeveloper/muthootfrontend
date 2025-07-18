@@ -1,14 +1,13 @@
 'use client'
 
 // MUI Imports -
+// import { useState } from 'react'
+
+// import { useRouter } from 'next/navigation'
+
 import {
   Card,
   CardHeader,
-  Chip,
-  Button,
-  Typography,
-  Box,
-  Grid,
   IconButton,
   Tooltip,
   Table,
@@ -19,9 +18,8 @@ import {
   TableContainer,
   Paper
 } from '@mui/material'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Clear, CalendarToday, TransferWithinAStation } from '@mui/icons-material'
+
+// import { Clear, CalendarToday, TransferWithinAStation } from '@mui/icons-material'
 
 // Sample Data for Bubble Positions
 const bubblePositions = [
@@ -49,10 +47,12 @@ const bubblePositions = [
 ]
 
 const BubblePositionTable = () => {
-  const router = useRouter()
+  // const router = useRouter()
 
   // Function to handle View Details action
   const onViewDetails = (branchId: string) => {
+    console.log(branchId)
+
     // router.push(`/bubble-positions/view/${branchId}`)
   }
 

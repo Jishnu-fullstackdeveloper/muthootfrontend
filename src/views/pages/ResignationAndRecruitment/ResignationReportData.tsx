@@ -1,6 +1,7 @@
 // MUI Imports
 'use client'
-import { Box, Card, Grid, TextField } from '@mui/material'
+import { Box, Card, Grid, Popper } from '@mui/material'
+
 import DynamicAutocomplete from '@/components/Autocomplete/dynamicAutocomplete'
 import DistributedBarChartOrder from '@/views/dashboards/resignationReport/DistributedBarChartOrder'
 import LineAreaYearlySalesChart from '@/views/dashboards/resignationReport/LineAreaYearlySalesChart'
@@ -10,8 +11,8 @@ import BotRunStatus from '@/views/dashboards/resignationReport/BotRunStatus'
 import ApprovalStatus from '@/views/dashboards/resignationReport/ApprovalStatus'
 
 // Custom Popper component to fix dropdown positioning
-import { Popper } from '@mui/material'
 const CustomPopper = (props: any) => <Popper {...props} placement='bottom-start' style={{ zIndex: 1300 }} />
+
 const ResignationReportData = () => {
   return (
     <>
@@ -48,7 +49,7 @@ const ResignationReportData = () => {
                   { name: 'QA Analyst' },
                   { name: 'Product Owner' }
                 ]}
-                // renderInput={(params: any) => <TextField {...params} label='Branch Filter' />}
+                value={undefined} // renderInput={(params: any) => <TextField {...params} label='Branch Filter' />}
               />
             </Box>
           </Box>

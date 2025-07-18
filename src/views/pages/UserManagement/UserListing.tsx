@@ -1,351 +1,455 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import DynamicTable, { Person } from '@/components/Table/dynamicTable'
+
+import React, { useState, useEffect, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  InputAdornment,
   Box,
-  Grid,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  TextField,
+  Chip,
+  Drawer,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Divider,
+  IconButton,
+  Typography,
+  Grid
+
+  // Autocomplete
 } from '@mui/material'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import MenuIcon from '@mui/icons-material/Menu'
-import { fetchUser, fetchUserbyId } from '@/redux/userManagementSlice'
+import {
+  Search as SearchIcon,
+  Clear as ClearIcon,
+  GridView as GridViewIcon,
+  TableView as TableChartIcon,
+  FilterList as FilterListIcon
+} from '@mui/icons-material'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { ColumnDef } from '@tanstack/react-table'
-import DynamicTextField from '@/components/TextField/dynamicTextField'
-import DynamicButton from '@/components/Button/dynamicButton'
-import ViewColumnIcon from '@mui/icons-material/ViewColumn'
-import { debounce } from 'lodash'
-import DynamicTooltip from '@/components/Tooltip/dynamicTooltip'
-import CustomFilters from './FilterDialog'
-import UserDetailsDialog from './ViewUser'
+import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
+import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
+import { ROUTES } from '@/utils/routes'
 
-function UserListing() {
-  const dispatch = useAppDispatch()
-  const [openDialog, setOpenDialog] = useState(false)
-  const [selectedRow, setSelectedRow] = useState<any>(null)
-  // const [tableData, setTableData] = useState<any[]>([])
-  const [searchText, setSearchText] = useState('')
+// Lazy load UserTable and UserGrid
+const UserTable = dynamic(() => import('./UserListingTable'), {
+  loading: () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+      <CircularProgress />
+    </Box>
+  ),
+  ssr: false
+})
+
+const UserGrid = dynamic(() => import('./UserListingGrid'), {
+  loading: () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+      <CircularProgress />
+    </Box>
+  ),
+  ssr: false
+})
+
+interface Role {
+  id: string
+  name: string
+  permissions: { id: string; name: string; description: string }[]
+  data?: any
+  pagination?: any
+}
+
+interface DesignationRole {
+  id: string
+  name: string
+  description: string
+  groupRoles: string
+  permissions: { id: string; name: string; description: string }[]
+  map?: any
+}
+
+interface User {
+  userId: string
+  firstName?: string
+  lastName?: string
+  middleName?: string
+  email?: string
+  employeeCode?: string
+  status?: string
+  source?: string
+  designationRole?: DesignationRole // Allow both string[], Role[], or undefined for compatibility
+  GroupRoles?: string
+  designation?: string
+  roles?: (Role | string)[]
+  role?: any
+  data?: any
+  pagination?: any
+}
+
+interface FetchParams {
+  limit: number
+  page: number
+  search?: string
+  filters?: string[]
+}
+
+interface Pagination {
+  totalPages: number
+  currentPage: number
+  totalItems: number
+  limit: number
+}
+
+interface UserManagementResponse {
+  data: User[]
+  pagination: Pagination
+  userManagementData?: any
+  isUserManagementLoading?: any
+}
+
+const UserListing = () => {
+  const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [addMoreFilters, setAddMoreFilters] = useState(false)
-  const { getUserData }: any = useAppSelector((state: any) => state.userManagementReducer)
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({})
-  const [openColumnDialog, setOpenColumnDialog] = useState(false)
-  const [selectedColumns, setSelectedColumns] = useState<Record<string, boolean>>({
-    title: true,
-    user_name: true,
-    user_code: true,
-    branch: true,
-    branch_code: true
-  })
-  const [lockedColumns] = useState<Record<string, boolean>>({
-    title: true,
-    user_name: true,
-    user_code: true,
-    branch: true,
-    branch_code: true
+  const [gridPage, setGridPage] = useState(1) // Page for grid view (lazy loading)
+  const [gridLimit] = useState(10) // Fixed limit for grid view
+  const [tablePage, setTablePage] = useState(1) // Page for table view (pagination)
+  const [tableLimit, setTableLimit] = useState(10) // Mutable limit for table view
+  const [view, setView] = useState<'grid' | 'table'>('grid')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [allUsers, setAllUsers] = useState<User[]>([]) // For grid view (lazy loading)
+  const [tableUsers, setTableUsers] = useState<User[]>([]) // For table view (pagination)
+
+  const [filters, setFilters] = useState({
+    active: false,
+    inactive: false,
+    ad: false,
+    nonAd: false,
+    selectedRoles: [] as string[]
   })
 
-  const formatDate = (date: string | Date): string => {
-    const dateObj = new Date(date)
-    if (isNaN(dateObj.getTime())) return 'Invalid Date'
-    return dateObj.toLocaleDateString('en-US')
-  }
-  const handleApplyFilters = (filters: Record<string, any>) => {
-    setSelectedFilters(filters)
+  const router = useRouter()
+  const dispatch = useAppDispatch()
 
-    const filteredData = getUserData?.data?.filter((user: any) => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (!value) return true
-        return user[key]?.toString().toLowerCase() === value.toLowerCase()
-      })
-    })
+  const { userManagementData, isUserManagementLoading } = useAppSelector(
+    state => state.UserManagementReducer
+  ) as unknown as UserManagementResponse
 
-    setTableData(filteredData)
-    setAddMoreFilters(false)
-  }
+  const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
 
-  const [tableData, setTableData] = useState<any[]>([
-    {
-      id: 1,
-      title: 'Mr.',
-      user_name: 'John Doe',
-      user_code: 'JD001',
-      branch: 'New York',
-      branch_code: 'NY001',
-      user_status: 'Active',
-      user_type: 'Admin',
-      date_of_birth: '1985-06-15',
-      gender: 'Male',
-      company: 'TechCorp',
-      business_unit_or_function: 'IT',
-      department: 'Development',
-      territory: 'North America',
-      zone: 'East',
-      region: 'Northeast',
-      area: 'Area 1',
-      cluster: 'Cluster A',
-      city_classification: 'Metro',
-      state: 'New York',
-      personal_email_address: 'john.doe@example.com',
-      office_email_address: 'john.doe@techcorp.com',
-      date_of_joining: '2015-03-01',
-      designation: 'Software Engineer',
-      user_category_type: 'Full-time',
-      permanent_address_line1: '123 Main St',
-      permanent_city: 'New York',
-      permanent_state: 'NY',
-      permanent_country: 'USA',
-      permanent_postal_code: '10001',
-      permanent_mobile: '1234567890',
-      createdAt: '2023-01-01',
-      updatedAt: '2023-01-15'
-    },
-    {
-      id: 2,
-      title: 'Ms.',
-      user_name: 'Jane Smith',
-      user_code: 'JS002',
-      branch: 'Los Angeles',
-      branch_code: 'LA002',
-      user_status: 'Inactive',
-      user_type: 'User',
-      date_of_birth: '1990-11-22',
-      gender: 'Female',
-      company: 'FinTech',
-      business_unit_or_function: 'Finance',
-      department: 'Accounts',
-      territory: 'North America',
-      zone: 'West',
-      region: 'Pacific',
-      area: 'Area 2',
-      cluster: 'Cluster B',
-      city_classification: 'Metro',
-      state: 'California',
-      personal_email_address: 'jane.smith@example.com',
-      office_email_address: 'jane.smith@fintech.com',
-      date_of_joining: '2018-07-10',
-      designation: 'Accountant',
-      user_category_type: 'Part-time',
-      permanent_address_line1: '456 Elm St',
-      permanent_city: 'Los Angeles',
-      permanent_state: 'CA',
-      permanent_country: 'USA',
-      permanent_postal_code: '90001',
-      permanent_mobile: '9876543210',
-      createdAt: '2023-02-01',
-      updatedAt: '2023-02-20'
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setGridPage(1)
+      setTablePage(1)
+      setAllUsers([])
+      setTableUsers([])
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  useEffect(() => {
+    const filterValues = [
+      ...(filters.active ? ['Active'] : []),
+      ...(filters.inactive ? ['Inactive'] : []),
+      ...(filters.ad ? ['AD_USER'] : []),
+      ...(filters.nonAd ? ['NON_AD_USER'] : [])
+    ]
+
+    const params: FetchParams = {
+      limit: view === 'grid' ? gridLimit : tableLimit,
+      page: view === 'grid' ? gridPage : tablePage,
+      ...(debouncedSearch && { search: debouncedSearch }),
+      ...(filterValues.length > 0 && { filters: filterValues })
     }
-  ])
 
-  const handleView = (row: Person) => {
-    setSelectedRow(row)
-    setOpenDialog(true)
+    dispatch(fetchUserManagement(params))
+    dispatch(fetchUserRole({ limit: 10, page: 1 }))
+  }, [debouncedSearch, filters, gridPage, tablePage, view, gridLimit, tableLimit, dispatch])
+
+  useEffect(() => {
+    if (userManagementData?.data) {
+      if (view === 'grid') {
+        // Append for grid view (lazy loading)
+        setAllUsers(prev => {
+          const newUsers = userManagementData.data.filter(
+            user => !prev.some(existing => existing.userId === user.userId)
+          )
+
+          return [...prev, ...newUsers]
+        })
+      } else {
+        // Replace for table view (pagination)
+        setTableUsers(userManagementData.data)
+      }
+    }
+  }, [userManagementData, view])
+
+  // Reset inactive view's state when switching views
+  useEffect(() => {
+    if (view === 'grid') {
+      setTablePage(1)
+      setTableUsers([])
+    } else {
+      setGridPage(1)
+      setAllUsers([])
+    }
+  }, [view])
+
+  const handleFilterChange = (filterName: keyof typeof filters) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, [filterName]: event.target.checked }))
+    setGridPage(1)
+    setTablePage(1)
+    setAllUsers([])
+    setTableUsers([])
   }
 
-  const handleColumnSelect = (column: string) => {
-    if (!lockedColumns[column]) {
-      setSelectedColumns(prevState => ({
-        ...prevState,
-        [column]: !prevState[column]
+  const handleClearFilters = () => {
+    setFilters({ active: false, inactive: false, ad: false, nonAd: false, selectedRoles: [] })
+    setGridPage(1)
+    setTablePage(1)
+    setAllUsers([])
+    setTableUsers([])
+  }
+
+  const handleRemoveFilter = (filterName: keyof typeof filters | string) => {
+    if (filterName in filters && filterName !== 'selectedRoles') {
+      setFilters(prev => ({ ...prev, [filterName]: false }))
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        selectedRoles: prev.selectedRoles.filter(role => role !== filterName)
       }))
     }
+
+    setGridPage(1)
+    setTablePage(1)
+    setAllUsers([])
+    setTableUsers([])
   }
 
-  useEffect(() => {
-    const handler = debounce((text: string) => {
-      setDebouncedSearch(text)
-    }, 300)
+  // const safeGetData = <T,>(source: any): T[] => (source?.data && Array.isArray(source.data) ? source.data : [])
 
-    handler(searchText)
+  const enrichedUserData = useMemo(() => {
+    // const roles = safeGetData<Role>(userRoleData)
+    const users = view === 'grid' ? allUsers : tableUsers
 
-    return () => {
-      handler.cancel()
-    }
-  }, [searchText])
+    return users.map(user => {
+      if (Array.isArray(user.roles)) {
+        // If all elements are Role objects, return as Role[]
+        if (user.roles.every(role => typeof role === 'object' && role !== null && 'id' in role && 'name' in role)) {
+          return { ...user, roles: user.roles as Role[] }
+        }
 
-  useEffect(() => {
-    let params: any = {
-      limit: 10,
-      search: debouncedSearch,
-      filter: ''
-    }
-    dispatch(fetchUser(params))
-  }, [debouncedSearch, dispatch])
+        // If all elements are strings, return as string[]
+        if (user.roles.every(role => typeof role === 'string')) {
+          return { ...user, roles: user.roles as string[] }
+        }
 
-  useEffect(() => {
-    if (selectedRow?.id) {
-      console.log('Fetching user by ID:', selectedRow.id)
-      const params = { id: selectedRow.id }
-      dispatch(fetchUserbyId(params))
-    }
-  }, [selectedRow, dispatch])
+        // If mixed, convert all to string[]
+        return {
+          ...user,
+          roles: user.roles.map(role => (typeof role === 'string' ? role : (role as Role).name)) as string[]
+        }
+      } else if (user.role) {
+        // If single role, wrap as Role[]
+        return { ...user, roles: [user.role] as Role[] }
+      } else {
+        return { ...user, roles: [] as string[] }
+      }
+    })
+  }, [allUsers, tableUsers, userRoleData, view])
 
-  const tooltipTitle = 'Remove item'
+  // const normalizedUserData = enrichedUserData.map(user => {
+  //   const normalizedRoles = user.designationRole?.map((role: any): DesignationRole => {
+  //     if (typeof role === 'string') {
+  //       return {
+  //         id: '',
+  //         name: role,
+  //         description: '',
+  //         groupRoles: '',
+  //         permissions: []
+  //       }
+  //     }
 
-  useEffect(() => {
-    if (getUserData?.data) {
-      setTableData(getUserData.data)
-    }
-  }, [getUserData])
+  //     // assume role is of type Role
+  //     return {
+  //       id: role.id || '',
+  //       name: role.name || '',
+  //       description: '',
+  //       groupRoles: '',
+  //       permissions: role.permissions || []
+  //     }
+  //   })
 
-  const headerMapping: Record<string, string> = {
-    title: 'Title',
-    user_code: 'User Code',
-    user_name: 'User Name',
-    branch: 'Branch',
-    branch_code: 'Branch Code',
-    user_status: 'User Status',
-    user_type: 'User Type',
-    date_of_birth: 'Date of Birth',
-    gender: 'Gender',
-    company: 'Company',
-    business_unit_or_function: 'Business Unit/Function',
-    department: 'Department',
-    territory: 'Territory',
-    zone: 'Zone',
-    region: 'Region',
-    area: 'Area',
-    cluster: 'Cluster',
-    city_classification: 'City Classification',
-    state: 'State',
-    personal_email_address: 'Personal Email Address',
-    office_email_address: 'Office Email Address',
-    date_of_joining: 'Date of Joining',
-    designation: 'Designation',
-    user_category_type: 'User Category Type',
-    permanent_address_line1: ' Address Line 1',
-    permanent_city: ' City',
-    permanent_state: ' State',
-    permanent_country: ' Country',
-    permanent_postal_code: ' Postal Code',
-    permanent_mobile: ' Mobile',
-    createdAt: 'Created At',
-    updatedAt: 'Updated At'
+  //   return {
+  //     ...user,
+  //     designationRole: normalizedRoles
+  //   }
+  // })
+
+  const handleEdit = (empCode: string | undefined, id: string) => {
+    if (!empCode) return
+    const query = new URLSearchParams({ id: id }).toString()
+
+    // router.push(`/user-management/edit/${empCode}?${query}`)
+    router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(empCode, query))
   }
 
-  const columns: ColumnDef<any>[] = [
-    ...Object.entries(selectedColumns)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([key, _]) => ({
-        accessorKey: key,
-        header: headerMapping[key] || key
-      })),
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <DynamicButton onClick={() => handleView(row.original)} aria-label='View'>
-          <VisibilityIcon className='w-5 h-5 text-gray-500' />
-        </DynamicButton>
-      )
-    }
+  const handleView = (role: any) => {
+    const query = new URLSearchParams({ id: role.id, name: role.name }).toString()
+
+    router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
+  }
+
+  const handleGridLoadMore = (newPage: number) => {
+    setGridPage(newPage)
+  }
+
+  const handleTablePageChange = (newPage: number) => {
+    setTablePage(newPage)
+    setTableUsers([]) // Clear table data while fetching new page
+  }
+
+  const handleTableRowsPerPageChange = (newPageSize: number) => {
+    setTableLimit(newPageSize)
+    setTablePage(1)
+    setTableUsers([])
+  }
+
+  const selectedFilters = [
+    ...(filters.active ? [{ key: 'active', label: 'active' }] : []),
+    ...(filters.inactive ? [{ key: 'inactive', label: 'inactive' }] : []),
+    ...(filters.ad ? [{ key: 'ad', label: 'ad_user' }] : []),
+    ...(filters.nonAd ? [{ key: 'nonAd', label: 'non_ad_user' }] : [])
   ]
 
-  const handleViewColumnClick = () => {
-    setOpenColumnDialog(true)
-  }
+  const pagination = userManagementData?.pagination || { totalPages: 1, currentPage: 1, totalItems: 0, limit: 10 }
 
   return (
-    <div>
-      <div className='flex items-center justify-between bg-white p-4 my-4 rounded-xl'>
-        <div className='flex items-center gap-4'>
-          <DynamicTextField
-            id='searchId'
-            label='Search'
-            variant='outlined'
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            placeholder='Search...'
-            size='small'
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-                  <i className='tabler-search text-xxl' />
-                </InputAdornment>
-              )
-            }}
-          />
-
-          <CustomFilters
-            open={addMoreFilters}
-            setOpen={setAddMoreFilters}
-            selectedFilters={selectedFilters}
-            setSelectedFilters={setSelectedFilters}
-            onApplyFilters={handleApplyFilters}
-          />
-
-          <DynamicButton
-            label='Add more filters'
-            variant='tonal'
-            icon={<i className='tabler-plus' />}
-            position='start'
-            children='Add more filters'
-            onClick={() => setAddMoreFilters(true)}
-          />
-        </div>
-        <DynamicTooltip title='Click to view columns'>
-          <ViewColumnIcon
-            aria-label='dense menu'
-            sx={{
-              background: '#fff',
-              borderRadius: '50%',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-            }}
-            onClick={handleViewColumnClick}
-          >
-            <MenuIcon />
-          </ViewColumnIcon>
-        </DynamicTooltip>
-      </div>
-
-      <div style={{ position: 'relative' }}>
-        <DynamicTable columns={columns} data={tableData} />
-      </div>
-
-      <UserDetailsDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        selectedRow={selectedRow}
-        headerMapping={headerMapping}
-        formatDate={formatDate}
-      />
-
-      <Dialog open={openColumnDialog} onClose={() => setOpenColumnDialog(false)} maxWidth='md' fullWidth>
-        <DialogTitle>Select Columns</DialogTitle>
-        <DialogContent>
-          <Box>
-            <Grid container spacing={2}>
-              {Object.keys(headerMapping).map((columnKey, index) => (
-                <Grid item xs={4} key={columnKey}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={selectedColumns[columnKey] || false}
-                        onChange={() => handleColumnSelect(columnKey)}
-                        disabled={lockedColumns[columnKey]}
-                      />
-                    }
-                    label={headerMapping[columnKey] || columnKey}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+    <Box>
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                size='small'
+                placeholder='Search users...'
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'grey.400' }} />,
+                  endAdornment: searchTerm && (
+                    <IconButton size='small' onClick={() => setSearchTerm('')}>
+                      <ClearIcon />
+                    </IconButton>
+                  )
+                }}
+              />
+              <Button variant='outlined' startIcon={<FilterListIcon />} onClick={() => setFilterOpen(true)}>
+                Filter
+              </Button>
+            </Box>
+            <Box>
+              <IconButton onClick={() => setView('grid')} color={view === 'grid' ? 'primary' : 'default'}>
+                <GridViewIcon />
+              </IconButton>
+              <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
+                <TableChartIcon />
+              </IconButton>
+            </Box>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <DynamicButton onClick={() => setOpenColumnDialog(false)} color='primary'>
-            Close
-          </DynamicButton>
-        </DialogActions>
-      </Dialog>
-    </div>
+          {selectedFilters.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {selectedFilters.map(({ key, label }) => (
+                <Chip key={key} label={label} onDelete={() => handleRemoveFilter(key)} size='small' color='primary' />
+              ))}
+              <Button onClick={handleClearFilters} size='small' color='error'>
+                Clear ALL
+              </Button>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
+      <Drawer anchor='right' open={filterOpen} onClose={() => setFilterOpen(false)}>
+        <Box sx={{ width: 250, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='h6'>Filters</Typography>
+            <IconButton onClick={() => setFilterOpen(false)}>
+              <i className='tabler-x' style={{ fontSize: '23px' }} />
+            </IconButton>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid sx={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
+            <Box>
+              <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+                Status
+              </Typography>
+              <FormControlLabel
+                control={<Checkbox checked={filters.active} onChange={handleFilterChange('active')} />}
+                label='Active'
+              />
+              <FormControlLabel
+                control={<Checkbox checked={filters.inactive} onChange={handleFilterChange('inactive')} />}
+                label='Inactive'
+              />
+            </Box>
+            <Box>
+              <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+                Source
+              </Typography>
+              <FormControlLabel
+                control={<Checkbox checked={filters.ad} onChange={handleFilterChange('ad')} />}
+                label='AD Users'
+              />
+              <FormControlLabel
+                control={<Checkbox checked={filters.nonAd} onChange={handleFilterChange('nonAd')} />}
+                label='Non-AD Users'
+              />
+            </Box>
+          </Grid>
+          <Button variant='outlined' color='error' onClick={handleClearFilters} sx={{ mt: 2 }}>
+            Clear
+          </Button>
+        </Box>
+      </Drawer>
+
+      {isUserManagementLoading && (view === 'grid' ? gridPage === 1 : tablePage === 1) ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
+      ) : enrichedUserData.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <Typography>No data available</Typography>
+        </Box>
+      ) : view === 'grid' ? (
+        <UserGrid
+          data={enrichedUserData}
+          loading={isUserManagementLoading}
+          onEdit={handleEdit}
+          page={gridPage}
+          totalPages={pagination.totalPages}
+          totalCount={pagination.totalItems}
+          onLoadMore={handleGridLoadMore}
+        />
+      ) : (
+        <UserTable
+          data={enrichedUserData}
+          page={tablePage}
+          limit={tableLimit}
+          totalCount={pagination.totalItems}
+          onPageChange={handleTablePageChange}
+          onRowsPerPageChange={handleTableRowsPerPageChange}
+          handleEdit={handleEdit}
+          handleView={handleView}
+        />
+      )}
+    </Box>
   )
 }
 

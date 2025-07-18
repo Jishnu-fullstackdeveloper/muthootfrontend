@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+
 import DynamicSwitch from '@/components/Switch/dynamicSwitch'
 
 const Page: React.FC = () => {

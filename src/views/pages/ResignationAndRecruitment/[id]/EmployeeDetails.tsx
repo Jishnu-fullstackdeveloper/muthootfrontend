@@ -1,11 +1,15 @@
 'use client'
-import { Box, Card, Divider, Link, Typography } from '@mui/material'
 import dynamic from 'next/dynamic'
+
+// import { Box, Card, Divider, Link, Typography } from '@mui/material'
+
+import { usePathname } from 'next/navigation'
+
 import AddNewRequest from '../AddNewRequest'
+
 const ViewEmployee = dynamic(() => import('../ViewEmployee'), { ssr: false })
 
-import React, { useState } from 'react'
-import { usePathname } from 'next/navigation'
+// import React, { useState } from 'react'
 
 const EmployeeDetails = () => {
   // Example: location.pathname = "/jd-management/add/jd"

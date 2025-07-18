@@ -11,6 +11,8 @@ import Link from 'next/link'
 import styled from '@emotion/styled'
 
 // Type Imports
+import { Box } from '@mui/material'
+
 import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
@@ -23,7 +25,6 @@ import themeConfig from '@configs/themeConfig'
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
 import { useSettings } from '@core/hooks/useSettings'
-import { Box } from '@mui/material'
 
 type LogoTextProps = {
   isHovered?: VerticalNavContextProps['isHovered']
@@ -73,7 +74,7 @@ const Logo = () => {
   // You may return any JSX here to display a logo in the sidebar header
   // return <Img src='/next.svg' width={100} height={25} alt='logo' /> // for example
   return (
-    <Link href='/' className='flex items-center'>
+    <Link href='/home' className='flex items-center'>
       {custom_theme_settings?.theme?.images?.logo?.url ? (
         <Box
           component='img'

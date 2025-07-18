@@ -1,188 +1,613 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
-// MUI Imports
-import { useTheme } from '@mui/material/styles'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 
-// Third-party Imports
+import { usePathname, useRouter } from 'next/navigation'
+
+import { useTheme } from '@mui/material/styles'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 
-// Type Imports
-import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
+import { List, ListItem, Collapse, IconButton, Box } from '@mui/material'
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+
+import { Menu, MenuItem } from '@menu/vertical-menu'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
-
-// Component Imports
-import { Menu, MenuItem, SubMenu } from '@menu/vertical-menu'
-
-// Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
 import useVerticalNav from '@menu/hooks/useVerticalNav'
-
-// Styled Component Imports
 import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
-
-// Style Imports
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
-import { usePathname } from 'next/navigation'
-import ApprovalIcon from '@mui/icons-material/Approval'
-type RenderExpandIconProps = {
-  open?: boolean
-  transitionDuration?: VerticalMenuContextProps['transitionDuration']
+import { ROUTES } from '@/utils/routes'
+
+import withPermission from '@/hocs/withPermission'
+import { getPermissionRenderConfig } from '@/utils/functions'
+
+interface MenuItemType {
+  path: string
+  label: string
+  iconClass: string
+  permission: string
+  read?: string
+  children?: MenuItemType[]
 }
 
-type Props = {
-  scrollMenu: (container: any, isPerfectScrollbar: boolean) => void
-}
-
-const RenderExpandIcon = ({ open, transitionDuration }: RenderExpandIconProps) => (
+const RenderExpandIcon = ({ open, transitionDuration }: { open: boolean; transitionDuration: number }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
-    <i className='tabler-chevron-right' />
+    <ChevronRightIcon />
   </StyledVerticalNavExpandIcon>
 )
 
-const VerticalMenu = ({ scrollMenu }: Props) => {
-  // Hooks
+interface VerticalMenuProps {
+  scrollMenu: (container: any, isPerfectScrollbar: boolean) => void
+}
+
+// Wrap MenuItem with withPermission HOC
+const MenuItemWithPermission = withPermission(MenuItem)
+
+const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
   const { settings } = useSettings()
   const { isBreakpointReached } = useVerticalNav()
+  const [clientMenuItems, setClientMenuItems] = useState<MenuItemType[]>([])
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([])
   const pathname = usePathname()
-  const pathSegments = pathname.split('/').pop()
-  const isJDManagementPage = pathname.startsWith('/jd-management/')
-
-  // Vars
-  const { transitionDuration } = verticalNavOptions
+  const router = useRouter()
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
+  // Static menu items definition
+  const staticMenuItems = useMemo(
+    () => [
+      {
+        path: ROUTES.HOME,
+        label: 'Home',
+        iconClass: 'tabler-home',
+        permission: 'home',
+        read: 'HOME_READ'
+      },
+      {
+        path: '',
+        label: 'User Management',
+        iconClass: 'tabler-users',
+        permission: 'userManagement',
+        read: 'USER_USER_READ',
+        children: [
+          {
+            path: ROUTES.USER_MANAGEMENT.USER,
+            label: 'User',
+            iconClass: 'tabler-user',
+            permission: 'userManagement',
+            read: 'USER_USER_READ'
+          },
+          {
+            path: ROUTES.USER_MANAGEMENT.ROLE,
+            label: 'Role',
+            iconClass: 'tabler-key',
+            permission: 'userRoles',
+            read: 'USER_ROLE_READ'
+          },
+          {
+            path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
+            label: 'Employee',
+            iconClass: 'tabler-users-group',
+            permission: 'employeeManagement',
+            read: 'USER_EMPLOYEE_READ'
+          }
+        ]
+      },
+      {
+        path: ROUTES.APPROVALS,
+        label: 'Approvals',
+        iconClass: 'tabler-rosette-discount-check',
+        permission: 'approvals',
+        read: 'APPROVALS_READ'
+      },
+      {
+        path: '',
+        label: 'Hiring Management',
+        iconClass: 'tabler-apps',
+        permission: 'hiringManagement',
+        read: 'HIRING_READ',
+        children: [
+          {
+            path: ROUTES.HIRING_MANAGEMENT.JOB_POSTING,
+            label: 'Job Posting',
+            iconClass: 'tabler-file-text',
+            permission: 'jobPosting',
+            read: 'HIRING_JOBPOSTING_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
+            label: 'Interview Management',
+            iconClass: 'tabler-calendar-event',
+            permission: 'interviewManagement',
+            read: 'HIRING_INTERVIEW_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.CV_POOL,
+            label: 'CV Pool',
+            iconClass: 'tabler-files',
+            permission: 'cvPool',
+            read: 'HIRING_CVPOOL_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.ONBOARDING,
+            label: 'Onboarding',
+            iconClass: 'tabler-user-check',
+            permission: 'onboarding',
+            read: 'HIRING_ONBOARDING_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE,
+            label: 'Resignation',
+            iconClass: 'tabler-user-x',
+            permission: 'resignedEmployee',
+            read: 'HIRING_RESIGNATION_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
+            label: 'Vacancy Management',
+            iconClass: 'tabler-briefcase', // still appropriate for the main category
+            permission: 'vacancyManagement',
+            read: 'HIRING_VACANCY_READ'
+
+            // children: [
+            //   {
+            //     path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
+            //     label: 'Vacancy List',
+            //     iconClass: 'tabler-list-details', // better suited for a listing page
+            //     permission: 'vacancyList',
+            //     read: 'HIRING_VACANCY_VACANCYLIST_READ'
+            //   },
+            //   {
+            //     path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_REQUEST,
+            //     label: 'Vacancy Request',
+            //     iconClass: 'tabler-file-plus', // represents request/adding new vacancy
+            //     permission: 'vacancyRequest',
+            //     read: 'HIRING_VACANCY_VACANCYREQUEST_READ'
+            //   }
+            // ]
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.BUDGET,
+            label: 'Budget Management',
+            iconClass: 'tabler-report-money',
+            permission: 'budgetManagement',
+            read: 'HIRING_BUDGET_READ',
+            children: [
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.BUDGET_REQUEST,
+                label: 'Budget Request',
+                iconClass: 'tabler-calendar-user',
+                permission: 'budgetRequest',
+                read: 'SYSTEM_XFACTOR_RESIGNEDXFACTOR_READ'
+              },
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.POSITION_MATRIX,
+                label: 'Position Matrix',
+                iconClass: 'tabler-brand-matrix',
+                permission: 'positionMatrix',
+                read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        path: ROUTES.JD_MANAGEMENT,
+        label: 'JD Management',
+        iconClass: 'tabler-file-description',
+        permission: 'jdManagement',
+        read: 'JD_READ'
+      },
+      {
+        path: ROUTES.BRANCH_MANAGEMENT,
+        label: 'Branch Management',
+        iconClass: 'tabler-git-merge',
+        permission: 'branchManagement',
+        read: 'BRANCH_READ'
+      },
+      {
+        path: '',
+        label: 'System Management',
+        iconClass: 'tabler-settings-check',
+        permission: 'systemManagement',
+        read: 'SYSTEM_READ',
+        children: [
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.RESIGNED_X_FACTOR,
+            label: 'X-Factor',
+            iconClass: 'tabler-star',
+            permission: 'xFactor',
+            read: 'SYSTEM_READ',
+            children: [
+              {
+                path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.RESIGNED_X_FACTOR,
+                label: 'Resigned X-Factor',
+                iconClass: 'tabler-user-x',
+                permission: 'resignedXFactor',
+                read: 'SYSTEM_XFACTOR_RESIGNEDXFACTOR_READ'
+              },
+              {
+                path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.VACANCY_X_FACTOR,
+                label: 'Vacancy X-Factor',
+                iconClass: 'tabler-briefcase',
+                permission: 'vacancyXFactor',
+                read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+              },
+              {
+                path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.NOTICE_PERIOD,
+                label: 'Notice Period',
+                iconClass: 'tabler-calendar-time',
+                permission: 'noticePeriodRange',
+                read: 'SYSTEM_XFACTOR_NOTICEPERIODRANGE_READ'
+              }
+            ]
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.DATA_UPLOAD,
+            label: 'Data Upload',
+            iconClass: 'tabler-upload',
+            permission: 'dataUpload',
+            read: 'SYSTEM_DATAUPLOAD_READ'
+          },
+
+          // {
+          //   path: ROUTES.SYSTEM_MANAGEMENT.APPROVAL_CATEGORY,
+          //   label: 'Approval Category',
+          //   iconClass: 'tabler-category',
+          //   permission: 'approvalCategory',
+          //   read: 'SYSTEM_APPROVALCATEGORY_READ'
+          // },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.ORGANIZATIONAL_MAPPING,
+            label: 'Organizational Mapping',
+            iconClass: 'tabler-sitemap',
+            permission: 'organizationalMapping',
+            read: 'SYSTEM_ORGANIZATIONALMAPPING_READ'
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.APPROVAL_MATRIX,
+            label: 'Approval Matrix',
+            iconClass: 'tabler-align-box-bottom-center',
+            permission: 'approvalMatrix',
+            read: 'SYSTEM_APPROVALMATRIX_READ'
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.SCHEDULER,
+            label: 'Scheduler',
+            iconClass: 'tabler-clock',
+            permission: 'scheduler',
+            read: 'SYSTEM_SCHEDULER_READ'
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.INTERVIEW_CUSTOMIZATION,
+            label: 'Interview Customization',
+            iconClass: 'tabler-settings',
+            permission: 'interviewCustomization',
+            read: 'SYSTEM_READ'
+          }
+        ]
+      }
+    ],
+    []
+  )
+
+  // Initialize menu items once
+  useEffect(() => {
+    if (clientMenuItems.length > 0) return
+
+    const dynamicMenuItems = (custom_theme_settings?.theme?.vertical_menu?.icons || []).map((item: any) => ({
+      path: item.path,
+      label: item.label,
+      iconClass: item.iconClass,
+      permission: item.permission || '',
+      read: item.read || ''
+    }))
+
+    const filteredDynamicMenuItems = dynamicMenuItems.filter(
+      (item: MenuItemType) => !(item.label === 'Home' && item.path === ROUTES.HOME)
+    )
+
+    setClientMenuItems([...staticMenuItems, ...filteredDynamicMenuItems])
+  }, [staticMenuItems, clientMenuItems.length])
+
+  // Check if a menu item is active based on current path
+  const isMenuItemActive = useCallback(
+    (item: MenuItemType): boolean => {
+      if (!pathname) return false
+
+      // Direct match
+      if (item.path && pathname === item.path) return true
+
+      // Check if current path starts with item path (for nested routes)
+      if (item.path && pathname.startsWith(item.path)) return true
+
+      // Check children recursively
+      if (item.children) {
+        return item.children.some(child => isMenuItemActive(child))
+      }
+
+      return false
+    },
+    [pathname]
+  )
+
+  // Toggle submenu expansion
+  const toggleMenu = useCallback((label: string) => {
+    setExpandedMenus(prev => (prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label]))
+  }, [])
+
+  // Handle navigation
+  const handleNavigation = useCallback(
+    (path: string) => {
+      if (path) {
+        router.push(path)
+      }
+    },
+    [router]
+  )
+
+  // Automatically expand parent menus when child is active
+  useEffect(() => {
+    const findActiveParents = (items: MenuItemType[], activePath: string): string[] => {
+      const parents: string[] = []
+
+      const findParents = (items: MenuItemType[]): boolean => {
+        return items.some(item => {
+          if (item.path === activePath) return true
+
+          if (item.children) {
+            const childActive = findParents(item.children)
+
+            if (childActive) {
+              parents.push(item.label)
+
+              return true
+            }
+          }
+
+          return false
+        })
+      }
+
+      findParents(items)
+
+      return parents
+    }
+
+    if (pathname) {
+      const activeParents = findActiveParents(clientMenuItems, pathname)
+
+      setExpandedMenus(prev => [...new Set([...prev, ...activeParents])])
+    }
+  }, [pathname, clientMenuItems])
+
+  // Early return if loading
+  if (clientMenuItems.length === 0) {
+    return null
+  }
+
   return (
-    // eslint-disable-next-line lines-around-comment
-    /* Custom scrollbar instead of browser scroll, remove if you want browser scroll only */
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
             className: 'bs-full overflow-y-auto overflow-x-hidden',
-            style: {
-              backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white'
-            },
-            onScroll: container => scrollMenu(container, false)
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' },
+            onScroll: (container: any) => scrollMenu(container, false)
           }
         : {
             options: { wheelPropagation: false, suppressScrollX: true },
-            onScrollY: container => scrollMenu(container, true),
-            style: {
-              backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white'
-            }
+            onScrollY: (container: any) => scrollMenu(container, true),
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' }
           })}
     >
-      {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
-      {/* Vertical Menu */}
       <Menu
         popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
+        menuItemStyles={{
+          ...menuItemStyles(verticalNavOptions, theme, settings),
+          button: {
+            width: '100%',
+            justifyContent: 'flex-start',
+            padding: '1px 2px',
+            borderRadius: '6px',
+
+            // margin: '2px 8px',
+            '&:hover': {
+              backgroundColor: theme.palette.action.hover
+            },
+            '&.Mui-selected': {
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.common.white,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark
+              }
+            }
+          }
+        }}
+        renderExpandIcon={({ open }) => (
+          <RenderExpandIcon open={open} transitionDuration={verticalNavOptions.transitionDuration ?? 0} />
+        )}
+        renderExpandedMenuItemIcon={{ icon: <ChevronRightIcon fontSize='small' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        {/* the below is the code change */}
-        {custom_theme_settings?.theme?.vertical_menu?.icons?.map((menuItem, index) => (
-          <MenuItem key={index} href={menuItem.path} icon={<i className={menuItem.iconClass} />}>
-            {menuItem.label}
-          </MenuItem>
-        ))}
-
-        <MenuItem href='/user-management' icon={<i className='tabler-users' />}>
-          User Management
-        </MenuItem>
-
-        <MenuItem href='/user-roles' icon={<i className='tabler-key' />}>
-          User Roles
-        </MenuItem>
-
-        <MenuItem href='/approval-management' icon={<i className='tabler-rosette-discount-check' />}>
-          Approval Management
-        </MenuItem>
-
-        <MenuItem
-          href={isJDManagementPage ? pathname : '/jd-management'}
-          icon={<i className='tabler-file-description' />}
+        <List
+          disablePadding
+          sx={{
+            width: '100%',
+            padding: '8px'
+          }}
         >
-          JD Management
-        </MenuItem>
+          {clientMenuItems.map((item, index) => {
+            const isActive = isMenuItemActive(item)
+            const hasChildren = !!item.children
+            const isExpanded = expandedMenus.includes(item.label)
+            const permissionValue = item.read ? getPermissionRenderConfig()?.[item.read] || '' : ''
 
-        <MenuItem
-          href={pathname.startsWith('/vacancy-management/') ? pathname : '/vacancy-management'}
-          icon={<i className='tabler-briefcase' />}
-        >
-          Vacancy Management
-        </MenuItem>
+            return (
+              <Box key={`${item.label}-${index}`} sx={{ mb: '4px' }}>
+                {/* Main menu item */}
+                <ListItem
+                  disablePadding
+                  sx={{
+                    width: '100%',
+                    borderRadius: '6px',
+                    alignItems: 'center',
+                    backgroundColor: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit',
+                    color: isActive ? custom_theme_settings?.theme?.colors.buttonText : 'inherit'
+                  }}
+                >
+                  <MenuItemWithPermission
+                    icon={<i className={item.iconClass} />}
+                    selected={isActive}
+                    individualPermission={permissionValue}
+                    suffix={
+                      hasChildren ? (
+                        <IconButton
+                          size='small'
+                          onClick={e => {
+                            e.stopPropagation()
+                            toggleMenu(item.label)
+                          }}
+                          sx={{
+                            marginLeft: 'auto',
+                            color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
+                          }}
+                        >
+                          {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                        </IconButton>
+                      ) : null
+                    }
+                    onClick={() => {
+                      if (hasChildren) {
+                        toggleMenu(item.label)
+                      } else {
+                        handleNavigation(item.path)
+                      }
+                    }}
+                    sx={{
+                      width: '100%',
+                      '&:hover': {
+                        backgroundColor: isActive
+                          ? custom_theme_settings?.theme?.primaryColor
+                          : theme.palette.action.hover
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </MenuItemWithPermission>
+                </ListItem>
 
-        <MenuItem
-          href={pathname.startsWith('/recruitment-management/') ? pathname : '/recruitment-management/overview'}
-          icon={<i className='tabler-user-plus' />}
-        >
-          Recruitment Management
-        </MenuItem>
+                {/* Submenu (if any) */}
+                {hasChildren && (
+                  <Collapse in={isExpanded} timeout='auto' unmountOnExit>
+                    <List disablePadding sx={{ pl: 3, width: '100%' }}>
+                      {item.children?.map((child, childIndex) => {
+                        const childIsActive = isMenuItemActive(child)
+                        const childHasChildren = !!child.children
+                        const childIsExpanded = expandedMenus.includes(child.label)
+                        const childPermissionValue = child.read ? getPermissionRenderConfig()?.[child.read] || '' : ''
 
-        <MenuItem
-          href={pathname.startsWith('/bucket-management/') ? pathname : '/bucket-management'}
-          icon={<i className='tabler-apps' />}
-        >
-          Bucket Management
-        </MenuItem>
-        <MenuItem
+                        return (
+                          <Box key={`${child.label}-${childIndex}`} sx={{ mb: '4px' }}>
+                            {/* Submenu item (Level 1) */}
+                            <ListItem disablePadding sx={{ width: '100%' }}>
+                              <MenuItemWithPermission
+                                icon={<i className={child.iconClass} />}
+                                selected={childIsActive}
+                                individualPermission={childPermissionValue}
+                                suffix={
+                                  childHasChildren ? (
+                                    <IconButton
+                                      size='small'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        toggleMenu(child.label)
+                                      }}
+                                      sx={{
+                                        marginLeft: 'auto',
+                                        color: childIsActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
+                                      }}
+                                    >
+                                      {childIsExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                                    </IconButton>
+                                  ) : null
+                                }
+                                onClick={() => {
+                                  if (childHasChildren) {
+                                    toggleMenu(child.label)
+                                  } else {
+                                    handleNavigation(child.path)
+                                  }
+                                }}
+                                sx={{
+                                  width: '100%',
+                                  '&:hover': {
+                                    backgroundColor: childIsActive
+                                      ? theme.palette.primary.dark
+                                      : theme.palette.action.hover
+                                  }
+                                }}
+                              >
+                                {child.label}
+                              </MenuItemWithPermission>
+                            </ListItem>
 
-          href={pathname.startsWith('/approval-matrix/') ? pathname : '/approval-matrix'}
-          icon={<i className='tabler-settings-check' />}
-        >
-          Approval Matrix
-        </MenuItem>
+                            {/* Nested submenu (Level 2) */}
+                            {childHasChildren && (
+                              <Collapse in={childIsExpanded} timeout='auto' unmountOnExit>
+                                <List disablePadding sx={{ pl: 3, width: '100%' }}>
+                                  {child.children?.map((nestedChild, nestedIndex) => {
+                                    const nestedIsActive = isMenuItemActive(nestedChild)
 
-        {/* <MenuItem href='/recruitment-management' icon={<i className='tabler-report-search' />}>
-          Recruitment Management
-        </MenuItem> */}
+                                    const nestedPermissionValue = nestedChild.read
+                                      ? getPermissionRenderConfig()?.[nestedChild.read] || ''
+                                      : ''
 
-        {/* <SubMenu label='Components'>
-          <MenuItem href='/components/accordion'>Accordion</MenuItem>
-          <MenuItem href='/components/alert'>Alert</MenuItem>
-          <MenuItem href='/components/appbar'>App Bar</MenuItem>
-          <MenuItem href='/components/autocomplete'>Autocomplete</MenuItem>
-          <MenuItem href='/components/avatar'>Avatar</MenuItem>
-          <MenuItem href='/components/backdrop'>Backdrop</MenuItem>
-          <MenuItem href='/components/badge'>Badge</MenuItem>
-          <MenuItem href='/components/button'>Button</MenuItem>
-          <MenuItem href='/components/card'>Card</MenuItem>
-          <MenuItem href='/components/checkbox'>Checkbox</MenuItem>
-          <MenuItem href='/components/chip'>Chip</MenuItem>
-          <MenuItem href='/components/datepicker'>Datepicker</MenuItem>
-          <MenuItem href='/components/dialog'>Dialog</MenuItem>
-          <MenuItem href='/components/drawer'>Drawer</MenuItem>
-          <MenuItem href='/components/dynamicfloatingactionbutton'>Floating Action Button</MenuItem>
-          <MenuItem href='/components/list'>List</MenuItem>
-          <MenuItem href='/components/menu'>Menu</MenuItem>
-          <MenuItem href='/components/progress'>Progress</MenuItem>
-          <MenuItem href='/components/radioGroup'>Radio Group</MenuItem>
-          <MenuItem href='/components/select'>Select</MenuItem>
-          <MenuItem href='/components/skeleton'>Skeleton</MenuItem>
-          <MenuItem href='/components/snackbar'>Snackbar</MenuItem>
-          <MenuItem href='/components/speeddial'>Speed Dial</MenuItem>
-          <MenuItem href='/components/switch'>Switch</MenuItem>
-          <MenuItem href='/components/tab'>Tab</MenuItem>
-          <MenuItem href='/components/table'>Table</MenuItem>
-          <MenuItem href='/components/textField'>Text Field</MenuItem>
-          <MenuItem href='/components/tooltip'>Tooltip</MenuItem>
-        </SubMenu> */}
+                                    return (
+                                      <ListItem
+                                        key={`${nestedChild.label}-${nestedIndex}`}
+                                        disablePadding
+                                        sx={{ width: '100%' }}
+                                      >
+                                        <MenuItemWithPermission
+                                          icon={<i className={nestedChild.iconClass} />}
+                                          selected={nestedIsActive}
+                                          individualPermission={nestedPermissionValue}
+                                          onClick={() => handleNavigation(nestedChild.path)}
+                                          sx={{
+                                            width: '100%',
+                                            '&:hover': {
+                                              backgroundColor: nestedIsActive
+                                                ? theme.palette.primary.dark
+                                                : theme.palette.action.hover
+                                            }
+                                          }}
+                                        >
+                                          {nestedChild.label}
+                                        </MenuItemWithPermission>
+                                      </ListItem>
+                                    )
+                                  })}
+                                </List>
+                              </Collapse>
+                            )}
+                          </Box>
+                        )
+                      })}
+                    </List>
+                  </Collapse>
+                )}
+              </Box>
+            )
+          })}
+        </List>
       </Menu>
-
-      {/* <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme, settings)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <GenerateVerticalMenu menuData={menuData(dictionary, params)} />
-      </Menu> */}
     </ScrollWrapper>
   )
 }

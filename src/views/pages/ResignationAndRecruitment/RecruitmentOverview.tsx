@@ -1,75 +1,141 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import { Box, Typography, Grid, Button, LinearProgress, Card, Tooltip, Badge, Chip } from '@mui/material'
-import { useRouter, useSearchParams } from 'next/navigation'
-import WarningIcon from '@mui/icons-material/Warning'
+import React, { useEffect, useState, useMemo } from 'react'
+
+import { useRouter } from 'next/navigation'
+
+import {
+  Box,
+  Typography,
+  Grid,
+  Button,
+  LinearProgress,
+  Card,
+  Tooltip,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination
+} from '@mui/material'
+
+// import WarningIcon from '@mui/icons-material/Warning'
+
+// import AssessmentIcon from '@mui/icons-material/Assessment'
+
+import SettingsIcon from '@mui/icons-material/Settings'
+
+import AddIcon from '@mui/icons-material/Add'
+
+// Redux Imports
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import {
+  fetchResignationOverviewList,
+  fetchSettingsConfig,
+  updateSettingsConfig
+} from '@/redux/RecruitmentResignationSlice'
+
+import withPermission from '@/hocs/withPermission'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import WarningDialog from '@/@core/components/dialogs/accept-all-recruitment-request'
-import AssessmentIcon from '@mui/icons-material/Assessment'
-import SettingsIcon from '@mui/icons-material/Settings'
+
 import XFactorDialog from '@/components/Dialog/x-factorDialog'
+import { isAdmin, getAccessToken, decodeToken } from '@/utils/functions'
 
-const approvers = [
-  {
-    name: 'Software Engineer',
-    requests: 10,
-    requestType: 'Resignation',
-    daysSinceCreated: 2,
-    warning: '2 requests remaining of 10',
-    warningColor: '#4caf50',
-    approvalLevels: [
-      { level: 'Branch Manager', status: 'Approved' },
-      { level: 'HR Manager', status: 'Pending' },
-      { level: 'Director', status: 'Rejected' }
-    ],
-    branchDetails: 'Branch A',
-    bubblePositionsCount: 4
-  },
-  {
-    name: 'Operations Manager',
-    requests: 5,
-    requestType: 'Manual Creation',
-    daysSinceCreated: 5,
-    warning: '5 requests remaining of 10',
-    warningColor: '#ff9800',
-    approvalLevels: [
-      { level: 'HR Manager', status: 'Approved' },
-      { level: 'Director', status: 'Pending' }
-    ],
-    branchDetails: 'Branch B',
-    bubblePositionsCount: 3
-  },
-  {
-    name: 'Sales Executive',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  },
-  {
-    name: 'HR Manager',
-    requests: 3,
-    requestType: 'Business Expansion',
-    daysSinceCreated: 8,
-    warning: '8 requests remaining of 10',
-    warningColor: '#f44336',
-    approvalLevels: [{ level: 'Director', status: 'Approved' }],
-    branchDetails: 'Branch C',
-    bubblePositionsCount: 2
-  }
-]
+// const approvers = [
+//   {
+//     name: 'Software Engineer',
+//     requests: 10,
+//     requestType: 'Resignation',
+//     daysSinceCreated: 2,
+//     warning: '2 requests remaining of 10',
+//     warningColor: '#4caf50',
+//     approvalLevels: [
+//       { level: 'Branch Manager', status: 'Approved' },
+//       { level: 'HR Manager', status: 'Pending' },
+//       { level: 'Director', status: 'Rejected' }
+//     ],
+//     branchDetails: 'Branch A',
+//     bubblePositionsCount: 4
+//   },
+//   {
+//     name: 'Operations Manager',
+//     requests: 5,
+//     requestType: 'Manual Creation',
+//     daysSinceCreated: 5,
+//     warning: '5 requests remaining of 10',
+//     warningColor: '#ff9800',
+//     approvalLevels: [
+//       { level: 'HR Manager', status: 'Approved' },
+//       { level: 'Director', status: 'Pending' }
+//     ],
+//     branchDetails: 'Branch B',
+//     bubblePositionsCount: 3
+//   },
+//   {
+//     name: 'Sales Executive',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Marketing Manager',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Quality Analyst',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   },
+//   {
+//     name: 'Finance Manager',
+//     requests: 3,
+//     requestType: 'Business Expansion',
+//     daysSinceCreated: 8,
+//     warning: '8 requests remaining of 10',
+//     warningColor: '#f44336',
+//     approvalLevels: [{ level: 'Director', status: 'Approved' }],
+//     branchDetails: 'Branch C',
+//     bubblePositionsCount: 2
+//   }
+// ]
 
-const DesignationOverview = () => {
+const RecruitmentRequestOverview = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  const safeGetData = (source: any): any[] => (source?.data && Array.isArray(source.data) ? source.data : [])
+
+  const { fetchResignationOverviewListData, fetchSettingsConfigData } = useAppSelector(
+    state => state.recruitmentResignationReducer
+  )
+
   const [acceptAllConfirmed, setAcceptAllConfirmed] = useState(false)
   const [acceptAllDialogOpen, setAcceptAllDialogOpen] = useState(false)
   const [XFactorDialogOpen, setXFactorDialogOpen] = useState(false)
   const [xFactorValue, setXFactorValue] = useState(5)
+  const [paginationState, setPaginationState] = useState({ limit: 10, page: 1, display_numbers_count: 5 })
+  const settingsConfigData = safeGetData(fetchSettingsConfigData)
 
+  // const [approvers, setApprovers] = useState([])
   const handleXFactorDialogOpen = () => {
     setXFactorDialogOpen(true)
   }
@@ -79,12 +145,129 @@ const DesignationOverview = () => {
   }
 
   const handleSaveXFactor = (newXFactor: number) => {
-    setXFactorValue(newXFactor)
+    // Find the x-factor setting to get its id
+    const xFactorSetting = settingsConfigData.find((item: any) => item.name === 'x-factor')
+
+    if (xFactorSetting && xFactorSetting.id) {
+      dispatch(
+        updateSettingsConfig({
+          id: xFactorSetting.id.toString(),
+          data: { name: 'x-factor', value: newXFactor.toString() }
+        })
+      )
+        .unwrap()
+        .then(() => {
+          setXFactorValue(newXFactor)
+        })
+        .catch(error => {
+          console.error('Error updating settings config:', error)
+        })
+    } else {
+      console.error('X-factor setting not found. Please fetch settings first.')
+    }
   }
 
-  const handleApproveAll = () => setAcceptAllDialogOpen(true)
-  const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
+  const handlePageChange = (event: any, value: any) => {
+    setPaginationState(prev => ({ ...prev, page: value }))
+  }
+
+  const handleChangeLimit = (value: any) => {
+    setPaginationState(prev => ({ ...prev, limit: value }))
+  }
+
+  const NewRequestButton: React.FC<{ buttonDisable?: boolean }> = ({ buttonDisable }) => (
+    <Button
+      variant='contained'
+      color='primary'
+      startIcon={<AddIcon />}
+      onClick={() => router.push('/recruitment-management/add/new-request')}
+      disabled={buttonDisable || false}
+    >
+      New Request
+    </Button>
+  )
+
+  const NewRequestWithPermission = withPermission(NewRequestButton)({
+    individualPermission: 'recruitment_create'
+  })
+
+  // const handleApproveAll = () => setAcceptAllDialogOpen(true)
+  // const handleViewRequest = (name: string) => router.push(`/requests/${name.toLowerCase().replace(' ', '-')}`)
   // const handleConfirmAllRequestAccepted = (val: boolean) => setAcceptAllConfirmed(val)
+
+  // const userRoleId = getRoleId()
+
+  const approvers = useMemo(() => {
+    const data = safeGetData(fetchResignationOverviewListData)
+
+    return data
+  }, [fetchResignationOverviewListData])
+
+  const getApproverId = () => {
+    const token = getAccessToken()
+
+    if (!token) return null
+
+    const decodedToken = decodeToken(token)
+
+    return decodedToken?.sub
+  }
+
+  const handleApproveAll = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      // const requestData = approvers.find((item: any) => item.id === id)
+
+      // if (!approval_id) throw new Error('No approval ID found')
+
+      console.log(approval_id, id)
+
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id, // Using approval_id from overview data
+      //     approvalStatus: 'APPROVED',
+      //     approverId: userRoleId
+      //   })
+      // ).unwrap()
+
+      // Refresh the list after approval
+      dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
+    } catch (error) {
+      console.error('Error approving request:', error)
+    }
+  }
+
+  const handleRejectAll = async (id: number, approval_id: number) => {
+    try {
+      const approverId = getApproverId()
+
+      if (!approverId) throw new Error('No approver ID found')
+
+      // Find the request data from overview list using id
+      // const requestData = approvers.find((item: any) => item.id === id)
+
+      // if (!approval_id) throw new Error('No approval ID found')
+
+      console.log(approval_id, id)
+
+      // await dispatch(
+      //   submitRequestDecision({
+      //     id: approval_id, // Using approval_id from overview data
+      //     approvalStatus: 'REJECTED',
+      //     approverId: userRoleId
+      //   })
+      // ).unwrap()
+
+      // Refresh the list after rejection
+      dispatch(fetchResignationOverviewList({ page: paginationState?.page, limit: paginationState?.limit }))
+    } catch (error) {
+      console.error('Error rejecting request:', error)
+    }
+  }
 
   useEffect(() => {
     if (acceptAllConfirmed === true) {
@@ -93,16 +276,43 @@ const DesignationOverview = () => {
     }
   }, [acceptAllConfirmed])
 
-  const progressBar = approvers.map(approver => {
-    const daysRemaining = approver.daysSinceCreated
+  useEffect(() => {
+    // Fetch settings config on component mount to initialize xFactorValue
+    dispatch(fetchSettingsConfig({ page: 1, limit: 10, search: 'x-factor' }))
+      .unwrap()
+      .then(response => {
+        const xFactorSetting = response.find((item: any) => item.name === 'x-factor')
+
+        if (xFactorSetting) {
+          setXFactorValue(parseInt(xFactorSetting.value, 10) || 5) // Default to 5 if value is invalid
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching settings config:', error)
+      })
+  }, [dispatch])
+
+  const progressBar = approvers?.map(approver => {
+    const daysRemaining = approver?.daysSinceCreated
+
     return Math.max(0, 100 - daysRemaining * 10)
   })
 
   const getLevelColor = (status: any) => {
     if (status === 'Approved') return '#4caf50' // Green for Approved
     if (status === 'Pending') return '#ff9800' // Orange for Pending
+
     return '#f44336' // Red for Rejected
   }
+
+  useEffect(() => {
+    const params = {
+      page: paginationState?.page,
+      limit: paginationState?.limit
+    }
+
+    dispatch(fetchResignationOverviewList(params))
+  }, [paginationState, dispatch])
 
   return (
     <>
@@ -125,14 +335,15 @@ const DesignationOverview = () => {
             Recruitment Request Overview
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
-            <Button
+            {NewRequestWithPermission}
+            {/* <Button
               variant='contained'
               color='primary'
               startIcon={<AssessmentIcon />}
               onClick={() => router.push('/recruitment-management/resignation-report')}
             >
               Reports Dashboard
-            </Button>
+            </Button> */}
 
             <Button variant='contained' color='primary' startIcon={<SettingsIcon />} onClick={handleXFactorDialogOpen}>
               Set Data Transform Days
@@ -155,38 +366,58 @@ const DesignationOverview = () => {
               <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 3 }}>
                 Request Progress Overview
               </Typography>
-              {approvers.map((approver, index) => (
-                <Box key={approver.name} sx={{ marginBottom: 2, pb: 4 }}>
-                  <Typography variant='body1' sx={{ color: '#555' }}>
-                    {approver.name} - {approver.requests} Requests
-                  </Typography>
-                  <LinearProgress
-                    variant='determinate'
-                    value={progressBar[index]}
-                    sx={{
-                      height: 5,
-                      borderRadius: 10,
-                      backgroundColor: '#f0f0f0',
-                      '& .MuiLinearProgress-bar': {
+              <Box
+                sx={{
+                  maxHeight: 400, // Set a fixed height for the scrollable area
+                  overflowY: 'auto', // Enable vertical scrolling
+                  paddingRight: 1, // Add padding for scrollbar spacing
+                  flexGrow: 1,
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                    backgroundColor: '#f0f0f0'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: custom_theme_settings?.theme?.primaryColor || '#d4d4d4',
+                    borderRadius: '4px'
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    backgroundColor: custom_theme_settings?.theme?.primaryColor || '#bfbfbf'
+                  }
+                }}
+              >
+                {approvers?.map((approver, index) => (
+                  <Box key={approver.id} sx={{ marginBottom: 2, pb: 4 }}>
+                    <Typography variant='body1' sx={{ color: '#555' }}>
+                      {approver.designationName} - {approver.requestCount} Requests
+                    </Typography>
+                    <LinearProgress
+                      variant='determinate'
+                      value={progressBar[index]}
+                      sx={{
+                        height: 5,
                         borderRadius: 10,
-                        backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
-                      }
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} />
-                      <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
-                        {approver.warning}
-                      </Typography>
-                    </Box>
-                    {/* <VisibilityIcon
+                        backgroundColor: '#f0f0f0',
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: 10,
+                          backgroundColor: custom_theme_settings?.theme?.primaryColor || '#0095da'
+                        }
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {/* <WarningIcon sx={{ color: approver.warningColor, marginRight: 1 }} /> */}
+                        <Typography variant='body2' sx={{ color: approver.warningColor, fontWeight: 'bold' }}>
+                          {approver.warning}
+                        </Typography>
+                      </Box>
+                      {/* <VisibilityIcon
                     sx={{ cursor: 'pointer', color: '#0095da' }}
                     onClick={() => handleViewRequest(approver.name)}
                   /> */}
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
+              </Box>
             </Card>
           </Grid>
         </Grid>
@@ -277,7 +508,7 @@ const DesignationOverview = () => {
           </Grid> */}
 
           <Grid container spacing={4} mt={2}>
-            {approvers.map((approver, index) => (
+            {approvers?.map((approver, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card
                   sx={{
@@ -293,7 +524,8 @@ const DesignationOverview = () => {
                   }}
                   className='transition transform hover:-translate-y-1'
                   onClick={() => {
-                    const displayName = approver.name.replace(/\s+/g, '-') // Replace spaces with dashes
+                    const displayName = approver.designationName?.replace(/\s+/g, '-') // Replace spaces with dashes
+
                     router.push(`/recruitment-management/request-listing?filter=${displayName}`)
                   }}
                 >
@@ -312,12 +544,12 @@ const DesignationOverview = () => {
                       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
                     }}
                   >
-                    {approver.requests} Requests
+                    {approver.requestCount} Requests
                   </Box>
 
                   {/* Designation Name */}
                   <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#333', marginBottom: 2 }}>
-                    {approver.name}
+                    {approver.designationName}
                   </Typography>
 
                   {/* Bubble Position Availability */}
@@ -332,6 +564,7 @@ const DesignationOverview = () => {
                       <Box
                         sx={{
                           backgroundColor: approver.bubblePositionsCount > 0 ? '#eceaea' : '#e0e0e0',
+
                           // color: approver.bubblePositionsCount > 0 ? '#fff' : '#555',
                           borderRadius: '12px',
                           padding: '6px 12px',
@@ -347,12 +580,18 @@ const DesignationOverview = () => {
 
                   {/* Request Type */}
                   <Typography variant='body1' sx={{ color: '#555' }}>
-                    <strong>Request Type:</strong> {approver.requestType}
+                    {/* <strong>Request Type:</strong> {approver.origin} */}
                   </Typography>
 
                   {/* Branch Details */}
                   <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
-                    <strong>Branch:</strong> {approver.branchDetails}
+                    <strong>Branch:</strong> {approver.branchesName}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
+                    <strong>Business Unit Name:</strong> {approver.businessUnitName}
+                  </Typography>
+                  <Typography variant='body1' sx={{ color: '#555', marginBottom: 2 }}>
+                    <strong>Department Name:</strong> {approver.departmentName}
                   </Typography>
 
                   {/* Approval Levels */}
@@ -369,7 +608,7 @@ const DesignationOverview = () => {
                       Approval Levels: {approver.approvalLevels?.length}
                     </Typography>
                     <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                      {approver.approvalLevels.map((level, i) => (
+                      {approver?.approvalLevels?.map((level, i) => (
                         <li
                           key={i}
                           style={{
@@ -385,47 +624,100 @@ const DesignationOverview = () => {
                   </Box>
 
                   {/* Approve & Reject Buttons */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: 1
-                    }}
-                  >
-                    <Tooltip title='Approve Request'>
-                      <Button
-                        variant='contained'
-                        color='success'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleApproveAll()
+                  {isAdmin() ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 1
+                      }}
+                    >
+                      <Tooltip title='Approve Request'>
+                        <Button
+                          variant='contained'
+                          color='success'
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleApproveAll(approver.id, approver.approval_id)
+                          }}
+                          sx={{ padding: '6px 16px' }}
+                          startIcon={<i className='tabler-check' />}
+                        >
+                          Approve All
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title='Reject Request'>
+                        <Button
+                          variant='contained'
+                          color='error'
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleRejectAll(approver.id, approver.approval_id)
+                          }}
+                          sx={{ padding: '6px 16px' }}
+                          startIcon={<i className='tabler-playstation-x' />}
+                        >
+                          Reject All
+                        </Button>
+                      </Tooltip>
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Chip
+                        label='Pending'
+                        color='warning'
+                        sx={{
+                          borderRadius: '16px',
+                          fontSize: '0.875rem',
+                          '& .MuiChip-label': {
+                            px: 2,
+                            py: 0.5
+                          }
                         }}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-check' />}
-                      >
-                        Approve All
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title='Reject Request'>
-                      <Button
-                        variant='contained'
-                        color='error'
-                        onClick={e => e.stopPropagation()}
-                        sx={{ padding: '6px 16px' }}
-                        startIcon={<i className='tabler-playstation-x' />}
-                      >
-                        Reject All
-                      </Button>
-                    </Tooltip>
-                  </Box>
+                        icon={<i className='tabler-clock' style={{ fontSize: '1rem' }} />}
+                      />
+                    </Box>
+                  )}
                 </Card>
               </Grid>
             ))}
           </Grid>
+
+          <div className='flex items-center justify-end mt-6'>
+            <FormControl size='small' sx={{ minWidth: 70 }}>
+              <InputLabel>Count</InputLabel>
+              <Select
+                value={paginationState?.limit}
+                onChange={e => handleChangeLimit(e.target.value)}
+                label='Limit per page'
+              >
+                {[10, 25, 50, 100].map(option => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Pagination
+              color='primary'
+              shape='rounded'
+              showFirstButton
+              showLastButton
+              count={paginationState?.display_numbers_count}
+              page={paginationState?.page}
+              onChange={handlePageChange}
+            />
+          </div>
         </Box>
       </Box>
     </>
   )
 }
 
-export default DesignationOverview
+export default RecruitmentRequestOverview

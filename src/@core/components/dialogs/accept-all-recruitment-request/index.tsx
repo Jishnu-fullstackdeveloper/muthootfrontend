@@ -9,11 +9,12 @@ import Typography from '@mui/material/Typography'
 import { Tooltip } from '@mui/material'
 
 // Type Imports
-import { toast } from 'react-toastify'
+// import { toast } from 'react-toastify'
 
 // Component Imports
 import 'react-toastify/dist/ReactToastify.css'
-import custom_theme_settings from '@/utils/custom_theme_settings.json'
+
+// import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 type delete_props = {
   open: boolean
@@ -26,8 +27,7 @@ type delete_props = {
 const ConfirmAcceptAllDialog = ({ open, setOpen, setAcceptAllConfirmed, tooltipText, HeadingText }: delete_props) => {
   return (
     <>
-      <Dialog
-        // fullWidth
+      <Dialog // fullWidth
         maxWidth='md'
         scroll='body'
         open={open}
@@ -55,8 +55,7 @@ const ConfirmAcceptAllDialog = ({ open, setOpen, setAcceptAllConfirmed, tooltipT
 
         <DialogActions className=' pbs-0 flex justify-end' sx={{ p: 3 }}>
           <Button
-            variant='outlined'
-            // style={{ background: '#ff4c51' }}
+            variant='outlined' // style={{ background: '#ff4c51' }}
             onClick={() => setOpen(false)}
             type='submit'
             className='capitalize'

@@ -66,8 +66,9 @@ const ApexColumnChart = ({ serverMode }: { serverMode: SystemMode }) => {
       labels: { colors: rgbaToHex(`rgb(${theme.mainColorChannels[_mode]} / 0.7)`) },
       markers: {
         offsetY: 2,
-        offsetX: theme.direction === 'rtl' ? 7 : -4,
-        radius: 12
+        offsetX: theme.direction === 'rtl' ? 7 : -4
+
+        // radius: 12
       },
       itemMargin: {
         horizontal: 9

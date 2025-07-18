@@ -1,10 +1,10 @@
 'use client'
 
 // Next Imports
-import Link from 'next/link'
+// import Link from 'next/link'
 
 // Third-party Imports
-import classnames from 'classnames'
+// import classnames from 'classnames'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
@@ -12,8 +12,8 @@ import useHorizontalNav from '@menu/hooks/useHorizontalNav'
 import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
-import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
-import custom_theme_settings from '@/utils/custom_theme_settings.json'
+// import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
+// import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 const FooterContent = () => {
   // Hooks
@@ -22,11 +22,12 @@ const FooterContent = () => {
   const { isBreakpointReached: isHorizontalBreakpointReached } = useHorizontalNav()
 
   // Vars
-  const isBreakpointReached =
-    settings.layout === 'vertical' ? isVerticalBreakpointReached : isHorizontalBreakpointReached
+  // const isBreakpointReached =
+  settings.layout === 'vertical' ? isVerticalBreakpointReached : isHorizontalBreakpointReached
 
   return (
     <></>
+
     // <div
     //   className={classnames(verticalLayoutClasses.footerContent, 'flex items-center justify-between flex-wrap gap-4')}
     //   style={{ backgroundColor: custom_theme_settings?.footer?.backgroundColor }}

@@ -1,6 +1,8 @@
 import React from 'react'
+
 import CheckIcon from '@mui/icons-material/Check'
 import { Stack } from '@mui/material'
+
 import DynamicAlert from '@/components/Alert/dynamicAlert'
 
 function Page() {

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+
 import Chip from '@mui/material/Chip'
 
 export interface ChipData {
@@ -14,7 +15,7 @@ export interface ChipData {
 
 interface DynamicChipProps {
   label: string
-  variant?: 'filled' | 'outlined | tonal'
+  variant?: 'filled' | 'outlined' | 'tonal' // Fixed the union syntax
   onClick?: () => void
   onDelete?: () => void
   deleteIcon?: React.ReactElement
@@ -25,7 +26,7 @@ export default function DynamicChip({ label, variant, onClick, onDelete, deleteI
   return (
     <Chip
       label={label}
-      variant={variant === 'outlined' ? 'filled' : undefined}
+      variant={variant} // Remove the conditional logic unless it’s intentional
       onClick={onClick}
       onDelete={onDelete}
       deleteIcon={deleteIcon || undefined}

@@ -25,8 +25,9 @@ import { toast } from 'react-toastify'
 import classnames from 'classnames'
 
 // Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
 import DirectionalIcon from '@components/DirectionalIcon'
+
+import CustomAvatar from '@core/components/mui/Avatar'
 import CustomTextField from '@core/components/mui/TextField'
 
 // Styles Component Imports
@@ -344,7 +345,8 @@ const StepperCustomHorizontal = () => {
                   <DirectionalIcon
                     ltrIconClass='tabler-chevron-right'
                     rtlIconClass='tabler-chevron-left'
-                    className='text-xl'
+
+                    // className='text-xl'
                   />
                 ) : null
               }

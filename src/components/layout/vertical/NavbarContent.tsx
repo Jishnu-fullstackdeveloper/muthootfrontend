@@ -1,20 +1,39 @@
 'use client'
 
 // Third-party Imports
+import { usePathname } from 'next/navigation'
+
 import classnames from 'classnames'
 
 // Component Imports
+import { Breadcrumbs, Link, Typography } from '@mui/material'
+import HomeIcon from '@mui/icons-material/Home'
+
 import NavToggle from './NavToggle'
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
+
+// import ModeDropdown from '@components/layout/shared/ModeDropdown'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 
-import { Breadcrumbs, Link, Typography } from '@mui/material'
-import { usePathname } from 'next/navigation' // Util Imports
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
 
 const NavbarContent = () => {
   const pathname = usePathname()
   const pathSegments = pathname.split('/').filter(Boolean)
+
+  // Find the index of the first 'add', 'view', or 'edit' segment
+  const specialSegmentIndex = pathSegments.findIndex(segment => ['add', 'view', 'edit'].includes(segment.toLowerCase()))
+
+  // Determine the index of the clickable segment
+  let clickableSegmentIndex: number
+
+  if (specialSegmentIndex !== -1) {
+    // If 'add', 'view', or 'edit' exists, make the segment before it clickable
+    clickableSegmentIndex = specialSegmentIndex - 1
+  } else {
+    // If no 'add', 'view', or 'edit', make the last segment clickable
+    clickableSegmentIndex = pathSegments.length - 1
+  }
+
   return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
@@ -28,23 +47,33 @@ const NavbarContent = () => {
             fontSize: '14px'
           }}
         >
+          {/* Add Home icon as the first breadcrumb without text */}
+          <Link
+            underline='hover'
+            color='inherit'
+            href='/home'
+            sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'primary.main' }}
+          >
+            <HomeIcon sx={{ mr: 0 }} fontSize='small' />
+          </Link>
+
           {pathSegments.map((segment, index) => {
+            // Skip "view", "edit", and "add" segments in breadcrumbs
+            if (['view', 'edit', 'add'].includes(segment.toLowerCase())) {
+              return null
+            }
+
             const breadcrumbPath = `/${pathSegments.slice(0, index + 1).join('/')}`
-            const segmentText = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ')
 
-            // Disable navigation for "View" segment
-            const isViewSegment =
-              segment.toLowerCase() === 'view' || segment.toLowerCase() === 'edit' || segment.toLowerCase() === 'add'
+            // Decode URL component and format segment text
+            const decodedSegment = decodeURIComponent(segment)
+            const segmentText = decodedSegment.charAt(0).toUpperCase() + decodedSegment.slice(1).replace(/-/g, ' ')
 
-            return index === pathSegments.length - 1 ? (
-              <Typography key={breadcrumbPath} color='text.primary'>
-                {segmentText}
-              </Typography>
-            ) : isViewSegment ? (
-              <Typography key={breadcrumbPath} color='text.secondary'>
-                {segmentText}
-              </Typography>
-            ) : (
+            // Determine if this segment should be clickable
+            // Only the segment at clickableSegmentIndex should be clickable
+            const isClickable = index === clickableSegmentIndex
+
+            return isClickable ? (
               <Link
                 key={breadcrumbPath}
                 underline='hover'
@@ -54,6 +83,10 @@ const NavbarContent = () => {
               >
                 {segmentText}
               </Link>
+            ) : (
+              <Typography key={breadcrumbPath} color='text.primary'>
+                {segmentText}
+              </Typography>
             )
           })}
         </Breadcrumbs>

@@ -1,5 +1,6 @@
-import VacancyListing from '@/views/pages/VacancyManagement/VacancyListing'
 import React from 'react'
+
+import VacancyListing from '@/views/pages/VacancyManagement/VacancyListing'
 
 function VacancyManagement() {
   return (

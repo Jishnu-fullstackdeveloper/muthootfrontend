@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: '/home',
+  RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
     USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,

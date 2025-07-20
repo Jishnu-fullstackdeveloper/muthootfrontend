@@ -1,6 +1,8 @@
 'use client'
 
 // MUI Imports
+import Image from 'next/image'
+
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
@@ -9,6 +11,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
 import BranchIcon from '@/icons/BranchIcon'
+import IntersectBlue from '@/assets/images/dashboard/Intersect2.png' // update path if needed
+import IntersectBlueTopLeft from '@assets/images/dashboard/IntersectBlueTopLeft.png'
 
 //import { useTheme } from '@mui/material/styles'
 
@@ -21,45 +25,10 @@ const BranchCountPage = () => {
       sx={{
         bgcolor: '#0096DA',
         borderRadius: 2,
-        position: 'relative'
-
-        // '&::after': {
-        //   content: '""',
-        //   position: 'absolute',
-        //   bottom: 0,
-        //   right: 0,
-        //   width: 130,
-        //   height: 50,
-        //   backgroundColor: '#006ED3',
-        //   borderRadius: '150px 0 0 0',
-        //   clipPath: 'polygon(0% 0%,70% 30%, 100% 0%, 100% 100%, 50% 100%, 0% 100%)'
-        // }
+        position: 'relative',
+        overflow: 'hidden' // ensures image stays inside
       }}
     >
-      {/* <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: 40,
-          height: 20,
-          backgroundColor: '#006ED3',
-          borderRadius: '20px 0 0 0',
-          clipPath: 'polygon(0 0, 100% 0, 100% 100%)'
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: 40,
-          height: 20,
-          backgroundColor: '#006ED3',
-          borderRadius: '0 0 20px 0',
-          clipPath: 'polygon(0 0, 100% 0, 0 100%)'
-        }}
-      /> */}
       <CardContent className='flex justify-between gap-4' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
         <Box className='flex flex-col justify-between gap-4'>
           <Avatar sx={{ width: '60px', height: '60px', bgcolor: 'white', color: '#0096DA', borderRadius: '8px' }}>
@@ -107,6 +76,31 @@ const BranchCountPage = () => {
           </Box>
         </Box>
       </CardContent>
+      <Image
+        src={IntersectBlueTopLeft}
+        alt='orange top decoration'
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+          opacity: 1
+        }}
+      />
+      <Image
+        src={IntersectBlue}
+        alt='decorative shape'
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+
+          // width: '100px',
+          // height: 'auto',
+          zIndex: 0,
+          opacity: 0.5
+        }}
+      />
     </Card>
   )
 }

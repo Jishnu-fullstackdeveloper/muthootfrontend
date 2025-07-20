@@ -434,7 +434,7 @@ const JobPostGrid = ({ data = dummyJobs, loading }: JobPostGridProps) => {
   }
 
   const handleNavigate = (jobId: string) => {
-    router.push(`/hiring-management/job-posting/view/${jobId}`)
+    router.push(`/hiring-management/job-posting/view/details?jobId=${jobId}`)
     handleCloseDrawer()
   }
 

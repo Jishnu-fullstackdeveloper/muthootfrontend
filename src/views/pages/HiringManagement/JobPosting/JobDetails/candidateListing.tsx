@@ -89,7 +89,7 @@ const CandidateListing = () => {
       console.log('Fetching candidates for jobId:', effectiveJobId)
       dispatch(
         fetchCandidates({
-          jobId: effectiveJobId,
+          // jobId: effectiveJobId,
           page: view === 'grid' ? gridPage : tablePage,
           limit: view === 'grid' ? gridLimit : tableLimit
         })

@@ -95,7 +95,7 @@ const JobPostListing = () => {
       return
     }
 
-    const url = `/candidateListing?jobId=${encodeURIComponent(jobId)}`
+    const url = `/Details?jobId=${encodeURIComponent(jobId)}`
 
     console.log('Navigating to:', url)
     router.push(url)

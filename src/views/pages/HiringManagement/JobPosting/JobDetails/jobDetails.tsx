@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { Box, Tabs, Tab } from '@mui/material'
 
-// import CandidateListing from './candidateListing'
+import CandidateListing from './candidateListing'
 import JdDetails from './jdDetails'
 import VacancyDetails from './vaccancyDetails'
 
@@ -42,17 +42,17 @@ export default function Home() {
             }
           }}
         >
-          {/* <Tab label='Candidate Listing' value='Candidate Listing' /> */}
           <Tab label='Vacancy Details' value='Vacancy Details' />
           <Tab label='Jd Details' value='Jd Details' />
+          <Tab label='Candidate Listing' value='Candidate Listing' />
         </Tabs>
       </Box>
 
       {/* Tab Content */}
       <Box sx={{ mt: 2 }}>
-        {/* {activeTab === 'Candidate Listing' && <CandidateListing />} */}
         {activeTab === 'Jd Details' && <JdDetails />}
         {activeTab === 'Vacancy Details' && <VacancyDetails />}
+        {activeTab === 'Candidate Listing' && <CandidateListing />}
       </Box>
     </Box>
   )

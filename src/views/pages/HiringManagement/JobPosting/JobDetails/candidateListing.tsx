@@ -134,11 +134,6 @@ const CandidateListing = () => {
     return filteredCandidates.slice(start, end)
   }, [filteredCandidates, gridPage, tablePage, gridLimit, tableLimit, view])
 
-  // const handleView = (candidateId: number) => {
-  //   console.log('Navigating to candidateDetails with candidateId:', candidateId)
-  //   router.push(`/candidate/details?candidateId=${candidateId}`)
-  // }
-
   const handleGridLoadMore = (newPage: number) => {
     setGridPage(newPage)
   }
@@ -150,6 +145,14 @@ const CandidateListing = () => {
   const handleTableRowsPerPageChange = (newPageSize: number) => {
     setTableLimit(newPageSize)
     setTablePage(1)
+  }
+
+  const handleCadidateDetails = (candidateId: number) => {
+    if (pathname === '/interview-management/candidates-management') {
+      router.push(`/interview-management/candidates-management/view?candidateId=${candidateId}`)
+    } else if (pathname === '/hiring-management/job-posting/view/details') {
+      router.push(`/hiring-management/job-posting/view/details/view?candidateId=${candidateId}`)
+    }
   }
 
   return (
@@ -214,6 +217,7 @@ const CandidateListing = () => {
             candidateId
             throw new Error('Function not implemented.')
           }}
+          handleCadidateDetails={handleCadidateDetails}
         />
       ) : (
         <CandidateTable
@@ -228,6 +232,7 @@ const CandidateListing = () => {
             newStatus
             throw new Error('Function not implemented.')
           }}
+          handleCadidateDetails={handleCadidateDetails}
         />
       )}
     </Box>

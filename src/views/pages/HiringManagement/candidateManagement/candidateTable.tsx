@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 
-import { Typography, Card, MenuItem, Select } from '@mui/material'
+import { Typography, Card, MenuItem, Select, Tooltip, IconButton } from '@mui/material'
 
 // import type { TableMeta } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -21,6 +21,7 @@ interface Candidate {
   maxExperience?: string
   phoneNumber?: string
   match?: string
+  action?: string
 }
 
 // interface CandidateTableMeta extends TableMeta<Candidate> {
@@ -35,6 +36,7 @@ interface CandidateListingProps {
   onPageChange: (newPage: number) => void
   onRowsPerPageChange: (newPageSize: number) => void
   updateCandidateStatus: (candidateId: number, newStatus: string) => void
+  handleCadidateDetails?: (candidateId: number) => void
 }
 
 const CandidateListing = ({
@@ -44,7 +46,8 @@ const CandidateListing = ({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
-  updateCandidateStatus
+  updateCandidateStatus,
+  handleCadidateDetails
 }: CandidateListingProps) => {
   const statusOptions = ['Shortlisted', 'Rejected', 'L1']
   const columnHelper = createColumnHelper<Candidate>()
@@ -67,14 +70,7 @@ const CandidateListing = ({
         header: 'Applied Date',
         cell: ({ row }) => <Typography>{row.original.appliedDate}</Typography>
       }),
-      columnHelper.accessor('minExperience', {
-        header: 'Min Experience',
-        cell: ({ row }) => <Typography>{row.original.minExperience || 'N/A'}</Typography>
-      }),
-      columnHelper.accessor('maxExperience', {
-        header: 'Max Experience',
-        cell: ({ row }) => <Typography>{row.original.maxExperience || 'N/A'}</Typography>
-      }),
+
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => (
@@ -100,6 +96,34 @@ const CandidateListing = ({
           </Select>
         )
       }),
+      columnHelper.accessor('action', {
+        header: 'Action',
+        meta: {
+          className: 'sticky right-0 action-column'
+        },
+        cell: ({ row }) => (
+          <div className='flex items-center'>
+            <Tooltip title='View' placement='top'>
+              <IconButton
+                onClick={() => {
+                  handleCadidateDetails(row.original.id)
+                }}
+              >
+                <i className='tabler-eye text-textSecondary'></i>
+              </IconButton>
+            </Tooltip>
+          </div>
+        ),
+        enableSorting: false
+      }),
+      columnHelper.accessor('minExperience', {
+        header: 'Min Experience',
+        cell: ({ row }) => <Typography>{row.original.minExperience || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('maxExperience', {
+        header: 'Max Experience',
+        cell: ({ row }) => <Typography>{row.original.maxExperience || 'N/A'}</Typography>
+      }),
       columnHelper.accessor('phoneNumber', {
         header: 'Phone Number',
         cell: ({ row }) => <Typography>{row.original.phoneNumber || 'N/A'}</Typography>
@@ -109,7 +133,7 @@ const CandidateListing = ({
         cell: ({ row }) => <Typography>{row.original.match || 'N/A'}</Typography>
       })
     ],
-    [columnHelper, updateCandidateStatus]
+    [columnHelper, updateCandidateStatus, handleCadidateDetails]
   )
 
   // const tableMeta: CandidateTableMeta = {

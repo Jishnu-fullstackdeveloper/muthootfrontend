@@ -320,7 +320,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         label: 'Interview Management',
         iconClass: 'tabler-calendar-event',
         permission: 'branchManagement',
-        read: ''
+        read: 'HIRING_INTERVIEW_READ'
       }
     ],
     []

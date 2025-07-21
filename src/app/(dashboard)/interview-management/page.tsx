@@ -1,8 +1,10 @@
-// import JobPostListing from '@/views/pages/InterviewManagement/jobPostingListing'
+'use client'
 import React from 'react'
-
+import { useRouter } from 'next/navigation'
 const page = () => {
-  // return <JobPostListing />
+  const router = useRouter()
+  router.push('/interview-management/candidates-list')
+  return <div></div>
 }
 
 export default page

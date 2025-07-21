@@ -9,22 +9,50 @@ interface BucketManagementOverviewProps {
 
 const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ branchData }) => {
   return (
-    <Box>
+    <Card sx={{ backgroundColor: '#FFFFFF', p: 3 }}>
       <Typography variant='h6' sx={{ mb: 3, fontWeight: 'bold', color: '#2e7d32' }}>
         Budget Management Overview
       </Typography>
       <Card sx={{ mb: 3, p: 3, backgroundColor: '#f8f9fa', borderRadius: 2, boxShadow: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography variant='body1' sx={{ fontWeight: '500', color: '#333' }}>
-            <strong>Bucket Name:</strong> {branchData?.branchBucket?.name || 'N/A'}
+          {/* <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#333' }}>
+            Bucket Name: <strong>{branchData?.branchBucket?.name || 'N/A'}</strong>
+          </Typography> */}
+          <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#333' }}>
+            Bucket Name:{' '}
+            <Chip
+              label={branchData?.branchBucket?.name || 'N/A'}
+              size='small'
+              sx={{
+                fontWeight: 'medium',
+                mb: 0.5,
+                borderRadius: 2,
+                backgroundColor:
+                  branchData?.branchBucket?.name === 'Diamond'
+                    ? '#B9F6CA'
+                    : branchData?.branchBucket?.name === 'Platinum'
+                      ? '#E5E4E2'
+                      : branchData?.branchBucket?.name === 'Gold'
+                        ? '#FFD700'
+                        : branchData?.branchBucket?.name === 'Silver'
+                          ? '#C0C0C0'
+                          : branchData?.branchBucket?.name === 'Bronze'
+                            ? '#CD7F32'
+                            : '#B0BEC5', // Default grey for 'N/A' or unknown values
+                color:
+                  branchData?.branchBucket?.name === 'Gold' || branchData?.branchBucket?.name === 'Diamond'
+                    ? '#000' // Black text for lighter backgrounds (Gold, Diamond)
+                    : '#FFF' // White text for darker backgrounds (Platinum, Silver, Bronze, default)
+              }}
+            />
           </Typography>
-          <Typography variant='body1' sx={{ fontWeight: '500', color: '#333' }}>
+          {/* <Typography variant='body1' sx={{ fontWeight: '500', color: '#333' }}>
             <strong>Total Position Categories:</strong>{' '}
             {branchData.branchBucket?.positionCategories.reduce((sum, category) => sum + category.count, 0) || 0}
-          </Typography>
+          </Typography> */}
 
           {/* Position Categories List */}
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 1 }}>
             <Typography variant='subtitle1' sx={{ fontWeight: '600', mb: 1, color: '#1976d2' }}>
               Position Categories
             </Typography>
@@ -79,7 +107,7 @@ const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ bra
           </Box>
         </Box>
       </Card>
-    </Box>
+    </Card>
   )
 }
 

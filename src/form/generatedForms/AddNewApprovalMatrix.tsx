@@ -182,21 +182,20 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
             updateApprovalCategory({
               id: categoryIdFromUrl,
               name: values.approvalCategory?.name || '',
-              approverType: approverType || '', // Pass the approverType
+              approverType: approverType || '',
               description: values.description
             })
           ).unwrap()
-          console.log('Approval Category updated successfully')
 
           // Get existing matrix IDs for the approval category
           const existingMatrixIds = searchParams.get('id')?.split(',') || []
 
           // Update or create matrices for current levels
-          const updatedMatrixIds = await Promise.all(
+          await Promise.all(
             approvalMatrix.map(async (matrix, index) => {
               if (index < existingMatrixIds.length) {
                 // Update existing matrix
-                const response = await dispatch(
+                await dispatch(
                   updateApprovalMatrix({
                     id: existingMatrixIds[index],
                     approvalMatrix: {
@@ -206,27 +205,21 @@ const AddNewApprovalMatrixGenerated: React.FC = () => {
                     }
                   })
                 ).unwrap()
-
-                response
-
-                return existingMatrixIds[index]
               } else {
                 // Create new matrix for additional levels
                 const response = await dispatch(createNewApprovalMatrix({ approvalMatrix: [matrix] })).unwrap()
 
-                return response[0]?.id || '' // Assume API returns the new matrix ID
+                return response[0]?.id || ''
               }
             })
           )
-
-          updatedMatrixIds
 
           // Delete matrices for levels that were removed
           const matricesToDelete = existingMatrixIds.slice(values.sections.length)
 
           await Promise.all(matricesToDelete.map(id => dispatch(deleteApprovalMatrix(id)).unwrap()))
 
-          console.log('Approval Matrix updated successfully')
+          // Show success toast after all operations are complete
           toast.success('Approval Matrix updated successfully!', {
             position: 'top-right',
             autoClose: 5000,

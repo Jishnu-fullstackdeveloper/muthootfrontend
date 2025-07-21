@@ -97,6 +97,7 @@ export const signOutApi = createAsyncThunk<any, any>('sign-out', async (params: 
       headers: {
         authorization: `Bearer ${accessToken}`,
         refreshtoken: refreshToken ,
+        client : process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
       }
     })
 
@@ -150,7 +151,7 @@ export const fetchPermissionRenderConfig = createAsyncThunk<any, any>(
   async (_, { rejectWithValue }) => {
     try {
       const accessToken = getAccessToken()
-      const api = '/permissions'
+      const api = 'auth/permissions'
 
       const response = await AxiosLib.get(api, {
         headers: {

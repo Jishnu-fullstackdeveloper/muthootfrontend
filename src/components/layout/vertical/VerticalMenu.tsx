@@ -65,7 +65,14 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     () => [
       {
         path: ROUTES.HOME,
-        label: 'Home',
+        label: 'Dashboard',
+        iconClass: 'tabler-home',
+        permission: 'home',
+        read: 'HOME_READ'
+      },
+      {
+        path: ROUTES.RECRUITMENT_HR,
+        label: 'Recruitment HR',
         iconClass: 'tabler-home',
         permission: 'home',
         read: 'HOME_READ'
@@ -178,7 +185,23 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             label: 'Budget Management',
             iconClass: 'tabler-report-money',
             permission: 'budgetManagement',
-            read: 'HIRING_BUDGET_READ'
+            read: 'HIRING_BUDGET_READ',
+            children: [
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.BUDGET_REQUEST,
+                label: 'Budget Request',
+                iconClass: 'tabler-calendar-user',
+                permission: 'budgetRequest',
+                read: 'HIRING_BUDGET_REQUEST_READ'
+              },
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUDGET.POSITION_MATRIX,
+                label: 'Position Matrix',
+                iconClass: 'tabler-hierarchy-3',
+                permission: 'positionMatrix',
+                read: 'HIRING_BUDGET_POSITIONMATRIX_READ'
+              }
+            ]
           }
         ]
       },
@@ -223,6 +246,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 iconClass: 'tabler-briefcase',
                 permission: 'vacancyXFactor',
                 read: 'SYSTEM_XFACTOR_VACANCYXFACTOR_READ'
+              },
+              {
+                path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.NOTICE_PERIOD,
+                label: 'Notice Period',
+                iconClass: 'tabler-calendar-time',
+                permission: 'noticePeriodRange',
+                read: 'SYSTEM_XFACTOR_NOTICEPERIODRANGE_READ'
               }
             ]
           },
@@ -261,6 +291,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-clock',
             permission: 'scheduler',
             read: 'SYSTEM_SCHEDULER_READ'
+          },
+          {
+            path: ROUTES.SYSTEM_MANAGEMENT.JOB_POSTING_CUSTOMIZATION,
+            label: 'Job Posting Customization',
+            iconClass: 'tabler-table-options',
+            permission: 'jobPostingCustomization',
+            read: 'SYSTEM_JOBPOSTINGCUSTOMIZATION_READ'
           },
           {
             path: ROUTES.SYSTEM_MANAGEMENT.INTERVIEW_CUSTOMIZATION,

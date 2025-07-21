@@ -135,10 +135,11 @@ const VacancyGroupListing = () => {
 
   const columnHelper = createColumnHelper<VacancyGroupByDesignationResponse>()
 
-  const handleViewDetails = (designation: string, department: string, locationName: string) => {
+  const handleViewDetails = (designation: string, department: string, grade: string, locationName: string) => {
     const url = buildVacancyRequestURL({
       designation,
       department,
+      grade,
       locationName,
       locationType: selectedLocationType
     })
@@ -188,6 +189,7 @@ const VacancyGroupListing = () => {
                 handleViewDetails(
                   row.original.designation,
                   row.original.department,
+                  row.original.grade,
                   row.original[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                 )
               }
@@ -374,10 +376,17 @@ const VacancyGroupListing = () => {
                       {item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#757575' }}>
-                      <strong>Vacancy Request Count:</strong> {item.designationCount}
+                      <strong>Vacancy Pending Request:</strong> {item.designationCount}
                     </Typography>
                   </CardContent>
-                  <CardActions sx={{ justifyContent: 'flex-end', p: 2, bgcolor: '#fafafa' }}>
+                  <CardActions
+                    className='flex items-center p-2'
+                    sx={{
+                      justifyContent: 'flex-end',
+                      p: 2,
+                      bgcolor: '#fafafa'
+                    }}
+                  >
                     <Button
                       size='small'
                       color='primary'
@@ -386,6 +395,7 @@ const VacancyGroupListing = () => {
                         handleViewDetails(
                           item.designation,
                           item.department,
+                          item.grade,
                           item[selectedLocationType.toLowerCase() as keyof VacancyGroupByDesignationResponse] || '-'
                         )
                       }

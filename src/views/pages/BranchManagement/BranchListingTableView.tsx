@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -7,6 +7,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import DynamicTable from '@/components/Table/dynamicTable'
+import { getBranchList } from '@/redux/BranchManagement/BranchManagementSlice'
+import { useAppDispatch } from '@/lib/hooks'
 
 interface Branch {
   id: string
@@ -20,6 +22,7 @@ interface Branch {
   stateId: string
   createdAt: string
   updatedAt: string
+  branchData: any
   bucket: {
     id: string
     name: string
@@ -71,12 +74,15 @@ interface Branch {
     updatedAt: string
     deletedAt: string | null
   }
+  data: any
+  totalCount: any
 }
 
-type BranchData = Branch[]
+type BranchData = Branch
 
 const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -86,23 +92,21 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
   const columnHelper = createColumnHelper<Branch>()
 
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => {
-      const updatedPagination = { ...prev, pageIndex: newPage }
-
-      console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-      console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-
-      return updatedPagination
-    })
+    setPagination(prev => ({ ...prev, pageIndex: newPage }))
   }
 
   const handleRowsPerPageChange = (newPageSize: number) => {
-    const updatedPagination = { pageIndex: 0, pageSize: newPageSize }
-
-    console.log('Page Index:', updatedPagination.pageIndex) // Log pageIndex
-    console.log('Page Size:', updatedPagination.pageSize) // Log pageSize
-    setPagination(updatedPagination)
+    setPagination({ pageIndex: 0, pageSize: newPageSize })
   }
+
+  useEffect(() => {
+    dispatch(
+      getBranchList({
+        page: pagination.pageIndex + 1, // API uses 1-based indexing
+        limit: pagination.pageSize
+      })
+    )
+  }, [dispatch, pagination.pageIndex, pagination.pageSize])
 
   const columns = useMemo<ColumnDef<Branch, any>[]>(
     () => [
@@ -241,11 +245,11 @@ const BranchListingTableView = ({ branchData }: { branchData: BranchData }) => {
     <div>
       <DynamicTable
         columns={columns}
-        data={branchData}
+        data={branchData?.data}
+        totalCount={branchData?.totalCount}
         pagination={pagination} // Pass pagination state
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
-        totalCount={0}
         sorting={undefined}
         onSortingChange={undefined}
         initialState={undefined}

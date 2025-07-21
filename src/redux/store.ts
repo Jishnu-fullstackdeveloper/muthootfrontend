@@ -17,8 +17,11 @@ import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
 import dataUploadReducer from './DataUpload/dataUploadSlice'
 import JobPostingReducer from './JobPosting/jobListingSlice'
+import JobPostingCustomizationReducer from './JobPosting/jobPostingCustomizationSlice'
 import OrganizationalMappingReducer from './OrganizationalMapping/organizationalMappingSlice'
 import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
+import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
+import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -39,9 +42,12 @@ export const makeStore = () =>
       approvalsReducer,
       resignationDataListingReducer,
       dataUploadReducer,
+      JobPostingCustomizationReducer,
       JobPostingReducer,
       OrganizationalMappingReducer,
-      schedulerManagementSliceReducer
+      schedulerManagementSliceReducer,
+      noticePeriodReducer,
+      positionBudgetMatrixReducer
     }
   })
 

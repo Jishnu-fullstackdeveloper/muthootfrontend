@@ -77,7 +77,7 @@ const JobPostListing = () => {
 
     const mappedJobs = jobPostingsData.map((item: any) => ({
       ...item.job,
-      id: item.job?.id, // Ensure job ID is included
+      id: item.id, // Ensure job ID is included
       candidatesApplied: item.candidateStatusCounts?.APPLIED || 0,
       shortlisted: item.candidateStatusCounts?.SHORTLISTED || 0,
       hired: item.candidateStatusCounts?.HIRED || 0
@@ -95,7 +95,7 @@ const JobPostListing = () => {
       return
     }
 
-    const url = `/candidateListing?jobId=${encodeURIComponent(jobId)}`
+    const url = `/Details?jobId=${encodeURIComponent(jobId)}`
 
     console.log('Navigating to:', url)
     router.push(url)
@@ -175,7 +175,7 @@ const JobPostListing = () => {
         </Box>
       ) : view === 'grid' ? (
         <JobPostGrid
-          data={jobs}
+          data={jobPostingsData}
           loading={isJobPostingsLoading}
           page={gridPage}
           totalCount={totalCount}
@@ -183,7 +183,7 @@ const JobPostListing = () => {
         />
       ) : (
         <JobTable
-          data={jobs}
+          data={jobPostingsData}
           page={tablePage}
           limit={tableLimit}
           totalCount={totalCount}

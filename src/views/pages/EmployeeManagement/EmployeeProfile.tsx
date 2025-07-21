@@ -520,7 +520,7 @@ const EmployeeProfilePage = () => {
                   <strong>Confirmation Status:</strong> {employee.confirmationStatus}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              {/* <Grid item xs={12} sm={6}>
                 <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <CalendarTodayOutlinedIcon fontSize='small' color='primary' />
                   <strong>Notice Period:</strong> {employee.noticePeriod}
@@ -537,7 +537,7 @@ const EmployeeProfilePage = () => {
                   <CalendarTodayOutlinedIcon fontSize='small' color='primary' />
                   <strong>Final Approval LWD:</strong> {employee.finalApprovalLWD}
                 </Typography>
-              </Grid>
+              </Grid> */}
             </Grid>
           </AccordionDetails>
         </Accordion>

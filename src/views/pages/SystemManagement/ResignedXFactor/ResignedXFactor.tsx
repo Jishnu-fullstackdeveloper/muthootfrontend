@@ -13,11 +13,9 @@ import {
   Typography,
   CircularProgress
 } from '@mui/material'
-
-// import AddIcon from '@mui/icons-material/Add'
-// import RemoveIcon from '@mui/icons-material/Remove'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css' // Import toast styles
 import { createColumnHelper } from '@tanstack/react-table'
-import { toast } from 'react-toastify'
 
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicTable from '@/components/Table/dynamicTable'
@@ -27,9 +25,6 @@ import {
   fetchDesignation,
   updateResignedXFactor
 } from '@/redux/ResignedXFactor/resignedXFactorSlice'
-
-// Assuming createXFactor is defined similarly to updateVacancyXFactor
-// import { createXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice';
 
 interface ResignedXFactorRow {
   id: string
@@ -45,7 +40,7 @@ interface TempDesignation {
 
 const ResignedXFactor = ({ formik }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [tempDesignations, setTempDesignations] = useState<TempDesignation[]>([{ name: '', days: null }])
+  const [tempDesignations, setTempDesignations] = useState<TempDesignation[]>([{ name: '', days: '' }])
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -55,6 +50,7 @@ const ResignedXFactor = ({ formik }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const dispatch = useAppDispatch()
+
   const { resignedXFactorData, designationData, totalCount } = useAppSelector(state => state.ResignedxFactorReducer)
 
   useEffect(() => {
@@ -116,6 +112,17 @@ const ResignedXFactor = ({ formik }) => {
 
   return (
     <div>
+      <ToastContainer
+        position='top-right'
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Card sx={{ mb: 4, gap: 2 }}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -150,10 +157,6 @@ const ResignedXFactor = ({ formik }) => {
                 }}
               />
             </Box>
-
-            {/* <Button variant='contained' color='primary' onClick={handleXFactorClick}>
-              X Factor
-            </Button> */}
           </Box>
         </CardContent>
       </Card>
@@ -164,19 +167,17 @@ const ResignedXFactor = ({ formik }) => {
         onClose={() => setDrawerOpen(false)}
         sx={{
           '& .MuiDrawer-paper': {
-            width: { xs: '90vw', sm: '500px' }, // Responsive width
+            width: { xs: '90vw', sm: '500px' },
             padding: 2,
             boxSizing: 'border-box'
           }
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3, gap: 2 }}>
-          {/* Header */}
           <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
             {editMode ? 'Edit X-Factor' : 'Add X-Factor'}
           </Typography>
 
-          {/* Designation List */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {tempDesignations?.map((designation, index) => (
               <Box
@@ -185,14 +186,12 @@ const ResignedXFactor = ({ formik }) => {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 4,
-
                   p: 2,
                   border: '1px solid',
                   borderColor: 'grey.300',
                   borderRadius: 1
                 }}
               >
-                {/* Autocomplete for Designation */}
                 <Autocomplete
                   options={designationData || []}
                   getOptionLabel={option => option.name || ''}
@@ -223,7 +222,6 @@ const ResignedXFactor = ({ formik }) => {
                   )}
                 />
 
-                {/* Days Input */}
                 <TextField
                   label='Days'
                   type='number'
@@ -247,7 +245,6 @@ const ResignedXFactor = ({ formik }) => {
             ))}
           </Box>
 
-          {/* Action Buttons */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
             <Button
               variant='outlined'
@@ -261,53 +258,6 @@ const ResignedXFactor = ({ formik }) => {
             >
               Cancel
             </Button>
-            {/* <Button
-              variant='contained'
-              color='primary'
-              onClick={async () => {
-                const validDesignations = tempDesignations.filter(d => d.name && d.days && !isNaN(Number(d.days)))
-
-                if (validDesignations.length === 0) {
-                  toast.error('At least one valid designation is required')
-
-                  return
-                }
-
-                const payload = validDesignations.map(d => ({
-                  //designationName: d.name,
-                  xFactor: parseInt(d.days, 10) || 0
-                }))
-
-                setIsLoading(true)
-
-                try {
-                  if (editMode && editId) {
-                    await dispatch(updateResignedXFactor({ id: editId, data: payload[0] })).unwrap()
-                    toast.success('X-Factor updated successfully')
-                  } else {
-                    // Assuming createXFactor exists; add logic here if needed
-                    // await dispatch(createVacancyXFactor({ data: payload })).unwrap();
-                    toast.success('X-Factor added successfully')
-                  }
-
-                  setTempDesignations([{ name: '', days: '' }])
-                  setDrawerOpen(false)
-                  setEditMode(false)
-                  setEditId(null)
-                  dispatch(fetchResignedXFactor({ page, limit, search: debouncedSearch }))
-                } catch (error) {
-                  toast.error(error.message || 'Failed to save X-Factor')
-                } finally {
-                  setIsLoading(false)
-                }
-              }}
-              disabled={isSaveDisabled}
-              startIcon={isLoading ? <CircularProgress size={20} /> : null}
-              aria-label={editMode ? 'Update X-Factor' : 'Save X-Factor'}
-            >
-              {editMode ? 'Update' : 'Save'}
-            </Button> */}
-
             <Button
               variant='contained'
               color='primary'
@@ -328,11 +278,11 @@ const ResignedXFactor = ({ formik }) => {
 
                 try {
                   if (editMode && editId) {
-                    // Ensure only xFactor is sent in the payload
-                    await dispatch(
-                      updateResignedXFactor({ id: editId, data: { xFactor: payload[0].xFactor } })
-                    ).unwrap()
-                    toast.success('X-Factor updated successfully')
+                    await dispatch(updateResignedXFactor({ id: editId, data: { xFactor: payload[0].xFactor } }))
+                      .unwrap()
+                      .then(() => {
+                        toast.success('X-Factor updated successfully')
+                      })
                   } else {
                     // Assuming createXFactor exists; add logic here if needed
                     // await dispatch(createVacancyXFactor({ data: payload })).unwrap();

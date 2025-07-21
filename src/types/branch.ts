@@ -18,6 +18,7 @@ export interface Branch {
   createdAt: string
   updatedAt: string
   data: any
+  branchData: any
   bucket: {
     id: string
     name: string
@@ -85,6 +86,71 @@ export interface BranchListResponse {
   data: Branch[]
   page: number
   limit: number
+  branchData: any
+  getBranchDetails: any
+  id: any
+  name: string
+  branchCode: string
+  turnoverCode: string
+  bucketName: string
+  branchStatus: string
+  areaId: string
+  districtId: string
+  stateId: string
+  createdAt: string
+  updatedAt: string
+
+  bucket: {
+    id: string
+    name: string
+    positionCategories: {
+      designationName: string
+      count: number
+      grade: string
+    }[]
+    turnoverCode: string
+    notes: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  cluster: {
+    name: any
+    area?: {
+      name?: any
+      region?: {
+        name?: any
+        zone?: {
+          name?: any
+          territory?: {
+            name?: any
+          }
+        }
+      }
+    }
+  }
+  area: {
+    id: string
+    name: string
+    regionId: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  district: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
+  state: {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }
 }
 
 export interface Employee {

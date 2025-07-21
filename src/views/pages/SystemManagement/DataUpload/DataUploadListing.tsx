@@ -12,9 +12,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Autocomplete
+  Autocomplete,
+  IconButton
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
 import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
 
@@ -41,6 +43,7 @@ const DataUploadListingPage = () => {
   const hasFetchedCategories = useRef(false) // Track if categories have been fetched
   const prevSearchQuery = useRef('') // Track previous search query
   const [fileError, setFileError] = useState<string | null>(null)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
 
   // Fetch categories only once on mount
   useEffect(() => {
@@ -64,7 +67,8 @@ const DataUploadListingPage = () => {
         fetchDataUploads({
           page: 1,
           limit: 5,
-          search: trimmedQuery || undefined
+          search: trimmedQuery || undefined,
+          jobId: ''
         })
       )
       prevSearchQuery.current = trimmedQuery
@@ -101,70 +105,62 @@ const DataUploadListingPage = () => {
   }
 
   const handleSubmit = async () => {
+    let hasError = false
+
     if (!selectedFile) {
       setFileError('Please select a file')
+      hasError = true
+    } else {
+      setFileError(null)
     }
 
     if (!selectedCategory) {
-      return // Autocomplete will handle its own validation
+      setCategoryError('Please select a type/category')
+      hasError = true
+    } else {
+      setCategoryError(null)
     }
 
-    if (!selectedFile || !selectedCategory) return
+    if (hasError) return
 
-    if (selectedFile && selectedCategory) {
-      try {
-        const type = selectedCategory
+    try {
+      const type = selectedCategory
 
-        // Dispatch the createDataUpload thunk
-        const result = await dispatch(
-          createDataUpload({
-            file: selectedFile,
-            type
-          })
-        ).unwrap()
-
-        console.log('File uploaded successfully:', result)
-
-        // Show success toast message
-        toast.success(result.message || 'File uploaded successfully!', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined
+      // Dispatch the createDataUpload thunk
+      const result = await dispatch(
+        createDataUpload({
+          file: selectedFile,
+          type
         })
+      ).unwrap()
 
-        // Refresh the data after successful upload
-        dispatch(
-          fetchDataUploads({
-            page: 1,
-            limit: 5,
-            search: searchQuery.trim() || undefined
-          })
-        )
-      } catch (error: any) {
-        console.error('File upload failed:', error)
+      console.log('File uploaded successfully:', result)
 
-        // Show error toast message
-        toast.error(error || 'Failed to upload file. Please try again.', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined
+      // Show success toast message
+      toast.success(result.message || 'File uploaded successfully!', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined
+      })
+
+      // Refresh the data after successful upload
+      dispatch(
+        fetchDataUploads({
+          page: 1,
+          limit: 5,
+          search: searchQuery.trim() || undefined,
+          jobId: ''
         })
-      }
+      )
+    } catch (error: any) {
+      console.error('File upload failed:', error)
 
-      handleDialogClose()
-    } else {
-      console.log('Please select a file and category')
-
-      // Show warning toast if file or category is missing
-      toast.warn('Please select a file and category', {
+      // Show error toast message
+      toast.error(error || 'Failed to upload file. Please try again.', {
         position: 'top-right',
         autoClose: 5000,
         hideProgressBar: false,
@@ -174,6 +170,8 @@ const DataUploadListingPage = () => {
         progress: undefined
       })
     }
+
+    handleDialogClose()
   }
 
   return (
@@ -192,7 +190,7 @@ const DataUploadListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-4 border-bs gap-4 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap mt-2'>
             <TextField
-              label='Search by File Name'
+              label='Search by file name'
               variant='outlined'
               size='small'
               value={searchQuery}
@@ -201,6 +199,11 @@ const DataUploadListingPage = () => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
+                    {searchQuery && (
+                      <IconButton size='small' onClick={() => setSearchQuery('')} edge='end'>
+                        <ClearIcon fontSize='small' />
+                      </IconButton>
+                    )}
                     <SearchIcon />
                   </InputAdornment>
                 )
@@ -259,7 +262,7 @@ const DataUploadListingPage = () => {
               helperText={fileError}
             />
 
-            <Autocomplete
+            {/* <Autocomplete
               options={categories}
               value={selectedCategory}
               onChange={(event, newValue) => setSelectedCategory(newValue)}
@@ -270,6 +273,26 @@ const DataUploadListingPage = () => {
                   size='small'
                   error={categoriesStatus === 'failed'}
                   helperText={categoriesStatus === 'failed' ? categoriesError : undefined}
+                />
+              )}
+              fullWidth
+              disabled={categoriesStatus === 'loading'}
+            /> */}
+
+            <Autocomplete
+              options={categories}
+              value={selectedCategory}
+              onChange={(event, newValue) => {
+                setSelectedCategory(newValue)
+                setCategoryError(null) // Clear error on selection
+              }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Type/Category'
+                  size='small'
+                  error={!!categoryError || categoriesStatus === 'failed'}
+                  helperText={categoryError || (categoriesStatus === 'failed' ? categoriesError : undefined)}
                 />
               )}
               fullWidth
@@ -285,7 +308,8 @@ const DataUploadListingPage = () => {
             onClick={handleSubmit}
             color='primary'
             variant='contained'
-            disabled={!selectedFile || !selectedCategory || categoriesStatus === 'loading'}
+
+            //disabled={!selectedFile || !selectedCategory || categoriesStatus === 'loading'}
           >
             Submit
           </Button>

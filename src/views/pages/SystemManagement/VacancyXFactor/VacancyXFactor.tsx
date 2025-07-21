@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useMemo, useState, useEffect } from 'react'
 
 import {
@@ -14,21 +13,16 @@ import {
   Typography,
   CircularProgress
 } from '@mui/material'
-
-// import AddIcon from '@mui/icons-material/Add'
-// import RemoveIcon from '@mui/icons-material/Remove'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import { createColumnHelper } from '@tanstack/react-table'
-import { toast } from 'react-toastify'
 
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancyXFactor, fetchDesignation, updateVacancyXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice'
 
-// Assuming createXFactor is defined similarly to updateVacancyXFactor
-// import { createXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice';
-
-interface ResignedXFactorRow {
+interface VacancyXFactorRow {
   id: string
   designationName: string
   xFactor: number
@@ -40,18 +34,19 @@ interface TempDesignation {
   days: string
 }
 
-const VacancyXFactor = ({ formik }) => {
+const VacancyXFactor = ({ formik }: { formik?: any }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [tempDesignations, setTempDesignations] = useState<TempDesignation[]>([{ name: '', days: null }])
+  const [tempDesignations, setTempDesignations] = useState<TempDesignation[]>([{ name: '', days: '' }])
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [editMode, setEditMode] = useState(false)
-  const [editId, setEditId] = useState(null)
+  const [editId, setEditId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const dispatch = useAppDispatch()
+
   const { vacancyXFactorData, designationData, totalCount } = useAppSelector(state => state.VacancyXFactorReducer)
 
   useEffect(() => {
@@ -67,13 +62,14 @@ const VacancyXFactor = ({ formik }) => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  const handleRowsPerPageChange = (newPageSize: number) => {
-    setLimit(newPageSize)
-  }
-
   useEffect(() => {
     dispatch(fetchVacancyXFactor({ page, limit, search: debouncedSearch }))
   }, [page, limit, debouncedSearch, dispatch])
+
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setLimit(newPageSize)
+    setPage(1)
+  }
 
   const handleXFactorClick = () => {
     setDrawerOpen(true)
@@ -82,7 +78,7 @@ const VacancyXFactor = ({ formik }) => {
     setEditId(null)
   }
 
-  const columnHelper = createColumnHelper<ResignedXFactorRow>()
+  const columnHelper = createColumnHelper<VacancyXFactorRow>()
 
   const columns = useMemo(
     () => [
@@ -120,6 +116,17 @@ const VacancyXFactor = ({ formik }) => {
 
   return (
     <div>
+      <ToastContainer
+        position='top-right'
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Card sx={{ mb: 4, gap: 2 }}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -127,7 +134,7 @@ const VacancyXFactor = ({ formik }) => {
               <DynamicTextField
                 label='Search Roles'
                 variant='outlined'
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 value={searchTerm}
                 placeholder='Search roles...'
                 size='small'
@@ -154,10 +161,9 @@ const VacancyXFactor = ({ formik }) => {
                 }}
               />
             </Box>
-
-            {/* <Button variant='contained' color='primary' onClick={handleXFactorClick}>
+            <Button variant='contained' color='primary' onClick={handleXFactorClick}>
               X Factor
-            </Button> */}
+            </Button>
           </Box>
         </CardContent>
       </Card>
@@ -168,41 +174,36 @@ const VacancyXFactor = ({ formik }) => {
         onClose={() => setDrawerOpen(false)}
         sx={{
           '& .MuiDrawer-paper': {
-            width: { xs: '90vw', sm: '500px' }, // Responsive width
+            width: { xs: '90vw', sm: '500px' },
             padding: 2,
             boxSizing: 'border-box'
           }
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3, gap: 2 }}>
-          {/* Header */}
           <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
             {editMode ? 'Edit X-Factor' : 'Add X-Factor'}
           </Typography>
-
-          {/* Designation List */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {tempDesignations?.map((designation, index) => (
+            {tempDesignations.map((designation, index) => (
               <Box
                 key={index}
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 4,
-
                   p: 2,
                   border: '1px solid',
                   borderColor: 'grey.300',
                   borderRadius: 1
                 }}
               >
-                {/* Autocomplete for Designation */}
                 <Autocomplete
                   options={designationData || []}
-                  getOptionLabel={option => option.name || ''}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  value={designationData?.find(item => item.name === designation.name) || null}
-                  onChange={(e, value) => {
+                  getOptionLabel={(option: any) => option.name || ''}
+                  isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+                  value={designationData?.find((item: any) => item.name === designation.name) || null}
+                  onChange={(_e, value: any) => {
                     const selectedName = value ? value.name.trim() : ''
                     const newDesignations = [...tempDesignations]
 
@@ -226,13 +227,11 @@ const VacancyXFactor = ({ formik }) => {
                     />
                   )}
                 />
-
-                {/* Days Input */}
                 <TextField
                   label='Days'
                   type='number'
                   value={designation.days}
-                  onChange={e => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = e.target.value
 
                     if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0)) {
@@ -242,7 +241,7 @@ const VacancyXFactor = ({ formik }) => {
                       setTempDesignations(newDesignations)
                     }
                   }}
-                  error={formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days}
+                  error={formik?.touched?.designations?.[index]?.days && !!formik.errors.designations?.[index]?.days}
                   helperText={formik?.touched?.designations?.[index]?.days && formik.errors.designations?.[index]?.days}
                   sx={{ width: '120px' }}
                   inputProps={{ min: 0, 'aria-label': `Days for designation ${index + 1}` }}
@@ -250,8 +249,6 @@ const VacancyXFactor = ({ formik }) => {
               </Box>
             ))}
           </Box>
-
-          {/* Action Buttons */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
             <Button
               variant='outlined'
@@ -278,7 +275,6 @@ const VacancyXFactor = ({ formik }) => {
                 }
 
                 const payload = validDesignations.map(d => ({
-                  //designationName: d.name,
                   xFactor: parseInt(d.days, 10) || 0
                 }))
 
@@ -286,7 +282,7 @@ const VacancyXFactor = ({ formik }) => {
 
                 try {
                   if (editMode && editId) {
-                    await dispatch(updateVacancyXFactor({ id: editId, data: payload[0] })).unwrap()
+                    await dispatch(updateVacancyXFactor({ id: editId, data: { xFactor: payload[0].xFactor } })).unwrap()
                     toast.success('X-Factor updated successfully')
                   } else {
                     // Assuming createXFactor exists; add logic here if needed
@@ -299,7 +295,7 @@ const VacancyXFactor = ({ formik }) => {
                   setEditMode(false)
                   setEditId(null)
                   dispatch(fetchVacancyXFactor({ page, limit, search: debouncedSearch }))
-                } catch (error) {
+                } catch (error: any) {
                   toast.error(error.message || 'Failed to save X-Factor')
                 } finally {
                   setIsLoading(false)
@@ -314,7 +310,6 @@ const VacancyXFactor = ({ formik }) => {
           </Box>
         </Box>
       </Drawer>
-
       <DynamicTable
         tableName='Vacancy X-Factor List'
         columns={columns}
@@ -324,10 +319,10 @@ const VacancyXFactor = ({ formik }) => {
         limit={limit}
         onRowsPerPageChange={handleRowsPerPageChange}
         totalCount={totalCount}
-        onPageChange={newPage => {
+        onPageChange={(newPage: number) => {
           setPage(newPage + 1)
         }}
-        onLimitChange={newLimit => {
+        onLimitChange={(newLimit: number) => {
           setLimit(newLimit)
           setPage(1)
         }}

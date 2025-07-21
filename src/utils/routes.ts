@@ -45,9 +45,10 @@ export const ROUTES = {
     return `/approvals/approval-detail/Vacancy-Request-Group/request?${params.toString()}`
   },
   VACANCY_DETAIL: (id: string) => `/approvals/approval-detail/Vacancy-Request-Group/request/details?id=${id}`,
+  INTERVIEW_MANAGEMENT: `/interview-management`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
-    INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',
+    // INTERVIEW_MANAGEMENT: '/interview-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',

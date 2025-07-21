@@ -121,13 +121,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             permission: 'jobPosting',
             read: 'HIRING_JOBPOSTING_READ'
           },
-          {
-            path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
-            label: 'Interview Management',
-            iconClass: 'tabler-calendar-event',
-            permission: 'interviewManagement',
-            read: 'HIRING_INTERVIEW_READ'
-          },
+          // {
+          //   path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
+          //   label: 'Interview Management',
+          //   iconClass: 'tabler-calendar-event',
+          //   permission: 'interviewManagement',
+          //   read: 'HIRING_INTERVIEW_READ'
+          // },
           {
             path: ROUTES.HIRING_MANAGEMENT.CV_POOL,
             label: 'CV Pool',
@@ -291,8 +291,22 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-settings',
             permission: 'interviewCustomization',
             read: 'SYSTEM_READ'
+          },
+          {
+            path: ROUTES.HOME,
+            label: 'Home',
+            iconClass: 'tabler-home',
+            permission: 'home',
+            read: 'HOME_READ'
           }
         ]
+      },
+      {
+        path: ROUTES.INTERVIEW_MANAGEMENT,
+        label: 'Interview Management',
+        iconClass: 'tabler-calendar-event',
+        permission: 'branchManagement',
+        read: ''
       }
     ],
     []

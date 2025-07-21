@@ -68,7 +68,7 @@ export const JobPostingSlice = createSlice({
       state.jobPostingsFailureMessage = ''
     })
     builder.addCase(fetchJobPostings.fulfilled, (state, action) => {
-      state.jobPostingsData = action.payload?.data?.jobs || []
+      state.jobPostingsData = action.payload?.data || []
       state.isJobPostingsLoading = false
       state.jobPostingsSuccess = true
     })

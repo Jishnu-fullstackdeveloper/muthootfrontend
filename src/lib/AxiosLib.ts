@@ -13,7 +13,7 @@ const AxiosLib = axios.create({
   signal: controller.signal
 })
 
-// Set Authorization header if accessToken is available.
+// Set Authorization header if accessToken is available
 if (accessToken) {
   const decodedToken: any = jwtDecode(accessToken)
 

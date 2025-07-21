@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 const Page = () => {
   const router = useRouter()
 
-  router.push('/interview-management/candidates-list')
+  router.push('/interview-management/candidates-management')
 
   return <div></div>
 }

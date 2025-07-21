@@ -31,9 +31,18 @@ interface CandidateGridProps {
   totalCount: number
   onLoadMore: (newPage: number) => void
   updateCandidateStatus: (candidateId: number, newStatus: string) => void
+  handleCadidateDetails?: (candidateId: number) => void
 }
 
-const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCandidateStatus }: CandidateGridProps) => {
+const CandidateGrid = ({
+  data,
+  loading,
+  page,
+  totalCount,
+  onLoadMore,
+  updateCandidateStatus,
+  handleCadidateDetails
+}: CandidateGridProps) => {
   // const statusOptions = ['Shortlisted', 'Rejected', 'L1']
   const limit = 6
   const totalPages = Math.ceil(totalCount / limit)
@@ -59,7 +68,7 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
                 },
                 cursor: 'pointer'
               }}
-              onClick={() => console.log(`Navigate to candidate details: ${candidate.id}`)} // Replace with actual navigation logic
+              onClick={() => handleCadidateDetails(candidate.id)} // Replace with actual navigation logic
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                 <Typography variant='h6' fontWeight='bold' fontSize='13px'>

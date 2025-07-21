@@ -1,4 +1,5 @@
 import React from 'react'
+
 import CandidateListing from '../HiringManagement/JobPosting/JobDetails/candidateListing'
 
 const Index = () => {

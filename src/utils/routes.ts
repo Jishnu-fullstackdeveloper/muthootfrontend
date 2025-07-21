@@ -49,6 +49,7 @@ export const ROUTES = {
   INTERVIEW_MANAGEMENT: `/interview-management`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
+
     // INTERVIEW_MANAGEMENT: '/interview-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',

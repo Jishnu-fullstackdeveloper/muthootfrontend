@@ -128,6 +128,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             permission: 'jobPosting',
             read: 'HIRING_JOBPOSTING_READ'
           },
+
           // {
           //   path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
           //   label: 'Interview Management',

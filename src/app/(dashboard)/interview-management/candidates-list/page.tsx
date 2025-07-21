@@ -1,5 +1,6 @@
-import InterviewManagement from '@/views/pages/InterviewManagement/Index'
 import React from 'react'
+
+import InterviewManagement from '@/views/pages/InterviewManagement/Index'
 
 const page = () => {
   return <InterviewManagement />

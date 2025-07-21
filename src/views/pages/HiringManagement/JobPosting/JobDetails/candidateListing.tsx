@@ -74,6 +74,7 @@ const CandidateListing = () => {
       const url = new URL(window.location.href)
       const jobIdFromUrl = url.searchParams.get('jobId')
       const jobIdFromSearchParams = searchParams.get('jobId')
+
       setEffectiveJobId(jobIdFromSearchParams || jobIdFromUrl)
     }
   }, [searchParams, candidatesData])
@@ -88,6 +89,7 @@ const CandidateListing = () => {
         limit: view === 'grid' ? gridLimit : tableLimit
       })
     )
+
     // }
     // else {
     //   console.log('No effective jobId, resetting candidates status')

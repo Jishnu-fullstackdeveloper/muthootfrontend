@@ -7,7 +7,7 @@ import JdDetails from './jdDetails'
 import VacancyDetails from './vaccancyDetails'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('Candidate Listing')
+  const [activeTab, setActiveTab] = useState('Vacancy Details')
 
   return (
     <Box
@@ -42,17 +42,17 @@ export default function Home() {
             }
           }}
         >
-          <Tab label='Candidate Listing' value='Candidate Listing' />
           <Tab label='Vacancy Details' value='Vacancy Details' />
           <Tab label='Jd Details' value='Jd Details' />
+          <Tab label='Candidate Listing' value='Candidate Listing' />
         </Tabs>
       </Box>
 
       {/* Tab Content */}
       <Box sx={{ mt: 2 }}>
-        {activeTab === 'Candidate Listing' && <CandidateListing />}
         {activeTab === 'Jd Details' && <JdDetails />}
         {activeTab === 'Vacancy Details' && <VacancyDetails />}
+        {activeTab === 'Candidate Listing' && <CandidateListing />}
       </Box>
     </Box>
   )

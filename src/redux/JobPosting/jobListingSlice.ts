@@ -19,7 +19,7 @@ export const fetchJobPostings = createAsyncThunk(
 // Thunk to fetch candidates for a job
 export const fetchCandidates = createAsyncThunk(
   'candidates/fetchCandidates',
-  async (params: { jobId: string; page: number; limit: number; search?: string }, { rejectWithValue }) => {
+  async (params: { jobId?: string; page: number; limit: number; search?: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get('/candidate-management', { params })
 
@@ -68,7 +68,7 @@ export const JobPostingSlice = createSlice({
       state.jobPostingsFailureMessage = ''
     })
     builder.addCase(fetchJobPostings.fulfilled, (state, action) => {
-      state.jobPostingsData = action.payload?.data?.jobs || []
+      state.jobPostingsData = action.payload?.data || []
       state.isJobPostingsLoading = false
       state.jobPostingsSuccess = true
     })

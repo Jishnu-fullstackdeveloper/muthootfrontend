@@ -19,7 +19,7 @@ const AddNewJob = () => {
 
   return (
     <>
-      {(mode === 'add' ) && (
+      {mode === 'add' && (
         <>
           <AddNewJdSample mode={mode} id={id} />
         </>

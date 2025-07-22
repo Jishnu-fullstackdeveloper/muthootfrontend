@@ -8,7 +8,7 @@
     "register_new_account_text": "Do you want to create an account?",
     "register_new_account_link_text": "Create an account",
     "primaryColor": "#0095da",
-    "backgroundColor": "#fffff",
+    "backgroundColor": "#E5E5E5",
     "primary_button": {
       "cornerRadius": "8px"
     },
@@ -42,7 +42,7 @@
       "primary": "#d303fc",
       "secondary": "#ff030f",
       "background": "#000000",
-      "text": "#333333",
+      "text": "#ffffff",
       "menuText": "#333333",
       "menuHover": "#2ecc71",
       "buttonText": "#ffffff",
@@ -59,9 +59,9 @@
           "iconClass": "tabler-smart-home"
         }
       ],
-      "header_backgroundColor": "00FFFFFF",
-      "backgroundColor": "#fffff",
-      "textColor": "#333333",
+      "header_backgroundColor": "#0191DA",
+      "backgroundColor": "#0191DA",
+      "textColor": "#ffffff",
       "hoverColor": "#2ecc71"
     }
   },

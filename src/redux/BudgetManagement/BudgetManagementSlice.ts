@@ -28,7 +28,8 @@ import type {
   ClusterResponse,
   CityResponse,
   DepartmentBudgetResponse,
-  DepartmentBudgetVacancyResponse
+  DepartmentBudgetVacancyResponse,
+  JobRoleNamesByRoleResponse // New type to be added
 } from '@/types/budget'
 
 // Type for the new POST /department-budget request body
@@ -438,7 +439,22 @@ export const fetchApprovalCategories = createAsyncThunk<
   }
 })
 
-// New thunk for POST /department-budget
+// New thunk for GET /jobRole/names-by-role
+export const fetchJobRoleNamesByRole = createAsyncThunk<JobRoleNamesByRoleResponse, { jobRole: string }>(
+  'budgetManagement/fetchJobRoleNamesByRole',
+  async ({ jobRole }, { rejectWithValue }) => {
+    try {
+      const params = { jobRole }
+      const response = await AxiosLib.get(API_ENDPOINTS.jobRoleNamesByRoleUrl, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// Existing thunks (unchanged)
 export const createDepartmentBudget = createAsyncThunk<DepartmentBudgetResponse, DepartmentBudgetRequest>(
   'budgetManagement/createDepartmentBudget',
   async (requestData, { rejectWithValue }) => {
@@ -452,7 +468,6 @@ export const createDepartmentBudget = createAsyncThunk<DepartmentBudgetResponse,
   }
 )
 
-// New thunk for GET /department-budget/vacancy
 export const fetchDepartmentBudgetVacancy = createAsyncThunk<
   DepartmentBudgetVacancyResponse,
   { page: number; limit: number; search?: string }
@@ -606,7 +621,13 @@ export const budgetManagementSlice = createSlice({
     fetchDepartmentBudgetVacancyData: null,
     fetchDepartmentBudgetVacancyTotal: 0,
     fetchDepartmentBudgetVacancyFailure: false,
-    fetchDepartmentBudgetVacancyFailureMessage: ''
+    fetchDepartmentBudgetVacancyFailureMessage: '',
+    fetchJobRoleNamesByRoleLoading: false,
+    fetchJobRoleNamesByRoleSuccess: false,
+    fetchJobRoleNamesByRoleData: null,
+    fetchJobRoleNamesByRoleTotal: 0,
+    fetchJobRoleNamesByRoleFailure: false,
+    fetchJobRoleNamesByRoleFailureMessage: ''
   } as BudgetManagementState,
   reducers: {
     // Define any additional reducers if needed
@@ -635,6 +656,7 @@ export const budgetManagementSlice = createSlice({
     handleAsyncThunkStates(builder, fetchApprovalCategories, 'fetchApprovalCategories')
     handleAsyncThunkStates(builder, createDepartmentBudget, 'createDepartmentBudget')
     handleAsyncThunkStates(builder, fetchDepartmentBudgetVacancy, 'fetchDepartmentBudgetVacancy')
+    handleAsyncThunkStates(builder, fetchJobRoleNamesByRole, 'fetchJobRoleNamesByRole')
   }
 })
 

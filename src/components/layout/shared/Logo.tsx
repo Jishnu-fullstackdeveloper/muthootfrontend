@@ -74,7 +74,7 @@ const Logo = () => {
   // You may return any JSX here to display a logo in the sidebar header
   // return <Img src='/next.svg' width={100} height={25} alt='logo' /> // for example
   return (
-    <Link href='/home' className='flex items-center'>
+    <Link href='/home' className='flex justify-center'>
       {custom_theme_settings?.theme?.images?.logo?.url ? (
         <Box
           component='img'
@@ -86,22 +86,22 @@ const Logo = () => {
               sm: custom_theme_settings?.theme?.images?.logo?.width?.sm_tablets || 40, // Medium screen size (e.g., tablets)
               md: custom_theme_settings?.theme?.images?.logo?.width?.md_desktops || 50 // Larger screen size (e.g., desktops)
             },
-            height: custom_theme_settings?.theme?.images?.logo?.height || 'auto', // Maintain aspect ratio
-            borderRadius: '50%' // Optional: Circular image
+            height: custom_theme_settings?.theme?.images?.logo?.height || 'auto' // Maintain aspect ratio
+            // borderRadius: '50%' // Optional: Circular image
           }}
         />
       ) : (
         <VuexyLogo className='text-2xl text-primary' />
       )}
 
-      <LogoText
+      {/* <LogoText
         ref={logoTextRef}
         isHovered={isHovered}
         isCollapsed={layout === 'collapsed'}
         transitionDuration={transitionDuration}
       >
         {themeConfig.templateName}
-      </LogoText>
+      </LogoText> */}
     </Link>
   )
 }

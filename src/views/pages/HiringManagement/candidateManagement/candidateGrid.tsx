@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { Typography, Card, Grid, Box, Pagination, Tooltip, Button, Chip } from '@mui/material'
+import { Typography, Card, Grid, Box, Tooltip, Button, Chip, Divider } from '@mui/material'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
@@ -31,12 +31,22 @@ interface CandidateGridProps {
   totalCount: number
   onLoadMore: (newPage: number) => void
   updateCandidateStatus: (candidateId: number, newStatus: string) => void
+  handleCadidateDetails?: (candidateId: number) => void
 }
 
-const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCandidateStatus }: CandidateGridProps) => {
+const CandidateGrid = ({
+  data,
+  loading,
+
+  // page,
+  // totalCount,
+  // onLoadMore,
+  updateCandidateStatus,
+  handleCadidateDetails
+}: CandidateGridProps) => {
   // const statusOptions = ['Shortlisted', 'Rejected', 'L1']
-  const limit = 6
-  const totalPages = Math.ceil(totalCount / limit)
+  // const limit = 6
+  // const totalPages = Math.ceil(totalCount / limit)
 
   return (
     <Box>
@@ -45,32 +55,36 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
           <Grid item xs={12} sm={6} md={4} key={candidate.id}>
             <Card
               sx={{
-                p: 2,
+                p: 3,
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                bgcolor: 'white',
+                bgcolor: 'background.paper',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)'
+                  transform: 'translateY(-6px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)'
                 },
                 cursor: 'pointer'
               }}
-              onClick={() => console.log(`Navigate to candidate details: ${candidate.id}`)} // Replace with actual navigation logic
+              onClick={() => handleCadidateDetails(candidate.id)}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant='h6' fontWeight='bold' fontSize='13px'>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant='h6' fontWeight='600' sx={{ color: 'text.primary', fontSize: '1.1rem' }}>
                   {candidate.name}
                 </Typography>
                 <Tooltip title='Status'>
                   <Chip
                     label={candidate.status || 'Pending'}
                     size='small'
-                    variant='outlined'
-                    sx={{ fontSize: '10px' }}
+                    sx={{
+                      fontSize: '0.75rem',
+                      fontWeight: 'medium',
+                      borderRadius: '16px',
+                      height: '24px'
+                    }}
                     color={
                       candidate.status === 'Shortlisted'
                         ? 'success'
@@ -83,78 +97,88 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
                   />
                 </Tooltip>
               </Box>
-              <Box sx={{ borderTop: '1px solid #e0e0e0', pt: 2 }}>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 1,
-                    fontSize: '10px',
-                    color: 'text.secondary'
-                  }}
-                >
-                  <Tooltip title='Email'>
-                    <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <EmailOutlinedIcon fontSize='small' /> {candidate.email}
-                    </Typography>
-                  </Tooltip>
-                  <Tooltip title='Phone Number'>
-                    <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <PhoneOutlinedIcon fontSize='small' /> {candidate.phoneNumber || 'N/A'}
-                    </Typography>
-                  </Tooltip>
-                  <Tooltip title='Applied Portal'>
-                    <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <WorkOutlineIcon fontSize='small' /> {candidate.appliedPortal || 'N/A'}
-                    </Typography>
-                  </Tooltip>
-                  <Tooltip title='Applied Date'>
-                    <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayOutlinedIcon fontSize='small' /> {candidate.appliedDate}
-                    </Typography>
-                  </Tooltip>
-                  <Typography variant='body2'>
-                    <strong>Min Exp:</strong> {candidate.minExperience || 'N/A'}
+
+              <Divider sx={{ mb: 2, borderColor: 'grey.200' }} />
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, fontSize: '0.85rem' }}>
+                <Tooltip title='Email'>
+                  <Typography
+                    variant='body2'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}
+                  >
+                    <EmailOutlinedIcon fontSize='small' color='action' />
+                    {candidate.email}
                   </Typography>
-                  <Typography variant='body2'>
-                    <strong>Max Exp:</strong> {candidate.maxExperience || 'N/A'}
+                </Tooltip>
+                <Tooltip title='Phone Number'>
+                  <Typography
+                    variant='body2'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}
+                  >
+                    <PhoneOutlinedIcon fontSize='small' color='action' />
+                    {candidate.phoneNumber || 'N/A'}
                   </Typography>
-                  <Typography variant='body2'>
-                    <strong>Match:</strong> {candidate.match || 'N/A'}
+                </Tooltip>
+                <Tooltip title='Applied Portal'>
+                  <Typography
+                    variant='body2'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}
+                  >
+                    <WorkOutlineIcon fontSize='small' color='action' />
+                    {candidate.appliedPortal || 'N/A'}
                   </Typography>
-                </Box>
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Tooltip title='Shortlist'>
-                      <Button
-                        variant='tonal'
-                        color='success'
-                        size='small'
-                        startIcon={<CheckCircleOutlineIcon />}
-                        onClick={e => {
-                          e.stopPropagation()
-                          updateCandidateStatus(candidate.id, 'Shortlisted')
-                        }}
-                      >
-                        Shortlist
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title='Reject'>
-                      <Button
-                        variant='tonal'
-                        color='error'
-                        size='small'
-                        startIcon={<CancelOutlinedIcon />}
-                        onClick={e => {
-                          e.stopPropagation()
-                          updateCandidateStatus(candidate.id, 'Rejected')
-                        }}
-                      >
-                        Reject
-                      </Button>
-                    </Tooltip>
-                  </Box>
-                </Box>
+                </Tooltip>
+                <Tooltip title='Applied Date'>
+                  <Typography
+                    variant='body2'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}
+                  >
+                    <CalendarTodayOutlinedIcon fontSize='small' color='action' />
+                    {candidate.appliedDate}
+                  </Typography>
+                </Tooltip>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <strong>Min Exp:</strong> {candidate.minExperience || 'N/A'}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <strong>Max Exp:</strong> {candidate.maxExperience || 'N/A'}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary', gridColumn: 'span 2' }}>
+                  <strong>Match:</strong> {candidate.match || 'N/A'}
+                </Typography>
+              </Box>
+
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                <Tooltip title='Click to shortlist this candidate'>
+                  <Button
+                    variant='contained'
+                    color='success'
+                    size='small'
+                    startIcon={<CheckCircleOutlineIcon />}
+                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      updateCandidateStatus(candidate.id, 'Shortlisted')
+                    }}
+                  >
+                    Shortlist
+                  </Button>
+                </Tooltip>
+                <Tooltip title='Click to reject this candidate'>
+                  <Button
+                    variant='outlined'
+                    color='error'
+                    size='small'
+                    startIcon={<CancelOutlinedIcon />}
+                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      updateCandidateStatus(candidate.id, 'Rejected')
+                    }}
+                  >
+                    Reject
+                  </Button>
+                </Tooltip>
               </Box>
             </Card>
           </Grid>
@@ -172,9 +196,6 @@ const CandidateGrid = ({ data, loading, page, totalCount, onLoadMore, updateCand
           </Typography>
         </Box>
       )}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-        <Pagination count={totalPages} page={page} onChange={(_, newPage) => onLoadMore(newPage)} color='primary' />
-      </Box>
     </Box>
   )
 }

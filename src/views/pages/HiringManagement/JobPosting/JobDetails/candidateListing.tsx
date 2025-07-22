@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
 import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography, Button } from '@mui/material'
@@ -62,6 +62,7 @@ const CandidateListing = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const { candidatesData, isCandidatesLoading, candidatesFailure, candidatesFailureMessage } = useAppSelector(
     (state: any) => state.JobPostingReducer
@@ -74,30 +75,26 @@ const CandidateListing = () => {
       const jobIdFromUrl = url.searchParams.get('jobId')
       const jobIdFromSearchParams = searchParams.get('jobId')
 
-      console.log('CandidateListing URL:', window.location.href)
-      console.log('CandidateListing searchParams:', Object.fromEntries(searchParams.entries()))
-      console.log('CandidateListing jobId (searchParams):', jobIdFromSearchParams)
-      console.log('CandidateListing jobId (URL):', jobIdFromUrl)
-      console.log('CandidateListing candidatesData:', candidatesData)
       setEffectiveJobId(jobIdFromSearchParams || jobIdFromUrl)
     }
   }, [searchParams, candidatesData])
 
   // Fetch candidates from API
   useEffect(() => {
-    if (effectiveJobId) {
-      console.log('Fetching candidates for jobId:', effectiveJobId)
-      dispatch(
-        fetchCandidates({
-          jobId: effectiveJobId,
-          page: view === 'grid' ? gridPage : tablePage,
-          limit: view === 'grid' ? gridLimit : tableLimit
-        })
-      )
-    } else {
-      console.log('No effective jobId, resetting candidates status')
-      dispatch(resetCandidatesStatus())
-    }
+    // if (effectiveJobId) {
+    dispatch(
+      fetchCandidates({
+        // jobId: effectiveJobId,
+        page: view === 'grid' ? gridPage : tablePage,
+        limit: view === 'grid' ? gridLimit : tableLimit
+      })
+    )
+
+    // }
+    // else {
+    //   console.log('No effective jobId, resetting candidates status')
+    //   dispatch(resetCandidatesStatus())
+    // }
 
     return () => {
       dispatch(resetCandidatesStatus())
@@ -137,11 +134,6 @@ const CandidateListing = () => {
     return filteredCandidates.slice(start, end)
   }, [filteredCandidates, gridPage, tablePage, gridLimit, tableLimit, view])
 
-  // const handleView = (candidateId: number) => {
-  //   console.log('Navigating to candidateDetails with candidateId:', candidateId)
-  //   router.push(`/candidateDetails?candidateId=${candidateId}`)
-  // }
-
   const handleGridLoadMore = (newPage: number) => {
     setGridPage(newPage)
   }
@@ -153,6 +145,14 @@ const CandidateListing = () => {
   const handleTableRowsPerPageChange = (newPageSize: number) => {
     setTableLimit(newPageSize)
     setTablePage(1)
+  }
+
+  const handleCadidateDetails = (candidateId: number) => {
+    if (pathname === '/interview-management/candidates-management') {
+      router.push(`/interview-management/candidates-management/view?candidateId=${candidateId}`)
+    } else if (pathname === '/hiring-management/job-posting/view/details') {
+      router.push(`/hiring-management/job-posting/view/details/view?candidateId=${candidateId}`)
+    }
   }
 
   return (
@@ -186,7 +186,7 @@ const CandidateListing = () => {
         </CardContent>
       </Card>
 
-      {!effectiveJobId ? (
+      {!effectiveJobId && pathname === '/hiring-management/job-posting/view/details' ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
           <Typography color='error'>No job ID provided. Please select a job from the job postings page.</Typography>
           <Button variant='contained' onClick={() => router.push('/jobPostListing')} sx={{ mt: 2 }}>
@@ -217,6 +217,7 @@ const CandidateListing = () => {
             candidateId
             throw new Error('Function not implemented.')
           }}
+          handleCadidateDetails={handleCadidateDetails}
         />
       ) : (
         <CandidateTable
@@ -231,6 +232,7 @@ const CandidateListing = () => {
             newStatus
             throw new Error('Function not implemented.')
           }}
+          handleCadidateDetails={handleCadidateDetails}
         />
       )}
     </Box>

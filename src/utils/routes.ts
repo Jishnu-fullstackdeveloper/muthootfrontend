@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: '/home',
+  RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
     USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,
@@ -45,9 +46,11 @@ export const ROUTES = {
     return `/approvals/approval-detail/Vacancy-Request-Group/request?${params.toString()}`
   },
   VACANCY_DETAIL: (id: string) => `/approvals/approval-detail/Vacancy-Request-Group/request/details?id=${id}`,
+  INTERVIEW_MANAGEMENT: `/interview-management`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
-    INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',
+
+    // INTERVIEW_MANAGEMENT: '/interview-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
@@ -121,6 +124,7 @@ export const ROUTES = {
     APPROVAL_MATRIX_ADD: '/system-management/approval-matrix/add/new',
     APPROVAL_MATRIX_EDIT: (queryParams: any) => `/system-management/approval-matrix/edit/edit-approval?${queryParams}`,
     SCHEDULER: '/system-management/scheduler',
+    JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
   }
 }

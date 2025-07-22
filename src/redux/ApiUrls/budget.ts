@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   designationUrl: '/designation',
   bandUrl: '/band',
   gradeUrl: '/grade',
+  jdUrl: '/jd',
   zoneUrl: '/zone',
   regionUrl: '/region',
   areaUrl: '/area',

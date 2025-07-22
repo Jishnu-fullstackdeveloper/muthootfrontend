@@ -113,6 +113,29 @@ export interface JDDetails {
   interviewLevels: InterviewLevels
 }
 
+export interface JD {
+  roleSpecification: RoleSpecification[]
+  roleSummary: string
+  keyResponsibilities: KeyResponsibility[]
+  keyChallenges: string
+  keyDecisions: string
+  keyInteractions: KeyInteraction[]
+  keyRoleDimensions: KeyRoleDimension[]
+  skills: string[]
+  educationAndExperience: EducationAndExperience[]
+  organizationChart: OrgChartNode
+  interviewLevels: InterviewLevels
+}
+
+export interface JDResponse {
+  success: boolean
+  message: string
+  data: JD[]
+  totalCount: number
+  page: number
+  limit: number
+}
+
 // New interface for Location Details
 export interface LocationDetail {
   location: string

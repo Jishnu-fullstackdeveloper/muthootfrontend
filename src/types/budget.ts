@@ -45,6 +45,12 @@ export interface Budget {
   approvalRequestId?: string
 }
 
+export interface JobRoleNamesByRoleResponse {
+  success: boolean
+  type: string
+  names: string[]
+}
+
 export interface BudgetDepartment {
   id: string
   deletedBy: string | null

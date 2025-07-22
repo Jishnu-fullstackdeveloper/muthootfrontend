@@ -306,13 +306,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-settings',
             permission: 'interviewCustomization',
             read: 'SYSTEM_READ'
-          },
-          {
-            path: ROUTES.HOME,
-            label: 'Home',
-            iconClass: 'tabler-home',
-            permission: 'home',
-            read: 'HOME_READ'
           }
         ]
       },
@@ -320,7 +313,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         path: ROUTES.INTERVIEW_MANAGEMENT,
         label: 'Interview Management',
         iconClass: 'tabler-calendar-event',
-        permission: 'branchManagement',
+        permission: '',
         read: 'HIRING_INTERVIEW_READ'
       }
     ],

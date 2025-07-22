@@ -49,7 +49,7 @@ const CandidateListing = ({
   updateCandidateStatus,
   handleCadidateDetails
 }: CandidateListingProps) => {
-  const statusOptions = ['Shortlisted', 'Rejected', 'L1']
+  const statusOptions = useMemo(() => ['Shortlisted', 'Rejected', 'L1'], [])
   const columnHelper = createColumnHelper<Candidate>()
 
   const columns = useMemo(
@@ -96,6 +96,23 @@ const CandidateListing = ({
           </Select>
         )
       }),
+
+      columnHelper.accessor('minExperience', {
+        header: 'Min Experience',
+        cell: ({ row }) => <Typography>{row.original.minExperience || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('maxExperience', {
+        header: 'Max Experience',
+        cell: ({ row }) => <Typography>{row.original.maxExperience || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('phoneNumber', {
+        header: 'Phone Number',
+        cell: ({ row }) => <Typography>{row.original.phoneNumber || 'N/A'}</Typography>
+      }),
+      columnHelper.accessor('match', {
+        header: 'Match',
+        cell: ({ row }) => <Typography>{row.original.match || 'N/A'}</Typography>
+      }),
       columnHelper.accessor('action', {
         header: 'Action',
         meta: {
@@ -115,25 +132,9 @@ const CandidateListing = ({
           </div>
         ),
         enableSorting: false
-      }),
-      columnHelper.accessor('minExperience', {
-        header: 'Min Experience',
-        cell: ({ row }) => <Typography>{row.original.minExperience || 'N/A'}</Typography>
-      }),
-      columnHelper.accessor('maxExperience', {
-        header: 'Max Experience',
-        cell: ({ row }) => <Typography>{row.original.maxExperience || 'N/A'}</Typography>
-      }),
-      columnHelper.accessor('phoneNumber', {
-        header: 'Phone Number',
-        cell: ({ row }) => <Typography>{row.original.phoneNumber || 'N/A'}</Typography>
-      }),
-      columnHelper.accessor('match', {
-        header: 'Match',
-        cell: ({ row }) => <Typography>{row.original.match || 'N/A'}</Typography>
       })
     ],
-    [columnHelper, updateCandidateStatus, handleCadidateDetails]
+    [columnHelper, statusOptions, updateCandidateStatus, handleCadidateDetails]
   )
 
   // const tableMeta: CandidateTableMeta = {

@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   employeeCategoryTypeUrl: '/employeeCategoryType',
   departmentUrl: '/department',
   designationUrl: '/designation',
+  bandUrl: '/band',
   gradeUrl: '/grade',
   zoneUrl: '/zone',
   regionUrl: '/region',

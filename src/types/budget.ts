@@ -51,11 +51,78 @@ export interface JobRoleNamesByRoleResponse {
   names: string[]
 }
 
+// New interfaces for JD Details
+export interface RoleSpecification {
+  roleTitle: string
+  companyName: string
+  noticePeriod: string
+  xFactor: string
+}
+
+export interface KeyResponsibility {
+  title: string
+  description: string
+}
+
+export interface KeyInteraction {
+  internalStakeholders: string
+  externalStakeholders: string
+}
+
+export interface KeyRoleDimension {
+  portfolioSize: string
+  geographicalCoverage: string
+  teamSize: string
+  totalTeamSize: string
+}
+
+export interface EducationAndExperience {
+  ageLimit: string
+  minimumQualification: string
+  experienceDescription: string
+}
+
+export interface OrgChartNode {
+  id: string
+  name: string
+  parentId: string | null
+  children: OrgChartNode[]
+}
+
+export interface InterviewLevel {
+  level: number
+  designation: string
+}
+
+export interface InterviewLevels {
+  numberOfLevels: number
+  levels: InterviewLevel[]
+}
+
+export interface JDDetails {
+  roleSpecification: RoleSpecification[]
+  roleSummary: string
+  keyResponsibilities: KeyResponsibility[]
+  keyChallenges: string
+  keyDecisions: string
+  keyInteractions: KeyInteraction[]
+  keyRoleDimensions: KeyRoleDimension[]
+  skills: string[]
+  educationAndExperience: EducationAndExperience[]
+  organizationChart: OrgChartNode
+  interviewLevels: InterviewLevels
+}
+
+// New interface for Location Details
+export interface LocationDetail {
+  location: string
+  count: number
+}
+
 export interface BudgetDepartment {
   id: string
   deletedBy: string | null
   name: string
-
   positionCategories: {
     designationName: string
     count: number
@@ -77,100 +144,33 @@ export interface BudgetDepartmentResponse {
   limit: number
 }
 
-// Type for Budget Management State
-export interface BudgetManagementState {
-  fetchBudgetDepartmentLoading: boolean
-  fetchBudgetDepartmentSuccess: boolean
-  fetchBudgetDepartmentData: BudgetDepartmentResponse | null
-  fetchBudgetDepartmentTotal: number
-  fetchBudgetDepartmentFailure: boolean
-  fetchBudgetDepartmentFailureMessage: string
-  createBudgetIncreaseRequestLoading: boolean
-  createBudgetIncreaseRequestSuccess: boolean
-  createBudgetIncreaseRequestData: BudgetIncreaseRequestResponse | null
-  createBudgetIncreaseRequestFailure: boolean
-  createBudgetIncreaseRequestFailureMessage: string
-  fetchBudgetIncreaseRequestListLoading: boolean
-  fetchBudgetIncreaseRequestListSuccess: boolean
-  fetchBudgetIncreaseRequestListData: BudgetIncreaseRequestListResponse | null
-  fetchBudgetIncreaseRequestListTotal: number
-  fetchBudgetIncreaseRequestListFailure: boolean
-  fetchBudgetIncreaseRequestListFailureMessage: string
-  approveRejectBudgetIncreaseRequestLoading: boolean
-  approveRejectBudgetIncreaseRequestSuccess: boolean
-  approveRejectBudgetIncreaseRequestData: BudgetIncreaseRequestApproveRejectResponse | null
-  approveRejectBudgetIncreaseRequestFailure: boolean
-  approveRejectBudgetIncreaseRequestFailureMessage: string
-  fetchBudgetIncreaseRequestByIdLoading: boolean
-  fetchBudgetIncreaseRequestByIdSuccess: boolean
-  fetchBudgetIncreaseRequestByIdData: BudgetIncreaseRequestDetailResponse | null
-  fetchBudgetIncreaseRequestByIdFailure: boolean
-  fetchBudgetIncreaseRequestByIdFailureMessage: string
-  fetchTerritoryLoading: boolean
-  fetchTerritorySuccess: boolean
-  fetchTerritoryData: any
-  fetchTerritoryTotal: number
-  fetchTerritoryFailure: boolean
-  fetchTerritoryFailureMessage: string
-  fetchClusterLoading: boolean
-  fetchClusterSuccess: boolean
-  fetchClusterData: ClusterResponse | null
-  fetchClusterTotal: number
-  fetchClusterFailure: boolean
-  fetchClusterFailureMessage: string
-  fetchCityLoading: boolean
-  fetchCitySuccess: boolean
-  fetchCityData: CityResponse['data'] | null
-  fetchCityTotal: number
-  fetchCityFailure: boolean
-  fetchCityFailureMessage: string
-  fetchBranchData?: any
-  fetchBranchLoading?: any
-  fetchAreaData?: any
-  fetchAreaLoading?: any
-  fetchRegionData?: any
-  fetchRegionLoading?: any
-  fetchZoneData?: any
-  fetchZoneLoading?: any
-}
-
-// Type for Budget Increase Request (POST Request Body and Response Data)
+// Updated BudgetIncreaseRequest interface
 export interface BudgetIncreaseRequest {
-  jobTitle: string
+  id: string
+  deletedBy: string | null
   jobRole: string
-  openings: any
-  businessRole?: string
-  experienceMin: any
-  experienceMax: any
-  campusOrLateral: string
-  hiringManager: string
-  startingDate: string
-  closingDate: string
-  company: string
+  designation: string
+  department: string
+  openings: number
+  jdId: string
+  campusOrLateral: 'Campus' | 'Lateral'
+  company: 'Muthoot Fincorp Ltd.' | 'Muthoot Papachan'
   businessUnit: string
   employeeCategory: string
-  employeeType: string
-  department: string
-  designation: string
+  employeeType: 'Fulltime' | 'Parttime'
   grade: string
-  territory: string
-  zone: string
-  region: string
-  area: string
-  cluster: string
-  branchName: string
-  branchCode: string
-  city: string
-  state: string
-  approvalCategoryId: string
-  raisedById: string
-  status?: string
-  approvalStatus?: string[]
-  updatedAt?: string
-  createdAt?: string
-  deletedBy?: string | null
-  approvalRequestId?: string
-  deletedAt?: string | null
+  band: string
+  locationDetails: LocationDetail[]
+  origin: string
+  status: 'APPROVED' | 'REJECTED' | 'PENDING'
+  approvalId: string
+  approvalStatus: string[]
+  notes: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  jdDetails: JDDetails
+  meta: any | null
 }
 
 // Type for Budget Increase Request Response (POST)
@@ -454,6 +454,24 @@ export interface DesignationResponse {
   limit: number
 }
 
+export interface Band {
+  id: string
+  deletedBy: string | null
+  name: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+}
+
+export interface BandResponse {
+  success: boolean
+  message: string
+  data: Band[]
+  totalCount: number
+  currentPage: number
+  limit: number
+}
+
 export interface Grade {
   id: string
   deletedBy: string | null
@@ -723,4 +741,61 @@ export interface DepartmentBudgetVacancyResponse {
     [key: string]: any // For additional fields
   }[]
   total: number
+}
+
+// Type for Budget Management State
+export interface BudgetManagementState {
+  fetchBudgetDepartmentLoading: boolean
+  fetchBudgetDepartmentSuccess: boolean
+  fetchBudgetDepartmentData: BudgetDepartmentResponse | null
+  fetchBudgetDepartmentTotal: number
+  fetchBudgetDepartmentFailure: boolean
+  fetchBudgetDepartmentFailureMessage: string
+  createBudgetIncreaseRequestLoading: boolean
+  createBudgetIncreaseRequestSuccess: boolean
+  createBudgetIncreaseRequestData: BudgetIncreaseRequestResponse | null
+  createBudgetIncreaseRequestFailure: boolean
+  createBudgetIncreaseRequestFailureMessage: string
+  fetchBudgetIncreaseRequestListLoading: boolean
+  fetchBudgetIncreaseRequestListSuccess: boolean
+  fetchBudgetIncreaseRequestListData: BudgetIncreaseRequestListResponse | null
+  fetchBudgetIncreaseRequestListTotal: number
+  fetchBudgetIncreaseRequestListFailure: boolean
+  fetchBudgetIncreaseRequestListFailureMessage: string
+  approveRejectBudgetIncreaseRequestLoading: boolean
+  approveRejectBudgetIncreaseRequestSuccess: boolean
+  approveRejectBudgetIncreaseRequestData: BudgetIncreaseRequestApproveRejectResponse | null
+  approveRejectBudgetIncreaseRequestFailure: boolean
+  approveRejectBudgetIncreaseRequestFailureMessage: string
+  fetchBudgetIncreaseRequestByIdLoading: boolean
+  fetchBudgetIncreaseRequestByIdSuccess: boolean
+  fetchBudgetIncreaseRequestByIdData: BudgetIncreaseRequestDetailResponse | null
+  fetchBudgetIncreaseRequestByIdFailure: boolean
+  fetchBudgetIncreaseRequestByIdFailureMessage: string
+  fetchTerritoryLoading: boolean
+  fetchTerritorySuccess: boolean
+  fetchTerritoryData: TerritoryResponse | null
+  fetchTerritoryTotal: number
+  fetchTerritoryFailure: boolean
+  fetchTerritoryFailureMessage: string
+  fetchClusterLoading: boolean
+  fetchClusterSuccess: boolean
+  fetchClusterData: ClusterResponse | null
+  fetchClusterTotal: number
+  fetchClusterFailure: boolean
+  fetchClusterFailureMessage: string
+  fetchCityLoading: boolean
+  fetchCitySuccess: boolean
+  fetchCityData: CityResponse['data'] | null
+  fetchCityTotal: number
+  fetchCityFailure: boolean
+  fetchCityFailureMessage: string
+  fetchBranchData?: BranchResponse | null
+  fetchBranchLoading?: boolean
+  fetchAreaData?: AreaResponse | null
+  fetchAreaLoading?: boolean
+  fetchRegionData?: RegionResponse | null
+  fetchRegionLoading?: boolean
+  fetchZoneData?: ZoneResponse | null
+  fetchZoneLoading?: boolean
 }

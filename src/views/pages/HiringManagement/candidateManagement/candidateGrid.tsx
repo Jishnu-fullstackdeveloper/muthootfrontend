@@ -2,13 +2,14 @@
 
 import React from 'react'
 
-import { Typography, Card, Grid, Box, Tooltip, Button, Chip, Divider } from '@mui/material'
+import { Typography, Card, Grid, Box, Tooltip, Chip, Divider } from '@mui/material'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+// import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 
 interface Candidate {
   id: number
@@ -30,7 +31,7 @@ interface CandidateGridProps {
   page: number
   totalCount: number
   onLoadMore: (newPage: number) => void
-  updateCandidateStatus: (candidateId: number, newStatus: string) => void
+  updateCandidateStatus?: (candidateId: number, newStatus: string) => void
   handleCadidateDetails?: (candidateId: number) => void
 }
 
@@ -41,7 +42,7 @@ const CandidateGrid = ({
   // page,
   // totalCount,
   // onLoadMore,
-  updateCandidateStatus,
+  // updateCandidateStatus,
   handleCadidateDetails
 }: CandidateGridProps) => {
   // const statusOptions = ['Shortlisted', 'Rejected', 'L1']
@@ -146,39 +147,6 @@ const CandidateGrid = ({
                 <Typography variant='body2' sx={{ color: 'text.secondary', gridColumn: 'span 2' }}>
                   <strong>Match:</strong> {candidate.match || 'N/A'}
                 </Typography>
-              </Box>
-
-              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                <Tooltip title='Click to shortlist this candidate'>
-                  <Button
-                    variant='contained'
-                    color='success'
-                    size='small'
-                    startIcon={<CheckCircleOutlineIcon />}
-                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      updateCandidateStatus(candidate.id, 'Shortlisted')
-                    }}
-                  >
-                    Shortlist
-                  </Button>
-                </Tooltip>
-                <Tooltip title='Click to reject this candidate'>
-                  <Button
-                    variant='outlined'
-                    color='error'
-                    size='small'
-                    startIcon={<CancelOutlinedIcon />}
-                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      updateCandidateStatus(candidate.id, 'Rejected')
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Tooltip>
               </Box>
             </Card>
           </Grid>

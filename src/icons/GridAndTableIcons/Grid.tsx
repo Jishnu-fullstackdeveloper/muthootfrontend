@@ -1,6 +1,6 @@
 import React from 'react'
 
-const GridIcon = ({ className, width = '16', height = '10' }) => {
+const GridIcon = ({ className , width = '16', height = '10' }) => {
   return (
     <svg
       width={width}

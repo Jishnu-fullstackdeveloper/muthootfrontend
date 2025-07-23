@@ -1,533 +1,392 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import Typography from '@mui/material/Typography'
-import type { TextFieldProps } from '@mui/material'
-import {
-  Box,
-  Tooltip,
-  IconButton,
-  InputAdornment,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Pagination
-} from '@mui/material'
-
-import GridViewIcon from '@mui/icons-material/GridView'
-import TableChartIcon from '@mui/icons-material/TableChart'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-
-import type { ColumnDef } from '@tanstack/react-table'
-
+import { Box, Card, Grid, Typography, Button, Divider } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 
-import CustomTextField from '@/@core/components/mui/TextField'
-import DynamicButton from '@/components/Button/dynamicButton'
+import LevelsIcon from '@/icons/LevelsIcon'
+import GridIcon from '@/icons/GridAndTableIcons/Grid'
+import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
+import SearchIcon from '@/icons/SearchIcon'
 import DynamicTable from '@/components/Table/dynamicTable'
-
-import { deleteBucket, fetchBucketList } from '@/redux/BucketManagementSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
+import { fetchBucket } from '@/redux/BucketManagemnet/BucketManagementSlice'
+import { ROUTES } from '@/utils/routes'
+
+type Bucket = {
+  id: string
+  name: string
+  positionCategories: { jobRole: string; count: number }[]
+  level: number
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  deletedBy: string | null
+}
 
 const BucketListing = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
-  const [search, setSearch] = useState('')
-  const [openModal, setOpenModal] = useState(false)
-
-  const [paginationState, setPaginationState] = useState<any>({
-    page: 1,
-    limit: 20
-  })
-
-  const [bucketId, setBucketId] = useState<any>(null)
-
-  let totalPages: number = 0
-
-  const handlePageChange = (event: any, value: any) => {
-    setPaginationState((prev: any) => ({ ...prev, page: value }))
-  }
-
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { bucketListData, deleteBucketListSuccess, updateBucketListSuccess } = useAppSelector(
-    (state: any) => state.BucketManagementReducer
-  )
+  const { bucketData } = useAppSelector(state => state.BucketManagementReducer)
 
-  const getBucketListDatas = () => {
-    const params = {
-      page: paginationState.page,
-      limit: paginationState.limit
-    }
+  const [searchTerm, setSearchTerm] = useState('')
+  const [viewType, setViewType] = useState<'grid' | 'table'>('grid')
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
 
-    dispatch(fetchBucketList(params))
-  }
+  // State to track which cards have "Show More" clicked
+  const [showMore, setShowMore] = useState<{ [key: string]: boolean }>({})
 
-  const columnHelper = createColumnHelper<any>()
+  useEffect(() => {
+    dispatch(fetchBucket({ page, limit }))
+  }, [dispatch, page, limit])
 
-  // Define columns using useMemo
-  const columns = useMemo<ColumnDef<any, any>[]>(
+  const toTitleCase = (str: string) =>
+    str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+
+  const filteredData = useMemo(() => {
+    if (!bucketData?.data) return []
+
+    return bucketData.data.filter(bucket => bucket.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  }, [bucketData, searchTerm])
+
+  const columnHelper = createColumnHelper<Bucket>()
+
+  const columns = useMemo(
     () => [
       columnHelper.accessor('name', {
-        header: 'Bucket Name',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.name}
-          </Typography>
-        )
+        header: 'Bucket',
+        cell: ({ row }) => <Typography>{row.original.name || '-'}</Typography>
       }),
-      columnHelper.accessor('turnover_code', {
-        header: 'Turnover Code',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.turnoverCode}
-          </Typography>
-        )
+      columnHelper.accessor('level', {
+        header: 'Level',
+        cell: ({ row }) => <Typography>Level {row.original.level || '-'}</Typography>
       }),
-      columnHelper.accessor('designation', {
-        header: 'Designations',
-        cell: ({ row }) => {
-          // Limit to first 3 designations
-          const visiblePositions = row.original.positionCategories?.slice(0, 3)
-
-          return (
-            <>
-              <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {visiblePositions?.map((positionCategories: any, index: number) => (
-                  <li key={index}>
-                    {positionCategories.designationName}: {positionCategories.count}: {positionCategories.grade}
-                  </li>
-                ))}
-              </ul>
-              {/* Show remaining positions */}
-              {/* {remainingCount > 0 && (
-              <div>
-
-                +{remainingCount}
-              </div>
-            )} */}
-            </>
+      columnHelper.accessor('positionCategories', {
+        header: 'Roles',
+        cell: ({ row }) =>
+          row.original.positionCategories.length > 0 ? (
+            <Typography>
+              {row.original.positionCategories.map(role => `${toTitleCase(role.jobRole)} (${role.count})`).join(', ')}
+            </Typography>
+          ) : (
+            <Typography>N/A</Typography>
           )
-        }
       }),
-      columnHelper.accessor('action', {
-        header: 'Action',
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
         cell: ({ row }) => (
-          <Typography>
-            <Button
-              variant='outlined'
-              onClick={(e: any) => {
-                e.stopPropagation()
-                handleEditBucket(row.original.id)
-              }}
-              sx={{
-                minWidth: 'auto',
-                padding: 1,
-                backgroundColor: 'transparent',
-                border: 'none',
-                '&:hover': { backgroundColor: 'transparent' }
-              }}
-            >
-              <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
-            </Button>
-
-            <Button
-              variant='outlined'
-              color='error'
-              onClick={(e: any) => {
-                e.stopPropagation()
-                handleDeleteBucket(row.original.id)
-              }}
-              sx={{
-                minWidth: 'auto',
-                padding: 1,
-                backgroundColor: 'transparent',
-                border: 'none',
-                '&:hover': {
-                  backgroundColor: 'transparent'
-                }
-              }}
-            >
-              <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
-            </Button>
-
-            {/* <Button
-              variant='outlined'
-              color='success'
-              onClick={() =>
-                router.push(
-                  `/bucket-management/view/${original.turnoverCode}?name=${encodeURIComponent(bucket.name)}&turnoverCode=${bucket.turnoverCode}&notes=${encodeURIComponent(bucket.notes)}&positionCategories=${encodeURIComponent(JSON.stringify(bucket.positionCategories))}`
-                )
-              }
-              sx={{
-                minWidth: 'auto',
-                padding: 1,
-                backgroundColor: 'transparent',
-                border: 'none',
-                '&:hover': {
-                  backgroundColor: 'transparent'
-                }
-              }}
-            >
-              <i className='tabler-eye' style={{ color: '#808080', fontSize: '24px' }} />
-            </Button> */}
-          </Typography>
+          <Button
+            onClick={() =>
+              router.push(
+                `${ROUTES.BUCKET_MANAGEMENT.BUCKET_EDIT(row.original.id)}?name=${encodeURIComponent(row.original.name)}&level=${row.original.level}&positionCategories=${encodeURIComponent(JSON.stringify(row.original.positionCategories))}`
+              )
+            }
+            size='small'
+            variant='outlined'
+          >
+            Edit
+          </Button>
         )
       })
     ],
-    [columnHelper]
+    [router, toTitleCase]
   )
 
-  const DebouncedInput = ({
-    value: initialValue,
-    onChange,
-    debounce = 500,
-
-    ...props
-  }: {
-    value: string | number
-    onChange: (value: string | number) => void
-    debounce?: number
-  } & Omit<TextFieldProps, 'onChange'>) => {
-    const [value, setValue] = useState(initialValue)
-
-    useEffect(() => {
-      setValue(initialValue)
-    }, [initialValue])
-
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange(value)
-      }, debounce)
-
-      return () => clearTimeout(timeout)
-    }, [value])
-
-    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} variant='outlined' />
+  const handleRowsPerPageChange = (newLimit: number) => {
+    setLimit(newLimit)
+    setPage(1)
   }
 
-  const sortedBucketData = useMemo(() => {
-    if (bucketListData?.data) {
-      return [...bucketListData.data].sort((a: any, b: any) => a.name.localeCompare(b.name))
-    }
+  // const handleSnackbarClose = () => {
+  //   setSnackbarOpen(false)
+  //   dispatch(fetchBucketDismiss())
+  // }
 
-    return []
-  }, [bucketListData])
-
-  const handleAddNewBucket = () => {
-    router.push('/bucket-management/add/new-bucket')
+  // Toggle "Show More" for a specific bucket
+  const toggleShowMore = (bucketId: string) => {
+    setShowMore(prev => ({ ...prev, [bucketId]: !prev[bucketId] }))
   }
-
-  const handleEditBucket = (id: number) => {
-    router.push(`/bucket-management/edit/${id}`)
-  }
-
-  const handleDeleteBucket = (id: string) => {
-    setBucketId(id)
-    setOpenModal(true)
-  }
-
-  const handleDeleteConfirm = (id: any) => {
-    dispatch(deleteBucket(id))
-    setOpenModal(false)
-    getBucketListDatas()
-  }
-
-  const handleDeleteCancel = () => {
-    setOpenModal(false)
-  }
-
-  useEffect(() => {
-    getBucketListDatas()
-  }, [paginationState, deleteBucketListSuccess, updateBucketListSuccess])
-
-  useEffect(() => {
-    if (bucketListData && bucketListData.data) {
-      totalPages = Math.ceil(bucketListData.totalCount / paginationState.limit)
-    }
-  }, [bucketListData])
 
   return (
-    <div>
-      <Box
-        sx={{
-          padding: 3,
-          backgroundColor: '#ffffff',
-          borderRadius: 2,
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
-        }}
-      >
+    <Box>
+      <Card sx={{ padding: 2, marginBottom: 3, borderRadius: '14px' }}>
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
+            mb: 3,
+            p: 1,
+            borderRadius: '12px',
+            flexWrap: 'wrap',
             gap: 2
           }}
         >
-          <Typography component='h1' variant='h4' sx={{ fontWeight: 'bold', color: '#333', letterSpacing: 1 }}>
-            Bucket List
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <Tooltip title='Click here for help'>
-              <IconButton size='small'>
-                <HelpOutlineIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
-
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-start p-6 border-bs gap-4 custom-scrollbar-xaxis'>
-          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4 flex-wrap'>
-            <DebouncedInput
-              value={search}
-              onChange={(value: any) => setSearch(value)}
-              placeholder='Search by List...'
-              className='is-full sm:is-[400px]'
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end' sx={{ cursor: 'pointer' }}>
-                    <i className='tabler-search text-xxl' />
-                  </InputAdornment>
-                )
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#f8f9fc',
+              borderRadius: '10px',
+              padding: '8px 10px',
+              width: '100%',
+              maxWidth: '400px',
+              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            <SearchIcon />
+            <input
+              type='text'
+              placeholder='Search buckets by name...'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{
+                paddingLeft: '20px',
+                border: 'none',
+                outline: 'none',
+                backgroundColor: 'transparent',
+                flex: 1,
+                fontSize: '14px',
+                color: '#4b5563'
               }}
             />
-          </div>
-
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-start', mt: 4 }}>
-            <DynamicButton
-              label='New Bucket'
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Button
               variant='contained'
-              icon={<i className='tabler-plus' />}
-              position='start'
-              onClick={handleAddNewBucket}
-              children='New Bucket'
-            />
-
-            <Box
+              size='small'
+              onClick={() => router.push(ROUTES.BUCKET_MANAGEMENT.BUCKET_ADD)}
               sx={{
-                display: 'flex',
-                gap: 2,
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1px',
-                backgroundColor: '#f5f5f5',
                 borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                '&:hover': { boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }
+                backgroundColor: '#0096DA',
+                color: '#FFFFFF',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#007BBD' }
               }}
             >
-              <Tooltip title='Grid View'>
-                <IconButton color={viewMode === 'grid' ? 'primary' : 'secondary'} onClick={() => setViewMode('grid')}>
-                  <GridViewIcon />
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip title='Table View'>
-                <IconButton color={viewMode === 'table' ? 'primary' : 'secondary'} onClick={() => setViewMode('table')}>
-                  <TableChartIcon />
-                </IconButton>
-              </Tooltip>
+              Add
+            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
+              <Box
+                sx={{
+                  backgroundColor: viewType === 'grid' ? '#0096DA' : 'transparent',
+                  color: viewType === 'grid' ? 'white' : '#0096DA',
+                  borderRadius: '10px',
+                  padding: 3,
+                  cursor: 'pointer'
+                }}
+                onClick={() => setViewType('grid')}
+              >
+                <GridIcon className={''} />
+              </Box>
+              <Box
+                sx={{
+                  backgroundColor: viewType === 'table' ? '#0096DA' : 'transparent',
+                  color: viewType === 'table' ? 'white' : '#0096DA',
+                  cursor: 'pointer',
+                  borderRadius: '10px',
+                  padding: 2
+                }}
+                onClick={() => setViewType('table')}
+              >
+                <TableIcon className='h-5 w-6' />
+              </Box>
             </Box>
           </Box>
-        </div>
-      </Box>
+        </Box>
+      </Card>
 
-      {/* Card 2 - List View and table*/}
-      <CardActions className='p-0 pt-5'>
-        {viewMode === 'table' ? (
-          <Box sx={{ width: '100%' }}>
-            <DynamicTable
-              columns={columns}
-              data={bucketListData.data}
-              totalCount={0}
-              sorting={undefined}
-              onSortingChange={undefined}
-              initialState={undefined}
-              pagination={{
-                pageIndex: 0,
-                pageSize: 0
-              }}
-            />
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {sortedBucketData
-              ?.filter((bucket: any) => bucket.name.toLowerCase().includes(search.toLowerCase()))
-              ?.map((bucket: any) => (
-                <Grid item xs={12} sm={6} md={4} key={bucket.id}>
+      {viewType === 'grid' && (
+        <Grid container spacing={3}>
+          {filteredData?.length > 0 ? (
+            filteredData.map((bucket, index) => {
+              const isExpanded = showMore[bucket.id]
+
+              const visibleCategories = isExpanded ? bucket.positionCategories : bucket.positionCategories.slice(0, 5)
+
+              const remainingCount = bucket.positionCategories.length - 5
+
+              return (
+                <Grid item xs={12} sm={6} md={4} key={bucket.id || index}>
                   <Card
-                    onClick={() =>
-                      router.push(
-                        `/bucket-management/view/${bucket.turnoverCode}?name=${bucket.name}&turnoverCode=${bucket.turnoverCode}&notes=${bucket.notes || ''}&positionCategories=${JSON.stringify(bucket.positionCategories)}`
-                      )
-                    }
                     sx={{
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                      cursor: 'pointer',
-                      border: '1px solid #ddd',
-                      position: 'relative'
-                    }} // For positioning buttons at the top-right corner
-                    className='transition transform hover:-translate-y-1'
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: '14px',
+                      padding: 3,
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                      backgroundColor: '#ffffff'
+                    }}
                   >
-                    <CardContent sx={{ height: 300 }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px',
-                          paddingBottom: '20px',
-                          borderBottom: '1px solid #ddd'
-                        }}
-                      >
-                        <Typography
-                          variant='h6'
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box
                           sx={{
-                            fontWeight: 'bold',
-                            backgroundColor: '#e0f7fa',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '1.2rem',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: 'calc(100% - 100px)'
+                            backgroundColor: '#F2F3FF',
+                            padding: '10px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mr: 2
                           }}
                         >
-                          {bucket.name.toUpperCase()}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          {/* Edit Button */}
-                          <IconButton
-                            onClick={(e: any) => {
-                              e.stopPropagation()
-                              handleEditBucket(bucket.id)
-                            }}
-                            sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': { backgroundColor: 'transparent' }
-                            }}
-                          >
-                            <i className='tabler-edit' />
-                          </IconButton>
-
-                          {/* Delete Button */}
-                          <IconButton
-                            aria-label='Delete Bucket'
-                            onClick={(e: any) => {
-                              e.stopPropagation()
-                              handleDeleteBucket(bucket.id)
-                            }}
-                            sx={{
-                              minWidth: 'auto',
-                              padding: 1,
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              '&:hover': { backgroundColor: 'transparent' }
-                            }}
-                          >
-                            <i className='tabler-trash' />
-                          </IconButton>
+                          <LevelsIcon />
                         </Box>
+                        <Typography variant='h6' fontWeight={600}>
+                          {bucket.name || 'N/A'}
+                        </Typography>
                       </Box>
-
-                      <Typography variant='body2' sx={{ paddingTop: 3, color: 'text.secondary', fontSize: '1rem' }}>
-                        <Typography
-                          variant='body2'
-                          sx={{ fontWeight: 'bold', display: 'inline', fontSize: '1.1rem' }}
-                          component='span'
-                        >
-                          Turnover code :
-                        </Typography>
-                        {bucket.turnoverCode}
+                      <Button
+                        onClick={() => router.push(`${ROUTES.BUCKET_MANAGEMENT.BUCKET_EDIT(bucket.id)}`)}
+                        size='small'
+                        variant='outlined'
+                      >
+                        Edit
+                      </Button>
+                    </Box>
+                    <Divider />
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant='subtitle2' sx={{ color: '#718096', fontWeight: 500, mb: 0.5 }}>
+                        Level
                       </Typography>
-
-                      <div>
-                        <Typography
-                          variant='body2'
-                          sx={{ color: 'text.secondary', fontSize: '1.1rem', fontWeight: 'bold' }}
-                        >
-                          Designations:
-                        </Typography>
-
-                        <ul
-                          style={{
-                            backgroundColor: '#f9f9f9',
-                            height: '120px',
-                            paddingTop: 10,
-                            paddingRight: 10,
-                            borderRadius: '4px',
-                            marginTop: '8px',
-                            listStyleType: 'disc',
-                            paddingLeft: '30px'
-                          }}
-                        >
-                          {bucket.positionCategories?.slice(0, 3)?.map((positionCategories: any) => (
-                            <li key={positionCategories.name}>
-                              {positionCategories.designationName}: {positionCategories.count}:{' '}
-                              {positionCategories.grade}
-                            </li>
-                          ))}
-
-                          {bucket.positionCategories?.length > 3 && (
-                            <div
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                alignItems: 'center',
-                                marginTop: '8px'
+                      <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                        Level {bucket.level}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mt: 3, flexGrow: 1 }}>
+                      <Typography variant='subtitle2' sx={{ color: '#718096', fontWeight: 500, mb: 1 }}>
+                        Position Categories
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {visibleCategories.length > 0 ? (
+                          visibleCategories.map((role, idx) => (
+                            <Box
+                              key={idx}
+                              sx={{
+                                background: '#E8F4FF',
+                                px: 1.5,
+                                py: 0.5,
+                                borderRadius: '6px',
+                                fontSize: '13px'
                               }}
                             >
-                              <i className='tabler-arrow-bar-right' style={{ color: '#808080', fontSize: '24px' }} />
-                              <Tooltip title=' More Designations'>
-                                <span>+{bucket.positionCategories.length - 3}</span>
-                              </Tooltip>
-                            </div>
-                          )}
-                        </ul>
-                      </div>
-                    </CardContent>
+                              <Typography variant='body2' sx={{ color: '#0096DA', fontSize: '14px', fontWeight: 500 }}>
+                                {toTitleCase(role.jobRole)} ({role.count})
+                              </Typography>
+                            </Box>
+                          ))
+                        ) : (
+                          <Typography variant='body2' color='textSecondary'>
+                            N/A
+                          </Typography>
+                        )}
+                      </Box>
+                      {bucket.positionCategories.length > 5 && !isExpanded && (
+                        <Button
+                          size='small'
+                          onClick={() => toggleShowMore(bucket.id)}
+                          sx={{ mt: 1, color: '#0096DA', textTransform: 'none' }}
+                        >
+                          +{remainingCount} more
+                        </Button>
+                      )}
+                      {isExpanded && (
+                        <Button
+                          size='small'
+                          onClick={() => toggleShowMore(bucket.id)}
+                          sx={{ mt: 1, color: '#0096DA', textTransform: 'none' }}
+                        >
+                          Show less
+                        </Button>
+                      )}
+                    </Box>
+                    <Button
+                      variant='contained'
+                      size='small'
+                      onClick={() => {
+                        const queryParams = new URLSearchParams({
+                          bucketNames: bucket.name
+                        })
+
+                        router.push(`${ROUTES.BUCKET_MANAGEMENT.BUCKET_VIEW}?${queryParams.toString()}`)
+                      }}
+                      sx={{
+                        mt: 2,
+                        width: '100%',
+                        height: 36,
+                        borderRadius: '8px',
+                        border: '1px solid #0096DA',
+                        backgroundColor: '#FFFFFF',
+                        color: '#0096DA',
+                        textTransform: 'none',
+                        boxShadow: 'none',
+                        '&:hover': { backgroundColor: '#D0E4F7', borderColor: '#007BBD' }
+                      }}
+                    >
+                      View Details
+                    </Button>
                   </Card>
                 </Grid>
-              ))}
-          </Grid>
-        )}
-      </CardActions>
+              )
+            })
+          ) : (
+            <Typography variant='body1' sx={{ p: 3 }}>
+              No buckets found.
+            </Typography>
+          )}
+        </Grid>
+      )}
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        open={openModal}
-        onClose={handleDeleteCancel}
-        onConfirm={id => handleDeleteConfirm(id)}
-        id={bucketId}
-        title='Delete Item'
-        description='Are you sure you want to delete this item? This action cannot be undone.'
-      />
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Pagination
-          color='primary'
-          shape='rounded'
-          showFirstButton
-          showLastButton
-          count={totalPages}
-          page={paginationState.page}
-          onChange={handlePageChange}
+      {viewType === 'table' && (
+        <DynamicTable
+          tableName='Bucket List'
+          columns={columns}
+          data={filteredData}
+          pagination={{ pageIndex: page - 1, pageSize: limit }}
+          page={page}
+          limit={limit}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          totalCount={bucketData?.totalCount || filteredData.length}
+          onPageChange={(newPage: number) => {
+            setPage(newPage + 1)
+          }}
+          onLimitChange={(newLimit: number) => {
+            setLimit(newLimit)
+            setPage(1)
+          }}
+          sorting={[]}
+          onSortingChange={() => {}}
+          initialState={{ pagination: { pageIndex: page - 1, pageSize: limit } }}
         />
-      </div>
-    </div>
+      )}
+
+      {/* <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={bucketSuccess ? 'success' : 'error'} sx={{ width: '100%' }}>
+          {bucketSuccess
+            ? 'Buckets fetched successfully'
+            : Array.isArray(bucketFailureMessage)
+              ? bucketFailureMessage.join(', ')
+              : bucketFailureMessage || 'An error occurred while fetching buckets'}
+        </Alert>
+      </Snackbar> */}
+    </Box>
   )
 }
 

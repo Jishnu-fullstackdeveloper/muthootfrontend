@@ -1,201 +1,189 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Box, Card, Grid, Typography, Button } from '@mui/material'
+import Divider from '@mui/material/Divider'
 
-import Typography from '@mui/material/Typography'
-import {
-  Box,
-  Card,
-  CardContent,
-  Button,
-  Divider,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions
-} from '@mui/material'
-import { ArrowBack } from '@mui/icons-material'
+import LevelsIcon from '@/icons/LevelsIcon'
 
-type Props = {
-  mode: any
-  id: any
+// Define the type for sampleData
+type Bucket = {
+  name: string
+  positionCategories: { jobRole: string; count: number }[]
+  level: string
 }
 
-const BucketView: React.FC<Props> = ({ id }) => {
-  const [bucketDetails, setBucketDetails] = useState<any>(null)
-  const searchParams = useSearchParams()
-  const name = searchParams.get('name')
-  const turnoverCode = searchParams.get('turnoverCode')
-  const notes = searchParams.get('notes')
-  const positionCategories = searchParams.get('positionCategories')
-
-  const router = useRouter()
-  
-  const [bucketId, setBucketId] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-
-  // Decode and parse `positionCategories`
-  let decodedPositionCategories: any[] = []
-
-  if (positionCategories) {
-    try {
-      decodedPositionCategories = JSON.parse(decodeURIComponent(positionCategories))
-    } catch (error) {
-      console.error('Failed to parse positionCategories:', error)
-    }
+// Sample data
+const sampleData: Bucket[] = [
+  {
+    name: 'Gold',
+    positionCategories: [
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 },
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 },
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 },
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 },
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 },
+      { jobRole: 'Developer', count: 5 },
+      { jobRole: 'Team Lead', count: 2 },
+      { jobRole: 'Scrum Member', count: 3 },
+      { jobRole: 'Product Owner', count: 1 },
+      { jobRole: 'Stakeholder', count: 4 }
+    ],
+    level: '1'
   }
+]
 
-  const handleEditBucket = (id: number) => {
-    router.push(`/bucket-management/edit/${id}`)
-  }
+const BucketDetails = () => {
+  const [showAll, setShowAll] = useState<{ [key: string]: boolean }>({})
 
-  const handleDeleteBucket = (id: string) => {
-    setBucketId(id)
-    setShowDeleteModal(true)
-  }
+  const toTitleCase = (str: string) =>
+    str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
 
-  const handleDeleteConfirm = id => {
-    // useDispatch(deleteBucket(id))
-    console.log(id)
-    setShowDeleteModal(false)
-  }
-
-  const handleDeleteCancel = () => {
-    setShowDeleteModal(false)
-  }
-
-  useEffect(() => {
-    if (searchParams) {
-      // const parsedDesignation = designation ? JSON.parse(designation as string) : {}
-      setBucketDetails({
-        turnoverCode,
-        name,
-        positionCategories,
-        notes
-      })
-      setLoading(false)
-    }
-  }, [turnoverCode])
-
-  if (loading) {
-    return (
-      <div data-testid='loading-indicator'>
-        <CircularProgress />
-      </div>
-    )
-  }
-
-  if (!bucketDetails) {
-    return <div>Loading...</div>
+  const toggleShowAll = (bucketName: string) => {
+    setShowAll(prev => ({
+      ...prev,
+      [bucketName]: !prev[bucketName]
+    }))
   }
 
   return (
     <Box>
-      <Card sx={{ boxShadow: 3 }}>
-        <CardContent>
-          <Box className='flex justify-between'>
-            {/* Bucket Name */}
-            <Box>
-              <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#2196f3' }}>
-                {name?.toLocaleUpperCase() || ''}
-              </Typography>
-            </Box>
-            <Box>
-              <Button
-                data-testid='edit-button'
-                variant='outlined'
-                onClick={(e: any) => {
-                  e.stopPropagation()
-                  handleEditBucket(id)
-                }}
+      <Grid container spacing={3}>
+        {sampleData.map((bucket, index) => (
+          <Grid item xs={12} key={bucket.name || index}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                alignItems: 'stretch'
+              }}
+            >
+              {/* Left Card */}
+              <Card
                 sx={{
-                  minWidth: 'auto',
-                  padding: 1,
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  '&:hover': { backgroundColor: 'transparent' }
+                  flex: 1,
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                  padding: 3,
+                  backgroundColor: '#fff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2
                 }}
               >
-                <i className='tabler-edit' style={{ color: '#808080', fontSize: '24px' }} />
-              </Button>
-              <Button
-                data-testid='delete-button'
-                variant='outlined'
-                color='error'
-                onClick={(e: any) => {
-                  e.stopPropagation()
-                  handleDeleteBucket(id)
-                }}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Box
+                    sx={{
+                      backgroundColor: '#F2F3FF',
+                      padding: '20px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <LevelsIcon />
+                  </Box>
+                  <Box>
+                    <Typography fontWeight={600} sx={{ fontSize: '25px' }}>
+                      {bucket.name || 'N/A'}
+                    </Typography>
+                    <Typography variant='h6' fontWeight={400}>
+                      Level {bucket.level}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Divider />
+              </Card>
+
+              {/* Right Card */}
+              <Card
                 sx={{
-                  minWidth: 'auto',
-                  padding: 1,
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  '&:hover': { backgroundColor: 'transparent' }
+                  flex: 1,
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                  padding: 3,
+                  backgroundColor: '#fff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
                 }}
               >
-                <i className='tabler-trash' style={{ color: '#808080', fontSize: '24px' }} />
-              </Button>
+                <Typography variant='caption' color='text.secondary' fontWeight={500} mb={1}>
+                  Position Categories
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                  {bucket.positionCategories.length > 0 ? (
+                    <>
+                      {(showAll[bucket.name] ? bucket.positionCategories : bucket.positionCategories.slice(0, 5)).map(
+                        (role, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              backgroundColor: '#E8F4FF',
+                              px: 1.5,
+                              py: 0.5,
+                              borderRadius: '8px'
+                            }}
+                          >
+                            <Typography variant='body2' sx={{ color: '#0096DA', fontWeight: 500, fontSize: '13px' }}>
+                              {toTitleCase(role.jobRole)} ({role.count})
+                            </Typography>
+                          </Box>
+                        )
+                      )}
+                      {bucket.positionCategories.length > 5 && (
+                        <Button
+                          variant='text'
+                          onClick={() => toggleShowAll(bucket.name)}
+                          sx={{ ml: 1, textTransform: 'none', fontWeight: 500,  backgroundColor: '#E8F4FF',
+                              px: 1.5,
+                              py: 0.5,
+                              borderRadius: '8px' }}
+                        >
+                          {showAll[bucket.name] ? '- Show Less' : '+ Show More'}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Typography variant='body2' color='text.secondary'>
+                      N/A
+                    </Typography>
+                  )}
+                </Box>
+              </Card>
             </Box>
-          </Box>
-          <Divider sx={{ mb: 4 }} />
-          {/* Turnover Code */}
-          <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
-            Turnover Code: <strong>{turnoverCode}</strong>
-          </Typography>
-
-          {/* Designations */}
-          <Typography variant='h6' sx={{ color: 'text.secondary', marginTop: 2 }}>
-            Designations:
-          </Typography>
-          <ul>
-            {decodedPositionCategories.map((category, index) => (
-              <li key={index}>
-                <strong>{category.designationName}:</strong> {category.count} : {category.grade}
-              </li>
-            ))}
-          </ul>
-
-          <Box sx={{ marginTop: 3, padding: 5, backgroundColor: '#f4f6f8', borderRadius: 2 }}>
-            <Typography variant='body1' sx={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: 1 }}>
-              Note:
-            </Typography>
-            <Typography variant='body2' sx={{ fontSize: '1rem', color: 'text.secondary' }}>
-              {notes}
-            </Typography>
-          </Box>
-        </CardContent>
-
-        <Box sx={{ marginTop: 3, marginLeft: 5, marginBottom: 10 }}>
-          <Button startIcon={<ArrowBack />} variant='outlined' onClick={() => router.back()}>
-            Go Back
-          </Button>
-        </Box>
-      </Card>
-
-      <Dialog open={showDeleteModal} onClose={handleDeleteCancel}>
-        <DialogTitle>Delete Item</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this item? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button data-testid='cancel-delete-button' onClick={handleDeleteCancel}>
-            Cancel
-          </Button>
-          <Button data-testid='confirm-delete-button' onClick={() => handleDeleteConfirm(bucketId)} color='error'>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   )
 }
 
-export default BucketView
+export default BucketDetails

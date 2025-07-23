@@ -42,7 +42,15 @@ const CandidateTable = dynamic(() => import('../../candidateManagement/candidate
 
 const CandidateGrid = dynamic(() => import('../../candidateManagement/candidateGrid'), {
   loading: () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh', // ✅ Ensure it takes full viewport height
+        p: 5
+      }}
+    >
       <CircularProgress />
     </Box>
   ),
@@ -194,7 +202,15 @@ const CandidateListing = () => {
           </Button>
         </Box>
       ) : isCandidatesLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '50vh', // ✅ Ensure it takes full viewport height
+            p: 5
+          }}
+        >
           <CircularProgress />
         </Box>
       ) : candidatesFailure ? (

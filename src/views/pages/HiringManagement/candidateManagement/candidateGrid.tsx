@@ -147,39 +147,6 @@ const CandidateGrid = ({
                   <strong>Match:</strong> {candidate.match || 'N/A'}
                 </Typography>
               </Box>
-
-              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                <Tooltip title='Click to shortlist this candidate'>
-                  <Button
-                    variant='contained'
-                    color='success'
-                    size='small'
-                    startIcon={<CheckCircleOutlineIcon />}
-                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      updateCandidateStatus(candidate.id, 'Shortlisted')
-                    }}
-                  >
-                    Shortlist
-                  </Button>
-                </Tooltip>
-                <Tooltip title='Click to reject this candidate'>
-                  <Button
-                    variant='outlined'
-                    color='error'
-                    size='small'
-                    startIcon={<CancelOutlinedIcon />}
-                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '0.8rem', px: 2 }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      updateCandidateStatus(candidate.id, 'Rejected')
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Tooltip>
-              </Box>
             </Card>
           </Grid>
         ))}

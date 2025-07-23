@@ -71,31 +71,31 @@ const CandidateListing = ({
         cell: ({ row }) => <Typography>{row.original.appliedDate}</Typography>
       }),
 
-      columnHelper.accessor('status', {
-        header: 'Status',
-        cell: ({ row }) => (
-          <Select
-            value={statusOptions.includes(row.original.status) ? row.original.status : ''}
-            onChange={e => {
-              const newStatus = e.target.value
+      // columnHelper.accessor('status', {
+      //   header: 'Status',
+      //   cell: ({ row }) => (
+      //     <Select
+      //       value={statusOptions.includes(row.original.status) ? row.original.status : ''}
+      //       onChange={e => {
+      //         const newStatus = e.target.value
 
-              updateCandidateStatus(row.original.id, newStatus)
-            }}
-            displayEmpty
-            fullWidth
-            sx={{ minWidth: 120, padding: '4px' }}
-          >
-            <MenuItem value='' disabled>
-              Select Status
-            </MenuItem>
-            {statusOptions.map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        )
-      }),
+      //         updateCandidateStatus(row.original.id, newStatus)
+      //       }}
+      //       displayEmpty
+      //       fullWidth
+      //       sx={{ minWidth: 120, padding: '4px' }}
+      //     >
+      //       <MenuItem value='' disabled>
+      //         Select Status
+      //       </MenuItem>
+      //       {statusOptions.map(option => (
+      //         <MenuItem key={option} value={option}>
+      //           {option}
+      //         </MenuItem>
+      //       ))}
+      //     </Select>
+      //   )
+      // }),
 
       columnHelper.accessor('minExperience', {
         header: 'Min Experience',

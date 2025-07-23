@@ -12,21 +12,26 @@ import {
   Grid,
   TextField,
   Button,
-  Autocomplete,
   Chip,
   Avatar,
   FormControlLabel,
-  Switch,
   Checkbox,
   Collapse,
   IconButton,
-  Divider
+  Divider,
+  Autocomplete
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchUserById, resetAddUserStatus, updateUserPermission } from '@/redux/UserManagment/userManagementSlice'
+import {
+  fetchUserById,
+  resetAddUserStatus,
+  updateUserPermission,
+  updateUserRole,
+  fetchDesignationRoles
+} from '@/redux/UserManagment/userManagementSlice'
 import type { RootState } from '@/redux/store'
 
 interface UserManagementState {
@@ -160,6 +165,8 @@ const UserForm = () => {
   const { id } = useParams()
   const router = useRouter()
   const dispatch = useAppDispatch()
+  const [page] = useState(1)
+  const [limit] = useState(10)
   const userManagement = useAppSelector((state: RootState) => state.UserManagementReducer) as UserManagementState
 
   const { selectedUserData, isUserLoading, userFailureMessage } = userManagement || {
@@ -167,6 +174,8 @@ const UserForm = () => {
     isUserLoading: false,
     userFailureMessage: ''
   }
+
+  const { userDesignationRoleData } = useAppSelector(state => state.UserManagementReducer)
 
   const isEditMode = !!id
 
@@ -197,6 +206,11 @@ const UserForm = () => {
     }
   }, [id, dispatch])
 
+  useEffect(() => {
+    dispatch(fetchDesignationRoles({ page, limit }))
+  }, [dispatch, page, limit])
+
+  console.log(userDesignationRoleData, 'userGroupRoleData')
   useEffect(() => {
     if (isEditMode && selectedUserData) {
       setFormData({
@@ -446,58 +460,33 @@ const UserForm = () => {
           )
         ])
 
-        const additionalPermissions: string[] = []
-
-        if (perm.module === 'User' && perm.features.some(f => f.selectedActions.length > 0)) {
-          additionalPermissions.push('prv_user_read')
-        }
-
-        if (
-          perm.module === 'Hiring' &&
-          (perm.features.some(f => f.selectedActions.length > 0) ||
-            perm.subModules.some(sm => sm.features.some(f => f.selectedActions.length > 0)))
-        ) {
-          additionalPermissions.push('prv_hiring_read')
-        }
-
-        if (
-          perm.module === 'Hiring' &&
-          perm.subModules.some(sm => sm.name === 'Vacancy' && sm.features.some(f => f.selectedActions.length > 0))
-        ) {
-          additionalPermissions.push('prv_hiring_vacancy_read')
-        }
-
-        if (
-          perm.module === 'System' &&
-          (perm.features.some(f => f.selectedActions.length > 0) ||
-            perm.subModules.some(sm => sm.features.some(f => f.selectedActions.length > 0)))
-        ) {
-          additionalPermissions.push('prv_system_read')
-        }
-
-        if (
-          perm.module === 'System' &&
-          perm.subModules.some(sm => sm.name === 'Xfactor' && sm.features.some(f => f.selectedActions.length > 0))
-        ) {
-          additionalPermissions.push('prv_system_xfactor_read')
-        }
-
         return [
           ...moduleResults,
           ...subModuleResults,
-          ...perm.actions.map(action => `prv_${perm.module.toLowerCase()}_${action}`),
-          ...additionalPermissions
+          ...perm.actions.map(action => `prv_${perm.module.toLowerCase()}_${action}`)
         ]
       })
       .filter(Boolean)
 
-    if (isEditMode && id) {
-      const payload = {
+    if (isEditMode && id && typeof id === 'string') {
+      // Prepare payload for permissions update
+      const permissionPayload = {
         email: formData.email,
         newPermissions: permissions
       }
 
-      await dispatch(updateUserPermission({ id, params: payload }))
+      // Prepare payload for role update
+      const rolePayload = {
+        email: formData.email,
+        newDesignationRole: `des_${formData.designationRole}`, // Add prefix back for API consistency
+        newRoleNames: formData.groupRoles
+      }
+
+      // Dispatch both updates concurrently if in edit mode
+      const permissionPromise = dispatch(updateUserPermission({ id, params: permissionPayload }))
+      const rolePromise = dispatch(updateUserRole({ id, params: rolePayload }))
+
+      await Promise.all([permissionPromise, rolePromise])
     }
 
     router.back()
@@ -523,7 +512,7 @@ const UserForm = () => {
     <Box>
       <Card sx={{ p: 4, borderRadius: '14px' }}>
         <Typography variant='h5' gutterBottom>
-          {isEditMode ? 'Edit User' : 'Add User'}
+          {/* {isEditMode ? 'Edit User' : 'Add User'} */}
         </Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -591,26 +580,50 @@ const UserForm = () => {
                         sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                       />
                     ))}
-                    {uniqueInheritedPermissions.length > 5 && (
-                      <>
-                        <Chip
-                          label={`+${uniqueInheritedPermissions.length - 5}`}
-                          onClick={() => setShowAllInherited(!showAllInherited)}
-                          sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px', cursor: 'pointer' }}
-                        />
-                        <Collapse in={showAllInherited}>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                            {uniqueInheritedPermissions.slice(5).map((permission, idx) => (
-                              <Chip
-                                key={idx}
-                                label={toTitleCase(cleanName(permission.name, ''))}
-                                sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
-                              />
-                            ))}
-                          </Box>
-                        </Collapse>
-                      </>
-                    )}
+                    <>
+                      {/* Always show first 5 chips */}
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {uniqueInheritedPermissions.slice(0, 5).map((permission, idx) => (
+                          <Chip
+                            key={idx}
+                            label={toTitleCase(cleanName(permission.name, ''))}
+                            sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
+                          />
+                        ))}
+
+                        {/* Show "+X more" chip if not expanded */}
+                        {!showAllInherited && uniqueInheritedPermissions.length > 5 && (
+                          <Chip
+                            label={`+${uniqueInheritedPermissions.length - 5} more`}
+                            onClick={() => setShowAllInherited(true)}
+                            sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px', cursor: 'pointer' }}
+                          />
+                        )}
+                      </Box>
+
+                      {/* Expanded chips appear below when toggled */}
+                      <Collapse in={showAllInherited} unmountOnExit>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                          {uniqueInheritedPermissions.slice(5).map((permission, idx) => (
+                            <Chip
+                              key={idx}
+                              label={toTitleCase(cleanName(permission.name, ''))}
+                              sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
+                            />
+                          ))}
+                        </Box>
+
+                        {/* Optional "Show Less" */}
+                        <Box sx={{ mt: 1 }}>
+                          <Chip
+                            label='Show Less'
+                            onClick={() => setShowAllInherited(false)}
+                            sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px', cursor: 'pointer' }}
+                          />
+                        </Box>
+                      </Collapse>
+                    </>
+
                     {uniqueInheritedPermissions.length === 0 && <Typography>N/A</Typography>}
                   </Box>
                 </Box>
@@ -626,19 +639,56 @@ const UserForm = () => {
                     type='email'
                     value={formData.email}
                     onChange={handleChange}
-                    required
+                    disabled
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiInputBase-input.Mui-disabled': {
+                        WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)',
+                        backgroundColor: '#f5f5f5'
+                      }
+                    }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth label='Designation' name='designation' value={formData.designation} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label='Designation Role'
-                    name='designationRole'
-                    value={formData.designationRole}
-                    onChange={handleChange}
+                    label='Designation'
+                    name='designation'
+                    value={formData.designation}
+                    disabled
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiInputBase-input.Mui-disabled': {
+                        WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)',
+                        backgroundColor: '#f5f5f5'
+                      }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Autocomplete
+                    fullWidth
+                    options={userDesignationRoleData?.map(role => cleanName(role.name, 'des_')) || []}
+                    value={formData.designationRole || ''}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, designationRole: newValue || '' }))
+                    }}
+                    disabled // Makes the field non-editable
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Designation Role'
+                        name='designationRole'
+                        required
+                        InputLabelProps={{ shrink: true }} // Ensures the label stays above the value
+                        sx={{
+                          '& .MuiInputBase-input.Mui-disabled': {
+                            WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)', // Ensures text is readable
+                            backgroundColor: '#f5f5f5' // Light background for disabled state
+                          }
+                        }}
+                      />
+                    )}
                   />
                 </Grid>
 

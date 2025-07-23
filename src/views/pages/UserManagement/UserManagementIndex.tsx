@@ -15,7 +15,7 @@ const UserManagementIndex = () => {
 
   return (
     <>
-      {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUser mode={mode} id={id} />}
+      {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUser  />}
       {mode === 'view' && <UserDetails />}
     </>
   )

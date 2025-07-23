@@ -18,18 +18,14 @@ import {
   Checkbox,
   Divider,
   IconButton,
-  Typography,
-  Grid
+  Typography
 
   // Autocomplete
 } from '@mui/material'
-import {
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  GridView as GridViewIcon,
-  TableView as TableChartIcon,
-  FilterList as FilterListIcon
-} from '@mui/icons-material'
+import { Search as SearchIcon, Clear as ClearIcon, FilterList as FilterListIcon } from '@mui/icons-material'
+
+import GridIcon from '@/icons/GridAndTableIcons/Grid'
+import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
@@ -89,6 +85,7 @@ interface User {
   role?: any
   data?: any
   pagination?: any
+  totalPages?: any
 }
 
 interface FetchParams {
@@ -137,7 +134,7 @@ const UserListing = () => {
 
   const { userManagementData, isUserManagementLoading } = useAppSelector(
     state => state.UserManagementReducer
-) as unknown as UserManagementResponse
+  ) as unknown as UserManagementResponse
 
   const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
 
@@ -168,9 +165,25 @@ const UserListing = () => {
       ...(filterValues.length > 0 && { filters: filterValues })
     }
 
-    dispatch(fetchUserManagement(params))
+    console.log('Fetching with params:', params)
+    dispatch(fetchUserManagement(params)).then(result => {
+      console.log('fetchUserManagement result:', result)
+    })
     dispatch(fetchUserRole({ limit: 10, page: 1 }))
   }, [debouncedSearch, filters, gridPage, tablePage, view, gridLimit, tableLimit, dispatch])
+
+  const handleTablePageChange = (newPage: number) => {
+    setTablePage(newPage)
+  }
+
+  const handleTableRowsPerPageChange = (newPageSize: number) => {
+    setTableLimit(newPageSize)
+    setTablePage(1)
+  }
+
+  const handleGridLoadMore = (newPage: number) => {
+    setGridPage(newPage)
+  }
 
   useEffect(() => {
     if (userManagementData?.data) {
@@ -265,42 +278,6 @@ const UserListing = () => {
     })
   }, [allUsers, tableUsers, userRoleData, view])
 
-  // const normalizedUserData = enrichedUserData.map(user => {
-  //   const normalizedRoles = user.designationRole?.map((role: any): DesignationRole => {
-  //     if (typeof role === 'string') {
-  //       return {
-  //         id: '',
-  //         name: role,
-  //         description: '',
-  //         groupRoles: '',
-  //         permissions: []
-  //       }
-  //     }
-
-  //     // assume role is of type Role
-  //     return {
-  //       id: role.id || '',
-  //       name: role.name || '',
-  //       description: '',
-  //       groupRoles: '',
-  //       permissions: role.permissions || []
-  //     }
-  //   })
-
-  //   return {
-  //     ...user,
-  //     designationRole: normalizedRoles
-  //   }
-  // })
-
-  // const handleEdit = (empCode: string | undefined, id: string) => {
-  //   if (!empCode) return
-  //   const query = new URLSearchParams({ id: id }).toString()
-
-  //   // router.push(`/user-management/edit/${empCode}?${query}`)
-  //   router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(empCode, query))
-  // }
-
   const handleEdit = (userId: string) => {
     router.push(`/user-management/edit?id=${userId}`)
   }
@@ -311,20 +288,20 @@ const UserListing = () => {
     router.push(`/user-role/view/${role.name.replace(/\s+/g, '-')}?${query}`)
   }
 
-  const handleGridLoadMore = (newPage: number) => {
-    setGridPage(newPage)
-  }
+  // const handleGridLoadMore = (newPage: number) => {
+  //   setGridPage(newPage)
+  // }
 
-  const handleTablePageChange = (newPage: number) => {
-    setTablePage(newPage)
-    setTableUsers([]) // Clear table data while fetching new page
-  }
+  // const handleTablePageChange = (newPage: number) => {
+  //   setTablePage(newPage)
+  //   setTableUsers([]) // Clear table data while fetching new page
+  // }
 
-  const handleTableRowsPerPageChange = (newPageSize: number) => {
-    setTableLimit(newPageSize)
-    setTablePage(1)
-    setTableUsers([])
-  }
+  // const handleTableRowsPerPageChange = (newPageSize: number) => {
+  //   setTableLimit(newPageSize)
+  //   setTablePage(1)
+  //   setTableUsers([])
+  // }
 
   const selectedFilters = [
     ...(filters.active ? [{ key: 'active', label: 'active' }] : []),
@@ -359,13 +336,32 @@ const UserListing = () => {
                 Filter
               </Button>
             </Box>
-            <Box>
-              <IconButton onClick={() => setView('grid')} color={view === 'grid' ? 'primary' : 'default'}>
-                <GridViewIcon />
-              </IconButton>
-              <IconButton onClick={() => setView('table')} color={view === 'table' ? 'primary' : 'default'}>
-                <TableChartIcon />
-              </IconButton>
+           <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
+              <Box
+                sx={{
+                  backgroundColor: view === 'grid' ? '#0096DA' : 'transparent',
+                  color: view === 'grid' ? 'white' : '#0096DA',
+                  borderRadius: '8px',
+                  padding: 2,
+                  cursor: 'pointer'
+                }}
+                onClick={() => setView('grid')}
+              >
+                <GridIcon className={''} />
+              </Box>
+              <Box
+                sx={{
+                  backgroundColor: view === 'table' ? '#0096DA' : 'transparent',
+                  color: view === 'table' ? 'white' : '#0096DA',
+                  cursor: 'pointer',
+                  borderRadius: '8px',
+                  padding: 1
+                }}
+                onClick={() => setView('table')}
+              >
+                <TableIcon className='h-5 w-6' />
+              </Box>
+             
             </Box>
           </Box>
           {selectedFilters.length > 0 && (
@@ -382,51 +378,83 @@ const UserListing = () => {
       </Card>
 
       <Drawer anchor='right' open={filterOpen} onClose={() => setFilterOpen(false)}>
-        <Box sx={{ width: 250, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant='h6'>Filters</Typography>
-            <IconButton onClick={() => setFilterOpen(false)}>
-              <i className='tabler-x' style={{ fontSize: '23px' }} />
+        <Box
+          sx={{
+            width: 300,
+            p: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            borderRight: '1px solid #e0e0e0',
+            backgroundColor: '#fafafa'
+          }}
+        >
+          {/* Header */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant='h6' fontWeight={600}>
+              Filters
+            </Typography>
+            <IconButton onClick={() => setFilterOpen(false)} size='small'>
+              <i className='tabler-x' style={{ fontSize: '20px' }} />
             </IconButton>
           </Box>
-          <Divider sx={{ mb: 2 }} />
-          <Grid sx={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
-            <Box>
-              <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* Filter Sections */}
+          <Box sx={{ flexGrow: 2, display: 'flex', flexDirection: 'column', gap: 5, paddingLeft: 2 }}>
+            {/* Status Filter */}
+            <Box gap={3}>
+              <Typography variant='h6' sx={{ fontWeight: 700, mb: 1, color: '#333' }}>
                 Status
               </Typography>
               <FormControlLabel
-                control={<Checkbox checked={filters.active} onChange={handleFilterChange('active')} />}
+                control={<Checkbox checked={filters.active} onChange={handleFilterChange('active')} size='small' />}
                 label='Active'
               />
               <FormControlLabel
-                control={<Checkbox checked={filters.inactive} onChange={handleFilterChange('inactive')} />}
+                control={<Checkbox checked={filters.inactive} onChange={handleFilterChange('inactive')} size='small' />}
                 label='Inactive'
               />
             </Box>
+
+            {/* Source Filter */}
             <Box>
-              <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+              <Typography variant='h6' sx={{ fontWeight: 700, mb: 1, color: '#333' }}>
                 Source
               </Typography>
               <FormControlLabel
-                control={<Checkbox checked={filters.ad} onChange={handleFilterChange('ad')} />}
+                control={<Checkbox checked={filters.ad} onChange={handleFilterChange('ad')} size='small' />}
                 label='AD Users'
               />
               <FormControlLabel
-                control={<Checkbox checked={filters.nonAd} onChange={handleFilterChange('nonAd')} />}
+                control={<Checkbox checked={filters.nonAd} onChange={handleFilterChange('nonAd')} size='small' />}
                 label='Non-AD Users'
               />
             </Box>
-          </Grid>
-          <Button variant='outlined' color='error' onClick={handleClearFilters} sx={{ mt: 2 }}>
-            Clear
-          </Button>
+
+            <Button
+              variant='outlined'
+              color='error'
+              onClick={handleClearFilters}
+              sx={{ mt: 3, borderRadius: 1 }}
+              fullWidth
+            >
+              Clear Filters
+            </Button>
+          </Box>
+
+          {/* Clear Button */}
         </Box>
       </Drawer>
 
       {isUserManagementLoading && (view === 'grid' ? gridPage === 1 : tablePage === 1) ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
+        </Box>
+      ) : userManagementData?.error ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <Typography color='error'>Error loading data: {userManagementData.error}</Typography>
         </Box>
       ) : enrichedUserData.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
@@ -439,7 +467,7 @@ const UserListing = () => {
           onEdit={handleEdit}
           page={gridPage}
           totalPages={pagination.totalPages}
-          totalCount={pagination.totalItems}
+          totalCount={pagination.totalItems || pagination.totalCount || 0}
           onLoadMore={handleGridLoadMore}
         />
       ) : (
@@ -447,10 +475,10 @@ const UserListing = () => {
           data={enrichedUserData}
           page={tablePage}
           limit={tableLimit}
-          totalCount={pagination.totalItems}
+          totalCount={pagination.totalItems || pagination.totalCount || 0}
           onPageChange={handleTablePageChange}
           onRowsPerPageChange={handleTableRowsPerPageChange}
-          handleEdit={handleEdit}
+          onEdit={handleEdit}
           handleView={handleView}
         />
       )}

@@ -4,11 +4,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-// import { useDispatch } from 'react-redux'
 import { Box, Card, Grid, Chip, IconButton, Typography, CircularProgress, Divider, Button } from '@mui/material'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 
-// import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
 import { ROUTES } from '@/utils/routes'
 
 interface User {
@@ -28,21 +26,18 @@ interface User {
 interface UserGridProps {
   data: User[]
   loading: boolean
-  onEdit: (empCode: string | undefined, id: string) => void
+  onEdit: (userId: string) => void
   page: number
   totalCount: number
   onLoadMore: (newPage: number) => void
+  totalPages: number
 }
 
-const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProps) => {
+const UserGrid = ({ data, loading, page, totalCount, onLoadMore }: UserGridProps) => {
   const [expandedRoles, setExpandedRoles] = useState<{ [key: string]: boolean }>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
-
   const router = useRouter()
-
-
-  // const dispatch = useDispatch()
 
   const toggleShowRoles = (userId: string) => {
     setExpandedRoles(prev => ({
@@ -59,21 +54,32 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
 
+  const cleanName = (name: string, prefix: string) => {
+    if (!name) return ''
+
+    return name.replace(new RegExp(`^${prefix}`), '').trim()
+  }
+
   const loadMoreUsers = useCallback(() => {
     if (loading || data.length >= totalCount) return
     const nextPage = page + 1
 
+    console.log(`Loading page ${nextPage}, current data length: ${data.length}, totalCount: ${totalCount}`)
     onLoadMore(nextPage)
   }, [loading, data.length, totalCount, page, onLoadMore])
 
   useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
+
     observerRef.current = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && !loading && data.length < totalCount) {
           loadMoreUsers()
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: '100px' }
     )
 
     if (loadMoreRef.current) {
@@ -85,32 +91,23 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
         observerRef.current.unobserve(loadMoreRef.current)
       }
     }
-  }, [loadMoreUsers])
-
-  const cleanName = (name: string, prefix: string) => {
-    if (!name) return ''
-
-    return name.replace(new RegExp(`^${prefix}`), '').trim()
-  }
-
-  // const handleViewDetails = async (userId: string) => {
-  //   try {
-  //     await dispatch(fetchUserById(userId)).unwrap()
-
-  //     // router.push(`/user-details/${userId}`)
-
-  //     router.push(ROUTES.USER_MANAGEMENT.USER_VIEW(id))
-  //   } catch (error) {
-  //     console.error('Failed to fetch user:', error)
-  //   }
-  // }
+  }, [loadMoreUsers, loading, data.length, totalCount])
 
   return (
     <Box>
       <Grid container spacing={3}>
         {data.map((user, index) => (
           <Grid item xs={12} sm={6} md={6} key={user.userId || index}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: '14px', padding: 5 }}>
+            <Card
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: '14px',
+                padding: 5,
+                justifyContent: 'space-between'
+              }}
+            >
               <Box
                 sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px' }}
               >
@@ -139,7 +136,7 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
                       padding: 3
                     }}
                   />
-                  <IconButton  onClick={() => router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(user.userId))}>
+                  <IconButton onClick={() => router.push(ROUTES.USER_MANAGEMENT.USER_EDIT(user.userId))}>
                     <i className='tabler-edit' style={{ fontSize: '23px' }} />
                   </IconButton>
                 </Box>
@@ -295,7 +292,7 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
                         </Box>
                       </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                       <Button
                         variant='contained'
                         size='small'
@@ -317,7 +314,7 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
                       >
                         View Details
                       </Button>
-                    </Grid>
+                    </Box>
                   </Grid>
                 </Grid>
               </Grid>
@@ -325,13 +322,13 @@ const UserGrid = ({ data, loading,  page, totalCount, onLoadMore }: UserGridProp
           </Grid>
         ))}
       </Grid>
-      {loading && (
+      {loading && data.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
         </Box>
       )}
       {data.length < totalCount && (
-        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4 }}>
+        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4, minHeight: '50px' }}>
           <Typography>{loading ? 'Loading more...' : 'Scroll to load more'}</Typography>
         </Box>
       )}

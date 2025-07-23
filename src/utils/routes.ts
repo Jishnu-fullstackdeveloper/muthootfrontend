@@ -126,5 +126,12 @@ export const ROUTES = {
     SCHEDULER: '/system-management/scheduler',
     JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
-  }
+  },
+ BUCKET_MANAGEMENT:{
+
+   BUCKET_VIEW : '/branch-management',
+   BUCKET_ADD: '/bucket-management/add/new',
+   BUCKET_EDIT:  (id : string) =>`/bucket-management/edit/${id}`
+   
+ }
 }

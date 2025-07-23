@@ -26,15 +26,10 @@ import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-picker
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-
-import dayjs, { Dayjs } from 'dayjs'
-
 import Rating from '@mui/material/Rating'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import resumeIcon from '@/assets/images/resume_icon_cut.png'
-import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
 
 const CandidateOverview = () => {
   const theme = useTheme()
@@ -42,8 +37,8 @@ const CandidateOverview = () => {
   const [selectedJob, setSelectedJob] = useState('ab9247f9-0d8a-4e53-80da-5f1f57065dc0')
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
   const [ratings, setRatings] = useState([])
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null)
-  const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null)
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedTime, setSelectedTime] = useState(null)
 
   const interviewers = [
     {

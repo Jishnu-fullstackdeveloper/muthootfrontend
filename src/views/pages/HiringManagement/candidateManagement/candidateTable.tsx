@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 
-import { Typography, Card, MenuItem, Select, Tooltip, IconButton } from '@mui/material'
+import { Typography, Card, Tooltip, IconButton } from '@mui/material'
 
 // import type { TableMeta } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -46,10 +46,11 @@ const CandidateListing = ({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
-  updateCandidateStatus,
+
+  // updateCandidateStatus,
   handleCadidateDetails
 }: CandidateListingProps) => {
-  const statusOptions = useMemo(() => ['Shortlisted', 'Rejected', 'L1'], [])
+  // const statusOptions = useMemo(() => ['Shortlisted', 'Rejected', 'L1'], [])
   const columnHelper = createColumnHelper<Candidate>()
 
   const columns = useMemo(
@@ -134,7 +135,7 @@ const CandidateListing = ({
         enableSorting: false
       })
     ],
-    [columnHelper, statusOptions, updateCandidateStatus, handleCadidateDetails]
+    [columnHelper, handleCadidateDetails]
   )
 
   // const tableMeta: CandidateTableMeta = {

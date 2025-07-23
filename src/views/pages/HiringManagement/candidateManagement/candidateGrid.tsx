@@ -2,13 +2,14 @@
 
 import React from 'react'
 
-import { Typography, Card, Grid, Box, Tooltip, Button, Chip, Divider } from '@mui/material'
+import { Typography, Card, Grid, Box, Tooltip, Chip, Divider } from '@mui/material'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+// import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 
 interface Candidate {
   id: number
@@ -30,7 +31,7 @@ interface CandidateGridProps {
   page: number
   totalCount: number
   onLoadMore: (newPage: number) => void
-  updateCandidateStatus: (candidateId: number, newStatus: string) => void
+  updateCandidateStatus?: (candidateId: number, newStatus: string) => void
   handleCadidateDetails?: (candidateId: number) => void
 }
 
@@ -41,7 +42,7 @@ const CandidateGrid = ({
   // page,
   // totalCount,
   // onLoadMore,
-  updateCandidateStatus,
+  // updateCandidateStatus,
   handleCadidateDetails
 }: CandidateGridProps) => {
   // const statusOptions = ['Shortlisted', 'Rejected', 'L1']

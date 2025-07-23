@@ -273,7 +273,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
 
   return (
     <Box>
-      <Card sx={{ p: 4, mb: 4 }}>
+      <Card sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2} alignItems='center'>
           <Grid className='flex justify-between' item xs={12}>
             <Typography variant='h5'>Branch Details</Typography>
@@ -291,45 +291,45 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             {/* Action buttons commented out */}
           </Grid>
         </Grid>
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             {/* <Typography variant='body1'>
               <strong>ID:</strong> {branchData.id}
             </Typography> */}
-            <Typography variant='body1'>
-              <strong>Name:</strong> {branchData.name}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Name: <strong>{branchData.name}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>Branch Code:</strong> {branchData.branchCode}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Branch Code: <strong>{branchData.branchCode}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>Territory:</strong> {branchData.cluster?.area?.region?.zone?.territory?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Territory: <strong>{branchData.cluster?.area?.region?.zone?.territory?.name || 'N/A'}</strong>
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography variant='body1'>
-              <strong>Zone:</strong> {branchData.cluster?.area?.region?.zone?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Zone: <strong>{branchData.cluster?.area?.region?.zone?.name || 'N/A'}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>Region:</strong> {branchData.cluster?.area?.region?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Region: <strong>{branchData.cluster?.area?.region?.name || 'N/A'}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>Area:</strong> {branchData?.cluster?.area?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Area: <strong>{branchData?.cluster?.area?.name || 'N/A'}</strong>
             </Typography>
             {/* <Typography variant='body1'>
               <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
             </Typography> */}
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography variant='body1'>
-              <strong>Cluster:</strong> {branchData?.cluster?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              Cluster: <strong>{branchData?.cluster?.name || 'N/A'}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>City Classification:</strong> {branchData?.district?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              City Classification: <strong>{branchData?.district?.name || 'N/A'}</strong>
             </Typography>
-            <Typography variant='body1'>
-              <strong>State:</strong> {branchData.state?.name || 'N/A'}
+            <Typography variant='body1' sx={{ mb: 3 }}>
+              State: <strong>{branchData.state?.name || 'N/A'}</strong>
             </Typography>
             {/* <Typography variant='body1'>
               <strong>Turnover Code:</strong> {branchData.turnoverCode}
@@ -338,15 +338,41 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
         </Grid>
       </Card>
 
-      <Card sx={{ p: 4 }}>
-        <Tabs value={activeTab} onChange={handleTabChange} textColor='primary' indicatorColor='primary'>
+      <Card
+        className='mb-3 p-0.5 '
+        sx={{
+          bgcolor: '#F9FAFB',
+
+          '& .MuiTabs-indicator': { backgroundColor: 'transparent', display: 'none' }, // Hide underline
+          '& .MuiTabs-root': { borderBottom: 'none' }
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{
+            '& .MuiTab-root': {
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: '#23262F',
+                bgcolor: '#FFFFFF', // White background for active tab
+                borderRadius: 2, // Chip-like rounded corners
+                mx: 0.5,
+                boxShadow: 1,
+                my: 1
+              },
+              '&:hover': { textDecoration: 'none', color: 'inherit', borderBottom: 'none' } // Remove underline on hover
+            }
+          }}
+        >
           <Tab label='Employees Details' />
           {/* <Tab label='Bubble Position' /> */}
           <Tab label='Budget Management' />
           <Tab label='Vacancy Management' />
         </Tabs>
-        <Divider sx={{ my: 3 }} />
+      </Card>
 
+      <Box>
         {/* {activeTab === 0 &&
           (employeeData.length === 0 ? (
             <Typography variant='body1' sx={{ textAlign: 'center', p: 4 }}>
@@ -408,7 +434,7 @@ const ViewBranch: React.FC<ViewBranchProps> = ({ mode, id, branchTab }) => {
             failureMessage={fetchVacanciesFailureMessage}
           />
         )}
-      </Card>
+      </Box>
     </Box>
   )
 }

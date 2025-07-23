@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: '/home',
+  RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
     USER_EDIT: (id : string) => `/user-management/user/edit/${id}`,
@@ -46,9 +47,11 @@ export const ROUTES = {
     return `/approvals/approval-detail/Vacancy-Request-Group/request?${params.toString()}`
   },
   VACANCY_DETAIL: (id: string) => `/approvals/approval-detail/Vacancy-Request-Group/request/details?id=${id}`,
+  INTERVIEW_MANAGEMENT: `/interview-management`,
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
-    INTERVIEW_MANAGEMENT: '/hiring-management/interview-management',
+
+    // INTERVIEW_MANAGEMENT: '/interview-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
@@ -95,11 +98,17 @@ export const ROUTES = {
       RESIGNED_DETAILS: (id: string) =>
         `/hiring-management/vacancy-management/vacancy-request/resignation-detail?id=${id}`
     },
-    BUDGET: '/hiring-management/budget-management/budget-request',
+    BUDGET: {
+      BUDGET_REQUEST: '/hiring-management/budget-management/budget-request',
+      BUDGET_REQUEST_VIEW: (jobTitle: string, id: string) =>
+        `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`,
+      BUDGET_REQUEST_EDIT: (id: string) => `/hiring-management/budget-management/budget-request/edit/detail?id=${id}`,
+      BUDGET_REQUEST_ADD: '/hiring-management/budget-management/budget-request/add/new',
+      POSITION_MATRIX: '/hiring-management/budget-management/position-budget-matrix'
+    },
     BUDGET_ADD: '/hiring-management/budget-management/budget-request/add/new',
     BUDGET_VIEW: (jobTitle: string, id: string) =>
-      `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`,
-    POSITION_MATRIX: '/hiring-management/budget-management/position-budget-matrix'
+      `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`
   },
   JD_MANAGEMENT: '/jd-management',
   BRANCH_MANAGEMENT: '/branch-management',
@@ -116,6 +125,14 @@ export const ROUTES = {
     APPROVAL_MATRIX_ADD: '/system-management/approval-matrix/add/new',
     APPROVAL_MATRIX_EDIT: (queryParams: any) => `/system-management/approval-matrix/edit/edit-approval?${queryParams}`,
     SCHEDULER: '/system-management/scheduler',
+    JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
-  }
+  },
+ BUCKET_MANAGEMENT:{
+
+   BUCKET_VIEW : '/branch-management',
+   BUCKET_ADD: '/bucket-management/add/new',
+   BUCKET_EDIT:  (id : string) =>`/bucket-management/edit/${id}`
+   
+ }
 }

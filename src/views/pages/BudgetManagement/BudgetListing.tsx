@@ -53,6 +53,7 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
 import BudgetListingTableView from './BudgetListingTableView'
+import { ROUTES } from '@/utils/routes'
 
 const BudgetListing = () => {
   const dispatch = useAppDispatch()
@@ -403,7 +404,7 @@ const BudgetListing = () => {
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push(`/hiring-management/budget-management/budget-request/add/new`)}
+              onClick={() => router.push(ROUTES.HIRING_MANAGEMENT.BUDGET.BUDGET_REQUEST_ADD)}
               children='New Request'
             />
             <Box
@@ -462,9 +463,7 @@ const BudgetListing = () => {
                   <Grid item xs={12} sm={6} lg={4} key={index}>
                     <Card
                       onClick={() =>
-                        router.push(
-                          `/hiring-management/budget-management/budget-request/view/${budget.jobTitle}?id=${budget.id}`
-                        )
+                        router.push(ROUTES.HIRING_MANAGEMENT.BUDGET.BUDGET_REQUEST_VIEW(budget.jobTitle, budget.id))
                       }
                       sx={{
                         bgcolor: 'background.paper',

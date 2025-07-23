@@ -6,7 +6,7 @@ import recruitmentResignationReducer from './RecruitmentResignationSlice'
 import approvalMatrixReducer from './approvalMatrixSlice'
 import manualRequestReducer from './manualRecruitmentRequestSlice'
 import UserRoleReducer from './UserRoles/userRoleSlice'
-import BucketManagementReducer from './BucketManagementSlice'
+import BucketManagementReducer from './BucketManagemnet/BucketManagementSlice'
 import branchManagementReducer from './BranchManagement/BranchManagementSlice'
 import vacancyManagementReducer from './VacancyManagementAPI/vacancyManagementSlice'
 import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
@@ -17,9 +17,11 @@ import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
 import dataUploadReducer from './DataUpload/dataUploadSlice'
 import JobPostingReducer from './JobPosting/jobListingSlice'
+import JobPostingCustomizationReducer from './JobPosting/jobPostingCustomizationSlice'
 import OrganizationalMappingReducer from './OrganizationalMapping/organizationalMappingSlice'
 import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
+import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -40,10 +42,12 @@ export const makeStore = () =>
       approvalsReducer,
       resignationDataListingReducer,
       dataUploadReducer,
+      JobPostingCustomizationReducer,
       JobPostingReducer,
       OrganizationalMappingReducer,
       schedulerManagementSliceReducer,
-      noticePeriodReducer
+      noticePeriodReducer,
+      positionBudgetMatrixReducer
     }
   })
 

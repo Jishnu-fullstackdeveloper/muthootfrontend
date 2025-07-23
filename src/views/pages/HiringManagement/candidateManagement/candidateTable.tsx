@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 
-import { Typography, Card, MenuItem, Select, Tooltip, IconButton } from '@mui/material'
+import { Typography, Card, Tooltip, IconButton } from '@mui/material'
 
 // import type { TableMeta } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -46,10 +46,11 @@ const CandidateListing = ({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
-  updateCandidateStatus,
+
+  // updateCandidateStatus,
   handleCadidateDetails
 }: CandidateListingProps) => {
-  const statusOptions = useMemo(() => ['Shortlisted', 'Rejected', 'L1'], [])
+  // const statusOptions = useMemo(() => ['Shortlisted', 'Rejected', 'L1'], [])
   const columnHelper = createColumnHelper<Candidate>()
 
   const columns = useMemo(
@@ -71,31 +72,31 @@ const CandidateListing = ({
         cell: ({ row }) => <Typography>{row.original.appliedDate}</Typography>
       }),
 
-      columnHelper.accessor('status', {
-        header: 'Status',
-        cell: ({ row }) => (
-          <Select
-            value={statusOptions.includes(row.original.status) ? row.original.status : ''}
-            onChange={e => {
-              const newStatus = e.target.value
+      // columnHelper.accessor('status', {
+      //   header: 'Status',
+      //   cell: ({ row }) => (
+      //     <Select
+      //       value={statusOptions.includes(row.original.status) ? row.original.status : ''}
+      //       onChange={e => {
+      //         const newStatus = e.target.value
 
-              updateCandidateStatus(row.original.id, newStatus)
-            }}
-            displayEmpty
-            fullWidth
-            sx={{ minWidth: 120, padding: '4px' }}
-          >
-            <MenuItem value='' disabled>
-              Select Status
-            </MenuItem>
-            {statusOptions.map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        )
-      }),
+      //         updateCandidateStatus(row.original.id, newStatus)
+      //       }}
+      //       displayEmpty
+      //       fullWidth
+      //       sx={{ minWidth: 120, padding: '4px' }}
+      //     >
+      //       <MenuItem value='' disabled>
+      //         Select Status
+      //       </MenuItem>
+      //       {statusOptions.map(option => (
+      //         <MenuItem key={option} value={option}>
+      //           {option}
+      //         </MenuItem>
+      //       ))}
+      //     </Select>
+      //   )
+      // }),
 
       columnHelper.accessor('minExperience', {
         header: 'Min Experience',
@@ -134,7 +135,7 @@ const CandidateListing = ({
         enableSorting: false
       })
     ],
-    [columnHelper, statusOptions, updateCandidateStatus, handleCadidateDetails]
+    [columnHelper, handleCadidateDetails]
   )
 
   // const tableMeta: CandidateTableMeta = {

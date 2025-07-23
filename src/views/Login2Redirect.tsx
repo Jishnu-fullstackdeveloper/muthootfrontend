@@ -23,7 +23,7 @@ import AxiosLib from '@/lib/AxiosLib'
 const Login2Redirect = () => {
   const router = useRouter()
 
-  // Extract URL parameters once at the top level
+  // Extract URL parameters once at the top level.
   const currentUrl = typeof window !== 'undefined' ? window?.location?.href : ''
   const urlParams = new URLSearchParams(currentUrl?.split('?')[1])
   const code = urlParams.get('code') //CR: Code is Not Found in redirect URL

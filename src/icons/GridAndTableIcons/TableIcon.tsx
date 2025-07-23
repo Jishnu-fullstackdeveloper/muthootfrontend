@@ -1,6 +1,6 @@
 import React from 'react'
 
-const TableIcon = ({ className, width = '24', height = '24' }) => {
+const TableIcon = ({ className, width = '20', height = '10' }) => {
   return (
     <svg
       width={width} // Explicitly set to 24px by default

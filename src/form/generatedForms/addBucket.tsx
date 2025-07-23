@@ -36,10 +36,10 @@ type Props = {
   mode: 'add' | 'edit'
 }
 
-interface PositionCategory {
-  jobRole: string
-  count: number
-}
+// interface PositionCategory {
+//   jobRole: string
+//   count: number
+// }
 
 interface JobRoleOption {
   label: string
@@ -69,13 +69,13 @@ const AddOrEditUser: React.FC<Props> = ({ mode }) => {
 
   const [isFormEdited, setIsFormEdited] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [page] = useState(1)
+  const [limit] = useState(10)
 
   const [initialFormValues, setInitialFormValues] = useState({
     name: '',
     level: '',
-    positionCategories: mode === 'add' ? [{ jobRole: '', count: 1 }] : ([] as PositionCategory[])
+    positionCategories: mode === 'add' ? [{ jobRole: '', count: 1 }] : selectedBucketData?.positionCategories || []
   })
 
   // Map jobRoleData to the format expected by Autocomplete

@@ -88,19 +88,13 @@ export const updateBucket = createAsyncThunk<
 export const BucketManagementSlice = createSlice({
   name: 'BucketManagement',
   initialState: {
-    jobRoleData: {
-      data: [],
-      totalCount: 0
-    },
-    isJobRoleLoading: false,
+    jobRoleData: [],
+    iJobRoleLoading: false,
     jobRoleSuccess: false,
     jobRoleFailure: false,
     jobRoleFailureMessage: '',
 
-    bucketData: {
-      data: [],
-      totalCount: 0
-    },
+    bucketData: [],
     isBucketLoading: false,
     bucketSuccess: false,
     bucketFailure: false,
@@ -139,16 +133,16 @@ export const BucketManagementSlice = createSlice({
   },
   extraReducers: builder => {
     builder.addCase(fetchJobRole.pending, state => {
-      state.isJobRoleLoading = true
+      state.iJobRoleLoading = true
     })
     builder.addCase(fetchJobRole.fulfilled, (state, action) => {
       state.jobRoleData = action?.payload?.data
-      state.isJobRoleLoading = false
+      state.iJobRoleLoading = false
       state.jobRoleSuccess = true
     })
     builder.addCase(fetchJobRole.rejected, (state, action: any) => {
-      state.isJobRoleLoading = false
-      state.jobRoleData = { data: [], totalCount: 0 }
+      state.iJobRoleLoading = false
+      state.jobRoleData = []
       state.jobRoleFailure = true
       state.jobRoleFailureMessage = action?.payload?.message || 'Listing Failed'
     })
@@ -164,7 +158,7 @@ export const BucketManagementSlice = createSlice({
     })
     builder.addCase(fetchBucket.rejected, (state, action: any) => {
       state.isBucketLoading = false
-      state.bucketData.data = []
+      state.bucketData = []
       state.bucketFailure = true
       state.bucketFailureMessage = action?.payload?.message || 'Listing Failed'
     })

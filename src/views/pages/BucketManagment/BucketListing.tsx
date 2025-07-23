@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, Grid, Typography, Button, Divider} from '@mui/material'
+import { Box, Card, Grid, Typography, Button, Divider } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
 
 import LevelsIcon from '@/icons/LevelsIcon'
@@ -31,9 +31,7 @@ const BucketListing = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { bucketData } = useAppSelector(
-    state => state.BucketManagementReducer
-  )
+  const { bucketData } = useAppSelector(state => state.BucketManagementReducer)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [viewType, setViewType] = useState<'grid' | 'table'>('grid')
@@ -46,8 +44,6 @@ const BucketListing = () => {
   useEffect(() => {
     dispatch(fetchBucket({ page, limit }))
   }, [dispatch, page, limit])
-
-
 
   const toTitleCase = (str: string) =>
     str
@@ -191,7 +187,7 @@ const BucketListing = () => {
                 }}
                 onClick={() => setViewType('grid')}
               >
-                <GridIcon />
+                <GridIcon className={''} />
               </Box>
               <Box
                 sx={{

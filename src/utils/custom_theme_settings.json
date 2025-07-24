@@ -15,7 +15,8 @@
     "meta_text": "Muthoot FinCorp - India's Largest Gold Loan NBFC",
     "images": {
       "logo": {
-        "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
+        "devUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/MPG_new.png",
+        "url": "https://www.muthootfincorp.com/api/getImage?path=https://mflprodweb.s3.ap-south-1.amazonaws.com/logo_belief_0e3a7396d4.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA5THCCQSFU4EP2MA7%2F20250723%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20250723T075853Z&X-Amz-Expires=900&X-Amz-Signature=19b60e4628b94b8ce7148b4f4777605dc3cfac77f8b107b6502e37d4322e5100&X-Amz-SignedHeaders=host&x-id=GetObject",
         "altText": "Website Logo",
         "width": {
           "xs_phones": 30,

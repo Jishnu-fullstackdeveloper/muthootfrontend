@@ -116,7 +116,7 @@ const Navigation = (props: Props) => {
         }
       }}
       collapsedWidth={71}
-      backgroundColor='var(--mui-palette-background-paper)'
+      backgroundColor='#0191DA'
       width={220}
       // eslint-disable-next-line lines-around-comment
       // The following condition adds the data-mui-color-scheme='dark' attribute to the VerticalNav component
@@ -128,7 +128,9 @@ const Navigation = (props: Props) => {
     >
       {/* Nav Header including Logo & nav toggle icons  */}
       <NavHeader>
-        <Logo />
+        <div className='ml-10'>
+          <Logo />
+        </div>
         {!(isCollapsed && !isHovered) && (
           <NavCollapseIcons
             lockedIcon={

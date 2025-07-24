@@ -53,7 +53,7 @@ const JobPostGrid = ({ data, loading }: JobPostGridProps) => {
 
   return (
     <div className='py-2'>
-      <div className='grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-2 px-2'>
+      <div className='grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-2 px-2'>
         {data.map(job => (
           <div key={job.id} className='xs:12 sm:6 md:4'>
             <div className=" p-2 gap-[16px] w-full  bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[14px] font-['Public_Sans',_Roboto,_sans-serif] h-full">

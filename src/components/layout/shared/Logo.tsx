@@ -20,7 +20,7 @@ import custom_theme_settings from '@/utils/custom_theme_settings.json'
 import VuexyLogo from '@core/svg/Logo'
 
 // Config Imports
-import themeConfig from '@configs/themeConfig'
+// import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
@@ -32,25 +32,25 @@ type LogoTextProps = {
   transitionDuration?: VerticalNavContextProps['transitionDuration']
 }
 
-const LogoText = styled.span<LogoTextProps>`
-  font-size: 1.375rem;
-  line-height: 1.09091;
-  font-weight: 700;
-  letter-spacing: 0.25px;
-  color: var(--mui-palette-text-primary);
-  transition: ${({ transitionDuration }) =>
-    `margin-inline-start ${transitionDuration}ms ease-in-out, opacity ${transitionDuration}ms ease-in-out`};
+// const LogoText = styled.span<LogoTextProps>`
+//   font-size: 1.375rem;
+//   line-height: 1.09091;
+//   font-weight: 700;
+//   letter-spacing: 0.25px;
+//   color: var(--mui-palette-text-primary);
+//   transition: ${({ transitionDuration }) =>
+//     `margin-inline-start ${transitionDuration}ms ease-in-out, opacity ${transitionDuration}ms ease-in-out`};
 
-  ${({ isHovered, isCollapsed }) =>
-    isCollapsed && !isHovered ? 'opacity: 0; margin-inline-start: 0;' : 'opacity: 1; margin-inline-start: 12px;'}
-`
+//   ${({ isHovered, isCollapsed }) =>
+//     isCollapsed && !isHovered ? 'opacity: 0; margin-inline-start: 0;' : 'opacity: 1; margin-inline-start: 12px;'}
+// `
 
 const Logo = () => {
   // Refs
   const logoTextRef = useRef<HTMLSpanElement>(null)
 
   // Hooks
-  const { isHovered, transitionDuration } = useVerticalNav()
+  const { isHovered } = useVerticalNav() //transitionDuration
   const { settings } = useSettings()
 
   // Vars
@@ -74,9 +74,10 @@ const Logo = () => {
   // You may return any JSX here to display a logo in the sidebar header
   // return <Img src='/next.svg' width={100} height={25} alt='logo' /> // for example
   return (
-    <Link href='/home' className='flex justify-center'>
+    <Link href='/home' className='flex justify-center content-center items-center h-full'>
       {custom_theme_settings?.theme?.images?.logo?.url ? (
         <Box
+          className='w-20 h-20 '
           component='img'
           src={custom_theme_settings?.theme?.images?.logo?.url}
           alt={custom_theme_settings?.theme?.images?.logo?.altText}

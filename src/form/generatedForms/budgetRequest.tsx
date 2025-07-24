@@ -107,6 +107,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
   const [jds, setJDs] = useState<any[]>([])
   const [bands, setBands] = useState<any[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
+  const [locationType, setLocationType] = useState<string>('')
   const [locationDetails, setLocationDetails] = useState([{ location: '', count: 1 }])
 
   // Pagination States
@@ -287,6 +288,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
         .then(data => {
           if (data?.type && data?.names) {
             setLocationOptions(data.names)
+            setLocationType(data.type)
             formik.setFieldValue('locationDetails', [
               { location: data.type, count: 1 } // Set first location as the type
             ])
@@ -660,7 +662,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         renderInput={params => (
                           <MUITextField
                             {...params}
-                            label={`Location ${index + 1}`}
+                            label={`${locationType} ${index + 1}`}
                             error={
                               formik.touched.locationDetails?.[index]?.location &&
                               Boolean(formik.errors.locationDetails?.[index]?.location)

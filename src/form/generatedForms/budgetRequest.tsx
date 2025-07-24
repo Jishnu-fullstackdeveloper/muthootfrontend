@@ -28,6 +28,7 @@ import {
   TextField as MUITextField
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 // Redux Imports
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -70,27 +71,23 @@ const validationSchema = Yup.object({
   employeeCategory: Yup.string().required('Employee Category is required'),
   employeeType: Yup.string().required('Employee Type is required'),
   grade: Yup.string().required('Grade is required'),
-  approvalCategory: Yup.string().required('Approval Category is required'),
-  approvalCategoryId: Yup.string().required('Approval Category ID is required'),
-  raisedById: Yup.string().required('Raised By ID is required'),
   jd: Yup.string().required('JD is required'),
   band: Yup.string().required('Band is required'),
+  notes: Yup.string(),
   locationDetails: Yup.array()
     .of(
       Yup.object().shape({
         location: Yup.string().required('Location is required'),
-        count: Yup.number()
-          .required('Count is required')
-          .min(1, 'Count must be at least 1')
-          .test('max-count', 'Total count cannot exceed openings', function (value) {
-            const { openings } = this.parent
-            const totalCount = this.from[1].value.reduce((sum: number, item: any) => sum + (item.count || 0), 0)
-
-            return totalCount <= openings
-          })
+        count: Yup.number().required('Count is required').min(1, 'Count must be at least 1')
       })
     )
     .min(1, 'At least one location is required')
+    .test('total-count', 'Total count must equal No. of Openings', function (value) {
+      const { openings } = this.parent
+      const totalCount = value.reduce((sum: number, item: any) => sum + (item.count || 0), 0)
+
+      return totalCount === Number(openings) || !openings // Allow validation to pass if openings is not set
+    })
 })
 
 const ManualRequestGeneratedForm: React.FC = () => {
@@ -107,7 +104,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
   const [businessUnits, setBusinessUnits] = useState<any[]>([])
   const [employeeCategories, setEmployeeCategories] = useState<any[]>([])
   const [grades, setGrades] = useState<any[]>([])
-  const [approvalCategories, setApprovalCategories] = useState<any[]>([])
   const [jds, setJDs] = useState<any[]>([])
   const [bands, setBands] = useState<any[]>([])
   const [locationOptions, setLocationOptions] = useState<string[]>([])
@@ -130,9 +126,6 @@ const ManualRequestGeneratedForm: React.FC = () => {
     jobRole: useRef<HTMLDivElement | null>(null)
   }
 
-  // Fetch raisedById
-  const raisedById = getUserId()
-
   // Formik setup
   const formik = useFormik({
     initialValues: {
@@ -145,11 +138,9 @@ const ManualRequestGeneratedForm: React.FC = () => {
       employeeCategory: '',
       employeeType: '',
       grade: '',
-      approvalCategory: '',
-      approvalCategoryId: '',
-      raisedById: raisedById || '',
       jd: '',
       band: '',
+      notes: '',
       locationDetails: [{ location: '', count: 1 }]
     },
     validationSchema,
@@ -160,18 +151,13 @@ const ManualRequestGeneratedForm: React.FC = () => {
           startingDate: values.startingDate,
           closingDate: values.closingDate,
           company: values.company,
-          businessUnit: businessUnits.find(option => option.id === values.businessUnit)?.name || values.businessUnit,
-          employeeCategory:
-            employeeCategories.find(option => option.id === values.employeeCategory)?.name || values.employeeCategory,
+          businessUnit: values.businessUnit, // Send name instead of ID
+          employeeCategory: values.employeeCategory, // Send name instead of ID
           employeeType: values.employeeType,
-          grade: grades.find(option => option.id === values.grade)?.name || values.grade,
-          approvalCategory:
-            approvalCategories.find(option => option.id === values.approvalCategory)?.name || values.approvalCategory,
-          approvalCategoryId: values.approvalCategoryId,
-          raisedById: values.raisedById,
-          jd: jds.find(option => option.id === values.jd)?.name || values.jd,
-          band: bands.find(option => option.id === values.band)?.name || values.band,
-          campusOrLateral: 'Lateral', // Hardcoded as per requirement
+          grade: values.grade, // Send name instead of ID
+          jd: jds.find(option => option.name === values.jd)?.id || values.jd, // Send ID for jd
+          band: values.band, // Send name instead of ID
+          notes: values.notes,
           locationDetails: values.locationDetails.map(item => ({
             location: item.location,
             count: item.count
@@ -223,21 +209,17 @@ const ManualRequestGeneratedForm: React.FC = () => {
       })
   }, [dispatch])
 
-  const loadApprovalCategories = useCallback(() => {
-    dispatch(fetchApprovalCategories({ page: 1, limit: 1000 }))
-      .unwrap()
-      .then(data => {
-        setApprovalCategories(data?.data || [])
-      })
-  }, [dispatch])
-
   const loadJDs = useCallback(() => {
-    dispatch(fetchJD({ page: 1, limit: 1000 }))
+    const jobRole = formik.values.jobRole
+
+    if (!jobRole || jobRole === jobRoleFetchRef.current) return // Prevent redundant calls
+    console.log('Fetching JDs with jobRole:', jobRole)
+    dispatch(fetchJD({ page: 1, limit: 1000, search: jobRole }))
       .unwrap()
       .then(data => {
         setJDs(data?.data || [])
       })
-  }, [dispatch])
+  }, [dispatch, formik.values.jobRole])
 
   const loadBands = useCallback(() => {
     dispatch(fetchBand({ page: 1, limit: 1000 }))
@@ -252,10 +234,10 @@ const ManualRequestGeneratedForm: React.FC = () => {
     loadJobRoles()
     loadBusinessUnits()
     loadGrades()
-    loadApprovalCategories()
-    loadJDs()
     loadBands()
-  }, [loadJobRoles, loadBusinessUnits, loadGrades, loadApprovalCategories, loadJDs, loadBands])
+
+    // Do not call loadJDs here; it will be triggered by jobRole change
+  }, [loadJobRoles, loadBusinessUnits, loadGrades, loadBands])
 
   // Intersection Observer
   useEffect(() => {
@@ -295,20 +277,29 @@ const ManualRequestGeneratedForm: React.FC = () => {
       setLimit(prev => ({ ...prev, jobRole: 10 }))
       setHasMore(prev => ({ ...prev, jobRole: true }))
       jobRoleFetchRef.current = formik.values.jobRole
-      dispatch(fetchJobRoleNamesByRole({ jobRole: formik.values.jobRole })) // Sending jobRole name instead of id
+
+      // Fetch JD with jobRole name
+      loadJDs()
+
+      // Fetch location options with jobRole name
+      dispatch(fetchJobRoleNamesByRole({ jobRole: formik.values.jobRole }))
         .unwrap()
         .then(data => {
           if (data?.type && data?.names) {
             setLocationOptions(data.names)
-            formik.setFieldValue('locationDetails', [{ location: '', count: 1 }])
+            formik.setFieldValue('locationDetails', [
+              { location: data.type, count: 1 } // Set first location as the type
+            ])
           }
         })
     } else if (!formik.values.jobRole && jobRoleFetchRef.current !== null) {
       jobRoleFetchRef.current = null
       setLocationOptions([])
+      formik.setFieldValue('jd', '') // Clear JD when jobRole is cleared
       formik.setFieldValue('locationDetails', [{ location: '', count: 1 }])
+      setJDs([]) // Clear JDs when jobRole is cleared
     }
-  }, [formik.values.jobRole, dispatch, formik])
+  }, [formik.values.jobRole, dispatch, formik, loadJDs])
 
   // Handle businessUnit change
   useEffect(() => {
@@ -328,8 +319,13 @@ const ManualRequestGeneratedForm: React.FC = () => {
   }
 
   const handleAddLocation = () => {
-    setLocationDetails([...locationDetails, { location: '', count: 1 }])
-    formik.setFieldValue('locationDetails', [...locationDetails, { location: '', count: 1 }])
+    const openings = parseInt(formik.values.openings) || 0
+    const totalCount = locationDetails.reduce((sum, item) => sum + (item.count || 0), 0)
+
+    if (totalCount < openings && locationDetails.length < locationOptions.length) {
+      setLocationDetails([...locationDetails, { location: '', count: 1 }])
+      formik.setFieldValue('locationDetails', [...locationDetails, { location: '', count: 1 }])
+    }
   }
 
   const handleRemoveLocation = (index: number) => {
@@ -354,6 +350,8 @@ const ManualRequestGeneratedForm: React.FC = () => {
     setLocationDetails(newLocationDetails)
     formik.setFieldValue('locationDetails', newLocationDetails)
   }
+
+  console.log('Form Values:', formik.values)
 
   return (
     <Card
@@ -397,9 +395,14 @@ const ManualRequestGeneratedForm: React.FC = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={jobRoles.map(option => ({ label: option.name, id: option.id }))}
-                  value={jobRoles.find(option => option.id === formik.values.jobRole) || null}
+                  options={jobRoles.map(option => ({ label: option.name, id: option.name }))} // Use name as id
+                  value={
+                    jobRoles.find(option => option.name === formik.values.jobRole)
+                      ? { label: formik.values.jobRole, id: formik.values.jobRole }
+                      : null
+                  }
                   onChange={(_, value) => {
+                    console.log('Selected Job Role:', value)
                     formik.setFieldValue('jobRole', value?.id || '')
                   }}
                   onBlur={formik.handleBlur}
@@ -431,20 +434,17 @@ const ManualRequestGeneratedForm: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Autocomplete
-                  options={jds.map(option => ({ label: option.name, id: option.id }))}
-                  value={jds.find(option => option.id === formik.values.jd) || null}
-                  onChange={(_, value) => formik.setFieldValue('jd', value?.id || '')}
+                <TextField
+                  label='JD'
+                  name='jd'
+                  value={formik.values.jd}
+                  onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  renderInput={params => (
-                    <MUITextField
-                      {...params}
-                      label='JD'
-                      error={formik.touched.jd && Boolean(formik.errors.jd)}
-                      helperText={formik.touched.jd && formik.errors.jd}
-                    />
-                  )}
+                  error={formik.touched.jd && Boolean(formik.errors.jd)}
+                  helperText={formik.touched.jd && formik.errors.jd}
                   fullWidth
+                  variant='outlined'
+                  disabled // Disabled since it's auto-populated
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -488,7 +488,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <Autocomplete
                   options={staticDropdownOptions.company.map(option => ({ label: option, id: option }))}
-                  value={{ label: formik.values.company, id: formik.values.company } || null}
+                  value={
+                    staticDropdownOptions.company.includes(formik.values.company)
+                      ? { label: formik.values.company, id: formik.values.company }
+                      : null
+                  }
                   onChange={(_, value) => formik.setFieldValue('company', value?.id || '')}
                   onBlur={formik.handleBlur}
                   renderInput={params => (
@@ -504,8 +508,12 @@ const ManualRequestGeneratedForm: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={businessUnits.map(option => ({ label: option.name, id: option.id }))}
-                  value={businessUnits.find(option => option.id === formik.values.businessUnit) || null}
+                  options={businessUnits.map(option => ({ label: option.name, id: option.name }))} // Use name as id
+                  value={
+                    businessUnits.find(option => option.name === formik.values.businessUnit)
+                      ? { label: formik.values.businessUnit, id: formik.values.businessUnit }
+                      : null
+                  }
                   onChange={(_, value) => {
                     formik.setFieldValue('businessUnit', value?.id || '')
                     formik.setFieldValue('employeeCategory', '')
@@ -524,8 +532,12 @@ const ManualRequestGeneratedForm: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={employeeCategories.map(option => ({ label: option.name, id: option.id }))}
-                  value={employeeCategories.find(option => option.id === formik.values.employeeCategory) || null}
+                  options={employeeCategories.map(option => ({ label: option.name, id: option.name }))} // Use name as id
+                  value={
+                    employeeCategories.find(option => option.name === formik.values.employeeCategory)
+                      ? { label: formik.values.employeeCategory, id: formik.values.employeeCategory }
+                      : null
+                  }
                   onChange={(_, value) => formik.setFieldValue('employeeCategory', value?.id || '')}
                   onBlur={formik.handleBlur}
                   disabled={!formik.values.businessUnit}
@@ -543,7 +555,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <Autocomplete
                   options={staticDropdownOptions.employeeType.map(option => ({ label: option, id: option }))}
-                  value={{ label: formik.values.employeeType, id: formik.values.employeeType } || null}
+                  value={
+                    staticDropdownOptions.employeeType.includes(formik.values.employeeType)
+                      ? { label: formik.values.employeeType, id: formik.values.employeeType }
+                      : null
+                  }
                   onChange={(_, value) => formik.setFieldValue('employeeType', value?.id || '')}
                   onBlur={formik.handleBlur}
                   renderInput={params => (
@@ -559,8 +575,12 @@ const ManualRequestGeneratedForm: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={grades.map(option => ({ label: option.name, id: option.id }))}
-                  value={grades.find(option => option.id === formik.values.grade) || null}
+                  options={grades.map(option => ({ label: option.name, id: option.name }))} // Use name as id
+                  value={
+                    grades.find(option => option.name === formik.values.grade)
+                      ? { label: formik.values.grade, id: formik.values.grade }
+                      : null
+                  }
                   onChange={(_, value) => formik.setFieldValue('grade', value?.id || '')}
                   onBlur={formik.handleBlur}
                   renderInput={params => (
@@ -576,8 +596,12 @@ const ManualRequestGeneratedForm: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={bands.map(option => ({ label: option.name, id: option.id }))}
-                  value={bands.find(option => option.id === formik.values.band) || null}
+                  options={bands.map(option => ({ label: option.name, id: option.name }))} // Use name as id
+                  value={
+                    bands.find(option => option.name === formik.values.band)
+                      ? { label: formik.values.band, id: formik.values.band }
+                      : null
+                  }
                   onChange={(_, value) => formik.setFieldValue('band', value?.id || '')}
                   onBlur={formik.handleBlur}
                   renderInput={params => (
@@ -591,89 +615,113 @@ const ManualRequestGeneratedForm: React.FC = () => {
                   fullWidth
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label='Notes'
+                  name='notes'
+                  value={formik.values.notes}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.notes && Boolean(formik.errors.notes)}
+                  helperText={formik.touched.notes && formik.errors.notes}
+                  fullWidth
+                  variant='outlined'
+                  multiline
+                  rows={4}
+                />
+              </Grid>
             </Grid>
           </Box>
         )}
 
         {/* Location Details */}
         {selectedTab === 2 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 {locationDetails.map((item, index) => (
-                  <Box key={index} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                    <Autocomplete
-                      options={locationOptions.map(option => ({ label: option, id: option }))}
-                      value={{ label: item.location, id: item.location } || null}
-                      onChange={(_, value) => handleLocationChange(index, value?.id || '')}
-                      onBlur={() => formik.setFieldTouched(`locationDetails[${index}].location`, true)}
-                      renderInput={params => (
-                        <MUITextField
-                          {...params}
-                          label={`Location ${index + 1}`}
-                          error={
-                            formik.touched.locationDetails?.[index]?.location &&
-                            Boolean(formik.errors.locationDetails?.[index]?.location)
-                          }
-                          helperText={
-                            formik.touched.locationDetails?.[index]?.location &&
-                            formik.errors.locationDetails?.[index]?.location
-                          }
-                        />
-                      )}
-                      fullWidth
-                      disabled={!formik.values.jobRole}
-                    />
-                    <TextField
-                      label='Count'
-                      type='number'
-                      value={item.count}
-                      onChange={e => handleCountChange(index, parseInt(e.target.value) || 1)}
-                      onBlur={() => formik.setFieldTouched(`locationDetails[${index}].count`, true)}
-                      error={
-                        formik.touched.locationDetails?.[index]?.count &&
-                        Boolean(formik.errors.locationDetails?.[index]?.count)
-                      }
-                      helperText={
-                        formik.touched.locationDetails?.[index]?.count && formik.errors.locationDetails?.[index]?.count
-                      }
-                      inputProps={{ min: 1 }}
-                      fullWidth
-                      disabled={!formik.values.jobRole}
-                    />
-                    {index === locationDetails.length - 1 ? (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      mb: 2,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={locationOptions.map(option => ({ label: option, id: option }))}
+                        value={
+                          locationOptions.includes(item.location) ? { label: item.location, id: item.location } : null
+                        }
+                        onChange={(_, value) => handleLocationChange(index, value?.id || '')}
+                        onBlur={() => formik.setFieldTouched(`locationDetails[${index}].location`, true)}
+                        renderInput={params => (
+                          <MUITextField
+                            {...params}
+                            label={`Location ${index + 1}`}
+                            error={
+                              formik.touched.locationDetails?.[index]?.location &&
+                              Boolean(formik.errors.locationDetails?.[index]?.location)
+                            }
+                            helperText={
+                              formik.touched.locationDetails?.[index]?.location &&
+                              formik.errors.locationDetails?.[index]?.location
+                            }
+                            sx={{ flex: 1 }} // Allow it to grow
+                          />
+                        )}
+                        fullWidth
+                        disabled={!formik.values.jobRole}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label='Count'
+                        type='number'
+                        value={item.count}
+                        onChange={e => handleCountChange(index, parseInt(e.target.value) || 1)}
+                        onBlur={() => formik.setFieldTouched(`locationDetails[${index}].count`, true)}
+                        error={
+                          formik.touched.locationDetails?.[index]?.count &&
+                          Boolean(formik.errors.locationDetails?.[index]?.count)
+                        }
+                        helperText={
+                          formik.touched.locationDetails?.[index]?.count &&
+                          formik.errors.locationDetails?.[index]?.count
+                        }
+                        inputProps={{ min: 1 }}
+                        sx={{ flex: 1, width: '100%' }} // Limit width
+                        disabled={!formik.values.jobRole}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={1} lg={1} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <IconButton
-                        color='primary'
-                        onClick={handleAddLocation}
-                        disabled={locationDetails.length >= locationOptions.length || !formik.values.jobRole}
+                        color='error'
+                        onClick={() => handleRemoveLocation(index)}
+                        disabled={locationDetails.length <= 1} // Prevent removing the last location
                       >
-                        <AddIcon />
+                        <DeleteIcon />
                       </IconButton>
-                    ) : null}
+                      {index === locationDetails.length - 1 && (
+                        <IconButton
+                          color='primary'
+                          onClick={handleAddLocation}
+                          disabled={
+                            !formik.values.openings ||
+                            locationDetails.length >= locationOptions.length ||
+                            locationDetails.reduce((sum, item) => sum + (item.count || 0), 0) >=
+                              parseInt(formik.values.openings) ||
+                            !formik.values.jobRole
+                          }
+                        >
+                          <AddIcon />
+                        </IconButton>
+                      )}
+                    </Grid>
                   </Box>
                 ))}
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Autocomplete
-                  options={approvalCategories.map(option => ({ label: option.name, id: option.id }))}
-                  value={approvalCategories.find(option => option.id === formik.values.approvalCategory) || null}
-                  onChange={(_, value) => {
-                    const selectedCategory = approvalCategories.find(category => category.id === value?.id)
-
-                    formik.setFieldValue('approvalCategory', value?.id || '')
-                    formik.setFieldValue('approvalCategoryId', selectedCategory?.id || '')
-                  }}
-                  onBlur={formik.handleBlur}
-                  renderInput={params => (
-                    <MUITextField
-                      {...params}
-                      label='Approval Category'
-                      error={formik.touched.approvalCategory && Boolean(formik.errors.approvalCategory)}
-                      helperText={formik.touched.approvalCategory && formik.errors.approvalCategory}
-                    />
-                  )}
-                  fullWidth
-                />
               </Grid>
             </Grid>
           </Box>

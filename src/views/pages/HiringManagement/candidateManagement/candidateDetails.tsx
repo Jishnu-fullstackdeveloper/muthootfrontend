@@ -275,7 +275,6 @@ const InterviewDetailedPage = () => {
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
-        {/* Header Section */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
             {candidate.candidateName}

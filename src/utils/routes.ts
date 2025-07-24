@@ -3,7 +3,8 @@ export const ROUTES = {
   RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
-    USER_EDIT: (empCode: string, query: string) => `/user-management/user/edit/${empCode}?${query}`,
+    USER_EDIT: (id: string) => `/user-management/user/edit/${id}`,
+    USER_VIEW: (id: string) => `/user-management/user/view/${id}`,
     ROLE: '/user-management/role',
     ROLE_VIEW: (query: string, name: string) => `/user-management/role/view//${name.replace(/\s+/g, '-')}?${query}`,
     ROLE_EDIT: (query: string, name: string) => `/user-management/role/edit/${name.replace(/\s+/g, '-')}?${query}`,
@@ -111,6 +112,15 @@ export const ROUTES = {
   },
   JD_MANAGEMENT: '/jd-management',
   BRANCH_MANAGEMENT: '/branch-management',
+  LEARNING_AND_DEVELOPMENT: {
+    DASHBOARD: '/learning-and-development',
+    TRAINER_MANAGEMENT: {
+      TRAINER_MANAGEMENT: '/learning-and-development/trainer-management',
+      ADD_TRAINER: '/learning-and-development/trainer-management/add-trainer'
+
+      // TRAINER_PROFILE: `/learning-and-development/trainer-management/view-trainer-profile`
+    }
+  },
   SYSTEM_MANAGEMENT: {
     X_FACTOR: {
       RESIGNED_X_FACTOR: '/system-management/x-factor/resigned-x-factor',
@@ -126,5 +136,10 @@ export const ROUTES = {
     SCHEDULER: '/system-management/scheduler',
     JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
+  },
+  BUCKET_MANAGEMENT: {
+    BUCKET_VIEW: '/branch-management',
+    BUCKET_ADD: '/bucket-management/add/new',
+    BUCKET_EDIT: (id: string) => `/bucket-management/edit/${id}`
   }
 }

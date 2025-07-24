@@ -573,7 +573,7 @@ const UserForm = () => {
                     Inherited Permissions:
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {uniqueInheritedPermissions.slice(0, 5).map((permission, idx) => (
+                    {uniqueInheritedPermissions.slice(0, 5).map((permission: { name: string }, idx: number) => (
                       <Chip
                         key={idx}
                         label={toTitleCase(cleanName(permission.name, ''))}
@@ -583,7 +583,7 @@ const UserForm = () => {
                     <>
                       {/* Always show first 5 chips */}
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {uniqueInheritedPermissions.slice(0, 5).map((permission, idx) => (
+                        {uniqueInheritedPermissions.slice(0, 5).map((permission: { name: string }, idx: number) => (
                           <Chip
                             key={idx}
                             label={toTitleCase(cleanName(permission.name, ''))}
@@ -604,7 +604,7 @@ const UserForm = () => {
                       {/* Expanded chips appear below when toggled */}
                       <Collapse in={showAllInherited} unmountOnExit>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                          {uniqueInheritedPermissions.slice(5).map((permission, idx) => (
+                          {uniqueInheritedPermissions.slice(5).map((permission: { name: string }, idx: number) => (
                             <Chip
                               key={idx}
                               label={toTitleCase(cleanName(permission.name, ''))}

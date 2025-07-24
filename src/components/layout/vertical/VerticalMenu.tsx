@@ -420,13 +420,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
       {...(isBreakpointReached
         ? {
             className: 'bs-full overflow-y-auto overflow-x-hidden',
-            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || '#0191DA' },
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' },
             onScroll: (container: any) => scrollMenu(container, false)
           }
         : {
             options: { wheelPropagation: false, suppressScrollX: true },
             onScrollY: (container: any) => scrollMenu(container, true),
-            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || '#0191DA' }
+            style: { backgroundColor: custom_theme_settings?.theme?.vertical_menu?.backgroundColor || 'white' }
           })}
     >
       <Menu

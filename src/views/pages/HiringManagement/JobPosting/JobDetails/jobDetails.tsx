@@ -10,35 +10,35 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('Vacancy Details')
 
   return (
-    <Box
-      sx={{
-        p: 2,
-        border: 1,
-        borderColor: 'grey.300',
-        borderRadius: 2,
-        boxShadow: 3
-      }}
-    >
+    <Box sx={{}}>
       {/* Tab Navigation */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+          backgroundColor: 'white',
+          borderRadius: 2,
+          boxShadow: 3,
+          bgcolor: '#F9FAFB',
+
+          '& .MuiTabs-indicator': { backgroundColor: 'transparent', display: 'none' } // Hide underline
+        }}
+      >
         <Tabs
           value={activeTab}
           onChange={(event, newValue) => setActiveTab(newValue)}
           sx={{
             '& .MuiTab-root': {
-              textTransform: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 'medium',
-              color: 'grey.500',
-              minWidth: 'auto',
-              px: 2,
-              py: 1
-            },
-            '& .Mui-selected': {
-              color: 'blue.500'
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: 'blue.500'
+              transition: 'all 0.3s ease',
+              '&.Mui-selected': {
+                color: '#23262F',
+                bgcolor: '#FFFFFF', // White background for active tab
+                borderRadius: 2, // Chip-like rounded corners
+                mx: 0.5,
+                boxShadow: 1,
+                my: 1
+              },
+              '&:hover': { textDecoration: 'none', color: 'inherit', borderBottom: 'none' } // Remove underline on hover
             }
           }}
         >
@@ -47,7 +47,6 @@ export default function Home() {
           <Tab label='Candidate Listing' value='Candidate Listing' />
         </Tabs>
       </Box>
-
       {/* Tab Content */}
       <Box sx={{ mt: 2 }}>
         {activeTab === 'Jd Details' && <JdDetails />}

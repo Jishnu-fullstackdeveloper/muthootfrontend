@@ -8,12 +8,12 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 // Third-party Imports
-import styled from '@emotion/styled'
+// import styled from '@emotion/styled'
 
 // Type Imports
 import { Box } from '@mui/material'
 
-import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
+// import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
 import custom_theme_settings from '@/utils/custom_theme_settings.json'
 
 // Component Imports
@@ -26,11 +26,11 @@ import VuexyLogo from '@core/svg/Logo'
 import useVerticalNav from '@menu/hooks/useVerticalNav'
 import { useSettings } from '@core/hooks/useSettings'
 
-type LogoTextProps = {
-  isHovered?: VerticalNavContextProps['isHovered']
-  isCollapsed?: VerticalNavContextProps['isCollapsed']
-  transitionDuration?: VerticalNavContextProps['transitionDuration']
-}
+// type LogoTextProps = {
+//   isHovered?: VerticalNavContextProps['isHovered']
+//   isCollapsed?: VerticalNavContextProps['isCollapsed']
+//   transitionDuration?: VerticalNavContextProps['transitionDuration']
+// }
 
 // const LogoText = styled.span<LogoTextProps>`
 //   font-size: 1.375rem;

@@ -23,6 +23,7 @@ import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
 import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 
+
 export const makeStore = () =>
   configureStore({
     reducer: {
@@ -47,7 +48,8 @@ export const makeStore = () =>
       OrganizationalMappingReducer,
       schedulerManagementSliceReducer,
       noticePeriodReducer,
-      positionBudgetMatrixReducer
+      positionBudgetMatrixReducer,
+      
     }
   })
 

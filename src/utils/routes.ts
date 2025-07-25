@@ -3,10 +3,16 @@ export const ROUTES = {
   RECRUITMENT_HR: '/dashboard-recruitment-hr',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
-    USER_EDIT: (id : string) => `/user-management/user/edit/${id}`,
+    USER_EDIT: (id: string) => `/user-management/user/edit/${id}`,
     USER_VIEW: (id: string) => `/user-management/user/view/${id}`,
     ROLE: '/user-management/role',
-    ROLE_VIEW: (query: string, name: string) => `/user-management/role/view//${name.replace(/\s+/g, '-')}?${query}`,
+
+    // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
+    DESIGNATION_VIEW: (id: string) => `/user-management/role/view/${id}`,
+
+    // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
+
+    // DESIGNATION_VIEW:'/user-management/role/designationRole/j',
     ROLE_EDIT: (query: string, name: string) => `/user-management/role/edit/${name.replace(/\s+/g, '-')}?${query}`,
     ROLE_ADD: '/user-management/role/add/new',
     EMPLOYEE: '/user-management/employee',
@@ -128,11 +134,9 @@ export const ROUTES = {
     JOB_POSTING_CUSTOMIZATION: '/system-management/job-posting-customization',
     INTERVIEW_CUSTOMIZATION: '/system-management/interview-customization'
   },
- BUCKET_MANAGEMENT:{
-
-   BUCKET_VIEW : '/branch-management',
-   BUCKET_ADD: '/bucket-management/add/new',
-   BUCKET_EDIT:  (id : string) =>`/bucket-management/edit/${id}`
-   
- }
+  BUCKET_MANAGEMENT: {
+    BUCKET_VIEW: '/branch-management',
+    BUCKET_ADD: '/bucket-management/add/new',
+    BUCKET_EDIT: (id: string) => `/bucket-management/edit/${id}`
+  }
 }

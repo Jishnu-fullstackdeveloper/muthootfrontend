@@ -1,8 +1,10 @@
 
 
 export const API_ENDPOINTS = {
-  getUserRolesUrl: '/roles',
-  getUserRoleDetailsUrl: (id: string) => `/roles/${id}`,
-  patchUserRoleUrl: '/roles/update-permissions',
-  getUserDesignationsUrl: '/designation'
+  getDesignationRole: '/roles/designation-roles',
+  getDesignationRoleByIdUrl: (id: string) => `/roles/designation-roles/${id}`,
+   
+  // getUserRoleDetailsUrl: (id: string) => `/roles/${id}`,
+  // patchUserRoleUrl: '/roles/update-permissions',
+  // getUserDesignationsUrl: '/designation'
 }

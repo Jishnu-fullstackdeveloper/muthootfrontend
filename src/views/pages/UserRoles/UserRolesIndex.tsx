@@ -5,7 +5,8 @@ import React from 'react'
 import { usePathname } from 'next/navigation'
 
 import AddOrEditUserRole from '@/form/generatedForms/addUserRole'
-import ViewUserRole from './ViewUserRole'
+
+import DesignationRoleView from './DesignationRoleView'
 
 const UserRolesIndex = () => {
   const pathname = usePathname()
@@ -17,7 +18,8 @@ const UserRolesIndex = () => {
   return (
     <>
       {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditUserRole mode={mode} id={id} />}
-      {mode === 'view' && <ViewUserRole />}
+      {mode === 'view' && <DesignationRoleView />}
+     
     </>
   )
 }

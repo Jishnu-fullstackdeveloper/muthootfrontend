@@ -147,7 +147,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
     validationSchema,
     onSubmit: async values => {
       try {
-        const payload = {
+        const requestData = {
           openings: values.openings,
           startingDate: values.startingDate,
           closingDate: values.closingDate,
@@ -165,7 +165,7 @@ const ManualRequestGeneratedForm: React.FC = () => {
           }))
         }
 
-        await dispatch(createBudgetIncreaseRequest(payload)).unwrap()
+        await dispatch(createBudgetIncreaseRequest(requestData)).unwrap()
         router.push('/budget-management')
       } catch (error) {
         console.error('Error submitting form:', error)
@@ -665,11 +665,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
                             label={`${locationType} ${index + 1}`}
                             error={
                               formik.touched.locationDetails?.[index]?.location &&
-                              Boolean(formik.errors.locationDetails?.[index]?.location)
+                              Boolean((formik.errors.locationDetails?.[index] as any)?.location)
                             }
                             helperText={
                               formik.touched.locationDetails?.[index]?.location &&
-                              formik.errors.locationDetails?.[index]?.location
+                              (formik.errors.locationDetails?.[index] as any)?.location
                             }
                             sx={{ flex: 1 }} // Allow it to grow
                           />
@@ -687,11 +687,11 @@ const ManualRequestGeneratedForm: React.FC = () => {
                         onBlur={() => formik.setFieldTouched(`locationDetails[${index}].count`, true)}
                         error={
                           formik.touched.locationDetails?.[index]?.count &&
-                          Boolean(formik.errors.locationDetails?.[index]?.count)
+                          Boolean((formik.errors.locationDetails?.[index] as any)?.count)
                         }
                         helperText={
                           formik.touched.locationDetails?.[index]?.count &&
-                          formik.errors.locationDetails?.[index]?.count
+                          (formik.errors.locationDetails?.[index] as any)?.count
                         }
                         inputProps={{ min: 1 }}
                         sx={{ flex: 1, width: '100%' }} // Limit width

@@ -14,6 +14,11 @@ type Bucket = {
   level: string
 }
 
+type Props = {
+  mode?: any
+  id?: string
+}
+
 // Sample data
 const sampleData: Bucket[] = [
   {
@@ -54,7 +59,7 @@ const sampleData: Bucket[] = [
   }
 ]
 
-const BucketDetails = () => {
+const BucketDetails: React.FC<Props> = () => {
   const [showAll, setShowAll] = useState<{ [key: string]: boolean }>({})
 
   const toTitleCase = (str: string) =>
@@ -162,10 +167,15 @@ const BucketDetails = () => {
                         <Button
                           variant='text'
                           onClick={() => toggleShowAll(bucket.name)}
-                          sx={{ ml: 1, textTransform: 'none', fontWeight: 500,  backgroundColor: '#E8F4FF',
-                              px: 1.5,
-                              py: 0.5,
-                              borderRadius: '8px' }}
+                          sx={{
+                            ml: 1,
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            backgroundColor: '#E8F4FF',
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: '8px'
+                          }}
                         >
                           {showAll[bucket.name] ? '- Show Less' : '+ Show More'}
                         </Button>

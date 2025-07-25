@@ -169,31 +169,31 @@ export interface BudgetDepartmentResponse {
 
 // Updated BudgetIncreaseRequest interface
 export interface BudgetIncreaseRequest {
-  id: string
-  deletedBy: string | null
-  jobRole: string
-  designation: string
-  department: string
-  openings: number
-  jdId: string
-  campusOrLateral: 'Campus' | 'Lateral'
-  company: 'Muthoot Fincorp Ltd.' | 'Muthoot Papachan'
-  businessUnit: string
-  employeeCategory: string
-  employeeType: 'Fulltime' | 'Parttime'
-  grade: string
-  band: string
-  locationDetails: LocationDetail[]
-  origin: string
-  status: 'APPROVED' | 'REJECTED' | 'PENDING'
-  approvalId: string
-  approvalStatus: string[]
-  notes: string
-  createdAt: string
-  updatedAt: string
-  deletedAt: string | null
-  jdDetails: JDDetails
-  meta: any | null
+  id?: string
+  deletedBy?: string | null
+  jobRole?: string
+  designation?: string
+  department?: string
+  openings?: string
+  jdId?: string
+  campusOrLateral?: 'Campus' | 'Lateral'
+  company?: any
+  businessUnit?: string
+  employeeCategory?: string
+  employeeType?: any
+  grade?: string
+  band?: string
+  locationDetails?: LocationDetail[]
+  origin?: string
+  status?: 'APPROVED' | 'REJECTED' | 'PENDING'
+  approvalId?: string
+  approvalStatus?: string[]
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string | null
+  jdDetails?: JDDetails
+  meta?: any | null
 }
 
 // Type for Budget Increase Request Response (POST)

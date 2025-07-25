@@ -1,7 +1,9 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
 
-import { CalendarToday, Clear, DownloadOutlined } from '@mui/icons-material'
+import Image from 'next/image'
+
+import { CalendarToday, Clear, DownloadOutlined, Group } from '@mui/icons-material'
 import {
   Autocomplete,
   Box,
@@ -12,11 +14,19 @@ import {
   Typography,
   LinearProgress,
   styled,
-  Stack
+  Stack,
+  CardContent,
+  CircularProgress
 } from '@mui/material'
 
 import { linearProgressClasses } from '@mui/material/LinearProgress'
+
 import { Gauge } from '@mui/x-charts/Gauge'
+
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
+
+import IntersectImage from '@/assets/images/dashboard/Intersect.png'
+import IntersectGreenTopLeft from '@/assets/images/dashboard/IntersectGreenTopLeft.png'
 
 import CustomTextField from '@/@core/components/mui/TextField'
 import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
@@ -108,34 +118,6 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
   }, [number])
 
   return <span>{displayNumber}</span>
-}
-
-interface StatisticsCardProps {
-  title: string
-  total: number
-  addedInMonth: number
-}
-
-const StatisticsCard: React.FC<StatisticsCardProps> = ({ title, total, addedInMonth }) => {
-  return (
-    <Card className='flex flex-col gap-1 p-4'>
-      {/* <Box className='flex gap-2 items-center'><GroupOutlined sx={{ fill: '#0095DA' }} /></Box> */}
-      <Box className='flex flex-col gap-1 items-baseline p-2'>
-        <Typography className='font-bold'>{title}</Typography>
-        <Typography className='text-2xl font-bold text-[#000]'>
-          <AnimatedNumber number={total} />
-        </Typography>
-        <Typography className='font-medium'>Total {title}</Typography>
-      </Box>
-
-      <Box className='flex flex-col gap-1 items-baseline bg-[#E6F0FFFF] p-2 rounded-md'>
-        <Typography className='text-xl font-bold text-[#000]'>
-          <AnimatedNumber number={addedInMonth} />
-        </Typography>
-        <Typography className='text-[8px] font-medium'>Added in July 2025</Typography>
-      </Box>
-    </Card>
-  )
 }
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
@@ -234,6 +216,17 @@ const LDDashboard = () => {
     { title: 'Not Started', count: 2827439 }
   ]
 
+  // Data array for Training Undergoing Candidates
+  const trainingTypesData = [
+    { name: 'Mentor Branch Training', value: 120, color: '#0088FE' },
+    { name: 'Gurukul Training', value: 80, color: '#00C49F' },
+    { name: 'Online Training', value: 200, color: '#FFBB28' },
+    { name: 'Classroom Training', value: 150, color: '#FF8042' }
+  ]
+
+  // Calculate total candidates for pie chart center
+  const totalCandidates = trainingTypesData.reduce((sum, item) => sum + item.value, 0)
+
   // Handle date range change with future date validation
   const handleDateChange = (date: [Date | null, Date | null] | null) => {
     if (!date) return
@@ -315,11 +308,9 @@ const LDDashboard = () => {
   })
 
   const statisticsData = [
-    { title: 'Trainings', total: 7193, addedInMonth: 251 },
-    { title: 'Assessments', total: 918, addedInMonth: 8 },
-    { title: 'Surveys', total: 539, addedInMonth: 2 },
-    { title: 'Learning Paths', total: 2, addedInMonth: 0 },
-    { title: 'Wiki Articles', total: 14, addedInMonth: 0 }
+    { title: 'Newly Onboarded Count', total: 150, addedInMonth: 20 },
+    { title: 'Batches Created Count', total: 45, addedInMonth: 5 },
+    { title: 'Total Trainers Assigned', total: 30, addedInMonth: 3 }
   ]
 
   // Calculate percentages for progress bar and display based on Total Registered count
@@ -376,14 +367,387 @@ const LDDashboard = () => {
         </Box>
       </Card>
       <Box className='flex flex-col gap-4'>
-        <Box className='grid grid-cols-5 w-full gap-4'>
-          {statisticsData.map((data, index) => (
-            <StatisticsCard key={index} title={data.title} total={data.total} addedInMonth={data.addedInMonth} />
-          ))}
+        <Box className='grid grid-cols-3 w-full gap-4'>
+          <Card sx={{ bgcolor: '#ED960B', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+            <CardContent
+              className='flex justify-between gap-2'
+              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
+            >
+              <Box className='flex flex-col justify-between gap-2'>
+                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                  <Group
+                    sx={{
+                      width: '30px',
+                      height: '30px',
+                      bgcolor: 'white',
+                      color: '#ED960B',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </Box>
+                <Box className='flex flex-col gap-2'>
+                  <Typography variant='body2' color='white'>
+                    {statisticsData[0].title}
+                  </Typography>
+                  <Typography variant='h3' color='white' fontWeight='bold'>
+                    <AnimatedNumber number={statisticsData[0].total} />
+                  </Typography>
+                  <Box className='flex flex-col gap-1'>
+                    <Typography variant='body2' color='white' className='text-[12px]'>
+                      <AnimatedNumber number={statisticsData[0].addedInMonth} />
+                    </Typography>
+                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
+                      Added in July 2025
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <Box className='flex items-center justify-center'>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <CircularProgress
+                    variant='determinate'
+                    value={100}
+                    size={60}
+                    thickness={4}
+                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                  />
+                  <CircularProgress
+                    variant='determinate'
+                    value={86}
+                    size={60}
+                    thickness={4}
+                    sx={{
+                      color: 'white',
+                      position: 'absolute',
+                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      top: 0,
+                      left: 0,
+                      bottom: 0,
+                      right: 0,
+                      position: 'absolute',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                      +86%
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </CardContent>
+            <Image
+              src={IntersectGreenTopLeft}
+              alt='Green top decoration'
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                zIndex: 0,
+                opacity: 1
+              }}
+            />
+            <Image
+              src={IntersectImage}
+              alt='decorative shape'
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                zIndex: 0,
+                opacity: 0.5
+              }}
+            />
+          </Card>
+          <Card sx={{ bgcolor: '#00B798', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+            <CardContent
+              className='flex justify-between gap-2'
+              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
+            >
+              <Box className='flex flex-col justify-between gap-2'>
+                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                  <Group
+                    sx={{
+                      width: '30px',
+                      height: '30px',
+                      bgcolor: 'white',
+                      color: '#00B798',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </Box>
+                <Box className='flex flex-col gap-2'>
+                  <Typography variant='body2' color='white'>
+                    {statisticsData[1].title}
+                  </Typography>
+                  <Typography variant='h3' color='white' fontWeight='bold'>
+                    <AnimatedNumber number={statisticsData[1].total} />
+                  </Typography>
+                  <Box className='flex flex-col gap-1'>
+                    <Typography variant='body2' color='white' className='text-[12px]'>
+                      <AnimatedNumber number={statisticsData[1].addedInMonth} />
+                    </Typography>
+                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
+                      Added in July 2025
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <Box className='flex items-center justify-center'>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <CircularProgress
+                    variant='determinate'
+                    value={100}
+                    size={60}
+                    thickness={4}
+                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                  />
+                  <CircularProgress
+                    variant='determinate'
+                    value={86}
+                    size={60}
+                    thickness={4}
+                    sx={{
+                      color: 'white',
+                      position: 'absolute',
+                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      top: 0,
+                      left: 0,
+                      bottom: 0,
+                      right: 0,
+                      position: 'absolute',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                      +86%
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </CardContent>
+            <Image
+              src={IntersectGreenTopLeft}
+              alt='Green top decoration'
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                zIndex: 0,
+                opacity: 1
+              }}
+            />
+            <Image
+              src={IntersectImage}
+              alt='decorative shape'
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                zIndex: 0,
+                opacity: 0.5
+              }}
+            />
+          </Card>
+          <Card sx={{ bgcolor: '#FF6C6C', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+            <CardContent
+              className='flex justify-between gap-2'
+              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
+            >
+              <Box className='flex flex-col justify-between gap-2'>
+                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                  <Group
+                    sx={{
+                      width: '30px',
+                      height: '30px',
+                      bgcolor: 'white',
+                      color: '#FF6C6C',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </Box>
+                <Box className='flex flex-col gap-2'>
+                  <Typography variant='body2' color='white'>
+                    {statisticsData[2].title}
+                  </Typography>
+                  <Typography variant='h3' color='white' fontWeight='bold'>
+                    <AnimatedNumber number={statisticsData[2].total} />
+                  </Typography>
+                  <Box className='flex flex-col gap-1'>
+                    <Typography variant='body2' color='white' className='text-[12px]'>
+                      <AnimatedNumber number={statisticsData[2].addedInMonth} />
+                    </Typography>
+                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
+                      Added in July 2025
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <Box className='flex items-center justify-center'>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <CircularProgress
+                    variant='determinate'
+                    value={100}
+                    size={60}
+                    thickness={4}
+                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                  />
+                  <CircularProgress
+                    variant='determinate'
+                    value={86}
+                    size={60}
+                    thickness={4}
+                    sx={{
+                      color: 'white',
+                      position: 'absolute',
+                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      top: 0,
+                      left: 0,
+                      bottom: 0,
+                      right: 0,
+                      position: 'absolute',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                      +86%
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </CardContent>
+            <Image
+              src={IntersectGreenTopLeft}
+              alt='Green top decoration'
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                zIndex: 0,
+                opacity: 1
+              }}
+            />
+            <Image
+              src={IntersectImage}
+              alt='decorative shape'
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                zIndex: 0,
+                opacity: 0.5
+              }}
+            />
+          </Card>
         </Box>
 
-        <Box className='flex flex-col gap-2'>
-          <Card className='p-4 space-y-4'>
+        <Box className='grid grid-cols-3 gap-4 w-full'>
+          <Card
+            sx={{
+              p: 4,
+              borderRadius: 2,
+              boxShadow: '0px 4px 20px rgba(0,0,0,0.05)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Typography variant='h6' fontWeight={700} mb={3}>
+              Training Undergoing Candidates
+            </Typography>
+
+            <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+              <ResponsiveContainer width='100%' height='100%'>
+                <PieChart>
+                  <Pie
+                    data={trainingTypesData}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={1}
+                    cornerRadius={3}
+                    dataKey='value'
+                  >
+                    {trainingTypesData.map((r, i) => (
+                      <Cell key={i} fill={r.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center'
+                }}
+              >
+                <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
+                  {totalCandidates}
+                </Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  Total Candidates
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* <Box sx={{ my: 6, display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <Image
+                src={LineImage} // Note: LineImage is undefined; provide the correct path or replace with a divider
+                alt='line divider'
+                width={1000}
+                height={2}
+                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+              />
+            </Box> */}
+
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 2
+              }}
+            >
+              {trainingTypesData.map((r, i) => (
+                <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: '18px',
+                        height: '14px',
+                        borderRadius: '3px',
+                        bgcolor: r.color
+                      }}
+                    />
+                    <Typography variant='subtitle2' fontWeight={700} color='#000000'>
+                      {r.value}
+                    </Typography>
+                  </Box>
+                  <Typography color='#5E6E78' fontWeight={500} sx={{ fontSize: '9.7px', pl: '20px' }}>
+                    {r.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Card>
+          <Card className='p-4 space-y-4 col-span-2'>
             <Typography
               component='h1'
               variant='h4'
@@ -402,28 +766,28 @@ const LDDashboard = () => {
                 <Chart options={chartData.options} series={chartData.series} type='line' width='100%' />
               </Box>
               <Box className='flex flex-col gap-4 w-[30%]'>
-                <Box className='flex flex-col gap-2 p-4 border rounded-md'>
-                  <Typography className='text-lg'>Active Learners</Typography>
+                <Box className='flex flex-col gap-2 p-2 border rounded-md'>
+                  <Typography className='text-md'>Active Learners</Typography>
                   <Box className='flex gap-2 w-full'>
                     <Box className='flex w-full flex-col gap-1 items-baseline bg-[#E6F0FFFF] p-2 rounded-md'>
-                      <Typography className='text-xl font-bold text-[#000]'>
+                      <Typography className='text-lg font-bold text-[#000]'>
                         <AnimatedNumber number={25169} />
                       </Typography>
                       <Typography className='text-[8px] font-medium'>This Month</Typography>
                     </Box>
                     <Box className='flex w-full flex-col gap-1 items-baseline bg-[#F0F0F0FF] p-2 rounded-md'>
-                      <Typography className='text-xl font-bold text-[#000]'>
+                      <Typography className='text-lg font-bold text-[#000]'>
                         <AnimatedNumber number={25734} />
                       </Typography>
                       <Typography className='text-[8px] font-medium'>Last Month</Typography>
                     </Box>
                   </Box>
                 </Box>
-                <Box className='flex flex-col gap-2 p-4 border rounded-md'>
-                  <Typography className='text-lg'>Course Completions</Typography>
+                <Box className='flex flex-col gap-2 p-2 border rounded-md'>
+                  <Typography className='text-md'>Course Completions</Typography>
                   <Box className='flex gap-2 w-full'>
                     <Box className='flex w-full flex-col gap-1 items-baseline bg-[#E6F0FFFF] p-2 rounded-md'>
-                      <Typography className='text-xl font-bold text-[#000]'>
+                      <Typography className='text-lg font-bold text-[#000]'>
                         <AnimatedNumber number={97671} />
                       </Typography>
                       <Typography className='text-[8px] font-medium'>This Month</Typography>
@@ -612,7 +976,7 @@ const LDDashboard = () => {
                     endDate={dateRange[1]}
                     onChange={handleDateChange}
                     dateFormat='dd-MMMM-yyyy'
-                    placeholderText='Filter by date range'
+                    placeholderText='Filter by commitment date range'
                     customInput={
                       <CustomTextField
                         name='date_range'

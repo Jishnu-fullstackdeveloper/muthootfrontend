@@ -7,16 +7,15 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
 import { Box, Card, CardContent, CircularProgress, TextField, IconButton, Typography, Tooltip } from '@mui/material'
-import {
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  GridView as GridViewIcon,
-  TableView as TableChartIcon
-} from '@mui/icons-material'
+import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
+
+import GridIcon from '@/icons/GridAndTableIcons/Grid'
+import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchJobPostings } from '@/redux/JobPosting/jobListingSlice'
-import DynamicButton from '@/components/Button/dynamicButton'
+
+// import DynamicButton from '@/components/Button/dynamicButton'
 
 const JobTable = dynamic(() => import('./jobPostTable'), {
   loading: () => (
@@ -134,28 +133,65 @@ const JobPostListing = () => {
               }}
             />
             <Box>
-              <Tooltip title='Interview Management'>
+              {/* <Tooltip title='Interview Management'>
                 <DynamicButton
                   variant='contained'
                   onClick={() => router.push('/hiring-management/interview-management')}
                 >
                   Interview
                 </DynamicButton>
-              </Tooltip>
-              <IconButton
-                onClick={() => setView('table')}
-                color={view === 'table' ? 'primary' : 'default'}
-                aria-label='Table view'
+              </Tooltip> */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '1px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+
+                  // '&:hover': {
+                  //   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  // }
+                }}
               >
-                <TableChartIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => setView('grid')}
-                color={view === 'grid' ? 'primary' : 'default'}
-                aria-label='Grid view'
-              >
-                <GridViewIcon />
-              </IconButton>
+                <Tooltip
+                  title='Grid View'
+                  className={`${view === 'grid' ? 'text-white hover:bg-primary' : 'text-gray-500'}`}
+                >
+                  <IconButton
+                    className=''
+                    onClick={() => setView('grid')}
+                    sx={{
+                      p: 2.7,
+                      borderRadius: 1,
+                      color: view === 'grid' ? '#FFFFFF' : undefined, // White color when active
+                      bgcolor: view === 'grid' ? 'primary.main' : undefined // Blue background when active
+                    }}
+                  >
+                    <GridIcon className={`w-4 h-4 ${view === 'grid' ? 'text-white' : 'text-gray-500'}`} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  title='Table View'
+                  className={`${view === 'table' ? 'text-white hover:bg-primary' : 'text-gray-500'}`}
+                >
+                  <IconButton
+                    className=''
+                    onClick={() => setView('table')}
+                    sx={{
+                      p: 2.7,
+                      borderRadius: 1,
+                      color: view === 'table' ? '#FFFFFF' : undefined, // White color when active
+                      bgcolor: view === 'table' ? 'primary.main' : undefined // Blue background when active
+                    }}
+                  >
+                    <TableIcon className={`w-4 h-4 ${view === 'table' ? 'text-white' : 'text-gray-500'} `} />{' '}
+                    {/* Updated hover:text-white */}
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           </Box>
         </CardContent>

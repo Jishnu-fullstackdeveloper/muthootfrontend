@@ -489,7 +489,7 @@ const BudgetListing = () => {
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography sx={{ fontWeight: 'bold', fontSize: 14 }}>{budget.jobTitle}</Typography>
+                          <Typography sx={{ fontWeight: 'bold', fontSize: 14 }}>{budget.jobRole}</Typography>
                         </Box>
                         <Chip
                           label={budget.status}

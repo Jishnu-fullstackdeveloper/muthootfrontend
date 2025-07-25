@@ -5,12 +5,15 @@ export const API_ENDPOINTS = {
   budgetIncreaseRequestApproveRejectUrl: '/budget-increase-request/approve-reject?approvalRequestId=', // PUT URL
   budgetIncreaseRequestDetailUrl: '/budget-increase-request', // GET URL for detail by ID (with {id} parameter)
   jobRoleUrl: '/jobRole',
+  jobRoleNamesByRoleUrl: '/jobRole/names-by-role',
   employeeUrl: '/employee',
   businessUnitUrl: '/businessUnit',
   employeeCategoryTypeUrl: '/employeeCategoryType',
   departmentUrl: '/department',
   designationUrl: '/designation',
+  bandUrl: '/band',
   gradeUrl: '/grade',
+  jdUrl: '/jd',
   zoneUrl: '/zone',
   regionUrl: '/region',
   areaUrl: '/area',

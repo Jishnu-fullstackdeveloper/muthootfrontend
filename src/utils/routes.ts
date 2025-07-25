@@ -8,7 +8,7 @@ export const ROUTES = {
     ROLE: '/user-management/role',
 
     // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
-    DESIGNATION_VIEW: (id: string) => `/user-management/role/view/${id}`,
+    DESIGNATION_VIEW: (id: string) => `/user-management/role/view/detail?id=${id}`,
 
     // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
 

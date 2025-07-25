@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import { Box, Card, Typography, Divider, Chip, CircularProgress } from '@mui/material'
 
@@ -40,7 +40,8 @@ interface DesignationRoleState {
 }
 
 const DesignationRoleView = () => {
-  const { id } = useParams()
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
   const dispatch = useAppDispatch()
 
   const {

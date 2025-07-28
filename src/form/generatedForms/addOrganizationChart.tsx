@@ -14,7 +14,7 @@ interface NodeData {
   name: string
   parentId: string | null
   children: NodeData[]
-  nodes?: NodeData[]
+  isJobRole?: boolean
 }
 
 const StyledNode = styled(Box)(({ theme }) => ({
@@ -40,22 +40,25 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
   const [page] = useState(1)
   const { designationData } = useAppSelector(state => state.jdManagementReducer)
 
-  const [nodes, setNodes] = useState<NodeData[]>(
-    initialChart?.nodes || [
-      {
-        id: '1',
-        name: '',
-        parentId: null,
-        children: []
-      }
-    ]
-  )
+  // Initialize nodes, ensuring the job role node is marked
+  const defaultNodes: NodeData[] = [
+    {
+      id: 'root',
+      name: initialChart?.nodes[0]?.name || 'Root',
+      parentId: null,
+      children: [],
+      isJobRole: true
+    }
+  ]
+
+  const [nodes, setNodes] = useState<NodeData[]>(initialChart?.nodes?.length ? initialChart.nodes : defaultNodes)
 
   const [usedRoles, setUsedRoles] = useState<string[]>(
     initialChart?.nodes.map(node => node.name).filter(label => label) || []
   )
 
   useEffect(() => {
+    console.log('OrgChartCanvas mounted, nodes:', JSON.stringify(nodes, null, 2))
     const params = { limit, page }
 
     dispatch(fetchDesignation(params))
@@ -65,9 +68,13 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
       })
   }, [dispatch, limit, page])
 
+  useEffect(() => {
+    console.log('Nodes updated:', JSON.stringify(nodes, null, 2))
+  }, [nodes])
+
   const roles = designationData?.length
     ? designationData.map((item: { name: string }) => item.name)
-    : ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
+    : ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR', 'SYSTEM ADMIN', 'jr.Hr']
 
   const updateNode = useCallback(
     (id: string, field: 'name', value: string) => {
@@ -115,7 +122,8 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
       id: Date.now().toString(),
       name: '',
       children: [],
-      parentId: parentId
+      parentId,
+      isJobRole: false
     }
 
     setNodes(prevNodes => {
@@ -129,58 +137,70 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
         })
       }
 
-      return updateNodes(prevNodes)
+      const updatedNodes = updateNodes(prevNodes)
+
+      console.log('After addNode, nodes:', JSON.stringify(updatedNodes, null, 2))
+
+      return updatedNodes
     })
   }, [])
 
-  const addParentNode = useCallback(
-    (nodeId: string) => {
-      const newParent: NodeData = {
-        id: Date.now().toString(),
-        name: '',
-        children: [],
-        parentId: null
+  const addParentNode = useCallback((nodeId: string) => {
+    const newParent: NodeData = {
+      id: Date.now().toString(), // Unique ID
+      name: 'Parent Role', // Default name
+      children: [],
+      parentId: null,
+      isJobRole: false
+    }
+
+    setNodes(prevNodes => {
+      const targetNode = findNode(prevNodes, nodeId)
+
+      if (!targetNode) return prevNodes
+
+      const updateNodes = (nodes: NodeData[]): NodeData[] => {
+        if (!targetNode.parentId) {
+          newParent.children = [{ ...targetNode, parentId: newParent.id }]
+
+          return [newParent, ...nodes.filter(n => n.id !== nodeId)]
+        }
+
+        return nodes.map(node => {
+          if (node.children.some(child => child.id === nodeId)) {
+            return {
+              ...node,
+              children: node.children.map(child =>
+                child.id === nodeId
+                  ? { ...newParent, children: [{ ...child, parentId: newParent.id }], parentId: node.id }
+                  : child
+              )
+            }
+          }
+
+          return { ...node, children: updateNodes(node.children) }
+        })
       }
 
-      setNodes(prevNodes => {
-        const updateNodes = (nodes: NodeData[]): NodeData[] => {
-          return nodes.map(node => {
-            if (node.id === nodeId) {
-              newParent.children = [node]
-              newParent.parentId = node.parentId
-              node.parentId = newParent.id
+      const updatedNodes = updateNodes(prevNodes)
 
-              return newParent
-            }
+      console.log('After addParentNode, nodes:', JSON.stringify(updatedNodes, null, 2))
 
-            if (node.children.some(child => child.id === nodeId)) {
-              return {
-                ...node,
-                children: node.children.map(child =>
-                  child.id === nodeId ? { ...newParent, children: [child], parentId: node.id } : child
-                )
-              }
-            }
-
-            return { ...node, children: updateNodes(node.children) }
-          })
-        }
-
-        const updatedNodes = updateNodes(prevNodes)
-
-        if (prevNodes.some(n => n.id === nodeId)) {
-          return [newParent, ...prevNodes.filter(n => n.id !== nodeId)]
-        }
-
-        return updatedNodes
-      })
-    },
-    [nodes]
-  )
+      return updatedNodes
+    })
+  }, [])
 
   const deleteNode = useCallback(
     (id: string) => {
       const nodeToDelete = findNode(nodes, id)
+
+      if (!nodeToDelete) return
+
+      if (nodes.length === 1 && nodeToDelete.id === nodes[0].id && nodeToDelete.isJobRole) {
+        console.log('Attempted to delete the job role node, operation blocked')
+
+        return
+      }
 
       if (nodeToDelete?.name) {
         setUsedRoles(prev => prev.filter(role => role !== nodeToDelete.name))
@@ -196,7 +216,11 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
             }))
         }
 
-        return updateNodes(prevNodes)
+        const updatedNodes = updateNodes(prevNodes)
+
+        console.log('After deleteNode, nodes:', JSON.stringify(updatedNodes, null, 2))
+
+        return updatedNodes
       })
     },
     [nodes]
@@ -207,7 +231,7 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const selectedNodeId = nodes[nodes.length - 1]?.id
 
-        if (selectedNodeId && selectedNodeId !== '1') {
+        if (selectedNodeId) {
           deleteNode(selectedNodeId)
         }
       }
@@ -219,11 +243,50 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
   }, [nodes, deleteNode])
 
   const handleSave = () => {
-    onSave({ nodes })
-    console.log('Nodes:', nodes)
+    console.log('handleSave triggered, nodes:', JSON.stringify(nodes, null, 2))
+
+    // Validate that all nodes have non-empty names
+    const hasEmptyNames = nodes.some(node => !node.name || node.name.trim() === '')
+
+    if (hasEmptyNames) {
+      alert('All nodes must have a valid name before saving.')
+
+      return
+    }
+
+    const topNode = nodes.find(node => !node.parentId)
+
+    if (!topNode) {
+      console.error('Topmost node not found')
+      alert('Cannot save: No topmost node found')
+
+      return
+    }
+
+    const jobRoleNode = findNode(nodes, nodes.find(n => n.isJobRole)?.id || 'root')
+
+    if (!jobRoleNode) {
+      console.error('Job role node not found')
+      alert('Cannot save: Job role node not found')
+
+      return
+    }
+
+    const chartData = { nodes }
+
+    console.log('Saving chartData:', JSON.stringify(chartData, null, 2))
+
+    try {
+      onSave(chartData)
+      console.log('onSave callback executed successfully')
+    } catch (error) {
+      console.error('Error in onSave callback:', error)
+      alert('Failed to save chart: ' + (error.message || 'Unknown error'))
+    }
   }
 
   const onCancel = () => {
+    console.log('Cancel button clicked')
     handleCancel()
   }
 
@@ -231,7 +294,7 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
     <TreeNode
       key={node.id}
       label={
-        <StyledNode>
+        <StyledNode sx={{ borderColor: node.isJobRole ? '#1976d2' : '#ccc' }}>
           <Select
             value={node.name}
             onChange={e => updateNode(node.id, 'name', e.target.value)}
@@ -241,7 +304,11 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
           >
             <MenuItem value=''>Select Role</MenuItem>
             {roles.map(designation => (
-              <MenuItem key={designation} value={designation} disabled={usedRoles.includes(designation)}>
+              <MenuItem
+                key={designation}
+                value={designation}
+                disabled={usedRoles.includes(designation) && node.name !== designation}
+              >
                 {designation}
               </MenuItem>
             ))}
@@ -252,7 +319,7 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
           <Button variant='outlined' size='small' onClick={() => addParentNode(node.id)} sx={{ mt: 1, ml: 1 }}>
             Add Parent
           </Button>
-          {node.id !== '1' && (
+          {!(node.isJobRole && nodes.length === 1) && (
             <Button variant='outlined' size='small' onClick={() => deleteNode(node.id)} sx={{ mt: 1, ml: 1 }}>
               Delete
             </Button>

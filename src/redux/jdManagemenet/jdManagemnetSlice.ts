@@ -9,16 +9,15 @@ interface UpdateJdPayload {
     jobRoleId: string
     approvalStatus: string
     details: {
+      interviewLevels: {
+        levels: { level: string; designation: string }
+      }
       roleSpecification: {
-        roleTitle: string
-        employeeInterviewed: string
-        reportsTo: string
+        jobRole: string
+        jobType: string
+        xFactor: string
         companyName: string
-        functionOrDepartment: string
-        writtenBy: string
-        approvedByJobholder: string
-        approvedBySuperior: string
-        dateWritten: string
+        noticePeriod: string
       }[]
       roleSummary: string
       keyResponsibilities: { title: string; description: string }[]
@@ -31,48 +30,31 @@ interface UpdateJdPayload {
         teamSize: string
         totalTeamSize: string
       }[]
-      skillsAndAttributesType: string
-      skillsAndAttributesDetails: {
-        factor: string
-        competency: { value: string }[]
-        definition: { value: string }[]
-        behavioural_attributes: { value: string }[]
-      }[]
+      skills: string[]
       educationAndExperience: {
+        ageLimit: number
         minimumQualification: string
-        experienceDescription: string
+        experienceDescription: { max: string; min: string }
       }[]
       organizationChart: {
-        organizationChart: {
+        id: string
+        name: string
+        parentId: string
+        children: {
           id: string
           name: string
           parentId: string
-          children: {
-            id: string
-            name: string
-            parentId: string
-            children: any[] // Recursive structure
-          }[]
-        }
+          children: any[] // Recursive structure
+        }[]
       }
     }
     meta?: object
   }
 }
 
-// export const fetchJobRole = createAsyncThunk(
-//   'jdManagement/fetchJobRole', async (params: any, { rejectWithValue }) => {
-//   try {
-//     const response = await AxiosLib.get(API_ENDPOINTS.getJobRole, { params })
-
-//     return response.data
-//   } catch (error: any) {
-//     return rejectWithValue(error.response?.data || { message: 'Failed to fetch job roles' })
-//   }
-// })
-export const fetchJobRole = createAsyncThunk('jdManagement/fetchJobRole', async (params: any, { rejectWithValue }) => {
+export const fetchSkills = createAsyncThunk('jdManagement/fetchSkills', async (params: any, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.get(API_ENDPOINTS.getJobRole, { params })
+    const response = await AxiosLib.get(API_ENDPOINTS.getSkills, { params })
 
     return response.data
   } catch (error: any) {
@@ -85,19 +67,6 @@ export const fetchDesignation = createAsyncThunk(
   async (params: any, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getDesignation, { params })
-
-      return response.data
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data || { message: 'Failed to fetch job roles' })
-    }
-  }
-)
-
-export const fetchDepartment = createAsyncThunk(
-  'jdManagement/fetchDepartment',
-  async (params: any, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getDepartment, { params })
 
       return response.data
     } catch (error: any) {
@@ -125,7 +94,7 @@ export const addNewJd = createAsyncThunk<any, any>(
 
 export const fetchJd = createAsyncThunk(
   'jdManagement/fetchJd',
-  async (params: { page: number; limit: number }, { rejectWithValue }) => {
+  async (params: { page: number; limit: number; search: string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getJd, { params })
 
@@ -182,23 +151,17 @@ export const jdManagementSlice = createSlice({
     jdFailure: false,
     jdFailureMessage: '',
 
-    jobRoleData: [],
-    isJobRoleLoading: false,
-    jobRoleSuccess: false,
-    jobRoleFailure: false,
-    jobRoleFailureMessage: '',
+    skillsData: [],
+    isSkillsLoading: false,
+    skillsSuccess: false,
+    skillsFailure: false,
+    skillsFailureMessage: '',
 
     designationData: [],
     isDesignationLoading: false,
     designationSuccess: false,
     designationFailure: false,
     designationFailureMessage: '',
-
-    departmentData: [],
-    isDepartmentLoading: false,
-    departmentSuccess: false,
-    departmentFailure: false,
-    departmentFailureMessage: '',
 
     addNewJdData: [],
     isAddJdLoading: false,
@@ -265,25 +228,25 @@ export const jdManagementSlice = createSlice({
       state.selectedJdFailure = true
       state.selectedJdFailureMessage = action?.payload?.message || 'Failed to fetch user'
     })
-    builder.addCase(fetchJobRole.pending, state => {
-      state.isJobRoleLoading = true
-      state.jobRoleSuccess = false
-      state.jobRoleFailure = false
-      state.jobRoleFailureMessage = ''
+    builder.addCase(fetchSkills.pending, state => {
+      state.isSkillsLoading = true
+      state.skillsSuccess = false
+      state.skillsFailure = false
+      state.skillsFailureMessage = ''
     })
-    builder.addCase(fetchJobRole.fulfilled, (state, action) => {
-      state.jobRoleData = action.payload?.data || []
-      state.isJobRoleLoading = false
-      state.jobRoleSuccess = true
-      state.jobRoleFailure = false
-      state.jobRoleFailureMessage = ''
+    builder.addCase(fetchSkills.fulfilled, (state, action) => {
+      state.skillsData = action.payload?.data || []
+      state.isSkillsLoading = false
+      state.skillsSuccess = true
+      state.skillsFailure = false
+      state.skillsFailureMessage = ''
     })
-    builder.addCase(fetchJobRole.rejected, (state, action: any) => {
-      state.jobRoleData = []
-      state.isJobRoleLoading = false
-      state.jobRoleSuccess = false
-      state.jobRoleFailure = true
-      state.jobRoleFailureMessage = action.payload?.message || 'Failed to fetch job roles'
+    builder.addCase(fetchSkills.rejected, (state, action: any) => {
+      state.skillsData = []
+      state.isSkillsLoading = false
+      state.skillsSuccess = false
+      state.skillsFailure = true
+      state.skillsFailureMessage = action.payload?.message || 'Failed to fetch job roles'
     })
 
     builder.addCase(fetchDesignation.pending, state => {
@@ -306,28 +269,6 @@ export const jdManagementSlice = createSlice({
       state.designationSuccess = false
       state.designationFailure = true
       state.designationFailureMessage = action.payload?.message || 'Failed to fetch designations'
-    })
-
-    builder.addCase(fetchDepartment.rejected, (state, action: any) => {
-      state.departmentData = []
-      state.isDepartmentLoading = false
-      state.departmentSuccess = false
-      state.departmentFailure = true
-      state.departmentFailureMessage = action.payload?.message || 'Failed to fetch departments'
-    })
-
-    builder.addCase(fetchDepartment.pending, state => {
-      state.isDepartmentLoading = true
-      state.departmentSuccess = false
-      state.departmentFailure = false
-      state.departmentFailureMessage = ''
-    })
-    builder.addCase(fetchDepartment.fulfilled, (state, action) => {
-      state.departmentData = action.payload?.data || []
-      state.isDepartmentLoading = false
-      state.departmentSuccess = true
-      state.departmentFailure = false
-      state.departmentFailureMessage = ''
     })
 
     builder.addCase(addNewJd.pending, state => {

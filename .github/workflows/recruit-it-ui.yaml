@@ -31,11 +31,6 @@ jobs:
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           source: "recruit-it-ui.tar"
           target: "/home/azureuser/hrms"
-          host: ${{ secrets.SERVER_HOST_QA }}
-          username: ${{ secrets.SERVER_USER_QA }}
-          key: ${{ secrets.SERVER_PRIVATE_KEY_QA }}
-          source: 'recruit-it-ui.tar'
-          target: '/home/azureuser/hrms'
 
       - name: Load Docker Image on VM
         uses: appleboy/ssh-action@v0.1.7

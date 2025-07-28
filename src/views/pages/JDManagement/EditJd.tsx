@@ -31,14 +31,17 @@ import { Tree, TreeNode } from 'react-organizational-chart'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import type { OrganizationChart, Node, Edge } from './types'
-import OrgChartCanvas from '@/form/generatedForms/addOrganizationChart'
+
+// import OrgChartCanvas from '@/form/generatedForms/addOrganizationChart'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import {
-  fetchJobRole,
   fetchDesignation,
-  fetchDepartment,
-  fetchJdById,
-  updateJd
+
+  // fetchJobRole,
+  // fetchDepartment,
+  fetchJdById
+
+  // updateJd
 } from '@/redux/jdManagemenet/jdManagemnetSlice'
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
@@ -184,9 +187,10 @@ export default function EditJDForm() {
   const [usedRoles, setUsedRoles] = useState<string[]>([])
 
   const {
-    jobRoleData,
+    // jobRoleData,
     designationData,
-    departmentData,
+
+    // departmentData,
     isSelectedJdLoading,
     selectedJdSuccess,
     selectedJdFailure,
@@ -219,9 +223,7 @@ export default function EditJDForm() {
     </TreeNode>
   )
 
-  console.log('Job Role Data:', jobRoleData)
   console.log('Designation Data:', designationData)
-  console.log('Department Data:', departmentData)
   console.log('Selected JD:', selectedJd)
 
   const steps = [
@@ -309,8 +311,9 @@ export default function EditJDForm() {
     const params = { limit, page }
 
     dispatch(fetchDesignation(params))
-    dispatch(fetchJobRole(params))
-    dispatch(fetchDepartment(params))
+
+    // dispatch(fetchJobRole(params))
+    // dispatch(fetchDepartment(params))
   }, [dispatch, limit, page])
 
   const handleInputChange = (
@@ -419,39 +422,39 @@ export default function EditJDForm() {
     })
   }
 
-  const handleOrgChartSave = (chartData: { nodes: Node[]; edges: Edge[] }) => {
-    setSavedOrgChart(chartData)
-    setShowOrgChart(false)
+  // const handleOrgChartSave = (chartData: { nodes: Node[]; edges: Edge[] }) => {
+  //   setSavedOrgChart(chartData)
+  //   setShowOrgChart(false)
 
-    const nodeMap = new Map()
+  //   const nodeMap = new Map()
 
-    chartData.nodes.forEach(node => {
-      nodeMap.set(node.id, { id: node.id, name: node.data.label, children: [], parentId: null })
-    })
+  //   chartData.nodes.forEach(node => {
+  //     nodeMap.set(node.id, { id: node.id, name: node.data.label, children: [], parentId: null })
+  //   })
 
-    chartData.edges.forEach(edge => {
-      const child = nodeMap.get(edge.target)
+  //   chartData.edges.forEach(edge => {
+  //     const child = nodeMap.get(edge.target)
 
-      if (child) {
-        child.parentId = edge.source
-        const parent = nodeMap.get(edge.source)
+  //     if (child) {
+  //       child.parentId = edge.source
+  //       const parent = nodeMap.get(edge.source)
 
-        if (parent) {
-          parent.children.push(child)
-        }
-      }
-    })
+  //       if (parent) {
+  //         parent.children.push(child)
+  //       }
+  //     }
+  //   })
 
-    const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId)
-    const organizationChart = rootNodes.length === 1 ? rootNodes[0] : { id: 'root', name: 'Root', children: rootNodes }
+  //   const rootNodes = Array.from(nodeMap.values()).filter(node => !node.parentId)
+  //   const organizationChart = rootNodes.length === 1 ? rootNodes[0] : { id: 'root', name: 'Root', children: rootNodes }
 
-    setFormData(prev => ({
-      ...prev,
-      details: { ...prev.details, organizationChart }
-    }))
-    setUsedRoles(chartData.nodes.map(node => node.data.label).filter(label => label))
-    updateActiveStep({ ...formData.details, organizationChart })
-  }
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     details: { ...prev.details, organizationChart }
+  //   }))
+  //   setUsedRoles(chartData.nodes.map(node => node.data.label).filter(label => label))
+  //   updateActiveStep({ ...formData.details, organizationChart })
+  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -468,25 +471,25 @@ export default function EditJDForm() {
 
     try {
       // Ensure parentId is always present (even if empty string)
-      const orgChartWithParentId = {
-        ...formData.details.organizationChart,
-        parentId: formData.details.organizationChart.parentId ?? ''
-      }
+      // const orgChartWithParentId = {
+      //   ...formData.details.organizationChart,
+      //   parentId: formData.details.organizationChart.parentId ?? ''
+      // }
 
-      const payload = {
-        id: jobId,
-        params: {
-          ...formData,
-          details: {
-            ...formData.details,
-            organizationChart: {
-              organizationChart: orgChartWithParentId
-            }
-          }
-        }
-      }
+      // const payload = {
+      //   id: jobId,
+      //   params: {
+      //     ...formData,
+      //     details: {
+      //       ...formData.details,
+      //       organizationChart: {
+      //         organizationChart: orgChartWithParentId
+      //       }
+      //     }
+      //   }
+      // }
 
-      await dispatch(updateJd(payload)).unwrap()
+      // await dispatch(updateJd(payload)).unwrap()
       setUpdateSuccess(true)
     } catch (error: any) {
       setUpdateError(error.message || 'Failed to update job description')
@@ -801,7 +804,7 @@ export default function EditJDForm() {
                       Role Title *
                     </label>
                     <Autocomplete
-                      options={jobRoleData.map(jobRole => jobRole.name || '')}
+                      options={[]} //jobRoleData.map(jobRole => jobRole.name || '')
                       value={formData.details.roleSpecification[0].roleTitle || ''}
                       onChange={(event, newValue) =>
                         handleInputChange(newValue || '', 'roleSpecification', 0, 'roleTitle')
@@ -856,7 +859,7 @@ export default function EditJDForm() {
                       Function/Department *
                     </label>
                     <Autocomplete
-                      options={departmentData?.map(department => department.name || '')}
+                      options={[]} //departmentData?.map(department => department.name || '')
                       value={formData.details.roleSpecification[0].functionOrDepartment || ''}
                       onChange={(event, newValue) =>
                         handleInputChange(newValue || '', 'roleSpecification', 0, 'functionOrDepartment')
@@ -1341,7 +1344,7 @@ export default function EditJDForm() {
             {showOrgChart && (
               <div className='fixed inset-0 bg-white z-header flex items-center justify-center'>
                 <div className='w-full ml-[230px]'>
-                  <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} />
+                  {/* <OrgChartCanvas onSave={handleOrgChartSave} initialChart={savedOrgChart} /> */}
                 </div>
               </div>
             )}

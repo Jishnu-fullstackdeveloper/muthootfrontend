@@ -15,18 +15,17 @@ const AddNewJob = () => {
   const pathname = usePathname() // Gets the full pathname
   const segments = pathname.split('/') // Split by "/"
   const mode = segments[2] // Extract "add, view or edit"
-  const id = segments[3] // Extract "id"
+  // const id = segments[3] // Extract "id"
 
   return (
     <>
       {mode === 'add' && (
         <>
-          <AddNewJdSample mode={mode} id={id} />
+          <AddNewJdSample />
         </>
       )}
-
-      {mode === 'view' && <ViewJd mode={mode} id={id} />}
-      {mode === 'edit' && <EditJd mode={mode} id={id} />}
+      {mode === 'view' && <ViewJd />} {/* mode={mode} id={id} > */}
+      {mode === 'edit' && <EditJd />}
     </>
   )
 }

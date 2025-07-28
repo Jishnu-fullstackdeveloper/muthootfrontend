@@ -1,8 +1,10 @@
+
 export const API_ENDPOINTS = {
   getUsersUrl: '/users',
-  getUserByIdUrl: '/users', // Base URL for /users/{id}
+  getUserByIdUrl: (id: string) => `/users/${id}`, // Base URL for /users/{id}
   getEmployeesUrl: '/employee',
-  getRolesUrl: '/roles',
+  getDesignationRoleUrl: '/designation',
   addUserUrl: '/users',
-  updateUserRolesUrl: '/users/update-roles'
+  updateUserPermissionUrl: '/users/update-permissions',
+  updateUserRoleUrl: '/users/update-permissions'
 }

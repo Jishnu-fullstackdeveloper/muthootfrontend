@@ -9,7 +9,7 @@ interface BucketManagementOverviewProps {
 
 const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ branchData }) => {
   return (
-    <Box>
+    <Card sx={{ backgroundColor: '#FFFFFF', p: 3 }}>
       <Typography variant='h6' sx={{ mb: 3, fontWeight: 'bold', color: '#2e7d32' }}>
         Budget Management Overview
       </Typography>
@@ -107,7 +107,7 @@ const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ bra
           </Box>
         </Box>
       </Card>
-    </Box>
+    </Card>
   )
 }
 

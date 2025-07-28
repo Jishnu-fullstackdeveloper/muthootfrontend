@@ -6,7 +6,7 @@ import { Grid, Box } from '@mui/material'
 
 //import RecruitmentRequestChart from './Reports/RecruitmentRequestChart'
 //import HiringChart from './Reports/HiringCountChart'
-import CandidatesCountChart from './Reports/CandidatesChart'
+//import CandidatesCountChart from './Reports/CandidatesChart'
 
 //import RecentlyHiredChart from './Reports/RecentlyHiredChart'
 import TotalVacancies from './Reports/TotalVacanciesChart'
@@ -21,6 +21,7 @@ import RecruitmentProgressPage from './DashboardComponents/RecruitmentProgress'
 import RecentAddedJobsPage from './DashboardComponents/RecentlyAddedJobs'
 
 import EmployeeTypeCard from './DashboardComponents/EmployeeTypeCount'
+import BudgetSummaryCard from './DashboardComponents/LineGraph'
 
 //import IndiaSalesMap from './DashboardComponents/Charts/MapOfIndia'
 
@@ -52,8 +53,9 @@ const Dashboard = () => {
           <ShortlistedCandidatesPage />
         </Grid>
         <Grid item xs={12} sm={8} md={8} lg={8}>
-          <CandidatesCountChart />
+          {/* <CandidatesCountChart /> */}
           {/* <EmployeeCompositionChart /> */}
+          <BudgetSummaryCard />
         </Grid>
         <Grid item xs={12} sm={4} md={4} lg={4}>
           {/* <RecentlyHiredChart /> */}

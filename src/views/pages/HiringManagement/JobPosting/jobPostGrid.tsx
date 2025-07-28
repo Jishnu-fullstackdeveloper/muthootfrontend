@@ -1,22 +1,32 @@
 'use client'
 
-import React, { useEffect, useRef, useCallback } from 'react'
+import React from 'react' // { useState }
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, CardContent, Grid, Typography, CircularProgress, Fade, Tooltip } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import BusinessIcon from '@/icons/BusinessIcon'
 
 interface JobPosting {
-  id: string // Changed to string for UUID
+  id: string
   designation: string
   jobRole: string
   location: string
-  status: 'CREATED' | 'Hiring' | 'In Progress' | 'Completed' // Added CREATED
+  status: 'Pending' | 'Posted' | 'Closed'
   openings: number
-  candidatesApplied: number
-  shortlisted: number
-  hired: number // Changed from HIRED to hired
+  jobGrade: string
+  postedDate: string
+  department?: string
+  manager?: string
+  employeeCategory?: string
+  branch?: string
+  attachments?: string[]
+  businessUnit?: string
+  branchBusiness?: string
+  zone?: string
+  area?: string
+  state?: string
+  band?: string
+  date?: string
 }
 
 interface JobPostGridProps {
@@ -27,254 +37,116 @@ interface JobPostGridProps {
   onLoadMore: (newPage: number) => void
 }
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  transition: 'all 0.3s ease-in-out',
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[4],
-  '&:hover': {
-    transform: 'translateY(-8px)',
-    boxShadow: theme.shadows[8],
-    backgroundColor: theme.palette.grey[50]
-  }
-}))
-
-const StatusBadge = styled(Typography)(({ theme }) => ({
-  padding: theme.spacing(0.5, 1.5),
-  borderRadius: theme.shape.borderRadius,
-  fontWeight: 600,
-  display: 'inline-block'
-}))
-
-const calculateHiredPercentage = (job: JobPosting) => {
-  return job.openings === 0 ? 0 : Math.round((job.hired / job.openings) * 100)
-}
-
-const calculateShortlistedPercentage = (job: JobPosting) => {
-  return job.candidatesApplied === 0 ? 0 : Math.round((job.shortlisted / job.candidatesApplied) * 100)
-}
-
-const JobPostGrid = ({ data, loading, page, totalCount, onLoadMore }: JobPostGridProps) => {
+const JobPostGrid = ({ data, loading }: JobPostGridProps) => {
   const router = useRouter()
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-const handleView = (jobId: string) => {
-  router.push(`/hiring-management/job-posting/view/${jobId}`)
-}
+  const handleNavigate = (jobId: string) => {
+    router.push(`/hiring-management/job-posting/view/details?jobId=${jobId}`)
+  }
 
-  const loadMoreJobs = useCallback(() => {
-    if (loading || data.length >= totalCount) return
-    const nextPage = page + 1
-
-    onLoadMore(nextPage)
-  }, [loading, data.length, totalCount, page, onLoadMore])
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          loadMoreJobs()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current)
-    }
-
-    return () => {
-      if (observerRef.current && loadMoreRef.current) {
-        observerRef.current.unobserve(loadMoreRef.current)
-      }
-    }
-  }, [loadMoreJobs])
+  const statusColors: Record<string, string> = {
+    Pending: '#ED960B',
+    CREATED: '#1E90FF',
+    Closed: '#FF4500',
+    Posted: '#90EE90'
+  }
 
   return (
-    <Box sx={{ py: 3 }}>
-      <Grid container spacing={3}>
-        {data.map((job, index) => (
-          <Grid item xs={12} sm={6} md={4} key={job.id}>
-            <Fade in timeout={300 + index * 100}>
-              <StyledCard onClick={() => handleView(job.id)} sx={{ cursor: 'pointer' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      mb: 2
-                    }}
+    <div className='py-2'>
+      <div className='grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-2 px-2'>
+        {data.map(job => (
+          <div key={job.id} className='xs:12 sm:6 md:4'>
+            <div className=" p-2 gap-[16px] w-full  bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[14px] font-['Public_Sans',_Roboto,_sans-serif] h-full">
+              <div className='flex flex-col gap-2 h-full'>
+                <div className='flex justify-between items-center p-[0_0_10px] gap-2 border-b border-[#eee] '>
+                  <div className='flex flex-row items-center p-0 gap-2  h-[48px]'>
+                    <div className='flex justify-center items-center w-[38px] h-[38px] bg-[#F2F3FF] rounded-full'>
+                      <BusinessIcon className='w-4 h-4' />
+                    </div>
+                    <div className=''>
+                      <div className="font-['Public_Sans',_Roboto,_sans-serif] whitespace-nowrap font-bold text-[12px] leading-[19px] text-[#23262F]">
+                        {job.designation}
+                      </div>
+                      {/* <div className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[16px] text-[#23262F] w-[111px]">
+                        Internal job posting
+                      </div> */}
+                      <div
+                        className="flex justify-center items-center p-[2px_40px] w-2/4  bg-[rgba(237,159,11,0.2)] border border-[#eee] rounded-[6px] font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[12px] leading-[14px] uppercase"
+                        style={{ color: statusColors[job.status] || '#000' }}
+                      >
+                        {job.status}
+                      </div>
+                    </div>
+                  </div>
+                  {/* <div
+                    className="flex justify-center items-center p-[2px_10px]  bg-[rgba(237,159,11,0.2)] border border-[#eee] rounded-[6px] font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[12px] leading-[14px] uppercase"
+                    style={{ color: statusColors[job.status] || '#000' }}
                   >
-                    <Typography
-                      variant='h5'
-                      sx={{
-                        fontWeight: 700,
-                        color: 'primary.main',
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {job.designation}
-                    </Typography>
-                    <StatusBadge
-                      sx={{
-                        backgroundColor:
-                          job.status === 'Hiring'
-                            ? 'success.light'
-                            : job.status === 'In Progress'
-                              ? 'warning.light'
-                              : job.status === 'CREATED'
-                                ? 'info.light'
-                                : 'error.light',
-                        color:
-                          job.status === 'Hiring'
-                            ? 'success.contrastText'
-                            : job.status === 'In Progress'
-                              ? 'warning.contrastText'
-                              : job.status === 'CREATED'
-                                ? 'info.contrastText'
-                                : 'error.contrastText'
-                      }}
-                    >
-                      {job.status}
-                    </StatusBadge>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <strong>Job Role:</strong> {job.jobRole}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <strong>Location:</strong> {job.location}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Tooltip title={`${calculateHiredPercentage(job)}% Hired (${job.hired}/${job.openings})`}>
-                        <Box
-                          sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                        >
-                          <CircularProgress
-                            variant='determinate'
-                            value={calculateHiredPercentage(job)}
-                            size={60}
-                            thickness={2}
-                            sx={{ color: 'primary.main' }}
-                          />
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              opacity: 1
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography
-                                variant='caption'
-                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
-                              >
-                                {`${calculateHiredPercentage(job)}%`}
-                              </Typography>
-                              <Typography>Hired</Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Tooltip>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Tooltip
-                        title={`${calculateShortlistedPercentage(job)}% Shortlisted (${job.shortlisted}/${job.candidatesApplied})`}
-                      >
-                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                          <CircularProgress
-                            variant='determinate'
-                            value={calculateShortlistedPercentage(job)}
-                            size={60}
-                            thickness={2}
-                            sx={{ color: 'secondary.main' }}
-                          />
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              opacity: 1
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography
-                                variant='caption'
-                                sx={{ color: '#000', fontWeight: 600, fontSize: '0.65rem' }}
-                              >
-                                {`${calculateShortlistedPercentage(job)}%`}
-                              </Typography>
-                              <Typography>Shortlist</Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Tooltip>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant='body2'>
-                        <strong>Openings:</strong> {job.openings}
-                      </Typography>
-                      <Typography variant='body2'>
-                        <strong>Hired:</strong> {job.hired}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant='body2'>
-                        <strong>Applied:</strong> {job.candidatesApplied}
-                      </Typography>
-                      <Typography variant='body2'>
-                        <strong>Shortlisted:</strong> {job.shortlisted}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </StyledCard>
-            </Fade>
-          </Grid>
+                    {job.status}
+                  </div> */}
+                </div>
+                <div className='flex flex-row items-center p-0 gap-0  h-[48px]'>
+                  <div className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]">
+                      Band
+                    </div>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
+                      {job.band}
+                    </div>
+                  </div>
+                  <div className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]">
+                      Posted
+                    </div>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
+                      {new Date(job.date).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                        timeZone: 'Asia/Kolkata'
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className='flex flex-row items-center p-0 gap-0  h-[48px]'>
+                  <div className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]">
+                      Openings
+                    </div>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
+                      {job.openings}
+                    </div>
+                  </div>
+                  <div className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]">
+                      Area
+                    </div>
+                    <div className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
+                      {job.location}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="flex justify-center items-center p-[5px_10px] bg-white cursor-pointer   border border-[#0096DA] rounded-[8px] font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#0096DA] hover:border-[#007BB8] hover:bg-[rgba(0,150,218,0.05)]"
+                  onClick={() => handleNavigate(job.id)}
+                  aria-label={`View details for ${job.designation}`}
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          </div>
         ))}
-      </Grid>
+      </div>
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-          <CircularProgress />
-        </Box>
+        <div className='flex justify-center p-5'>
+          <div className='circular-progress' />
+        </div>
       )}
-      {data.length < totalCount && (
-        <Box ref={loadMoreRef} sx={{ textAlign: 'center', mt: 4, mb: 2 }}>
-          <Typography sx={{ color: 'text.secondary' }}>
-            {loading ? 'Loading more jobs...' : 'Scroll to load more jobs'}
-          </Typography>
-        </Box>
-      )}
-    </Box>
+    </div>
   )
 }
 

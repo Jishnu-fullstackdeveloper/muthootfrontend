@@ -1,522 +1,403 @@
 'use client'
-import React, { useEffect, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
+import React, { useState, useMemo, useEffect } from 'react'
+
+import { useRouter, useParams } from 'next/navigation'
 
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { FormControl, TextField, IconButton, Autocomplete } from '@mui/material'
+import {
+  FormControl,
+  TextField,
+  Autocomplete,
+  Grid,
+  Box,
+  Button,
+  IconButton,
+  CircularProgress,
+  Snackbar,
+  Alert
+} from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
 
-import AddIcon from '@mui/icons-material/AddCircleOutline'
-import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
-
-import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import DynamicButton from '@/components/Button/dynamicButton'
 import {
   addNewBucket,
-  getTurnOverCode,
-  updateBucketList,
-  addNewTurnoverCode,
-  fetchBucketDetails,
-  fetchDesignationList,
-  fetchGradeList
-} from '@/redux/BucketManagementSlice'
-import TurnOverModal from '@/views/pages/BucketManagment/TurnOverModal'
+  fetchBucketDismiss,
+  updateBucket,
+  fetchBucketById,
+  fetchJobRole
+} from '@/redux/BucketManagemnet/BucketManagementSlice'
+import type { RootState } from '@/redux/store'
 
 type Props = {
-  mode: any
-  id: any
+  mode: 'add' | 'edit'
+  id?: string
 }
 
-const AddOrEditBucket: React.FC<Props> = ({ mode, id }) => {
-  const [designations, setDesignations] = useState<any[]>([{ name: '', count: 1, grade: '' }])
-  const [modalData, setModalData] = useState(null)
-  const [selectedTurnover, setSelectedTurnover] = useState<any>(null)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [hoveredRow, setHoveredRow] = useState(null)
-  const [selectedTurnoverCode, setSelectedTurnoverCode] = useState('')
+// interface PositionCategory {
+//   jobRole: string
+//   count: number
+// }
 
-  modalData
-  showDeleteModal
-  hoveredRow
+interface JobRoleOption {
+  label: string
+  value: string
+}
 
-  useEffect(() => {
-    if (mode === 'edit') {
-      dispatch(fetchBucketDetails(id))
-    }
-  }, [])
-
-  const handleRadioChange = (turnoverCode: string) => {
-    setSelectedTurnoverCode(turnoverCode) 
-    console.log('Selected Turnover Code:', turnoverCode)
-  }
-
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [turnoverCode, setTurnoverCode] = useState('')
-
-  const [modalState, setModalState] = useState({
-    showTurnOverModal: false,
-    showAddNewTurnoverModal: false
-  })
-
-  const {
-    turnoverListData,
-    fetchBucketDetailsData,
-    fetchBucketDetailsSuccess,
-    updateBucketListSuccess,
-    designationData,
-    gradeData
-  } = useAppSelector((state: any) => state.BucketManagementReducer)
-
-  const [data, setData] = useState([{ turnoverID: 1, turnoverCode: 'ABC123' }])
+const AddOrEditUser: React.FC<Props> = ({ mode }) => {
+  const { id } = useParams()
+  const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const handleClickTurnover = (item: any) => {
-    setModalData(item)
-    setModalState({ ...modalState, showTurnOverModal: true })
+  const {
+    jobRoleData,
+    isJobRoleLoading,
+    jobRoleFailureMessage,
+    selectedBucketData,
+    isBucketByIdLoading,
+    bucketByIdSuccess,
+    bucketByIdFailureMessage,
+    isAddBucketLoading,
+    addBucketSuccess,
+    addBucketFailureMessage,
+    isUpdateBucketLoading,
+    updateBucketSuccess,
+    updateBucketFailureMessage
+  } = useAppSelector((state: RootState) => state.BucketManagementReducer)
 
-    const params = {
-      page: 1,
-      limit: 10
+  const [isFormEdited, setIsFormEdited] = useState(false)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [page] = useState(1)
+  const [limit] = useState(10)
+
+  const [initialFormValues, setInitialFormValues] = useState({
+    name: '',
+    level: '',
+    positionCategories: mode === 'add' ? [{ jobRole: '', count: 1 }] : selectedBucketData?.positionCategories || []
+  })
+
+  // Map jobRoleData to the format expected by Autocomplete
+  const jobRoleOptions: JobRoleOption[] = useMemo(() => {
+    if (jobRoleData?.data) {
+      return jobRoleData.data.map(role => ({
+        label: role.name,
+        value: role.name // Use name as value
+      }))
     }
 
-    dispatch(getTurnOverCode(params))
-  }
-
-  const getDesignationDatas = () => {
-    const params = {
-      page: 1,
-      limit: 10
-    }
-
-    dispatch(fetchDesignationList(params))
-  }
-
-  const getGradeDatas = () => {
-    const params = {
-      page: 1,
-      limit: 10
-    }
-
-    dispatch(fetchGradeList(params))
-  }
-
-  console.log(gradeData, 'Grade Datas', designationData)
+    return []
+  }, [jobRoleData])
 
   useEffect(() => {
-    getDesignationDatas()
-    getGradeDatas()
-  }, [])
+    dispatch(fetchJobRole({ page, limit }))
+  }, [dispatch, page, limit])
 
-  const handleAddNewTurnover = () => {
-    setIsEditMode(false)
-    setTurnoverCode('')
-    setModalState({ ...modalState, showAddNewTurnoverModal: true })
-  }
-
-  const handleEditTurnover = (item: any) => {
-    console.log(item)
-    setIsEditMode(true)
-    setSelectedTurnover(item)
-    setTurnoverCode(item.turnoverCode)
-    setModalState({ ...modalState, showAddNewTurnoverModal: true })
-  }
-
-  const submitselectedTurnoverCode = (item: any) => {
-    item
-    setTurnoverCode(selectedTurnoverCode)
-    bucketFormik.setFieldValue('turnoverCode', selectedTurnoverCode)
-    setModalState({ ...modalState, showTurnOverModal: false })
-  }
-
-  const handleSaveNewTurnover = () => {
-    if (!turnoverCode.trim()) {
-      alert('Please provide a turnover code')
-
-      return
-    } else {
-      const params = {
-        turnover: turnoverCode
-      }
-
-      dispatch(addNewTurnoverCode(params))
+  useEffect(() => {
+    if (mode === 'edit' && id) {
+      dispatch(fetchBucketById(id as string))
     }
+  }, [mode, id, dispatch])
 
-    if (isEditMode && selectedTurnover) {
-      console.log('Editing turnover: ', selectedTurnover)
-
-      const updatedData = data.map(item =>
-        item.turnoverID === selectedTurnover.turnoverID ? { ...item, turnoverCode: turnoverCode } : item
-      )
-
-      setData(updatedData)
-    } else {
-      const newTurnover = {
-        turnoverID: data.length + 1,
-        turnoverCode: turnoverCode
-      }
-
-      setData([...data, newTurnover])
+  useEffect(() => {
+    if (mode === 'edit' && bucketByIdSuccess && selectedBucketData) {
+      setInitialFormValues({
+        name: selectedBucketData.name || '',
+        level: selectedBucketData.level?.toString() || '',
+        positionCategories: selectedBucketData.positionCategories || []
+      })
     }
+  }, [mode, bucketByIdSuccess, selectedBucketData])
 
-    // Close the modal after saving
-    setModalState({ ...modalState, showAddNewTurnoverModal: false })
-    setTurnoverCode('')
-  }
-
-  const handleCancelNewTurnover = () => {
-    setModalState({ ...modalState, showAddNewTurnoverModal: false })
-  }
-
-  const handleCloseTurnoverModal = () => {
-    setModalState({ ...modalState, showTurnOverModal: false })
-  }
-
-  const handleOpenDeleteModal = (item: any) => {
-    setSelectedTurnover(item)
-    setShowDeleteModal(true)
-  }
-
-  const bucketFormik = useFormik({
-    initialValues: {
-      bucketName: '',
-      turnoverCode: '',
-      note: '',
-      designations: [{ name: '', count: 1, grade: '' }]
-    },
+  const userFormik = useFormik({
+    initialValues: initialFormValues,
+    enableReinitialize: true,
     validationSchema: Yup.object().shape({
-      bucketName: Yup.string().required('Bucket Name is required'),
-      turnoverCode: Yup.string().required('Turnover Code is required'),
-      designations: Yup.array()
+      name: Yup.string().required('Name is required'),
+      level: Yup.number().required('Level is required').min(1, 'Level must be at least 1'),
+      positionCategories: Yup.array()
         .of(
           Yup.object().shape({
-            name: Yup.string().required('Designation is required'),
-            count: Yup.number().required('Role Count is required').min(1, 'Role Count must be at least 1'),
-            grade: Yup.string().required('Grade is required')
+            jobRole: Yup.string().required('Job role is required'),
+            count: Yup.number().required('Count is required').min(1, 'Count must be at least 1')
           })
         )
-        .min(1, 'At least one designation is required')
+        .min(1, 'At least one position category is required')
     }),
+    onSubmit: async values => {
+      try {
+        if (mode === 'edit' && id) {
+          await dispatch(
+            updateBucket({
+              id: id as string,
+              params: { positionCategories: values.positionCategories }
+            })
+          ).unwrap()
+        } else {
+          const requestBody = {
+            name: values.name,
+            level: parseInt(values.level),
+            positionCategories: values.positionCategories
+          }
 
-    onSubmit: values => {
-      const finalTurnoverCode = selectedTurnoverCode || turnoverCode
+          await dispatch(addNewBucket(requestBody)).unwrap()
+        }
 
-      const sanitizedDesignations = values.designations.map(designation => ({
-        designationName: designation.name?.trim(),
-        count: designation.count || 1,
-        grade: designation.grade?.trim()
-      }))
-
-      const invalidDesignations = sanitizedDesignations.some(d => !d.designationName)
-
-      if (invalidDesignations) {
-        alert('All designation names must be filled.')
-
-        return
+        setInitialFormValues(values)
+        setIsFormEdited(false)
+        setSnackbarOpen(true)
+        router.push('/bucket-management')
+      } catch (error) {
+        setSnackbarOpen(true)
       }
-
-      const params: any = {
-        name: values.bucketName.toUpperCase(),
-        positionCategories: sanitizedDesignations,
-        turnoverCode: finalTurnoverCode,
-        notes: values.note,
-        ...(mode === 'edit' && { id })
-      }
-
-      if (mode === 'edit') {
-        dispatch(updateBucketList(params))
-      } else {
-        dispatch(addNewBucket(params))
-      }
-
-      router.push('/bucket-management')
     }
   })
 
-  useEffect(() => {
-    if (fetchBucketDetailsSuccess && fetchBucketDetailsData) {
-      console.log('fetchBucketDetailsData', fetchBucketDetailsData)
-
-      // Set field values for name, turnoverCode, and note
-      bucketFormik.setFieldValue('bucketName', fetchBucketDetailsData?.name)
-      bucketFormik.setFieldValue('turnoverCode', fetchBucketDetailsData?.turnoverCode)
-      bucketFormik.setFieldValue('note', fetchBucketDetailsData?.notes)
-      setTurnoverCode(fetchBucketDetailsData?.turnoverCode)
-
-      // Transform positionCategories into the required format for designations
-      const tempDesignations = fetchBucketDetailsData?.positionCategories?.map((item: any) => ({
-        name: item.name || '',
-        count: item.count || 1,
-        grade: item.grade || ''
-      }))
-
-      // Update designations state and formik field value
-      setDesignations(tempDesignations)
-      bucketFormik.setFieldValue('designations', tempDesignations)
-    }
-  }, [fetchBucketDetailsSuccess, fetchBucketDetailsData, updateBucketListSuccess])
-
-  const router = useRouter()
-
   const handleCancel = () => {
-    router.back()
+    if (isFormEdited) {
+      userFormik.setValues(initialFormValues)
+      setIsFormEdited(false)
+      dispatch(fetchBucketDismiss())
+    }
   }
 
+  const handleAddPositionCategory = () => {
+    const availableOptions = jobRoleOptions.filter(
+      opt => !userFormik.values.positionCategories.some(cat => cat.jobRole === opt.value)
+    )
+
+    if (availableOptions.length > 0) {
+      const newCategory = { jobRole: availableOptions[0].value, count: 1 }
+
+      userFormik.setFieldValue('positionCategories', [...userFormik.values.positionCategories, newCategory])
+      setIsFormEdited(true)
+    }
+  }
+
+  const handleDeletePositionCategory = (jobRole: string) => {
+    const updatedCategories = userFormik.values.positionCategories.filter(cat => cat.jobRole !== jobRole)
+
+    userFormik.setFieldValue('positionCategories', updatedCategories)
+    setIsFormEdited(true)
+  }
+
+  const handlePositionCategoryChange = (index: number, newValue: JobRoleOption | null) => {
+    if (newValue) {
+      const updatedCategories = [...userFormik.values.positionCategories]
+
+      updatedCategories[index] = { ...updatedCategories[index], jobRole: newValue.value }
+      userFormik.setFieldValue('positionCategories', updatedCategories)
+      setIsFormEdited(true)
+    }
+  }
+
+  const handleCountChange = (index: number, count: number) => {
+    const updatedCategories = [...userFormik.values.positionCategories]
+
+    updatedCategories[index] = { ...updatedCategories[index], count }
+    userFormik.setFieldValue('positionCategories', updatedCategories)
+    setIsFormEdited(true)
+  }
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+    dispatch(fetchBucketDismiss())
+  }
+
+  const isLoading =
+    mode === 'edit' ? isUpdateBucketLoading || isBucketByIdLoading : isAddBucketLoading || isJobRoleLoading
+
+  const isSuccess = mode === 'edit' ? updateBucketSuccess : addBucketSuccess
+
+  const failureMessage =
+    mode === 'edit'
+      ? updateBucketFailureMessage || bucketByIdFailureMessage
+      : addBucketFailureMessage || jobRoleFailureMessage
+
   return (
-    <form onSubmit={bucketFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-      <h1 className='text-2xl font-bold text-gray-800 mb-4'>Bucket Management Form</h1>
-      <fieldset className='border border-gray-300 rounded p-4 mb-6'>
-        <legend className='text-lg font-semibold text-gray-700'>Bucket Details</legend>
-        <div className='grid grid-cols-2 gap-4'>
+    <form onSubmit={userFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
+      <h1 className='text-2xl font-bold text-gray-800 mb-4'>{mode === 'edit' ? 'Edit Bucket' : 'Add New Bucket'}</h1>
+
+      {((isBucketByIdLoading && mode === 'edit') || isJobRoleLoading) && (
+        <Box display='flex' justifyContent='center' my={2}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
           <FormControl fullWidth margin='normal'>
-            <label htmlFor='bucketName' className='block text-sm font-medium text-gray-700'>
-              Bucket Name *
-            </label>
             <TextField
-              label='Bucket Name *'
-              id='bucketName'
-              name='bucketName'
-              value={bucketFormik.values.bucketName}
-              onChange={bucketFormik.handleChange}
-              onBlur={bucketFormik.handleBlur}
-              error={!!bucketFormik.errors.bucketName && bucketFormik.touched.bucketName}
-              helperText={bucketFormik.errors.bucketName}
-            />
-          </FormControl>
-
-          <FormControl fullWidth margin='normal'>
-            <label htmlFor='turnoverCode' className='block text-sm font-medium text-gray-700'>
-              Turnover Code
-            </label>
-            <div style={{ flexDirection: 'row' }}>
-              <TextField
-                value={bucketFormik.values.turnoverCode}
-                onClick={() => handleClickTurnover(data[0])}
-                onChange={bucketFormik.handleChange}
-                onFocus={() => bucketFormik.setFieldTouched('turnoverCode', true)}
-                id='turnoverCode'
-                name='turnoverCode'
-                error={bucketFormik.touched.turnoverCode && Boolean(bucketFormik.errors.turnoverCode)}
-                helperText={
-                  bucketFormik.touched.turnoverCode && bucketFormik.errors.turnoverCode
-                    ? String(bucketFormik.errors.turnoverCode)
-                    : undefined
-                }
-                InputProps={{
-                  readOnly: true
-                }}
-              />
-            </div>
-
-            {/* New Turnover Modal */}
-            <TurnOverModal
-              showNewTurnoverModal={modalState?.showAddNewTurnoverModal}
-              handleCancelNewTurnover={handleCancelNewTurnover}
-              isEditMode={isEditMode}
-              turnoverCode={turnoverCode}
-              selectedTurnoverCode={selectedTurnoverCode}
-              setTurnoverCode={setTurnoverCode}
-              handleSaveNewTurnover={handleSaveNewTurnover}
-              handleAddNewTurnover={handleAddNewTurnover}
-              showTurnOverModal={modalState?.showTurnOverModal}
-              turnoverListData={turnoverListData}
-              setHoveredRow={setHoveredRow}
-              handleEditTurnover={handleEditTurnover}
-              handleOpenDeleteModal={handleOpenDeleteModal}
-              setSelectedTurnoverCode={setSelectedTurnoverCode}
-              handleCloseTurnoverModal={handleCloseTurnoverModal}
-              handleRadioChange={handleRadioChange}
-              submitselectedTurnoverCode={submitselectedTurnoverCode}
-            />
-          </FormControl>
-        </div>
-
-        <div className='grid grid-cols-2 gap-4'></div>
-
-        <div>
-          <label htmlFor='designation' className='block text-sm font-medium text-gray-700'>
-            Designation
-          </label>
-          {designations?.map((designation, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                marginBottom: '16px',
-                marginTop: 10,
-                alignItems: 'center',
-                width: '100%'
+              label='Name *'
+              name='name'
+              value={userFormik.values.name}
+              onChange={e => {
+                userFormik.handleChange(e)
+                setIsFormEdited(true)
               }}
-            >
-              <div style={{ width: '300px' }}>
-                <Autocomplete
-                  options={designationData}
-                  getOptionLabel={option => option.name || ''}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  value={designationData.find(item => item.name === designation.name) || null}
-                  onChange={(e, value) => {
-                    const selectedName = value ? value.name.trim() : ''
+              error={userFormik.touched.name && Boolean(userFormik.errors.name)}
+              helperText={userFormik.touched.name && userFormik.errors.name}
+              disabled={isLoading || mode === 'edit'}
+            />
+          </FormControl>
+        </Grid>
 
-                    const newDesignations = [...designations]
+        <Grid item xs={6}>
+          <FormControl fullWidth margin='normal'>
+            <TextField
+              label='Level *'
+              name='level'
+              type='number'
+              value={userFormik.values.level}
+              onChange={e => {
+                userFormik.handleChange(e)
+                setIsFormEdited(true)
+              }}
+              error={userFormik.touched.level && Boolean(userFormik.errors.level)}
+              helperText={userFormik.touched.level && userFormik.errors.level}
+              disabled={isLoading || mode === 'edit'}
+            />
+          </FormControl>
+        </Grid>
 
-                    newDesignations[index].name = selectedName // Update the name
-                    setDesignations(newDesignations)
-                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
-                  }}
-                  renderInput={params => {
-                    const isDuplicate =
-                      designation.name && designations.some((d, i) => d.name === designation.name && i !== index)
+        <Grid item xs={12}>
+          <Box display='flex' alignItems='center' mb={2}>
+            <h3 className='text-lg font-semibold'>Position Categories *</h3>
+          </Box>
 
-                    const showRequiredError = bucketFormik.touched.designations?.[index]?.name && !designation.name // Check if the field is touched and empty
-
-                    const showError = isDuplicate || showRequiredError // Combine errors
-
-                    return (
+          {userFormik.values.positionCategories.map((category, index) => (
+            <Grid container spacing={2} key={index} alignItems='center'>
+              <Grid item xs={5}>
+                <FormControl fullWidth margin='normal'>
+                  <Autocomplete
+                    options={jobRoleOptions.filter(
+                      opt =>
+                        !userFormik.values.positionCategories.some((cat, i) => cat.jobRole === opt.value && i !== index)
+                    )}
+                    getOptionLabel={option => option.label}
+                    value={jobRoleOptions.find(opt => opt.value === category.jobRole) || null}
+                    onChange={(event, newValue) => handlePositionCategoryChange(index, newValue)}
+                    renderInput={params => (
                       <TextField
                         {...params}
-                        label={`Designation ${index + 1}`}
-                        error={showError}
+                        label='Job Role *'
+                        placeholder='Select Job Role'
+                        error={
+                          userFormik.touched.positionCategories?.[index]?.jobRole &&
+                          Boolean(userFormik.errors.positionCategories?.[index]?.jobRole)
+                        }
                         helperText={
-                          isDuplicate
-                            ? 'Duplicate designation selected' // Duplicate error message
-                            : showRequiredError
-                              ? 'Designation is required' // Required field error message
-                              : undefined
+                          userFormik.touched.positionCategories?.[index]?.jobRole &&
+                          (userFormik.errors.positionCategories?.[index]?.jobRole as string)
                         }
                       />
-                    )
-                  }}
-                />
-              </div>
+                    )}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+              </Grid>
 
-              <div style={{ width: '150px', marginLeft: '10px' }}>
-                <TextField
-                  label='Role Count'
-                  type='number'
-                  value={designation.count === '' ? '' : designation.count} // Allow empty value
-                  onChange={e => {
-                    const value = e.target.value
-                    const newDesignations = [...designations]
+              <Grid item xs={5}>
+                <FormControl fullWidth margin='normal'>
+                  <TextField
+                    label='Count *'
+                    type='number'
+                    value={category.count}
+                    onChange={e => handleCountChange(index, parseInt(e.target.value) || 1)}
+                    error={
+                      userFormik.touched.positionCategories?.[index]?.count &&
+                      Boolean(userFormik.errors.positionCategories?.[index]?.count)
+                    }
+                    helperText={
+                      userFormik.touched.positionCategories?.[index]?.count &&
+                      (userFormik.errors.positionCategories?.[index]?.count as string)
+                    }
+                    disabled={isLoading}
+                  />
+                </FormControl>
+              </Grid>
 
-                    newDesignations[index].count = value === '' ? '' : parseInt(value, 10) || 1 // Ensure valid number
-                    setDesignations(newDesignations)
-                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
-                  }}
-                  error={
-                    !!(
-                      typeof bucketFormik.errors.designations[index] === 'object' &&
-                      bucketFormik.errors.designations[index]?.count
-                    )
-                  }
-                  helperText={
-                    bucketFormik.errors.designations &&
-                    typeof bucketFormik.errors.designations[index] === 'object' &&
-                    bucketFormik.errors.designations[index]?.count
-                      ? bucketFormik.errors.designations[index].count
-                      : undefined
-                  }
-                  fullWidth
-                />
-              </div>
-
-              <div style={{ width: '300px', marginLeft: '10px' }}>
-                <Autocomplete
-                  options={gradeData || []}
-                  getOptionLabel={option => option.grade || ''}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  value={gradeData.find(item => item.name === designation.name) || null}
-                  onChange={(e, value) => {
-                    const selectedName = value ? value.name.trim() : ''
-
-                    const newDesignations = [...designations]
-
-                    newDesignations[index].grade = selectedName // Update the name
-                    setDesignations(newDesignations)
-                    bucketFormik.setFieldValue('designations', newDesignations) // Sync with Formik
-                  }}
-                  renderInput={params => {
-                    const isDuplicate =
-                      designation.grade && designations.some((d, i) => d.grade === designation.grade && i !== index)
-
-                    const showRequiredError = bucketFormik.touched.designations?.[index]?.grade && !designation.grade // Check if the field is touched and empty
-
-                    const showError = isDuplicate || showRequiredError // Combine errors
-
-                    return (
-                      <TextField
-                        {...params}
-                        label={`Grade ${index + 1}`}
-                        error={showError}
-                        helperText={
-                          isDuplicate
-                            ? 'Duplicate grade selected' // Duplicate error message
-                            : showRequiredError
-                              ? 'Grade is required' // Required field error message
-                              : undefined
-                        }
-                      />
-                    )
-                  }}
-                />
-              </div>
-
-              {designations.length > 1 && index > 0 && (
+              <Grid item xs={2} display='flex' alignItems='center' gap={1}>
                 <IconButton
-                  color='secondary'
-                  onClick={() => setDesignations(designations.filter((_, i) => i !== index))}
+                  color='error'
+                  onClick={() => handleDeletePositionCategory(category.jobRole)}
+                  disabled={userFormik.values.positionCategories.length <= 1 || isLoading}
                 >
-                  <RemoveIcon />
+                  <DeleteIcon />
                 </IconButton>
-              )}
 
-              {index === designations.length - 1 && (
-                <IconButton
-                  color='primary'
-                  onClick={() => setDesignations([...designations, { name: '', count: 1, grade: '' }])}
-                >
-                  <AddIcon />
-                </IconButton>
-              )}
-            </div>
+                {index === userFormik.values.positionCategories.length - 1 && (
+                  <IconButton
+                    color='primary'
+                    onClick={handleAddPositionCategory}
+                    disabled={userFormik.values.positionCategories.length >= jobRoleOptions.length || isLoading}
+                    sx={{
+                      backgroundColor: '#E0F7FA', // light cyan or use your preferred color
+                      borderRadius: '50%',
+                      padding: '8px',
+                      '&:hover': {
+                        backgroundColor: '#B2EBF2' // darker shade on hover
+                      }
+                    }}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                )}
+              </Grid>
+            </Grid>
           ))}
+
+          {userFormik.touched.positionCategories && userFormik.errors.positionCategories && (
+            <Box color='error.main' mt={1}>
+              {typeof userFormik.errors.positionCategories === 'string' && userFormik.errors.positionCategories}
+            </Box>
+          )}
+        </Grid>
+      </Grid>
+
+      <div className='flex justify-between items-center mx-5 mt-3 mb-2'>
+        <Box sx={{ display: 'flex' }}>
+          <Button variant='outlined' onClick={() => router.back()} disabled={isLoading}>
+            Go Back
+          </Button>
+        </Box>
+
+        <div className='flex space-x-4'>
+          <DynamicButton
+            type='button'
+            variant='contained'
+            className='bg-gray-500'
+            onClick={handleCancel}
+            disabled={!isFormEdited || isLoading}
+          >
+            Clear
+          </DynamicButton>
+          <DynamicButton type='submit' variant='contained' className='bg-blue-500' disabled={isLoading}>
+            {isLoading ? <CircularProgress size={24} /> : mode === 'edit' ? 'Update Bucket' : 'Add Bucket'}
+          </DynamicButton>
         </div>
-
-        <FormControl fullWidth margin='normal'>
-          <label htmlFor='note' className='block text-sm font-medium text-gray-700'>
-            Note
-          </label>
-          <TextField
-            id='note'
-            name='note'
-            multiline
-            rows={4}
-            value={bucketFormik.values.note}
-            onChange={bucketFormik.handleChange}
-            onFocus={() => bucketFormik.setFieldTouched('note', true)}
-            error={bucketFormik.touched.note && Boolean(bucketFormik.errors.note)}
-            helperText={bucketFormik.touched.note && bucketFormik.errors.note ? bucketFormik.errors.note : undefined}
-          />
-        </FormControl>
-      </fieldset>
-
-      {/* Submit and Cancel Buttons */}
-      <div className='flex justify-end space-x-4'>
-        <DynamicButton
-          type='button'
-          variant='contained'
-          className='bg-blue-500 text-white hover:bg-blue-700'
-          onClick={handleCancel}
-        >
-          Cancel
-        </DynamicButton>
-
-        <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-          Save
-        </DynamicButton>
       </div>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={isSuccess ? 'success' : 'error'} sx={{ width: '100%' }}>
+          {isSuccess
+            ? mode === 'edit'
+              ? 'Bucket updated successfully'
+              : 'Bucket added successfully'
+            : Array.isArray(failureMessage)
+              ? failureMessage.join(', ')
+              : failureMessage || 'An error occurred'}
+        </Alert>
+      </Snackbar>
     </form>
   )
 }
 
-export default AddOrEditBucket
+export default AddOrEditUser

@@ -21,7 +21,7 @@ export const fetchUserById = createAsyncThunk(
   'userManagement/fetchUserById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`${API_ENDPOINTS.getUserByIdUrl}/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.getUserByIdUrl(id))
 
       return response.data
     } catch (error: any) {
@@ -43,15 +43,22 @@ export const fetchEmployees = createAsyncThunk(
   }
 )
 
-export const fetchUserRole = createAsyncThunk(
-  'userManagement/fetchUserRole',
-  async (params: any, { rejectWithValue }) => {
+export const fetchDesignationRoles = createAsyncThunk(
+  'userManagement/fetchDesignationRoles',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getRolesUrl, { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getDesignationRoleUrl, {
+        params: { page, limit }
+      })
 
-      return response
+      return response.data // Assuming response.data is an array of role names
     } catch (error: any) {
-      return rejectWithValue(error.response.data)
+      const errorMessage = error.response?.data?.message || 'Failed to fetch designation roles'
+
+      return rejectWithValue({
+        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+        statusCode: error.response?.data?.statusCode || 500
+      })
     }
   }
 )
@@ -74,15 +81,41 @@ export const addNewUser = createAsyncThunk<any, any>(
   }
 )
 
-export const updateUser = createAsyncThunk<
+export const updateUserPermission = createAsyncThunk<
   any,
-  { id: string; params: { email: string; newDesignationRole?: string; newRoleNames?: string[] } }
->('userManagement/updateUser', async ({ params }, { rejectWithValue }) => {
+  {
+    id: string
+    params: { email: string; newPermissions?: string[]; newDesignationRole?: string; newRoleNames?: string[] }
+  }
+>('userManagement/updateUserPermission', async ({ params }, { rejectWithValue }) => {
   try {
-    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserRolesUrl, {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserPermissionUrl, {
       email: params.email,
-      ...(params.newDesignationRole !== undefined ? { newDesignationRole: params.newDesignationRole } : {}),
-      ...(params.newRoleNames !== undefined ? { newRoleNames: params.newRoleNames } : {})
+      ...(params.newPermissions !== undefined ? { newPermissions: params.newPermissions } : {})
+    })
+
+    return response.data
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to update role'
+
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
+  }
+})
+
+export const updateUserRole = createAsyncThunk<
+  any,
+  {
+    id: string
+    params: { email: string; newPermissions?: string[]; newDesignationRole?: string; newRoleNames?: string[] }
+  }
+>('userManagement/updateUserRole', async ({ params }, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updateUserRoleUrl, {
+      email: params.email,
+      ...(params.newDesignationRole !== undefined ? { newDesignationRole: params.newDesignationRole } : {})
     })
 
     return response.data
@@ -111,11 +144,11 @@ export const UserManagementSlice = createSlice({
     EmployeeFailure: false,
     EmployeeFailureMessage: '',
 
-    userRoleData: [],
-    isUserRoleLoading: false,
-    userRoleSuccess: false,
-    userRoleFailure: false,
-    userRoleFailureMessage: '',
+    userDesignationRoleData: [],
+    isUserDesignationRoleLoading: false,
+    userDesignationRoleSuccess: false,
+    userDesignationRoleFailure: false,
+    userDesignationRoleFailureMessage: '',
 
     addNewUserData: [],
     isAddUserLoading: false,
@@ -123,7 +156,7 @@ export const UserManagementSlice = createSlice({
     addUserFailure: false,
     addUserFailureMessage: '',
 
-    selectedUser: null, // To store user data for editing
+    selectedUserData: null,
     isUserLoading: false,
     userSuccess: false,
     userFailure: false,
@@ -164,40 +197,42 @@ export const UserManagementSlice = createSlice({
     })
 
     // Fetch User by ID
-    builder.addCase(fetchUserById.pending, state => {
-      state.isUserLoading = true
-      state.userSuccess = false
-      state.userFailure = false
-      state.userFailureMessage = ''
-    })
-    builder.addCase(fetchUserById.fulfilled, (state, action) => {
-      state.selectedUser = action?.payload?.data
-      state.isUserLoading = false
-      state.userSuccess = true
-      state.userFailure = false
-    })
-    builder.addCase(fetchUserById.rejected, (state, action: any) => {
-      state.isUserLoading = false
-      state.selectedUser = null
-      state.userSuccess = false
-      state.userFailure = true
-      state.userFailureMessage = action?.payload?.message || 'Failed to fetch user'
-    })
+    builder
+      .addCase(fetchUserById.pending, state => {
+        state.isUserLoading = true
+        state.userSuccess = false
+        state.userFailure = false
+        state.userFailureMessage = ''
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.selectedUserData = action.payload?.data || null
+        state.isUserLoading = false
+        state.userSuccess = true
+        state.userFailure = false
+      })
+      .addCase(fetchUserById.rejected, state => {
+        state.isUserLoading = false
+        state.selectedUserData = null
+        state.userSuccess = false
+        state.userFailure = true
+
+        // state.userFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
+      })
 
     // Fetch User Roles
-    builder.addCase(fetchUserRole.pending, state => {
-      state.isUserRoleLoading = true
+    builder.addCase(fetchDesignationRoles.pending, state => {
+      state.isUserDesignationRoleLoading = true
     })
-    builder.addCase(fetchUserRole.fulfilled, (state, action) => {
-      state.userRoleData = action?.payload?.data
-      state.isUserRoleLoading = false
-      state.userRoleSuccess = true
+    builder.addCase(fetchDesignationRoles.fulfilled, (state, action) => {
+      state.userDesignationRoleData = action?.payload?.data
+      state.isUserDesignationRoleLoading = false
+      state.userDesignationRoleSuccess = true
     })
-    builder.addCase(fetchUserRole.rejected, (state, action: any) => {
-      state.isUserRoleLoading = false
-      state.userRoleData = []
-      state.userRoleFailure = true
-      state.userRoleFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
+    builder.addCase(fetchDesignationRoles.rejected, (state, action: any) => {
+      state.isUserDesignationRoleLoading = false
+      state.userDesignationRoleData = []
+      state.userDesignationRoleFailure = true
+      state.userDesignationRoleFailureMessage = action?.payload?.message || 'Fetching Roles Failed'
     })
 
     // Fetch Employee Management List
@@ -236,18 +271,18 @@ export const UserManagementSlice = createSlice({
     })
 
     // Update User
-    builder.addCase(updateUser.pending, state => {
+    builder.addCase(updateUserPermission.pending, state => {
       state.isAddUserLoading = true
       state.addUserSuccess = false
       state.addUserFailure = false
       state.addUserFailureMessage = ''
     })
-    builder.addCase(updateUser.fulfilled, state => {
+    builder.addCase(updateUserPermission.fulfilled, state => {
       state.isAddUserLoading = false
       state.addUserSuccess = true
       state.addUserFailure = false
     })
-    builder.addCase(updateUser.rejected, (state, action: any) => {
+    builder.addCase(updateUserPermission.rejected, (state, action: any) => {
       state.isAddUserLoading = false
       state.addUserSuccess = false
       state.addUserFailure = true

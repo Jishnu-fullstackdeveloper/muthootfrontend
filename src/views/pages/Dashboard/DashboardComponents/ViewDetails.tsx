@@ -24,6 +24,7 @@ const ViewDetailsPage = () => {
       sx={{
         bgcolor: '#0191DA',
         borderRadius: '10px',
+        width: '100%',
         [theme.breakpoints.down('sm')]: {
           height: 'auto',
           padding: 2

@@ -299,12 +299,54 @@ const initialState: EmployeeState = {
 // Async thunk to fetch employees
 export const fetchEmployees = createAsyncThunk(
   'employees/fetchEmployees',
-  async ({ page, limit, search }: { page: number; limit: number; search?: string }) => {
-    const response = await AxiosLib.get(API_ENDPOINTS.EMPLOYEES, {
-      params: { page, limit, search }
-    })
+  async (
+    {
+      page,
+      limit,
+      search,
+      employeeCode,
+      employeeCodes,
+      jobRoleId,
+      isResigned,
+      resignationDateFrom,
+      departmentId,
+      designationId
+    }: {
+      page: number
+      limit: number
+      search?: string
+      employeeCode?: string
+      employeeCodes?: string[]
+      jobRoleId?: string
+      isResigned?: boolean
+      resignationDateFrom?: string
+      departmentId?: string
+      designationId?: string
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      // Construct query parameters, including only provided optional parameters
+      const params: Record<string, any> = {
+        page,
+        limit
+      }
 
-    return response.data
+      if (search) params.search = search
+      if (employeeCode) params.employeeCode = employeeCode
+      if (employeeCodes && employeeCodes.length > 0) params.employeeCodes = employeeCodes // Send as array for multiple query parameters
+      if (jobRoleId) params.jobRoleId = jobRoleId
+      if (isResigned !== undefined) params.isResigned = isResigned
+      if (resignationDateFrom) params.resignationDateFrom = resignationDateFrom
+      if (departmentId) params.departmentId = departmentId
+      if (designationId) params.designationId = designationId
+
+      const response = await AxiosLib.get(API_ENDPOINTS.EMPLOYEES, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error?.message || 'Failed to fetch employee data')
+    }
   }
 )
 

@@ -40,18 +40,18 @@ const CandidateDetails = () => {
             }
           }}
         >
-          <Tab label='Screened' />
           <Tab label='Candidate Overview' />
-          <Tab label='Interview' />
+          {/* <Tab label='Screened' />
+          <Tab label='Interview' /> */}
           <Tab label='Communication' />
         </Tabs>
       </Card>
 
       <Box>
-        {activeTab === 0 && <div>Screening</div>}
-        {activeTab === 1 && <CandidateOverview />}
-        {activeTab === 2 && <div>Interview Content</div>}
-        {activeTab === 3 && <div>Communication Content</div>}
+        {activeTab === 0 && <CandidateOverview />}
+        {activeTab === 1 && <div>Communication Content</div>}
+        {/* {activeTab === 2 && <div>Screening</div>}
+        {activeTab === 3 && <div>Interview Content</div>} */}
       </Box>
     </div>
   )

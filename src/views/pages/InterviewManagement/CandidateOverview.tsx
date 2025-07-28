@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import {
   Box,
@@ -22,7 +22,11 @@ import {
   Button,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Stepper,
+  StepConnector,
+  Step,
+  StepLabel
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers'
@@ -38,11 +42,17 @@ import JobFilterAutoComplete from './JobFilterAutoComplete'
 const CandidateOverview = () => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const [mounted, setMounted] = useState(false)
   const [selectedJob, setSelectedJob] = useState(null)
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
   const [ratings, setRatings] = useState([])
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
+  const [activeStep, setActiveStep] = useState<number>(0)
+
+  useEffect(() => {
+    setActiveStep(1)
+  }, [])
 
   const interviewers = [
     {
@@ -149,6 +159,20 @@ const CandidateOverview = () => {
     }
   ]
 
+  // const handleBack = () => {
+  //   setActiveStep(prevActiveStep => prevActiveStep - 1)
+  // }
+
+  // const handleNext = () => {
+  //   setActiveStep(prevActiveStep => prevActiveStep + 1)
+  // }
+
+  const steps = ['Level 1 Interview', 'Level 2 Interview', 'Final Interview']
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const skillOptions = ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Python', 'SQL', 'Java', 'AWS', 'Docker']
 
   const handleAddSkill = (skill: string | null) => {
@@ -201,6 +225,8 @@ const CandidateOverview = () => {
 
   const handleReschedule = () => {}
 
+  if (!mounted) return null
+
   return (
     <Box sx={{ p: 1 }}>
       {/* Main Content */}
@@ -233,25 +259,6 @@ const CandidateOverview = () => {
             </Box>
 
             <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-              {/* <TextField
-                select
-                fullWidth
-                label='Job Applied by Emily Carter'
-                value={selectedJob}
-                onChange={e => setSelectedJob(e.target.value)}
-                variant='outlined'
-                margin='normal'
-                size='small'
-              >
-                {appliedJobs.map((job, index) => (
-                  <MenuItem key={index} value={job?.id}>
-                    {job?.jobRole}
-                    {job?.jobTitle && ', ' + job?.jobTitle}
-                    {job?.grade && ', ' + job?.grade}
-                  </MenuItem>
-                ))}
-              </TextField> */}
-
               <JobFilterAutoComplete
                 selectedJob={selectedJob}
                 setSelectedJob={setSelectedJob}
@@ -278,10 +285,6 @@ const CandidateOverview = () => {
                     justifyContent: 'space-between'
                   }}
                 >
-                  {/* jobRole: 'QA Analyst',
-                      designation: 'Quality Assurance Lead',
-                      jobTitle: 'Quality Assurance and Testing' */}
-
                   <Typography variant='body2' color='text.secondary'>
                     Job Role
                   </Typography>
@@ -322,6 +325,29 @@ const CandidateOverview = () => {
                   </Typography>
                 </Box>
               </Stack>
+              <Card
+                sx={{
+                  mt: 5,
+                  pt: 5,
+                  pb: 3,
+                  position: 'sticky',
+                  top: 70,
+                  zIndex: 10
+                }}
+              >
+                <Typography variant='subtitle1' sx={{ fontWeight: 'bold', color: '#3e3636', mb: 4, ml: 3 }}>
+                  Interview Status
+                </Typography>
+                <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
+                  {steps.map((label, index) => (
+                    <Step key={label} index={index}>
+                      <StepLabel sx={{ cursor: 'pointer' }}>
+                        <Typography>{label}</Typography>
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Card>
             </Card>
             {/* Resume Info Card */}
             <Card variant='outlined' sx={{ p: isSmallScreen ? 2 : 3 }}>
@@ -582,8 +608,25 @@ const CandidateOverview = () => {
                   </Accordion>
                 ))}
 
+                {/* Candidate's Feedback section */}
+                <Typography variant='h6' fontWeight='bold' mb={2} mt={6}>
+                  Candidate Feedback
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: '#F9F9F9',
+                    border: '1px solid #E0E0E0',
+                    borderRadius: 1,
+                    padding: 2,
+                    mt: 1,
+                    color: '#333'
+                  }}
+                >
+                  <Typography variant='body2'>This is candidate&apos;s feedback section</Typography>
+                </Box>
+
                 {/* Feedback Submission */}
-                <Box mt={4}>
+                <Box mt={6}>
                   <Typography variant='h6' fontWeight='bold' mb={2}>
                     Submit Your Feedback
                   </Typography>

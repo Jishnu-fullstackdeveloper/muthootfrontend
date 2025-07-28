@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - dev-environment
-      - dev-environment
 
 env:
   FULL_IMAGE_NAME: recruit-it-ui:${{ github.run_id }}

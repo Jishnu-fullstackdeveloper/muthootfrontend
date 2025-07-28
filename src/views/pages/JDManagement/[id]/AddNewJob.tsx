@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 const AddNewJdSample = dynamic(() => import('@/form/generatedForms/addNewJdSample'), { ssr: false })
 
 const ViewJd = dynamic(() => import('../viewJD'), { ssr: false })
+const EditJd = dynamic(() => import('../EditJd'), { ssr: false })
 
 import { usePathname } from 'next/navigation'
 
@@ -18,13 +19,14 @@ const AddNewJob = () => {
 
   return (
     <>
-      {(mode === 'add' || mode === 'edit') && (
+      {mode === 'add' && (
         <>
           <AddNewJdSample mode={mode} id={id} />
         </>
       )}
 
       {mode === 'view' && <ViewJd mode={mode} id={id} />}
+      {mode === 'edit' && <EditJd mode={mode} id={id} />}
     </>
   )
 }

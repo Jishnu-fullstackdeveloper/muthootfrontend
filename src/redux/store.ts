@@ -13,6 +13,7 @@ import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
 import ResignedxFactorReducer from './ResignedXFactor/resignedXFactorSlice'
 import VacancyXFactorReducer from './VacancyXFactor/vacancyXFactorSlice'
 import employeeManagementReducer from './EmployeeManagement/employeeManagementSlice'
+import TrainerManagementReducer from './TrainerManagement/TrainerManagementSlice'
 import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
 import dataUploadReducer from './DataUpload/dataUploadSlice'
@@ -41,6 +42,7 @@ export const makeStore = () =>
       ResignedxFactorReducer,
       VacancyXFactorReducer,
       employeeManagementReducer,
+      TrainerManagementReducer,
       approvalsReducer,
       resignationDataListingReducer,
       dataUploadReducer,

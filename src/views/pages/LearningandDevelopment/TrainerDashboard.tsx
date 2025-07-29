@@ -4,13 +4,25 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-import { Add, ClearOutlined, Group, SearchOutlined } from '@mui/icons-material'
 import {
+  Add,
+  Call,
+  ClearOutlined,
+  CloseOutlined,
+  Group,
+  MailOutlined,
+  SearchOutlined,
+  VisibilityOutlined
+} from '@mui/icons-material'
+import {
+  Avatar,
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   CircularProgress,
+  Drawer,
   IconButton,
   InputAdornment,
   TextField,
@@ -20,10 +32,15 @@ import {
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
+
 import IntersectImage from '@/assets/images/dashboard/Intersect.png'
 import IntersectGreenTopLeft from '@/assets/images/dashboard/IntersectGreenTopLeft.png'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { ROUTES } from '@/utils/routes'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import type { Trainer } from '@/redux/TrainerManagement/TrainerManagementSlice'
+import { fetchTrainers, fetchTrainerById, resetTrainerManagementState } from '@/redux/TrainerManagement/TrainerManagementSlice'
 
 interface AnimatedNumberProps {
   number: number
@@ -66,8 +83,25 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
 
 const TrainerDashboard = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  const { trainersData, selectedTrainer, trainingCounts, totalCount, status } = useAppSelector(state => state.TrainerManagementReducer)
+
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [searchQuery, setSearchQuery] = useState('')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // Fetch trainers when pagination changes or component mounts
+  useEffect(() => {
+    dispatch(fetchTrainers({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+  }, [dispatch, pagination.pageIndex, pagination.pageSize])
+
+  // Reset state when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(resetTrainerManagementState())
+    }
+  }, [dispatch])
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, pageIndex: newPage }))
@@ -77,54 +111,92 @@ const TrainerDashboard = () => {
     setPagination({ pageIndex: 0, pageSize: newPageSize })
   }
 
-  const columnHelper = createColumnHelper<any>()
+  const columnHelper = createColumnHelper<Trainer>()
 
-  const columns = useMemo<ColumnDef<any, any>[]>(
+  const columns = useMemo<ColumnDef<Trainer, any>[]>(
     () => [
-      columnHelper.accessor('employeeId', {
+      columnHelper.accessor('empCode', {
         header: 'EMPLOYEE CODE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.employeeId}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.empCode}</Typography>
       }),
-      columnHelper.accessor('fullName', {
+      columnHelper.accessor(row => `${row.firstName} ${row.lastName}`, {
         header: 'FULL NAME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.fullName}</Typography>
+        cell: ({ row }) => (
+          <Typography color='text.primary'>{`${row.original.firstName} ${row.original.lastName}`}</Typography>
+        )
       }),
-      columnHelper.accessor('designation', {
-        header: 'DESIGNATION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.designation}</Typography>
+      columnHelper.accessor('email', {
+        header: 'E-MAIL',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.email}</Typography>
       }),
-      columnHelper.accessor('dateOfJoining', {
+      columnHelper.accessor('count', {
+        header: 'SESSIONS COMPLETED',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.count}</Typography>
+      }),
+      columnHelper.accessor('createdAt', {
         header: 'DATE OF JOINING',
         cell: ({ row }) => (
           <Typography color='text.primary'>
-            {row.original.dateOfJoining ? row.original.dateOfJoining.split('T')[0] : '-'}
+            {row.original.createdAt ? row.original.createdAt.split('T')[0] : '-'}
           </Typography>
         )
       }),
-      columnHelper.accessor('employmentStatus', {
-        header: 'EMPLOYMENT STATUS',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.employmentStatus}</Typography>
+      columnHelper.accessor('status', {
+        header: 'STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
+      }),
+      columnHelper.display({
+        id: 'action',
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            <IconButton
+              onClick={() => {
+                dispatch(fetchTrainerById(row.original.id))
+                setDrawerOpen(true)
+              }}
+              sx={{ fontSize: 18 }}
+            >
+              <VisibilityOutlined />
+            </IconButton>
+          </Box>
+        ),
+        enableSorting: false
       })
-
-      // columnHelper.display({
-      //   id: 'action',
-      //   header: 'ACTIONS',
-      //   meta: { className: 'sticky right-0' },
-      //   cell: ({ row }) => (
-      //     <Box className='flex items-center'>
-      //       <IconButton
-      //         onClick={() => router.push(ROUTES.USER_MANAGEMENT.EMPLOYEE_VIEW(row.original.id))}
-      //         sx={{ fontSize: 18 }}
-      //       >
-      //         <VisibilityOutlined />
-      //       </IconButton>
-      //     </Box>
-      //   ),
-      //   enableSorting: false
-      // })
     ],
-    [columnHelper] // router
+    [columnHelper, dispatch]
   )
+
+  // Prepare data for PieChart from trainingCounts
+  const coursesData = useMemo(() => {
+    if (!trainingCounts) {
+      return [
+        { name: 'Completed', value: 0, color: '#0088FE' },
+        { name: 'In Progress', value: 0, color: '#00C49F' },
+        { name: 'Upcoming', value: 0, color: '#FFBB28' },
+        { name: 'Cancelled', value: 0, color: '#FF8042' }
+      ]
+    }
+    return [
+      { name: 'Completed', value: trainingCounts.COMPLETED, color: '#0088FE' },
+      { name: 'In Progress', value: trainingCounts.INPROGRESS, color: '#00C49F' },
+      { name: 'Upcoming', value: trainingCounts.UPCOMING, color: '#FFBB28' },
+      { name: 'Cancelled', value: trainingCounts.CANCELLED, color: '#FF8042' }
+    ]
+  }, [trainingCounts])
+
+  // Calculate total candidates for pie chart center
+  const totalCourses = coursesData.reduce((sum, item) => sum + item.value, 0)
+
+  // Filter trainers based on search query
+  const filteredTrainers = useMemo(() => {
+    if (!searchQuery) return trainersData
+
+    return trainersData.filter(trainer =>
+      `${trainer.firstName} ${trainer.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [trainersData, searchQuery])
 
   return (
     <Box className='min-h-screen'>
@@ -313,7 +385,7 @@ const TrainerDashboard = () => {
                 Total Trainers
               </Typography>
               <Typography variant='h3' color='white' fontWeight='bold'>
-                <AnimatedNumber number={21} />
+                <AnimatedNumber number={totalCount} />
               </Typography>
             </Box>
             <Box className='flex items-center justify-center'>
@@ -396,7 +468,7 @@ const TrainerDashboard = () => {
                 Active Trainers
               </Typography>
               <Typography variant='h3' color='white' fontWeight='bold'>
-                <AnimatedNumber number={5} />
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Active').length} />
               </Typography>
             </Box>
             <Box className='flex items-center justify-center'>
@@ -479,7 +551,7 @@ const TrainerDashboard = () => {
                 Available Trainers
               </Typography>
               <Typography variant='h3' color='white' fontWeight='bold'>
-                <AnimatedNumber number={3} />
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Available').length} />
               </Typography>
             </Box>
             <Box className='flex items-center justify-center'>
@@ -562,7 +634,7 @@ const TrainerDashboard = () => {
                 Shortlisted Trainers
               </Typography>
               <Typography variant='h3' color='white' fontWeight='bold'>
-                <AnimatedNumber number={12} />
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Shortlisted').length} />
               </Typography>
             </Box>
             <Box className='flex items-center justify-center'>
@@ -677,8 +749,8 @@ const TrainerDashboard = () => {
       <Box className='mt-4'>
         <DynamicTable
           columns={columns}
-          data={[]}
-          totalCount={0}
+          data={filteredTrainers}
+          totalCount={totalCount}
           pagination={pagination}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
@@ -688,6 +760,187 @@ const TrainerDashboard = () => {
           initialState={undefined}
         />
       </Box>
+
+      <Drawer
+        anchor='right'
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false)
+        }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '90vw', sm: '500px' },
+            padding: 2,
+            boxSizing: 'border-box'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3, gap: 2 }}>
+          <Box className='flex w-full justify-between items-center'>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
+              Trainer Details
+            </Typography>
+            <Button
+              className='rounded-full'
+              aria-label='Close'
+              onClick={() => {
+                setDrawerOpen(false)
+              }}
+            >
+              <CloseOutlined />
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {status === 'loading' ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  borderRadius: 1
+                }}
+              >
+                <Box className='flex gap-2 items-center w-full border-b'>
+                  <Avatar />
+                  <Box className='flex flex-col gap-1 py-3 w-full'>
+                    <Typography variant='h6'>
+                      {selectedTrainer ? `${selectedTrainer.firstName} ${selectedTrainer.lastName}` : 'N/A'}
+                    </Typography>
+                    <Typography>{selectedTrainer ? selectedTrainer.empCode : 'N/A'}</Typography>
+                  </Box>
+                  <Box className='flex justify-end w-full'>
+                    <Typography
+                      className='flex items-center justify-center px-3 py-2 rounded-md bg-green-500 bg-opacity-40 text-green-600'
+                    >
+                      {selectedTrainer ? selectedTrainer.status : 'N/A'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box className='flex justify-between items-center w-full border-b py-3 px-1'>
+                  <Box className='flex gap-2 items-center'>
+                    <MailOutlined />
+                    <Typography>{selectedTrainer ? selectedTrainer.email : 'N/A'}</Typography>
+                  </Box>
+                  <Box className='flex gap-2 items-center'>
+                    <Call />
+                    <Typography>{selectedTrainer ? selectedTrainer.phone : 'N/A'}</Typography>
+                  </Box>
+                </Box>
+
+                <Box className='flex flex-col gap-2 p-3'>
+                  <Typography variant='h6' fontWeight={700}>
+                    Languages
+                  </Typography>
+                  <Box className='flex flex-wrap gap-2'>
+                    {selectedTrainer?.languages?.length ? (
+                      selectedTrainer.languages.map((language, index) => (
+                        <Chip
+                          key={index}
+                          label={language.name}
+                          className='bg-red-500 bg-opacity-30 text-red-400 text-[10px]'
+                        />
+                      ))
+                    ) : (
+                      <Typography color='text.secondary'>No languages available</Typography>
+                    )}
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    p: 4,
+                    borderRadius: 2,
+                    boxShadow: '0px 4px 20px rgba(0,0,0,0.05)',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography variant='h6' fontWeight={700}>
+                    Training Stats
+                  </Typography>
+
+                  <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+                    <ResponsiveContainer width='100%' height='100%'>
+                      <PieChart>
+                        <Pie
+                          data={coursesData}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={1}
+                          cornerRadius={3}
+                          dataKey='value'
+                        >
+                          {coursesData.map((r, i) => (
+                            <Cell key={i} fill={r.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
+                        {totalCourses}
+                      </Typography>
+                      <Typography variant='caption' color='text.secondary'>
+                        Total Courses
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: 2
+                    }}
+                  >
+                    {coursesData.map((r, i) => (
+                      <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: '18px',
+                              height: '14px',
+                              borderRadius: '3px',
+                              bgcolor: r.color
+                            }}
+                          />
+                          <Typography variant='subtitle2' fontWeight={700} color='#000000'>
+                            {r.value}
+                          </Typography>
+                        </Box>
+                        <Typography color='#5E6E78' fontWeight={500} sx={{ fontSize: '9.7px', pl: '20px' }}>
+                          {r.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+            <Button variant='contained' color='primary'>
+              View Employee Profile
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   )
 }

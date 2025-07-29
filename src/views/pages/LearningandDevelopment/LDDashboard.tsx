@@ -1,85 +1,50 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
-import { CalendarToday, Clear, DownloadOutlined, Group } from '@mui/icons-material'
 import {
-  Autocomplete,
+  Add,
+  Call,
+  ClearOutlined,
+  CloseOutlined,
+  Group,
+  MailOutlined,
+  SearchOutlined,
+  VisibilityOutlined
+} from '@mui/icons-material'
+import {
+  Avatar,
   Box,
   Button,
   Card,
-  IconButton,
-  TextField,
-  Typography,
-  LinearProgress,
-  styled,
-  Stack,
   CardContent,
-  CircularProgress
+  Chip,
+  CircularProgress,
+  Drawer,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography
 } from '@mui/material'
 
-import { linearProgressClasses } from '@mui/material/LinearProgress'
-
-import { Gauge } from '@mui/x-charts/Gauge'
+import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
 
 import IntersectImage from '@/assets/images/dashboard/Intersect.png'
 import IntersectGreenTopLeft from '@/assets/images/dashboard/IntersectGreenTopLeft.png'
-
-import CustomTextField from '@/@core/components/mui/TextField'
-import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
-import Chart from '@/libs/ApexCharts'
-
-// Define interfaces for ApexCharts options and series
-interface ApexChartSeries {
-  name: string
-  data: number[]
-}
-
-interface ApexChartOptions {
-  chart: {
-    id: string
-    type: 'line'
-    height: number
-    toolbar?: {
-      show: boolean
-    }
-  }
-  xaxis: {
-    categories: string[]
-    title?: {
-      text: string
-      style?: {
-        fontWeight: string
-      }
-    }
-  }
-  yaxis: {
-    title?: {
-      text: string
-      style?: {
-        fontWeight: string
-      }
-    }
-    min?: number
-  }
-  stroke?: {
-    curve: 'smooth' | 'straight' | 'stepline'
-    width: number
-  }
-  colors?: string[]
-  dataLabels?: {
-    enabled: boolean
-  }
-  tooltip?: {
-    theme: string
-  }
-  grid?: {
-    borderColor: string
-  }
-}
+import DynamicTable from '@/components/Table/dynamicTable'
+import { ROUTES } from '@/utils/routes'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import type { Trainer } from '@/redux/TrainerManagement/TrainerManagementSlice'
+import {
+  fetchTrainers,
+  fetchTrainerById,
+  resetTrainerManagementState
+} from '@/redux/TrainerManagement/TrainerManagementSlice'
 
 interface AnimatedNumberProps {
   number: number
@@ -120,214 +85,125 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
   return <span>{displayNumber}</span>
 }
 
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-  height: 10,
-  borderRadius: 5,
-  [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: theme.palette.grey[200],
-    ...theme.applyStyles('dark', {
-      backgroundColor: theme.palette.grey[800]
-    })
-  },
-  [`& .${linearProgressClasses.bar}`]: {
-    borderRadius: 5,
-    backgroundColor: '#1a90ff',
-    ...theme.applyStyles('dark', {
-      backgroundColor: '#308fe8'
-    })
-  }
-}))
+const TrainerDashboard = () => {
+  const router = useRouter()
+  const dispatch = useAppDispatch()
 
-// Define ViewType for type safety
-type ViewType = 'Branch' | 'Area' | 'Cluster' | 'Region' | 'Zone' | 'Territory' | 'Corporate'
-
-// Reusable component for Progress on Mandatory Courses
-interface CourseProgressCardProps {
-  title: string
-  count: number
-  index: number
-}
-
-const CourseProgressCard: React.FC<CourseProgressCardProps> = ({ title, count, index }) => {
-  return (
-    <Box
-      className='flex w-full flex-col gap-1 items-baseline p-2 rounded-md'
-      sx={{ backgroundColor: index === 0 || index === 3 ? '#F0F0F0FF' : '#E6F0FFFF' }}
-    >
-      <Typography className='text-xl font-bold text-[#000]'>
-        <AnimatedNumber number={count} />
-      </Typography>
-      <Typography className='text-[8px] font-medium'>{title}</Typography>
-    </Box>
+  const { trainersData, selectedTrainer, trainingCounts, totalCount, status } = useAppSelector(
+    state => state.TrainerManagementReducer
   )
-}
 
-const COURSE_ANALYSIS = [
-  {
-    label: 'Total Registered',
-    count: 11512,
-    color: '#1E90FF'
-  },
-  {
-    label: 'Not Started',
-    count: 6387,
-    color: '#F5A623'
-  },
-  {
-    label: 'In Progress',
-    count: 410,
-    color: '#26A69A'
-  },
-  {
-    label: 'Completed',
-    count: 4715,
-    color: '#34495E'
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // Fetch trainers when pagination changes or component mounts
+  useEffect(() => {
+    dispatch(fetchTrainers({ page: pagination.pageIndex + 1, limit: pagination.pageSize }))
+  }, [dispatch, pagination.pageIndex, pagination.pageSize])
+
+  // Reset state when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(resetTrainerManagementState())
+    }
+  }, [dispatch])
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, pageIndex: newPage }))
   }
-]
 
-const LDDashboard = () => {
-  // Explicitly type viewTypes as ViewType[]
-  const viewTypes: ViewType[] = ['Branch', 'Area', 'Cluster', 'Region', 'Zone', 'Territory', 'Corporate']
-  const [selectedViewType, setSelectedViewType] = useState<ViewType>('Branch')
+  const handleRowsPerPageChange = (newPageSize: number) => {
+    setPagination({ pageIndex: 0, pageSize: newPageSize })
+  }
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    new Date(new Date().setMonth(new Date().getMonth() - 1)), // Default: one month ago
-    new Date() // Default: today
-  ])
+  const columnHelper = createColumnHelper<Trainer>()
 
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const columns = useMemo<ColumnDef<Trainer, any>[]>(
+    () => [
+      columnHelper.accessor('empCode', {
+        header: 'EMPLOYEE CODE',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.empCode}</Typography>
+      }),
+      columnHelper.accessor(row => `${row.firstName} ${row.lastName}`, {
+        header: 'FULL NAME',
+        cell: ({ row }) => (
+          <Typography color='text.primary'>{`${row.original.firstName} ${row.original.lastName}`}</Typography>
+        )
+      }),
+      columnHelper.accessor('email', {
+        header: 'E-MAIL',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.email}</Typography>
+      }),
+      columnHelper.accessor('count', {
+        header: 'SESSIONS COMPLETED',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.count}</Typography>
+      }),
+      columnHelper.accessor('createdAt', {
+        header: 'DATE OF JOINING',
+        cell: ({ row }) => (
+          <Typography color='text.primary'>
+            {row.original.createdAt ? row.original.createdAt.split('T')[0] : '-'}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('status', {
+        header: 'STATUS',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.status}</Typography>
+      }),
+      columnHelper.display({
+        id: 'action',
+        header: 'ACTIONS',
+        meta: { className: 'sticky right-0' },
+        cell: ({ row }) => (
+          <Box className='flex items-center'>
+            <IconButton
+              onClick={() => {
+                dispatch(fetchTrainerById(row.original.id))
+                setDrawerOpen(true)
+              }}
+              sx={{ fontSize: 18 }}
+            >
+              <VisibilityOutlined />
+            </IconButton>
+          </Box>
+        ),
+        enableSorting: false
+      })
+    ],
+    [columnHelper, dispatch]
+  )
 
-  // Data array for Target and Actual Learning Hours
-  const learningHoursData = [
-    { type: 'Target Learning Hours', value: 20 },
-    { type: 'Actual Learning Hours', value: 17 }
-  ]
-
-  // Calculate fill percentage
-  const targetHours = learningHoursData.find(item => item.type === 'Target Learning Hours')?.value || 0
-  const actualHours = learningHoursData.find(item => item.type === 'Actual Learning Hours')?.value || 0
-  const fillPercentage = targetHours > 0 ? (actualHours / targetHours) * 100 : 0
-
-  // Data array for Progress on Mandatory Courses
-  const mandatoryCoursesData = [
-    { title: 'Courses Assigned', count: 5023683 },
-    { title: 'In Progress', count: 173147 },
-    { title: 'Course Completed', count: 2023097 },
-    { title: 'Not Started', count: 2827439 }
-  ]
-
-  // Data array for Training Undergoing Candidates
-  const trainingTypesData = [
-    { name: 'Mentor Branch Training', value: 120, color: '#0088FE' },
-    { name: 'Gurukul Training', value: 80, color: '#00C49F' },
-    { name: 'Online Training', value: 200, color: '#FFBB28' },
-    { name: 'Classroom Training', value: 150, color: '#FF8042' }
-  ]
-
-  // Calculate total candidates for pie chart center
-  const totalCandidates = trainingTypesData.reduce((sum, item) => sum + item.value, 0)
-
-  // Handle date range change with future date validation
-  const handleDateChange = (date: [Date | null, Date | null] | null) => {
-    if (!date) return
-
-    const [start, end] = date
-
-    console.log(start)
-    const today = new Date()
-
-    today.setHours(0, 0, 0, 0)
-
-    if (end && end > today) {
-      setErrorMessage('Future dates are not allowed.')
-
-      return
+  // Prepare data for PieChart from trainingCounts
+  const coursesData = useMemo(() => {
+    if (!trainingCounts) {
+      return [
+        { name: 'Completed', value: 0, color: '#0088FE' },
+        { name: 'In Progress', value: 0, color: '#00C49F' },
+        { name: 'Upcoming', value: 0, color: '#FFBB28' },
+        { name: 'Cancelled', value: 0, color: '#FF8042' }
+      ]
     }
 
-    setDateRange(date)
-    setErrorMessage('') // Clear error message if valid
-    console.log('Selected date range:', date)
-  }
-
-  const [chartData] = useState<{
-    options: ApexChartOptions
-    series: ApexChartSeries[]
-  }>({
-    options: {
-      chart: {
-        id: 'content-consumption',
-        type: 'line',
-        height: 350,
-        toolbar: {
-          show: false
-        }
-      },
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        title: {
-          text: 'Month (2025)',
-          style: {
-            fontWeight: 'normal'
-          }
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'Active Users / Completions',
-          style: {
-            fontWeight: 'normal'
-          }
-        },
-        min: 0
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 2
-      },
-      colors: ['#0095DA', '#FF5733'],
-      dataLabels: {
-        enabled: false
-      },
-      tooltip: {
-        theme: 'light'
-      },
-      grid: {
-        borderColor: '#E6F0FFFF'
-      }
-    },
-    series: [
-      {
-        name: 'Active Users',
-        data: [44, 55, 41, 17, 15, 30, 50, 60, 45, 55, 40, 65]
-      },
-      {
-        name: 'Course Completions',
-        data: [120, 150, 130, 90, 80, 110, 140, 160, 125, 145, 100, 170]
-      }
+    return [
+      { name: 'Completed', value: trainingCounts.COMPLETED, color: '#0088FE' },
+      { name: 'In Progress', value: trainingCounts.INPROGRESS, color: '#00C49F' },
+      { name: 'Upcoming', value: trainingCounts.UPCOMING, color: '#FFBB28' },
+      { name: 'Cancelled', value: trainingCounts.CANCELLED, color: '#FF8042' }
     ]
-  })
+  }, [trainingCounts])
 
-  const statisticsData = [
-    { title: 'Newly Onboarded Count', total: 150, addedInMonth: 20 },
-    { title: 'Batches Created Count', total: 45, addedInMonth: 5 },
-    { title: 'Total Trainers Assigned', total: 30, addedInMonth: 3 }
-  ]
+  // Calculate total candidates for pie chart center
+  const totalCourses = coursesData.reduce((sum, item) => sum + item.value, 0)
 
-  // Calculate percentages for progress bar and display based on Total Registered count
-  const totalRegisteredCount = COURSE_ANALYSIS.find(item => item.label === 'Total Registered')?.count || 1
+  // Filter trainers based on search query
+  const filteredTrainers = useMemo(() => {
+    if (!searchQuery) return trainersData
 
-  const calculatedPercentages = COURSE_ANALYSIS.map(item => ({
-    ...item,
-    calculatedPercentage: totalRegisteredCount > 0 ? (item.count / totalRegisteredCount) * 100 : 0
-  }))
-
-  // State for date range picker
-  // const [startDate, setStartDate] = useState<string>('')
-  // const [endDate, setEndDate] = useState<string>('')
-
-  // State for branch type filter
-  // const viewTypes = ['All', 'Main Branch', 'Regional', 'Satellite']
-  // const [selectedLocationType, setSelectedLocationType] = useState<string>('All')
+    return trainersData.filter(trainer =>
+      `${trainer.firstName} ${trainer.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [trainersData, searchQuery])
 
   return (
     <Box className='min-h-screen'>
@@ -358,692 +234,33 @@ const LDDashboard = () => {
               whiteSpace: 'nowrap'
             }}
           >
-            Dashboard
+            Trainer Dashboard
           </Typography>
-          <Button className='flex px-2 gap-1 border rounded-md' sx={{ border: '1px solid #8C8D8BFF' }}>
-            <DownloadOutlined sx={{ fill: '#8C8D8BFF' }} />
-            <Typography>Overview Report</Typography>
-          </Button>
-        </Box>
-      </Card>
-      <Box className='flex flex-col gap-4'>
-        <Box className='grid grid-cols-3 w-full gap-4'>
-          <Card sx={{ bgcolor: '#ED960B', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-            <CardContent
-              className='flex justify-between gap-2'
-              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
-            >
-              <Box className='flex flex-col justify-between gap-2'>
-                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
-                  <Group
-                    sx={{
-                      width: '30px',
-                      height: '30px',
-                      bgcolor: 'white',
-                      color: '#ED960B',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Box>
-                <Box className='flex flex-col gap-2'>
-                  <Typography variant='body2' color='white'>
-                    {statisticsData[0].title}
-                  </Typography>
-                  <Typography variant='h3' color='white' fontWeight='bold'>
-                    <AnimatedNumber number={statisticsData[0].total} />
-                  </Typography>
-                  <Box className='flex flex-col gap-1'>
-                    <Typography variant='body2' color='white' className='text-[12px]'>
-                      <AnimatedNumber number={statisticsData[0].addedInMonth} />
-                    </Typography>
-                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
-                      Added in July 2025
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box className='flex items-center justify-center'>
-                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <CircularProgress
-                    variant='determinate'
-                    value={100}
-                    size={60}
-                    thickness={4}
-                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
-                  />
-                  <CircularProgress
-                    variant='determinate'
-                    value={86}
-                    size={60}
-                    thickness={4}
-                    sx={{
-                      color: 'white',
-                      position: 'absolute',
-                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      right: 0,
-                      position: 'absolute',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
-                      +86%
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </CardContent>
-            <Image
-              src={IntersectGreenTopLeft}
-              alt='Green top decoration'
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                zIndex: 0,
-                opacity: 1
-              }}
-            />
-            <Image
-              src={IntersectImage}
-              alt='decorative shape'
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                zIndex: 0,
-                opacity: 0.5
-              }}
-            />
-          </Card>
-          <Card sx={{ bgcolor: '#00B798', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-            <CardContent
-              className='flex justify-between gap-2'
-              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
-            >
-              <Box className='flex flex-col justify-between gap-2'>
-                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
-                  <Group
-                    sx={{
-                      width: '30px',
-                      height: '30px',
-                      bgcolor: 'white',
-                      color: '#00B798',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Box>
-                <Box className='flex flex-col gap-2'>
-                  <Typography variant='body2' color='white'>
-                    {statisticsData[1].title}
-                  </Typography>
-                  <Typography variant='h3' color='white' fontWeight='bold'>
-                    <AnimatedNumber number={statisticsData[1].total} />
-                  </Typography>
-                  <Box className='flex flex-col gap-1'>
-                    <Typography variant='body2' color='white' className='text-[12px]'>
-                      <AnimatedNumber number={statisticsData[1].addedInMonth} />
-                    </Typography>
-                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
-                      Added in July 2025
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box className='flex items-center justify-center'>
-                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <CircularProgress
-                    variant='determinate'
-                    value={100}
-                    size={60}
-                    thickness={4}
-                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
-                  />
-                  <CircularProgress
-                    variant='determinate'
-                    value={86}
-                    size={60}
-                    thickness={4}
-                    sx={{
-                      color: 'white',
-                      position: 'absolute',
-                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      right: 0,
-                      position: 'absolute',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
-                      +86%
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </CardContent>
-            <Image
-              src={IntersectGreenTopLeft}
-              alt='Green top decoration'
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                zIndex: 0,
-                opacity: 1
-              }}
-            />
-            <Image
-              src={IntersectImage}
-              alt='decorative shape'
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                zIndex: 0,
-                opacity: 0.5
-              }}
-            />
-          </Card>
-          <Card sx={{ bgcolor: '#FF6C6C', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-            <CardContent
-              className='flex justify-between gap-2'
-              sx={{ color: 'white', position: 'relative', zIndex: 1 }}
-            >
-              <Box className='flex flex-col justify-between gap-2'>
-                <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
-                  <Group
-                    sx={{
-                      width: '30px',
-                      height: '30px',
-                      bgcolor: 'white',
-                      color: '#FF6C6C',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Box>
-                <Box className='flex flex-col gap-2'>
-                  <Typography variant='body2' color='white'>
-                    {statisticsData[2].title}
-                  </Typography>
-                  <Typography variant='h3' color='white' fontWeight='bold'>
-                    <AnimatedNumber number={statisticsData[2].total} />
-                  </Typography>
-                  <Box className='flex flex-col gap-1'>
-                    <Typography variant='body2' color='white' className='text-[12px]'>
-                      <AnimatedNumber number={statisticsData[2].addedInMonth} />
-                    </Typography>
-                    <Typography variant='body2' color='white' className='text-[8px] font-medium'>
-                      Added in July 2025
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box className='flex items-center justify-center'>
-                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <CircularProgress
-                    variant='determinate'
-                    value={100}
-                    size={60}
-                    thickness={4}
-                    sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
-                  />
-                  <CircularProgress
-                    variant='determinate'
-                    value={86}
-                    size={60}
-                    thickness={4}
-                    sx={{
-                      color: 'white',
-                      position: 'absolute',
-                      '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      right: 0,
-                      position: 'absolute',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Typography className='text-[10px]' variant='caption' component='div' color='white'>
-                      +86%
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </CardContent>
-            <Image
-              src={IntersectGreenTopLeft}
-              alt='Green top decoration'
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                zIndex: 0,
-                opacity: 1
-              }}
-            />
-            <Image
-              src={IntersectImage}
-              alt='decorative shape'
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                zIndex: 0,
-                opacity: 0.5
-              }}
-            />
-          </Card>
-        </Box>
-
-        <Box className='grid grid-cols-3 gap-4 w-full'>
-          <Card
+          <Box
             sx={{
-              p: 4,
-              borderRadius: 2,
-              boxShadow: '0px 4px 20px rgba(0,0,0,0.05)',
-              height: '100%',
               display: 'flex',
-              flexDirection: 'column'
+              width: '100%',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'end',
+              alignItems: 'center',
+              gap: 2
             }}
           >
-            <Typography variant='h6' fontWeight={700} mb={3}>
-              Training Undergoing Candidates
-            </Typography>
-
-            <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
-              <ResponsiveContainer width='100%' height='100%'>
-                <PieChart>
-                  <Pie
-                    data={trainingTypesData}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={1}
-                    cornerRadius={3}
-                    dataKey='value'
-                  >
-                    {trainingTypesData.map((r, i) => (
-                      <Cell key={i} fill={r.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  textAlign: 'center'
-                }}
-              >
-                <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
-                  {totalCandidates}
-                </Typography>
-                <Typography variant='caption' color='text.secondary'>
-                  Total Candidates
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* <Box sx={{ my: 6, display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <Image
-                src={LineImage} // Note: LineImage is undefined; provide the correct path or replace with a divider
-                alt='line divider'
-                width={1000}
-                height={2}
-                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
-              />
-            </Box> */}
-
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 2
-              }}
-            >
-              {trainingTypesData.map((r, i) => (
-                <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: '18px',
-                        height: '14px',
-                        borderRadius: '3px',
-                        bgcolor: r.color
-                      }}
-                    />
-                    <Typography variant='subtitle2' fontWeight={700} color='#000000'>
-                      {r.value}
-                    </Typography>
-                  </Box>
-                  <Typography color='#5E6E78' fontWeight={500} sx={{ fontSize: '9.7px', pl: '20px' }}>
-                    {r.name}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
-          <Card className='p-4 space-y-4 col-span-2'>
-            <Typography
-              component='h1'
-              variant='h4'
-              sx={{
-                fontWeight: 'bold',
-                color: 'text.primary',
-                paddingX: 4,
-                letterSpacing: 1,
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Content Consumption Summary
-            </Typography>
-            <Box className='flex w-full gap-3 items-center'>
-              <Box className='w-[70%]'>
-                <Chart options={chartData.options} series={chartData.series} type='line' width='100%' />
-              </Box>
-              <Box className='flex flex-col gap-4 w-[30%]'>
-                <Box className='flex flex-col gap-2 p-2 border rounded-md'>
-                  <Typography className='text-md'>Active Learners</Typography>
-                  <Box className='flex gap-2 w-full'>
-                    <Box className='flex w-full flex-col gap-1 items-baseline bg-[#E6F0FFFF] p-2 rounded-md'>
-                      <Typography className='text-lg font-bold text-[#000]'>
-                        <AnimatedNumber number={25169} />
-                      </Typography>
-                      <Typography className='text-[8px] font-medium'>This Month</Typography>
-                    </Box>
-                    <Box className='flex w-full flex-col gap-1 items-baseline bg-[#F0F0F0FF] p-2 rounded-md'>
-                      <Typography className='text-lg font-bold text-[#000]'>
-                        <AnimatedNumber number={25734} />
-                      </Typography>
-                      <Typography className='text-[8px] font-medium'>Last Month</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-                <Box className='flex flex-col gap-2 p-2 border rounded-md'>
-                  <Typography className='text-md'>Course Completions</Typography>
-                  <Box className='flex gap-2 w-full'>
-                    <Box className='flex w-full flex-col gap-1 items-baseline bg-[#E6F0FFFF] p-2 rounded-md'>
-                      <Typography className='text-lg font-bold text-[#000]'>
-                        <AnimatedNumber number={97671} />
-                      </Typography>
-                      <Typography className='text-[8px] font-medium'>This Month</Typography>
-                    </Box>
-                    <Box className='flex w-full flex-col gap-1 items-baseline bg-[#F0F0F0FF] p-2 rounded-md'>
-                      <Typography className='text-xl font-bold text-[#000]'>
-                        <AnimatedNumber number={111009} />
-                      </Typography>
-                      <Typography className='text-[8px] font-medium'>Last Month</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Card>
-        </Box>
-
-        <Box className='grid grid-cols-3 w-full h-56 gap-4'>
-          <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Target vs Actual Learning Hours Per Employee</Typography>
-            <Box className='flex flex-col space-y-3'>
-              <Box className='flex gap-2 w-full justify-between items-center'>
-                <Autocomplete
-                  className='w-full'
-                  disablePortal
-                  options={viewTypes}
-                  value={selectedViewType}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      setSelectedViewType(newValue as ViewType)
-                    }
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      sx={{
-                        '& .MuiInputBase-root': {
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '30px'
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px',
-                          textAlign: 'center'
-                        },
-                        '& .MuiAutocomplete-endAdornment': {
-                          right: '8px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          padding: '0 8px',
-                          lineHeight: 'normal'
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          top: 0,
-                          transform: 'translate(10%, -50%) scale(0.85)'
-                        }
-                      }}
-                    />
-                  )}
-                />
-                <Box className='flex flex-col gap-2 w-full'>
-                  {/* Date Range Picker */}
-                  <AppReactDatepicker
-                    className='w-full'
-                    selectsRange={true}
-                    startDate={dateRange[0]}
-                    endDate={dateRange[1]}
-                    onChange={handleDateChange}
-                    dateFormat='dd-MMMM-yyyy'
-                    placeholderText='Filter by date range'
-                    customInput={
-                      <CustomTextField
-                        name='date_range'
-                        id='date_range'
-                        sx={{
-                          '& .MuiInputBase-input': {
-                            padding: 0, // Reduced padding
-                            fontSize: '10px' // Reduced font size
-                          }
-                        }}
-                        InputProps={{
-                          endAdornment: (
-                            <>
-                              <IconButton size='small' className='p-1' onClick={() => setDateRange([null, null])}>
-                                <Clear className='w-4 h-4' />
-                              </IconButton>
-                              <IconButton size='small' className='p-0'>
-                                <CalendarToday className='w-4 h-4' />
-                              </IconButton>
-                            </>
-                          )
-                        }}
-                      />
-                    }
-                  />
-
-                  {/* Display error message if future date is selected */}
-                  {errorMessage && (
-                    <Typography color='error' sx={{ mx: 6, mt: 2 }}>
-                      {errorMessage}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-
-              <Box className='flex flex-col gap-3 pt-4'>
-                {learningHoursData.map((item, index) => (
-                  <Box key={index} className='flex w-full justify-between'>
-                    <Typography>{item.type}</Typography>
-                    <Typography className='font-bold'>{item.value}</Typography>
-                  </Box>
-                ))}
-                <Box className='flex flex-col gap-0.5 mt-3'>
-                  <BorderLinearProgress variant='determinate' value={fillPercentage} />
-                  <Typography
-                    variant='body2'
-                    fontSize='8px'
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'medium' }}
-                  >
-                    {fillPercentage.toFixed(0)}% Completed
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Card>
-          <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Average Learning Hours This Month</Typography>
-            <Box className='flex flex-col space-y-3'>
-              <Box className='flex gap-2 w-full justify-between items-center'>
-                <Autocomplete
-                  className='w-full'
-                  disablePortal
-                  options={viewTypes}
-                  value={selectedViewType}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      setSelectedViewType(newValue as ViewType)
-                    }
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      sx={{
-                        '& .MuiInputBase-root': {
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '30px'
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px',
-                          textAlign: 'center'
-                        },
-                        '& .MuiAutocomplete-endAdornment': {
-                          right: '8px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          padding: '0 8px',
-                          lineHeight: 'normal'
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          top: 0,
-                          transform: 'translate(10%, -50%) scale(0.85)'
-                        }
-                      }}
-                    />
-                  )}
-                />
-                <Box className='flex flex-col gap-2 w-full'>
-                  {/* Date Range Picker */}
-                  <AppReactDatepicker
-                    className='w-full'
-                    selectsRange={true}
-                    startDate={dateRange[0]}
-                    endDate={dateRange[1]}
-                    onChange={handleDateChange}
-                    dateFormat='dd-MMMM-yyyy'
-                    placeholderText='Filter by commitment date range'
-                    customInput={
-                      <CustomTextField
-                        name='date_range'
-                        id='date_range'
-                        sx={{
-                          '& .MuiInputBase-input': {
-                            padding: 0, // Reduced padding
-                            fontSize: '10px' // Reduced font size
-                          }
-                        }}
-                        InputProps={{
-                          endAdornment: (
-                            <>
-                              <IconButton size='small' className='p-1' onClick={() => setDateRange([null, null])}>
-                                <Clear className='w-4 h-4' />
-                              </IconButton>
-                              <IconButton size='small' className='p-0'>
-                                <CalendarToday className='w-4 h-4' />
-                              </IconButton>
-                            </>
-                          )
-                        }}
-                      />
-                    }
-                  />
-
-                  {/* Display error message if future date is selected */}
-                  {errorMessage && (
-                    <Typography color='error' sx={{ mx: 6, mt: 2 }}>
-                      {errorMessage}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-
-              <Box className='flex flex-col items-center justify-center mt-2 w-full'>
-                <Gauge width={100} height={100} value={50} valueMin={10} valueMax={60} />
-                <Typography>Hours</Typography>
-              </Box>
-            </Box>
-          </Card>
-          <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Progress on Mandatory Courses</Typography>
-            <Box className='grid grid-cols-2 gap-2 w-full'>
-              {mandatoryCoursesData.map((data, index) => (
-                <CourseProgressCard key={index} title={data.title} count={data.count} index={index} />
-              ))}
-            </Box>
-          </Card>
-        </Box>
-
-        <Card className='flex flex-col gap-4 p-4'>
-          <Box className='flex w-full justify-between items-center'>
-            <Typography className='text-lg font-bold'>Course Analysis</Typography>
-            <Autocomplete
-              className='w-1/5'
+            {/* FILTERS */}
+            {/* <Autocomplete
               disablePortal
-              options={viewTypes}
-              value={selectedViewType}
+              options={locationTypes}
+              sx={{ width: 150 }}
+              value={selectedLocationType}
               onChange={(_, newValue) => {
                 if (newValue) {
-                  setSelectedViewType(newValue as ViewType)
+                  setSelectedLocationType(newValue as typeof selectedLocationType)
                 }
               }}
               renderInput={params => (
                 <TextField
                   {...params}
+                  label='Branch Type'
                   sx={{
                     '& .MuiInputBase-root': {
                       padding: 0,
@@ -1074,74 +291,663 @@ const LDDashboard = () => {
                   }}
                 />
               )}
+            /> */}
+            {/* <Autocomplete
+              disablePortal
+              options={['Department 1', 'Department 2', 'Department 3']}
+              sx={{ width: 150 }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '30px'
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '8px',
+                      textAlign: 'center'
+                    },
+                    '& .MuiAutocomplete-endAdornment': {
+                      right: '8px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    },
+                    '& .MuiInputLabel-root': {
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '0 8px',
+                      lineHeight: 'normal'
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(10%, -50%) scale(0.85)'
+                    }
+                  }}
+                  {...params}
+                  label='Departments'
+                />
+              )}
             />
+            <Autocomplete
+              disablePortal
+              options={[...new Set(positionMatrixData.map(item => item.designation))]}
+              sx={{ width: 150 }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '30px'
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '8px',
+                      textAlign: 'center'
+                    },
+                    '& .MuiAutocomplete-endAdornment': {
+                      right: '8px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    },
+                    '& .MuiInputLabel-root': {
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '0 8px',
+                      lineHeight: 'normal'
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      top: 0,
+                      transform: 'translate(10%, -50%) scale(0.85)'
+                    }
+                  }}
+                  {...params}
+                  label='Designation'
+                />
+              )}
+            /> */}
           </Box>
-
-          <Box
-            sx={{
-              display: 'flex',
-              height: 20,
-              borderRadius: 0.5,
-              overflow: 'hidden',
-              mb: 2,
-              mt: 1
-            }}
-          >
-            {calculatedPercentages.map(type => (
-              <Box
-                key={type.label}
-                sx={{
-                  flex: type.calculatedPercentage,
-                  bgcolor: type.color
-                }}
-              />
-            ))}
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#fff',
-              p: 0,
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              border: '1px solid #E0E0E0',
-              borderRadius: 1,
-              overflow: 'hidden',
-              mb: 2,
-              mt: 5
-            }}
-          >
-            {calculatedPercentages.map((type, idx) => (
-              <Box
-                key={type.label}
-                sx={{
-                  p: 2,
-                  borderRight: idx % 2 === 0 ? '1px solid #E0E0E0' : 'none',
-                  borderBottom: idx < 2 ? '1px solid #E0E0E0' : 'none'
-                }}
-              >
-                <Stack direction='row' spacing={1} alignItems='center' mb={0.5}>
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: type.color
-                    }}
-                  />
-                  <Typography variant='caption' color='text.secondary'>
-                    {type.label} ({type.calculatedPercentage.toFixed(1)}%)
-                  </Typography>
-                </Stack>
-                <Typography variant='subtitle1' fontWeight={700} color='black'>
-                  {type.count}
-                </Typography>
+        </Box>
+      </Card>
+      <Box className='grid grid-cols-4 w-full gap-4'>
+        <Card sx={{ bgcolor: '#ED960B', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+          <CardContent className='flex justify-between gap-2' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
+            <Box className='flex flex-col justify-between gap-2'>
+              <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                <Group
+                  sx={{
+                    width: '30px',
+                    height: '30px',
+                    bgcolor: 'white',
+                    color: '#ED960B',
+                    borderRadius: '8px'
+                  }}
+                />
               </Box>
-            ))}
-          </Box>
+              <Typography variant='body2' color='white'>
+                Total Trainers
+              </Typography>
+              <Typography variant='h3' color='white' fontWeight='bold'>
+                <AnimatedNumber number={totalCount} />
+              </Typography>
+            </Box>
+            <Box className='flex items-center justify-center'>
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <CircularProgress
+                  variant='determinate'
+                  value={100}
+                  size={60}
+                  thickness={4}
+                  sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <CircularProgress
+                  variant='determinate'
+                  value={86}
+                  size={60}
+                  thickness={4}
+                  sx={{
+                    color: 'white',
+                    position: 'absolute',
+                    '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                  }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                    +86%
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+          <Image
+            src={IntersectGreenTopLeft}
+            alt='Green top decoration'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 0,
+              opacity: 1
+            }}
+          />
+          <Image
+            src={IntersectImage}
+            alt='decorative shape'
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 0,
+              opacity: 0.5
+            }}
+          />
+        </Card>
+        <Card sx={{ bgcolor: '#00B798', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+          <CardContent className='flex justify-between gap-2' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
+            <Box className='flex flex-col justify-between gap-2'>
+              <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                <Group
+                  sx={{
+                    width: '30px',
+                    height: '30px',
+                    bgcolor: 'white',
+                    color: '#00B798',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+              <Typography variant='body2' color='white'>
+                Active Trainers
+              </Typography>
+              <Typography variant='h3' color='white' fontWeight='bold'>
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'ACTIVE').length} />
+              </Typography>
+            </Box>
+            <Box className='flex items-center justify-center'>
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <CircularProgress
+                  variant='determinate'
+                  value={100}
+                  size={60}
+                  thickness={4}
+                  sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <CircularProgress
+                  variant='determinate'
+                  value={86}
+                  size={60}
+                  thickness={4}
+                  sx={{
+                    color: 'white',
+                    position: 'absolute',
+                    '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                  }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                    +86%
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+          <Image
+            src={IntersectGreenTopLeft}
+            alt='Green top decoration'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 0,
+              opacity: 1
+            }}
+          />
+          <Image
+            src={IntersectImage}
+            alt='decorative shape'
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 0,
+              opacity: 0.5
+            }}
+          />
+        </Card>
+        <Card sx={{ bgcolor: '#FF6C6C', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+          <CardContent className='flex justify-between gap-2' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
+            <Box className='flex flex-col justify-between gap-2'>
+              <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                <Group
+                  sx={{
+                    width: '30px',
+                    height: '30px',
+                    bgcolor: 'white',
+                    color: '#FF6C6C',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+              <Typography variant='body2' color='white'>
+                Available Trainers
+              </Typography>
+              <Typography variant='h3' color='white' fontWeight='bold'>
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Available').length} />
+              </Typography>
+            </Box>
+            <Box className='flex items-center justify-center'>
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <CircularProgress
+                  variant='determinate'
+                  value={100}
+                  size={60}
+                  thickness={4}
+                  sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <CircularProgress
+                  variant='determinate'
+                  value={86}
+                  size={60}
+                  thickness={4}
+                  sx={{
+                    color: 'white',
+                    position: 'absolute',
+                    '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                  }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                    +86%
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+          <Image
+            src={IntersectGreenTopLeft}
+            alt='Green top decoration'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 0,
+              opacity: 1
+            }}
+          />
+          <Image
+            src={IntersectImage}
+            alt='decorative shape'
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 0,
+              opacity: 0.5
+            }}
+          />
+        </Card>
+        <Card sx={{ bgcolor: '#0095DA', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+          <CardContent className='flex justify-between gap-2' sx={{ color: 'white', position: 'relative', zIndex: 1 }}>
+            <Box className='flex flex-col justify-between gap-2'>
+              <Box className='flex items-center justify-center p-2 bg-white rounded-md w-10 h-10'>
+                <Group
+                  sx={{
+                    width: '30px',
+                    height: '30px',
+                    bgcolor: 'white',
+                    color: '#0095DA',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+              <Typography variant='body2' color='white'>
+                Shortlisted Trainers
+              </Typography>
+              <Typography variant='h3' color='white' fontWeight='bold'>
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Shortlisted').length} />
+              </Typography>
+            </Box>
+            <Box className='flex items-center justify-center'>
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <CircularProgress
+                  variant='determinate'
+                  value={100}
+                  size={60}
+                  thickness={4}
+                  sx={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <CircularProgress
+                  variant='determinate'
+                  value={86}
+                  size={60}
+                  thickness={4}
+                  sx={{
+                    color: 'white',
+                    position: 'absolute',
+                    '& .MuiCircularProgress-circle': { strokeLinecap: 'round' }
+                  }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Typography className='text-[10px]' variant='caption' component='div' color='white'>
+                    +86%
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+          <Image
+            src={IntersectGreenTopLeft}
+            alt='Green top decoration'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 0,
+              opacity: 1
+            }}
+          />
+          <Image
+            src={IntersectImage}
+            alt='decorative shape'
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 0,
+              opacity: 0.5
+            }}
+          />
         </Card>
       </Box>
+
+      <Card
+        className='mt-4'
+        sx={{
+          mb: 4,
+          position: 'sticky',
+          top: 70,
+          zIndex: 10,
+          backgroundColor: 'white',
+          height: 'auto',
+          paddingBottom: 2
+        }}
+      >
+        <Box className='flex justify-between flex-col items-center md:flex-row md:items-start p-4 gap-4 '>
+          <TextField
+            label='Search by Employee Name'
+            variant='outlined'
+            size='small'
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            sx={{ width: '400px' }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  {searchQuery && (
+                    <IconButton size='small' onClick={() => setSearchQuery('')} edge='end'>
+                      <ClearOutlined fontSize='small' />
+                    </IconButton>
+                  )}
+                  <SearchOutlined />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant='contained'
+            color='primary'
+            className='flex items-center gap-2 '
+            onClick={() => router.push(ROUTES.LEARNING_AND_DEVELOPMENT.TRAINER_MANAGEMENT.ADD_TRAINER)}
+          >
+            <Add />
+            Add Trainer
+          </Button>
+        </Box>
+      </Card>
+
+      <Box className='mt-4'>
+        <DynamicTable
+          columns={columns}
+          data={filteredTrainers}
+          totalCount={totalCount}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          tableName='Trainer Table'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
+        />
+      </Box>
+
+      <Drawer
+        anchor='right'
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false)
+        }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '90vw', sm: '500px' },
+            padding: 2,
+            boxSizing: 'border-box'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 3, gap: 2 }}>
+          <Box className='flex w-full justify-between items-center'>
+            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 1 }}>
+              Trainer Details
+            </Typography>
+            <Button
+              className='rounded-full'
+              aria-label='Close'
+              onClick={() => {
+                setDrawerOpen(false)
+              }}
+            >
+              <CloseOutlined />
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {status === 'loading' ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  borderRadius: 1
+                }}
+              >
+                <Box className='flex gap-2 items-center w-full border-b'>
+                  <Avatar />
+                  <Box className='flex flex-col gap-1 py-3 w-full'>
+                    <Typography variant='h6'>
+                      {selectedTrainer ? `${selectedTrainer.firstName} ${selectedTrainer.lastName}` : 'N/A'}
+                    </Typography>
+                    <Typography>{selectedTrainer ? selectedTrainer.empCode : 'N/A'}</Typography>
+                  </Box>
+                  <Box className='flex justify-end w-full'>
+                    <Typography className='flex items-center justify-center px-3 py-2 rounded-md bg-green-500 bg-opacity-40 text-green-600'>
+                      {selectedTrainer ? selectedTrainer.status : 'N/A'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box className='flex justify-between items-center w-full border-b py-3 px-1'>
+                  <Box className='flex gap-2 items-center'>
+                    <MailOutlined />
+                    <Typography>{selectedTrainer ? selectedTrainer.email : 'N/A'}</Typography>
+                  </Box>
+                  <Box className='flex gap-2 items-center'>
+                    <Call />
+                    <Typography>{selectedTrainer ? selectedTrainer.phone : 'N/A'}</Typography>
+                  </Box>
+                </Box>
+
+                <Box className='flex flex-col gap-2 p-3'>
+                  <Typography variant='h6' fontWeight={700}>
+                    Languages
+                  </Typography>
+                  <Box className='flex flex-wrap gap-2'>
+                    {selectedTrainer?.languages?.length ? (
+                      selectedTrainer.languages.map((language, index) => (
+                        <Chip
+                          key={index}
+                          label={language.name}
+                          className='bg-red-500 bg-opacity-30 text-red-400 text-[10px]'
+                        />
+                      ))
+                    ) : (
+                      <Typography color='text.secondary'>No languages available</Typography>
+                    )}
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    p: 4,
+                    borderRadius: 2,
+                    boxShadow: '0px 4px 20px rgba(0,0,0,0.05)',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography variant='h6' fontWeight={700}>
+                    Training Stats
+                  </Typography>
+
+                  <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+                    <ResponsiveContainer width='100%' height='100%'>
+                      <PieChart>
+                        <Pie
+                          data={coursesData}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={1}
+                          cornerRadius={3}
+                          dataKey='value'
+                        >
+                          {coursesData.map((r, i) => (
+                            <Cell key={i} fill={r.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant='h6' fontWeight={700} color='#222529' sx={{ fontSize: '20px' }}>
+                        {totalCourses}
+                      </Typography>
+                      <Typography variant='caption' color='text.secondary'>
+                        Total Courses
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: 2
+                    }}
+                  >
+                    {coursesData.map((r, i) => (
+                      <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: '18px',
+                              height: '14px',
+                              borderRadius: '3px',
+                              bgcolor: r.color
+                            }}
+                          />
+                          <Typography variant='subtitle2' fontWeight={700} color='#000000'>
+                            {r.value}
+                          </Typography>
+                        </Box>
+                        <Typography color='#5E6E78' fontWeight={500} sx={{ fontSize: '9.7px', pl: '20px' }}>
+                          {r.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+            <Button variant='contained' color='primary'>
+              View Employee Profile
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   )
 }
 
-export default LDDashboard
+export default TrainerDashboard

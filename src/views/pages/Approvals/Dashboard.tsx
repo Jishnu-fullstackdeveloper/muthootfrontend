@@ -254,7 +254,7 @@ const MyRequestCard = () => {
                     </Button>
                   </Box>
                 </Box>
-                {showJd && <ViewJd mode='edit' id={123} />}
+                {showJd && <ViewJd />} {/*// mode='edit' id={123} */}
               </AccordionDetails>
             </Accordion>
 

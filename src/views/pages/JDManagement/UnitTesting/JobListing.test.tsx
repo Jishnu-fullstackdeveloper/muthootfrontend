@@ -2,7 +2,7 @@ import { useRouter } from 'next/navigation'
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
-import JobListing from '../JobListing'
+import JobListing from '../JDListing'
 
 import * as cookieUtils from '@/utils/functions' // Adjust path as needed
 import { jobs } from '@/utils/sampleData/JobListingData'

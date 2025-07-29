@@ -23,6 +23,7 @@ import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
 import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 import InterviewManagementReducer from './InterviewManagement/InterviewManagementSlice'
+import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -49,7 +50,8 @@ export const makeStore = () =>
       schedulerManagementSliceReducer,
       noticePeriodReducer,
       positionBudgetMatrixReducer,
-      InterviewManagementReducer
+      InterviewManagementReducer,
+      jdManagementReducer
     }
   })
 

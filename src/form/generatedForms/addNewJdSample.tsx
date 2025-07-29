@@ -1,1154 +1,1030 @@
 'use client'
+
 import React, { useEffect, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
-
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import { FormControl, MenuItem, Typography, Box, Tooltip, IconButton, Card, StepConnector, Button } from '@mui/material'
-import DeleteIcon from '@mui/icons-material/Delete'
-import AddIcon from '@mui/icons-material/Add'
 import ReactQuill from 'react-quill'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
-import { ArrowBack } from '@mui/icons-material'
-
-import type { NodeProps } from 'reactflow'
-import ReactFlow, { Background, Handle, Position, ReactFlowProvider } from 'reactflow'
-
+import StepConnector from '@mui/material/StepConnector'
 import {
-  getJDManagementAddFormValues,
-  removeJDManagementAddFormValues,
-  setJDManagementAddFormValues
-} from '@/utils/functions'
-import DynamicButton from '@/components/Button/dynamicButton'
-import DynamicSelect from '@/components/Select/dynamicSelect'
-import DynamicTextField from '@/components/TextField/dynamicTextField'
-import 'reactflow/dist/style.css'
-import OrgChartCanvas from './addOrganizationChart'
+  Alert,
+  Box,
+  Button,
+  Card,
+  FormControl,
+  MenuItem,
+  TextField,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid,
+  Autocomplete
+} from '@mui/material'
+import { Tree, TreeNode } from 'react-organizational-chart'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import DeleteIcon from '@mui/icons-material/Delete'
 
-type Props = {
-  mode: any
-  id: any
+import OrgChartCanvas from './addOrganizationChart'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchSkills, fetchDesignation, addNewJd } from '@/redux/jdManagemenet/jdManagemnetSlice'
+import DynamicTextField from '@/components/TextField/dynamicTextField'
+import DynamicSelect from '@/components/Select/dynamicSelect'
+
+interface NodeData {
+  id: string
+  name: string
+  parentId: string | null
+  children: NodeData[]
+  isJobRole?: boolean
 }
 
-const steps = [
-  'Organization Chart', // Added as the first step
-  'Job Roles',
-  'Summary',
-  'Responsibilities',
-  'Challenges',
-  'Decisions',
-  'Interactions',
-  'Role Dimensions',
-  'Skills',
-  'Requirements'
-]
+interface RoleSpecification {
+  jobRole: string
+  jobType: string
+  companyName: string
+  noticePeriod?: number
+  xFactor?: number
+}
 
-const validationSchema = Yup.object().shape({
-  roleTitle: Yup.string().required('Role Title is required'),
-  employeeInterviewed: Yup.string().required('Role Title is required'),
-  reportsTo: Yup.string().required('Reporting To is required'),
-  companyName: Yup.string().required('Company Name is required'),
-  functionOrDepartment: Yup.string().required('Function/Department is required'),
-  writtenBy: Yup.string().required('Written By is required'),
-  approvedByJobholder: Yup.string().required('Approved By is required'),
-  approvedByImmediateSuperior: Yup.string().required('Approved By is required'),
-  date: Yup.string().required('Approved By is required'),
-  roleSummary: Yup.string().required('Role Summary is required'),
-  keyResponsibilities: Yup.array()
-    .of(
-      Yup.object({
-        title: Yup.string().required('Title is required'),
-        description: Yup.string().required('Description is required')
-      })
-    )
-    .min(1, 'At least one responsibility must be added'),
-  keyChallenges: Yup.string().required('Key Challenges is required'),
-  keyDecisionsTaken: Yup.string().required('Key Decisions Taken is required'),
-  internalStakeholders: Yup.string().required('Internal Stakeholders is required'),
-  externalStakeholders: Yup.string().required('External Stakeholders is required'),
-  skillsAndAttributesType: Yup.string().required('Skills and Attributes Type is required'),
-  skillsAndAttributesDetails: Yup.array()
-    .of(
-      Yup.object().shape({
-        competency: Yup.array()
-          .of(Yup.object().shape({ value: Yup.string().required('Competency is required') }))
-          .min(1, 'At least one Competency is required'),
-        definition: Yup.array()
-          .of(Yup.object().shape({ value: Yup.string().required('Definition is required') }))
-          .min(1, 'At least one Definition is required'),
-        behaviouralAttributes: Yup.array()
-          .of(Yup.object().shape({ value: Yup.string().required('Behavioural Attribute is required') }))
-          .min(1, 'At least one Behavioural Attribute is required')
-      })
-    )
-    .test('validate-details', 'At least one section is required', function (value) {
-      const { skillsAndAttributesType } = this.parent
+interface KeyResponsibility {
+  title: string
+  description: string
+}
 
-      if (skillsAndAttributesType !== 'description_only') {
-        return Array.isArray(value) && value.length > 0
-      }
+interface KeyInteraction {
+  internalStakeholders: string
+  externalStakeholders: string
+}
 
-      return true
-    }),
-  minimumQualification: Yup.string().required('Minimum Qualification is required'),
-  experienceDescription: Yup.string().required('Experience Description is required'),
-  portfolioSize: Yup.string().required('Portfolio Size is required'),
-  geographicalCoverage: Yup.string().required('Geographical Coverage is required'),
-  teamSize: Yup.number().typeError('Team Size must be a number').required('Team Size is required'),
-  totalTeamSize: Yup.number().typeError('Total Team Size must be a number').required('Total Team Size is required')
+interface KeyRoleDimension {
+  portfolioSize: string
+  geographicalCoverage: string
+  teamSize: string
+  totalTeamSize: string
+}
+
+interface ExperienceDescription {
+  min: string
+  max: string
+}
+
+interface EducationAndExperience {
+  ageLimit: number
+  minimumQualification: string
+  experienceDescription: ExperienceDescription
+}
+
+interface InterviewLevel {
+  level: string
+  designation: string
+}
+
+interface InterviewLevels {
+  numberOfLevels: string
+  levels: InterviewLevel[]
+}
+
+interface OrganizationChart {
+  id: string
+  name: string
+  parentId: string | null
+  children: NodeData[]
+  isJobRole?: boolean
+}
+interface Skill {
+  name: string
+}
+
+interface JobDescription {
+  roleSpecification: RoleSpecification
+  roleSummary: string
+  keyResponsibilities: KeyResponsibility[]
+  keyChallenges: string
+  keyDecisions: string
+  keyInteractions: KeyInteraction[]
+  keyRoleDimensions: KeyRoleDimension[]
+  skills: string[]
+  educationAndExperience: EducationAndExperience[]
+  organizationChart: OrganizationChart
+  interviewLevels: InterviewLevels
+}
+
+const initialFormData: JobDescription = {
+  roleSpecification: {
+    jobRole: '',
+    jobType: '',
+    companyName: '',
+    noticePeriod: 0,
+    xFactor: 0
+  },
+  roleSummary: '',
+  keyResponsibilities: [{ title: '', description: '' }],
+  keyChallenges: '',
+  keyDecisions: '',
+  keyInteractions: [{ internalStakeholders: '', externalStakeholders: '' }],
+  keyRoleDimensions: [{ portfolioSize: '', geographicalCoverage: '', teamSize: '', totalTeamSize: '' }],
+  skills: [],
+  educationAndExperience: [{ ageLimit: 0, minimumQualification: '', experienceDescription: { min: '', max: '' } }],
+  organizationChart: { id: 'root', name: '', parentId: null, children: [], isJobRole: true },
+  interviewLevels: { numberOfLevels: '', levels: [] }
+}
+
+// Function to strip isJobRole and ensure id/parentId are strings
+const stripIsJobRole = (node: NodeData): Omit<NodeData, 'isJobRole'> => ({
+  id: String(node.id),
+  name: node.name, // Preserve the original name
+  parentId: node.parentId !== null ? String(node.parentId) : null,
+  children: node.children.map(stripIsJobRole)
 })
 
-// Custom Node Component for displaying charts in read-only mode
-function CustomNode({ data, selected }: NodeProps) {
-  const shape = data.shape || 'rectangle'
-  const base = 'p-2 text-sm text-center shadow border'
+const renderOrgChart = (node: OrganizationChart) => (
+  <TreeNode
+    key={node.id}
+    label={
+      <Box
+        sx={{
+          border: node.isJobRole ? '2px solid #1976d2' : '1px solid #1976d2',
+          borderRadius: '8px',
+          px: 2,
+          py: 1,
+          backgroundColor: '#fff',
+          boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+          fontSize: '14px',
+          display: 'inline-block'
+        }}
+      >
+        {node.name || 'Untitled Role'}
+      </Box>
+    }
+  >
+    {node.children?.map(child => renderOrgChart(child))}
+  </TreeNode>
+)
 
-  const shapeStyles: Record<string, string> = {
-    rectangle: 'rounded bg-white w-32 h-16',
-    circle: 'rounded-full bg-blue-100 w-20 h-20 flex items-center justify-center',
-    diamond: 'w-20 h-20 bg-green-100 rotate-45 flex items-center justify-center'
+export default function CreateJDForm() {
+  const dispatch = useAppDispatch()
+  const [formData, setFormData] = useState<JobDescription>(initialFormData)
+  const [isShowOrgChart, setIsShowOrgChart] = useState(false)
+  const [savedOrgChart, setSavedOrgChart] = useState<{ nodes: NodeData[] } | null>(null)
+  const [isChartVisible, setIsChartVisible] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
+  const [limit] = useState(10)
+  const [page] = useState(1)
+
+  const { skillsData, designationData, isAddJdLoading, addJdSuccess, addJdFailure, addJdFailureMessage } =
+    useAppSelector(state => state.jdManagementReducer)
+
+  const steps = [
+    'Role Specification',
+    'Organization Chart',
+    'Role Summary',
+    'Responsibilities',
+    'Challenges',
+    'Decisions Taken',
+    'Interactions',
+    'Role Dimensions',
+    'Skills',
+    'Educational & Experience',
+    'Interview Levels'
+  ]
+
+  const findNode = (nodes: NodeData[], id: string): NodeData | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) return node
+      const found = findNode(node.children, id)
+
+      if (found) return found
+    }
+
+    return undefined
   }
 
-  return (
-    <div
-      className={`${base} ${shapeStyles[shape]} ${selected ? 'ring-2 ring-blue-400' : ''}`}
-      style={{ transform: shape === 'diamond' ? 'rotate(-45deg)' : 'none' }}
-    >
-      <Handle type='target' position={Position.Top} />
-      <div style={{ transform: shape === 'diamond' ? 'rotate(45deg)' : 'none' }}>
-        <span className='font-medium'>{data.label || 'No Role'}</span>
-      </div>
-      <Handle type='source' position={Position.Bottom} />
-    </div>
-  )
-}
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string | any,
+    section: keyof JobDescription,
+    index?: number,
+    subField?: string
+  ) => {
+    setFormData(prev => {
+      const newData = { ...prev }
+      let value: any
 
-const nodeTypes = { custom: CustomNode }
+      if (typeof e === 'string') {
+        value = e
+      } else if (e && 'target' in e) {
+        value = e.target.value
+      } else {
+        value = e
+      }
 
-const AddNewJdSample: React.FC<Props> = ({ mode, id }) => {
-  const router = useRouter()
-  const [activeStep, setActiveStep] = React.useState(0)
-  const [openOrgChart, setOpenOrgChart] = useState(false)
-  const [organizationChart, setOrganizationChart] = useState<any | null>(null) // Changed to store a single chart
-  const [isChartVisible, setIsChartVisible] = useState<boolean>(false) // Changed to a boolean
+      if (section === 'interviewLevels' && subField === 'numberOfLevels') {
+        const numLevels = parseInt(value, 10) || 0
 
-  const formikValuesFromCache = getJDManagementAddFormValues()
+        newData.interviewLevels.numberOfLevels = value
+        newData.interviewLevels.levels = Array.from({ length: numLevels }, (_, i) => ({
+          level: (i + 1).toString(),
+          designation: newData.interviewLevels.levels[i]?.designation || ''
+        }))
+      } else if (section === 'interviewLevels' && index !== undefined && subField === 'designation') {
+        newData.interviewLevels.levels[index].designation = value
+      } else if (section === 'skills' && Array.isArray(value)) {
+        newData.skills = value
+      } else if (
+        section === 'educationAndExperience' &&
+        index !== undefined &&
+        subField?.includes('experienceDescription')
+      ) {
+        const [, field] = subField.split('.')
 
-  const AddNewJDFormik: any = useFormik({
-    initialValues:
-      formikValuesFromCache && mode === 'add'
-        ? formikValuesFromCache
-        : {
-            roleTitle: '',
-            reportingTo: '',
-            companyName: '',
-            functionOrDepartment: '',
-            writtenBy: '',
-            roleSummary: '',
-            keyResponsibilities: [{ title: '', description: '' }],
-            keyChallenges: '',
-            keyDecisions: '',
-            internalStakeholders: '',
-            externalStakeholders: '',
-            skillsAndAttributesType: 'description_only',
-            skillsAndAttributesDetails: [
-              {
-                factor: '',
-                competency: [{ value: '' }],
-                definition: [{ value: '' }],
-                behavioural_attributes: [{ value: '' }]
-              }
-            ],
-            minimumQualification: '',
-            experienceDescription: '',
-            portfolioSize: '',
-            geographicalCoverage: '',
-            teamSize: '',
-            totalTeamSize: ''
-          },
-    validationSchema,
-    onSubmit: values => {
-      console.log('Form Submitted:', values)
-    }
-  })
+        ;(newData.educationAndExperience[index].experienceDescription as any)[field] = value
+      } else if (section === 'roleSpecification' && subField) {
+        ;(newData.roleSpecification as any)[subField] = value
+
+        if (subField === 'jobRole') {
+          // Update organizationChart and savedOrgChart job role node name
+          const jobRoleNode = savedOrgChart
+            ? findNode(savedOrgChart.nodes, savedOrgChart.nodes.find(n => n.isJobRole)?.id || 'root')
+            : { id: 'root', name: value || '', parentId: null, children: [], isJobRole: true }
+
+          if (jobRoleNode) {
+            const updatedNodes = savedOrgChart
+              ? savedOrgChart.nodes.map(node => (node.isJobRole ? { ...node, name: value || '' } : node))
+              : [{ ...jobRoleNode, name: value || '', isJobRole: true }]
+
+            setSavedOrgChart({ nodes: updatedNodes })
+            newData.organizationChart = {
+              ...newData.organizationChart,
+              name: value || '',
+              isJobRole: true
+            }
+          }
+        }
+      } else if (index !== undefined && subField) {
+        ;(newData[section] as any)[index][subField] = value
+      } else {
+        ;(newData[section] as any) = value
+      }
+
+      updateActiveStep(newData)
+
+      return newData
+    })
+  }
+
+  const handleAddItem = (section: keyof JobDescription) => {
+    setFormData(prev => {
+      const newData = { ...prev }
+
+      if (section === 'keyResponsibilities') {
+        newData.keyResponsibilities.push({ title: '', description: '' })
+      }
+
+      updateActiveStep(newData)
+
+      return newData
+    })
+  }
 
   useEffect(() => {
-    console.log(id)
+    const params = { limit, page }
+
+    dispatch(fetchDesignation(params))
+    dispatch(fetchSkills(params))
+  }, [dispatch, limit, page])
+
+  const cancelOrgChart = () => {
+    console.log('Cancel org chart')
+    setIsShowOrgChart(false)
+  }
+
+  const handleOrgChartSave = (chartData: { nodes: NodeData[] }) => {
+    console.log('handleOrgChartSave triggered, received chartData:', JSON.stringify(chartData, null, 2))
+
+    if (!chartData.nodes.length) {
+      console.error('No nodes provided in chart data')
+      alert('Cannot save: No nodes provided')
+
+      return
+    }
+
+    const topNode = chartData.nodes.find(node => !node.parentId)
+
+    if (!topNode) {
+      console.error('Topmost node not found in chart data')
+      alert('Cannot save: Topmost node not found')
+
+      return
+    }
+
+    // Find the job role node
+    const jobRoleNode = findNode(chartData.nodes, chartData.nodes.find(n => n.isJobRole)?.id || 'root')
+
+    if (!jobRoleNode) {
+      console.error('Job role node not found in chart data')
+      alert('Cannot save: Job role node not found')
+
+      return
+    }
+
+    // Update only the job role node's name
+    const updatedNodes = chartData.nodes.map(node =>
+      node.id === jobRoleNode.id
+        ? { ...node, name: formData.roleSpecification.jobRole || node.name || 'Untitled Role' }
+        : node
+    )
+
+    // Construct the organization chart, preserving the topmost node's name
+    const organizationChart: OrganizationChart = {
+      id: String(topNode.id),
+      name: topNode.name || 'Untitled Role', // Preserve the user-selected name
+      parentId: null,
+      children: topNode.children,
+      isJobRole: topNode.isJobRole || false
+    }
+
+    console.log('Setting savedOrgChart:', JSON.stringify({ nodes: updatedNodes }, null, 2))
+    setSavedOrgChart({ nodes: updatedNodes })
+    console.log('Updating formData.organizationChart:', JSON.stringify(organizationChart, null, 2))
+    setFormData(prev => ({
+      ...prev,
+      organizationChart
+    }))
+    updateActiveStep({ ...formData, organizationChart })
+    setIsShowOrgChart(false)
+    console.log(
+      'Updated Form Data with Organization Chart:',
+      JSON.stringify({ ...formData, organizationChart }, null, 2)
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('Submitting Form Data:', JSON.stringify(formData, null, 2))
+
+    try {
+      // Update the job role node's name in the organization chart
+      const updateNodeName = (node: NodeData): NodeData => {
+        if (node.isJobRole) {
+          return { ...node, name: formData.roleSpecification.jobRole || node.name || 'Untitled Role' }
+        }
+
+        return {
+          ...node,
+          children: node.children.map(updateNodeName)
+        }
+      }
+
+      // Create a new organization chart with the updated job role node name
+      const updatedOrgChart = {
+        ...formData.organizationChart,
+        children: formData.organizationChart.children.map(updateNodeName)
+      }
+
+      // Transform organizationChart to remove isJobRole and ensure id/parentId are strings
+      const transformedOrgChart = stripIsJobRole(updatedOrgChart)
+
+      const transformedFormData = {
+        ...formData,
+        skills: formData.skills,
+        organizationChart: transformedOrgChart
+      }
+
+      console.log('Transformed Form Data for Submission:', JSON.stringify(transformedFormData, null, 2))
+
+      const result = await dispatch(addNewJd(transformedFormData)).unwrap()
+
+      console.log('Job Description Created:', result)
+      setFormData(initialFormData)
+      setSavedOrgChart(null)
+      setActiveStep(0)
+    } catch (error) {
+      console.error('Failed to create job description:', error)
+      alert('Failed to create job description: ' + (error.message || addJdFailureMessage || 'Unknown error'))
+    }
+  }
+
+  const updateActiveStep = (data: JobDescription) => {
     let completedSteps = 0
 
-    // Step 0: Organization Chart
-    if (organizationChart) {
+    if (
+      data.roleSpecification.jobRole &&
+      data.roleSpecification.jobType &&
+      data.roleSpecification.companyName &&
+      data.roleSpecification.noticePeriod &&
+      data.roleSpecification.xFactor
+    ) {
       completedSteps = 1
     }
 
-    // Step 1: Description (previously step 0)
-    if (
-      completedSteps >= 1 &&
-      AddNewJDFormik.values.roleTitle &&
-      AddNewJDFormik.values.reportingTo &&
-      AddNewJDFormik.values.companyName &&
-      AddNewJDFormik.values.functionOrDepartment &&
-      AddNewJDFormik.values.writtenBy
-    ) {
+    if (completedSteps >= 1 && savedOrgChart) {
       completedSteps = 2
     }
 
-    // Step 2: Summary (previously step 1)
-    if (completedSteps >= 2 && AddNewJDFormik.values.roleSummary) {
+    if (completedSteps >= 2 && data.roleSummary) {
       completedSteps = 3
     }
 
-    // Step 3: Responsibilities (previously step 2)
-    if (completedSteps >= 3 && AddNewJDFormik.values.keyResponsibilities.some((d: any) => d.title && d.description)) {
+    if (completedSteps >= 3 && data.keyResponsibilities.some(r => r.title && r.description)) {
       completedSteps = 4
     }
 
-    // Step 4: Challenges (previously step 3)
-    if (completedSteps >= 4 && AddNewJDFormik.values.keyChallenges) {
+    if (completedSteps >= 4 && data.keyChallenges) {
       completedSteps = 5
     }
 
-    // Step 5: Decisions (previously step 4)
-    if (completedSteps >= 5 && AddNewJDFormik.values.keyDecisions) {
+    if (completedSteps >= 5 && data.keyDecisions) {
       completedSteps = 6
     }
 
-    // Step 6: Interactions (previously step 5)
-    if (
-      completedSteps >= 6 &&
-      AddNewJDFormik.values.internalStakeholders &&
-      AddNewJDFormik.values.externalStakeholders
-    ) {
+    if (completedSteps >= 6 && data.keyInteractions.some(i => i.internalStakeholders && i.externalStakeholders)) {
       completedSteps = 7
     }
 
-    // Step 7: Role Dimensions (previously step 6)
     if (
       completedSteps >= 7 &&
-      AddNewJDFormik.values.portfolioSize &&
-      AddNewJDFormik.values.geographicalCoverage &&
-      AddNewJDFormik.values.teamSize &&
-      AddNewJDFormik.values.totalTeamSize
+      data.keyRoleDimensions[0].portfolioSize &&
+      data.keyRoleDimensions[0].geographicalCoverage &&
+      data.keyRoleDimensions[0].teamSize &&
+      data.keyRoleDimensions[0].totalTeamSize
     ) {
       completedSteps = 8
     }
 
-    // Step 8: Skills (previously step 7)
-    if (
-      completedSteps >= 8 &&
-      AddNewJDFormik.values.skillsAndAttributesType === 'in_detail' &&
-      Array.isArray(AddNewJDFormik.values.skillsAndAttributesDetails) &&
-      AddNewJDFormik.values.skillsAndAttributesDetails.every(
-        (item: any) =>
-          item.factor &&
-          Array.isArray(item.competency) &&
-          item.competency.every((comp: any) => comp.value) &&
-          Array.isArray(item.definition) &&
-          item.definition.every((def: any) => def.value) &&
-          Array.isArray(item.behavioural_attributes) &&
-          item.behavioural_attributes.every((attr: any) => attr.value)
-      )
-    ) {
+    if (completedSteps >= 8 && data.skills.length > 0) {
       completedSteps = 9
     }
 
-    // Step 9: Requirements (previously step 8)
     if (
       completedSteps >= 9 &&
-      AddNewJDFormik.values.minimumQualification &&
-      AddNewJDFormik.values.experienceDescription
+      data.educationAndExperience.some(
+        e => e.ageLimit && e.minimumQualification && e.experienceDescription.min && e.experienceDescription.max
+      )
     ) {
       completedSteps = 10
     }
 
+    if (
+      completedSteps >= 10 &&
+      data.interviewLevels.numberOfLevels &&
+      parseInt(data.interviewLevels.numberOfLevels) > 0 &&
+      data.interviewLevels.levels.every(l => l.designation)
+    ) {
+      completedSteps = 11
+    }
+
     setActiveStep(completedSteps)
-    setJDManagementAddFormValues(AddNewJDFormik.values)
-  }, [AddNewJDFormik.values, organizationChart])
-
-  const isEmptyContent = (value: any): boolean => {
-    return value === '' || value === '<p><br></p>' || value.replace(/<\/?[^>]*>/g, '').trim() === ''
   }
 
-  const handleResetForm = () => {
-    setActiveStep(0)
-    setOrganizationChart(null) // Reset the chart
-    setIsChartVisible(false) // Hide the chart
-    removeJDManagementAddFormValues()
-    AddNewJDFormik.resetForm({
-      values: {
-        roleTitle: '',
-        reportingTo: '',
-        companyName: '',
-        functionOrDepartment: '',
-        writtenBy: '',
-        roleSummary: '',
-        keyResponsibilities: [{ title: '', description: '' }],
-        keyChallenges: '',
-        keyDecisions: '',
-        internalStakeholders: '',
-        externalStakeholders: '',
-        skillsAndAttributesType: 'description_only',
-        skillsAndAttributesDetails: [
-          {
-            factor: '',
-            competency: [{ value: '' }],
-            definition: [{ value: '' }],
-            behavioural_attributes: [{ value: '' }]
-          }
-        ],
-        minimumQualification: '',
-        experienceDescription: '',
-        portfolioSize: '',
-        geographicalCoverage: '',
-        teamSize: '',
-        totalTeamSize: ''
-      }
-    })
+  const countNodes = (chart: OrganizationChart): number => {
+    let count = 1
+
+    if (chart.children) {
+      chart.children.forEach(child => {
+        count += countNodes(child)
+      })
+    }
+
+    return count
   }
 
-  const handleAddOrganization = () => {
-    setOpenOrgChart(true)
-  }
-
-  const handleSaveOrgChart = (chartData: any) => {
-    setOrganizationChart(chartData) // Store the single chart
-    setOpenOrgChart(false)
-  }
-
-  const toggleChartVisibility = () => {
-    setIsChartVisible(prev => !prev)
+  const handleDeleteItem = (section: keyof JobDescription, index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: Array.isArray(prev[section]) ? prev[section].filter((_, i) => i !== index) : prev[section]
+    }))
   }
 
   return (
     <>
-      <Card
-        sx={{
-          mb: 4,
-          pt: 3,
-          pb: 3,
-          position: 'sticky',
-          top: 70,
-          zIndex: 10,
-          backgroundColor: 'white'
-        }}
-      >
+      <Card sx={{ mb: 4, pt: 3, pb: 3, position: 'sticky', top: 70, zIndex: 10, backgroundColor: 'white' }}>
         <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
-          {steps.map((label, index) => (
-            <Step key={label} index={index}>
+          {steps.map(label => (
+            <Step key={label}>
               <StepLabel sx={{ cursor: 'pointer' }}>
-                <Typography>{label}</Typography>
+                <span>{label}</span>
               </StepLabel>
             </Step>
           ))}
         </Stepper>
       </Card>
-      <div className='custom-scrollbar'>
-        {openOrgChart ? (
-          <OrgChartCanvas onSave={handleSaveOrgChart} initialChart={organizationChart} />
-        ) : (
-          <form onSubmit={AddNewJDFormik.handleSubmit} className='p-6 bg-white shadow-md rounded'>
-            <h1 className='text-2xl font-bold text-gray-800 mb-4'>
-              {mode === 'add' ? 'Add Job Description' : 'Edit JD'}
-            </h1>
+      <Card>
+        <div className='p-6'>
+          <h1 className='text-2xl font-bold mb-6'>Add Job Description</h1>
+          {isAddJdLoading && (
+            <Alert severity='info' className='mb-4'>
+              Submitting job description...
+            </Alert>
+          )}
+          {addJdSuccess && (
+            <Alert severity='success' className='mb-4'>
+              Job description created successfully!
+            </Alert>
+          )}
+          {addJdFailure && (
+            <Alert severity='error' className='mb-4'>
+              {Array.isArray(addJdFailureMessage)
+                ? addJdFailureMessage.join(', ')
+                : addJdFailureMessage || 'Failed to create job description'}
+            </Alert>
+          )}
 
-            {/* Organization Chart Section */}
-            <h3>Organization Chart</h3>
-            <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-              <div className='flex justify-between items-center mb-4'>
-                <Typography variant='h6'>Organization Chart</Typography>
-                <DynamicButton
-                  type='button'
-                  variant='contained'
-                  onClick={handleAddOrganization}
-                  className='bg-blue-600 text-white hover:bg-blue-700'
-                >
-                  {organizationChart ? 'Edit Organization Chart' : 'Add Organization Chart'}
-                </DynamicButton>
-              </div>
-              {organizationChart ? (
-                <div className='p-4 border border-gray-200 rounded-lg'>
-                  <div className='flex justify-between items-center'>
-                    <div>
-                      <Typography>Nodes: {organizationChart.nodes.length}</Typography>
-                    </div>
-                    <div className='space-x-2'>
-                      <DynamicButton type='button' variant='outlined' onClick={toggleChartVisibility}>
-                        {isChartVisible ? 'Hide Chart' : 'Show Chart'}
-                      </DynamicButton>
-                    </div>
-                  </div>
-                  {isChartVisible && (
-                    <div className='mt-4 border border-gray-300 rounded-lg overflow-hidden'>
-                      <ReactFlowProvider>
-                        <div style={{ height: '400px', width: '100%' }}>
-                          <ReactFlow
-                            nodes={organizationChart.nodes}
-                            edges={organizationChart.edges}
-                            nodeTypes={nodeTypes}
-                            fitView
-                            nodesDraggable={false}
-                            nodesConnectable={false}
-                            elementsSelectable={false}
-                            panOnDrag={true}
-                            zoomOnScroll={false}
-                            zoomOnPinch={false}
-                            zoomOnDoubleClick={false}
-                          >
-                            <Background />
-                          </ReactFlow>
-                        </div>
-                      </ReactFlowProvider>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Typography>No organization chart added yet.</Typography>
-              )}
-            </fieldset>
-
-            {/* Role Specification */}
-            <h3>Job Roles</h3>
-            <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
+          <form onSubmit={handleSubmit} className='space-y-6 mt-6'>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Role Specification</h2>
               <div className='grid grid-cols-2 gap-4'>
                 <FormControl fullWidth margin='normal'>
-                  <label htmlFor='roleTitle' className='block text-sm font-medium text-gray-700'>
-                    Role Title *
+                  <label htmlFor='jobRole' className='block text-sm font-medium text-gray-700'>
+                    Job Role *
                   </label>
                   <DynamicTextField
-                    id='roleTitle'
-                    name='roleTitle'
                     type='text'
-                    value={AddNewJDFormik.values.roleTitle}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.roleTitle && Boolean(AddNewJDFormik.errors.roleTitle)}
-                    helperText={AddNewJDFormik.touched.roleTitle && AddNewJDFormik.errors.roleTitle}
+                    placeholder='Role Title'
+                    value={formData.roleSpecification.jobRole || ''}
+                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'jobRole')}
+                    className='border p-2 rounded w-full'
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
-                  <label htmlFor='reportingTo' className='block text-sm font-medium text-gray-700'>
-                    Reporting To *
+                  <label htmlFor='jobType' className='block text-sm font-medium text-gray-700'>
+                    Job Type *
                   </label>
-                  <DynamicSelect
-                    id='reportingTo'
-                    name='reportingTo'
-                    value={AddNewJDFormik.values.reportingTo}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.reportingTo && Boolean(AddNewJDFormik.errors.reportingTo)}
-                    helperText={AddNewJDFormik.touched.reportingTo && AddNewJDFormik.errors.reportingTo}
-                  >
-                    <MenuItem value='arun'>Arun PG</MenuItem>
-                    <MenuItem value='jeevan'>Jeevan Jose</MenuItem>
-                    <MenuItem value='vinduja'>Vinduja</MenuItem>
-                  </DynamicSelect>
+                  <DynamicTextField
+                    type='text'
+                    placeholder='Job Type'
+                    value={formData.roleSpecification.jobType || ''}
+                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'jobType')}
+                    className='border p-2 rounded w-full'
+                  />
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
+                  <label htmlFor='noticePeriod' className='block text-sm font-medium text-gray-700'>
+                    Notice Period *
+                  </label>
+                  <DynamicTextField
+                    type='number'
+                    placeholder='Notice Period'
+                    value={formData.roleSpecification.noticePeriod || ''}
+                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'noticePeriod')}
+                    className='border p-2 rounded w-full mb-2'
+                    InputProps={{ inputProps: { min: 0, step: 1 } }}
+                  />
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
+                  <label htmlFor='xFactor' className='block text-sm font-medium text-gray-700'>
+                    X Factor *
+                  </label>
+                  <DynamicTextField
+                    type='number'
+                    placeholder='X Factor'
+                    value={formData.roleSpecification.xFactor || ''}
+                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'xFactor')}
+                    className='border p-2 rounded w-full mb-2'
+                    InputProps={{ inputProps: { min: 0, step: 1 } }}
+                  />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
                   <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
                     Company Name *
                   </label>
-                  <DynamicSelect
-                    id='companyName'
-                    name='companyName'
-                    value={AddNewJDFormik.values.companyName}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.companyName && Boolean(AddNewJDFormik.errors.companyName)}
-                    helperText={AddNewJDFormik.touched.companyName && AddNewJDFormik.errors.companyName}
-                  >
-                    <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
-                    <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
-                  </DynamicSelect>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='functionOrDepartment' className='block text-sm font-medium text-gray-700'>
-                    Function/Department *
-                  </label>
-                  <DynamicTextField
-                    id='functionOrDepartment'
-                    name='functionOrDepartment'
-                    type='text'
-                    value={AddNewJDFormik.values.functionOrDepartment}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.functionOrDepartment && Boolean(AddNewJDFormik.errors.functionOrDepartment)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.functionOrDepartment && AddNewJDFormik.errors.functionOrDepartment
-                    }
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='writtenBy' className='block text-sm font-medium text-gray-700'>
-                    Written By *
-                  </label>
-                  <DynamicTextField
-                    id='writtenBy'
-                    name='writtenBy'
-                    type='text'
-                    value={AddNewJDFormik.values.writtenBy}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.writtenBy && Boolean(AddNewJDFormik.errors.writtenBy)}
-                    helperText={AddNewJDFormik.touched.writtenBy && AddNewJDFormik.errors.writtenBy}
-                  />
-                </FormControl>
-              </div>
-            </fieldset>
-
-            {/* Role Summary */}
-            <h3>Role Summary</h3>
-            <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
-              <div className=''>
-                <FormControl fullWidth>
-                  <ReactQuill
-                    style={{ height: '40vh', paddingBottom: 50 }}
-                    value={AddNewJDFormik.values.roleSummary}
-                    onChange={(value: any) => {
-                      if (isEmptyContent(value)) {
-                        AddNewJDFormik.setFieldValue('roleSummary', '')
-                      } else {
-                        AddNewJDFormik.setFieldValue('roleSummary', value)
-                      }
-                    }}
-                    modules={{
-                      toolbar: {
-                        container: [
-                          [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
-                          [{ size: [] }],
-                          ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                          [{ list: 'ordered' }, { list: 'bullet' }],
-                          ['clean']
-                        ]
-                      }
-                    }}
-                  />
-                  <Box sx={{ mt: 1 }}>
-                    {AddNewJDFormik.touched.roleSummary && AddNewJDFormik.errors.roleSummary && (
-                      <div style={{ color: 'red', marginTop: '8px' }}>{AddNewJDFormik.errors.roleSummary}</div>
-                    )}
+                  <Box className='p-3 rounded w-full mb-2'>
+                    <DynamicSelect
+                      value={formData.roleSpecification.companyName}
+                      onChange={e => handleInputChange(e.target.value, 'roleSpecification', 0, 'companyName')}
+                    >
+                      <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
+                      <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
+                    </DynamicSelect>
                   </Box>
                 </FormControl>
               </div>
-            </fieldset>
-
-            {/* Key Responsibilities */}
-            <h3>Key Responsibilities</h3>
-            <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white mt-2'>
-              <div className='space-y-6'>
-                {AddNewJDFormik.values.keyResponsibilities &&
-                  Array.isArray(AddNewJDFormik.values.keyResponsibilities) &&
-                  AddNewJDFormik.values.keyResponsibilities.map((item: any, index: number) => (
-                    <div key={index} className='p-4 border border-gray-200 rounded-lg shadow-sm'>
-                      <div className=''>
-                        <FormControl fullWidth className='mb-4'>
-                          <label
-                            htmlFor={`keyResponsibilities[${index}].title`}
-                            className='block text-sm font-medium text-gray-700'
-                          >
-                            Title *
-                          </label>
-                          <DynamicTextField
-                            id={`keyResponsibilities[${index}].title`}
-                            name={`keyResponsibilities[${index}].title`}
-                            value={item.title}
-                            onChange={AddNewJDFormik.handleChange}
-                            error={
-                              AddNewJDFormik.touched.keyResponsibilities?.[index]?.title &&
-                              Boolean(AddNewJDFormik.errors.keyResponsibilities?.[index]?.title)
-                            }
-                            helperText={
-                              AddNewJDFormik.touched.keyResponsibilities?.[index]?.title &&
-                              AddNewJDFormik.errors.keyResponsibilities?.[index]?.title
-                            }
-                          />
-                        </FormControl>
-                        <FormControl fullWidth>
-                          <label
-                            htmlFor={`keyResponsibilities[${index}].description`}
-                            className='block text-sm font-medium text-gray-700'
-                          >
-                            Description *
-                          </label>
-                          <ReactQuill
-                            id={`keyResponsibilities[${index}].description`}
-                            style={{ height: '40vh', paddingBottom: 50 }}
-                            value={item.description || ''}
-                            onChange={(value: any) => {
-                              if (isEmptyContent(value)) {
-                                AddNewJDFormik.setFieldValue(`keyResponsibilities[${index}].description`, '')
-                              } else {
-                                AddNewJDFormik.setFieldValue(`keyResponsibilities[${index}].description`, value)
-                              }
-                            }}
-                            modules={{
-                              toolbar: {
-                                container: [
-                                  [
-                                    { header: '1' },
-                                    { header: '2' },
-                                    { header: [3, 4, 5, 6] },
-                                    { font: ['Jost', 'Poppins'] }
-                                  ],
-                                  [{ size: [] }],
-                                  ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                                  [{ list: 'ordered' }, { list: 'bullet' }],
-                                  ['clean']
-                                ]
-                              }
-                            }}
-                          />
-                          {AddNewJDFormik.touched.keyResponsibilities?.[index]?.description &&
-                            AddNewJDFormik.errors.keyResponsibilities?.[index]?.description && (
-                              <div style={{ color: 'red', marginTop: '8px' }}>
-                                {AddNewJDFormik.errors.keyResponsibilities[index].description}
-                              </div>
-                            )}
-                        </FormControl>
-                      </div>
-                      <div className='mt-4 flex justify-end'>
-                        <Tooltip title='Delete Section' placement='top'>
-                          <IconButton
-                            color='secondary'
-                            aria-label='delete'
-                            component='span'
-                            disabled={AddNewJDFormik.values.keyResponsibilities.length === 1}
-                            onClick={() =>
-                              AddNewJDFormik.setFieldValue(
-                                'keyResponsibilities',
-                                AddNewJDFormik.values.keyResponsibilities.filter((_: any, i: number) => i !== index)
-                              )
-                            }
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  ))}
-                <div className='flex justify-end'>
-                  <DynamicButton
-                    type='button'
-                    variant='contained'
-                    onClick={() =>
-                      AddNewJDFormik.setFieldValue('keyResponsibilities', [
-                        ...(AddNewJDFormik.values.keyResponsibilities || []),
-                        { title: '', description: '' }
-                      ])
-                    }
-                    className='bg-blue-600 text-white hover:bg-blue-700'
-                    children='Add More'
-                  />
-                </div>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Organization Chart</h2>
+              <div className='flex justify-between items-center mb-4'>
+                <Typography variant='h6'>Organization Chart</Typography>
+                <Button
+                  type='button'
+                  onClick={() => setIsShowOrgChart(true)}
+                  className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
+                >
+                  {savedOrgChart ? 'Edit Organization Chart' : 'Create Organization Chart'}
+                </Button>
               </div>
-            </fieldset>
-
-            <h3>Key Challenges</h3>
-            <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
-              <div className='grid grid-cols-1 gap-4'>
-                {true && (
-                  <FormControl fullWidth margin='normal'>
-                    <ReactQuill
-                      id='keyChallenges'
-                      style={{ height: '40vh', paddingBottom: 50 }}
-                      value={AddNewJDFormik.values.keyChallenges}
-                      onChange={(value: any) => {
-                        if (isEmptyContent(value)) {
-                          AddNewJDFormik.setFieldValue('keyChallenges', '')
-                        } else {
-                          AddNewJDFormik.setFieldValue('keyChallenges', value)
-                        }
-                      }}
-                      modules={{
-                        toolbar: {
-                          container: [
-                            [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
-                            [{ size: [] }],
-                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                            [{ list: 'ordered' }, { list: 'bullet' }],
-                            ['clean']
-                          ]
-                        }
-                      }}
-                    />
-                    {AddNewJDFormik.touched.keyChallenges && AddNewJDFormik.errors.keyChallenges && (
-                      <div style={{ color: 'red', marginTop: '8px' }}>{AddNewJDFormik.errors.keyChallenges}</div>
-                    )}
-                  </FormControl>
-                )}
-              </div>
-            </fieldset>
-
-            <h3>Key Decisions Taken</h3>
-            <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
-              <div className='grid grid-cols-1 gap-4'>
-                {true && (
-                  <FormControl fullWidth margin='normal'>
-                    <label htmlFor='keyDecisions' className='block text-sm font-medium text-gray-700'>
-                      Key Decisions Taken *
-                    </label>
-                    <ReactQuill
-                      id='keyDecisions'
-                      style={{ height: '40vh', paddingBottom: 50 }}
-                      value={AddNewJDFormik.values.keyDecisions}
-                      onChange={(value: any) => {
-                        if (isEmptyContent(value)) {
-                          AddNewJDFormik.setFieldValue('keyDecisions', '')
-                        } else {
-                          AddNewJDFormik.setFieldValue('keyDecisions', value)
-                        }
-                      }}
-                      modules={{
-                        toolbar: {
-                          container: [
-                            [{ header: '1' }, { header: '2' }, { header: [3, 4, 5, 6] }, { font: ['Jost', 'Poppins'] }],
-                            [{ size: [] }],
-                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                            [{ list: 'ordered' }, { list: 'bullet' }],
-                            ['clean']
-                          ]
-                        }
-                      }}
-                    />
-                    {AddNewJDFormik.touched.keyDecisions && AddNewJDFormik.errors.keyDecisions && (
-                      <div style={{ color: 'red', marginTop: '8px' }}>{AddNewJDFormik.errors.keyDecisions}</div>
-                    )}
-                  </FormControl>
-                )}
-              </div>
-            </fieldset>
-
-            <h3>Key Interactions</h3>
-            <fieldset className='border border-gray-300 rounded pl-8 pr-8 mt-2 mb-6'>
-              <div className='grid grid-cols-2 gap-4'>
-                {true && (
-                  <FormControl fullWidth margin='normal'>
-                    <label htmlFor='internalStakeholders' className='block text-sm font-medium text-gray-700'>
-                      Internal Stakeholders *
-                    </label>
-                    <DynamicTextField
-                      id='internalStakeholders'
-                      multiline
-                      rows={4}
-                      name='internalStakeholders'
-                      value={AddNewJDFormik.values.internalStakeholders}
-                      onChange={AddNewJDFormik.handleChange}
-                      error={
-                        AddNewJDFormik.touched.internalStakeholders &&
-                        Boolean(AddNewJDFormik.errors.internalStakeholders)
-                      }
-                      helperText={
-                        AddNewJDFormik.touched.internalStakeholders && AddNewJDFormik.errors.internalStakeholders
-                          ? AddNewJDFormik.errors.internalStakeholders
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                )}
-                {true && (
-                  <FormControl fullWidth margin='normal'>
-                    <label htmlFor='externalStakeholders' className='block text-sm font-medium text-gray-700'>
-                      External Stakeholders *
-                    </label>
-                    <DynamicTextField
-                      id='externalStakeholders'
-                      multiline
-                      rows={4}
-                      name='externalStakeholders'
-                      value={AddNewJDFormik.values.externalStakeholders}
-                      onChange={AddNewJDFormik.handleChange}
-                      error={
-                        AddNewJDFormik.touched.externalStakeholders &&
-                        Boolean(AddNewJDFormik.errors.externalStakeholders)
-                      }
-                      helperText={
-                        AddNewJDFormik.touched.externalStakeholders && AddNewJDFormik.errors.externalStakeholders
-                          ? AddNewJDFormik.errors.externalStakeholders
-                          : undefined
-                      }
-                    />
-                  </FormControl>
-                )}
-              </div>
-            </fieldset>
-
-            <h3>Key Role Dimensions</h3>
-            <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
-                    Portfolio Size *
-                  </label>
-                  <DynamicTextField
-                    id='portfolioSize'
-                    name='portfolioSize'
-                    type='text'
-                    value={AddNewJDFormik.values.portfolioSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.portfolioSize && Boolean(AddNewJDFormik.errors.portfolioSize)}
-                    helperText={AddNewJDFormik.touched.portfolioSize && AddNewJDFormik.errors.portfolioSize}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
-                    Geographical Coverage *
-                  </label>
-                  <DynamicTextField
-                    id='geographicalCoverage'
-                    name='geographicalCoverage'
-                    type='text'
-                    value={AddNewJDFormik.values.geographicalCoverage}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={
-                      AddNewJDFormik.touched.geographicalCoverage && Boolean(AddNewJDFormik.errors.geographicalCoverage)
-                    }
-                    helperText={
-                      AddNewJDFormik.touched.geographicalCoverage && AddNewJDFormik.errors.geographicalCoverage
-                    }
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='teamSize' className='block text-sm font-medium text-gray-700'>
-                    Team Size *
-                  </label>
-                  <DynamicTextField
-                    id='teamSize'
-                    name='teamSize'
-                    type='text'
-                    value={AddNewJDFormik.values.teamSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.teamSize && Boolean(AddNewJDFormik.errors.teamSize)}
-                    helperText={AddNewJDFormik.touched.teamSize && AddNewJDFormik.errors.teamSize}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <label htmlFor='totalTeamSize' className='block text-sm font-medium text-gray-700'>
-                    Total Team Size *
-                  </label>
-                  <DynamicTextField
-                    id='totalTeamSize'
-                    name='totalTeamSize'
-                    type='text'
-                    value={AddNewJDFormik.values.totalTeamSize}
-                    onChange={AddNewJDFormik.handleChange}
-                    error={AddNewJDFormik.touched.totalTeamSize && Boolean(AddNewJDFormik.errors.totalTeamSize)}
-                    helperText={AddNewJDFormik.touched.totalTeamSize && AddNewJDFormik.errors.totalTeamSize}
-                  />
-                </FormControl>
-              </div>
-            </fieldset>
-
-            <h3>Key Skills and Behavioural Attributes</h3>
-            <Box sx={{ width: '50%', mb: 5 }}>
-              <FormControl fullWidth margin='normal'>
-                {/* Placeholder for skillsAndAttributesType select if needed */}
-              </FormControl>
-            </Box>
-
-            <fieldset className='border border-gray-300 rounded-lg p-8 mb-8 shadow-sm bg-white mt-2'>
-              {AddNewJDFormik.values.skillsAndAttributesType === 'description_only' ? (
-                <></>
-              ) : (
-                <div className='space-y-6'>
-                  {AddNewJDFormik.values.skillsAndAttributesDetails?.map((item: any, sectionIndex: number) => (
-                    <div key={sectionIndex} className='p-4 border border-gray-200 rounded-lg shadow-sm'>
-                      <div className='flex justify-between items-center mb-4'>
-                        <div className='flex-grow'>
-                          <h4 className='text-lg font-semibold text-gray-700'>Factor/Category *</h4>
-                          <DynamicTextField
-                            id={`skillsAndAttributesDetails[${sectionIndex}].factor`}
-                            name={`skillsAndAttributesDetails[${sectionIndex}].factor`}
-                            value={item.factor || ''}
-                            onChange={AddNewJDFormik.handleChange}
-                            placeholder='Enter Factor or Category'
-                            error={
-                              AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
-                              Boolean(AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor)
-                            }
-                            helperText={
-                              AddNewJDFormik.touched.skillsAndAttributesDetails?.[sectionIndex]?.factor &&
-                              AddNewJDFormik.errors.skillsAndAttributesDetails?.[sectionIndex]?.factor
-                            }
-                            className='w-full'
-                          />
-                        </div>
-                        <Tooltip title='Delete Section' placement='top'>
-                          <IconButton
-                            color='secondary'
-                            aria-label='delete'
-                            component='span'
-                            disabled={AddNewJDFormik.values.skillsAndAttributesDetails.length === 1}
-                            onClick={() => {
-                              const updatedSections = AddNewJDFormik.values.skillsAndAttributesDetails.filter(
-                                (_: any, i: number) => i !== sectionIndex
-                              )
-
-                              AddNewJDFormik.setFieldValue('skillsAndAttributesDetails', updatedSections)
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>Competencies</label>
-                          <div className='space-y-1'>
-                            {item.competency.map((competencyItem: any, competencyIndex: number) => (
-                              <div key={competencyIndex} className='flex items-center space-x-4'>
-                                <DynamicTextField
-                                  id={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
-                                  name={`skillsAndAttributesDetails[${sectionIndex}].competency[${competencyIndex}].value`}
-                                  value={competencyItem.value}
-                                  onChange={AddNewJDFormik.handleChange}
-                                  placeholder='Enter Competency'
-                                  className='flex-1'
-                                />
-                                <Tooltip title='Delete Competency'>
-                                  <IconButton
-                                    color='secondary'
-                                    onClick={() => {
-                                      const updatedCompetency = item.competency.filter(
-                                        (_: any, i: number) => i !== competencyIndex
-                                      )
-
-                                      AddNewJDFormik.setFieldValue(
-                                        `skillsAndAttributesDetails[${sectionIndex}].competency`,
-                                        updatedCompetency
-                                      )
-                                    }}
-                                    disabled={item.competency.length === 1}
-                                  >
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                {competencyIndex === item.competency.length - 1 && (
-                                  <Tooltip title='Add Competency'>
-                                    <IconButton
-                                      color='primary'
-                                      onClick={() => {
-                                        const newCompetency = { value: '' }
-                                        const updatedCompetency = [...item.competency, newCompetency]
-
-                                        AddNewJDFormik.setFieldValue(
-                                          `skillsAndAttributesDetails[${sectionIndex}].competency`,
-                                          updatedCompetency
-                                        )
-                                      }}
-                                    >
-                                      <AddIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>Definitions</label>
-                          {item.definition.map((definitionItem: any, definitionIndex: number) => (
-                            <div key={definitionIndex} className='flex items-center space-x-3'>
-                              <DynamicTextField
-                                id={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
-                                name={`skillsAndAttributesDetails[${sectionIndex}].definition[${definitionIndex}].value`}
-                                value={definitionItem.value}
-                                onChange={AddNewJDFormik.handleChange}
-                                placeholder='Enter Definition'
-                                className='flex-1'
-                              />
-                              <Tooltip title='Delete item' placement='top'>
-                                <IconButton
-                                  color='secondary'
-                                  aria-label='delete'
-                                  component='span'
-                                  disabled={item.definition.length === 1}
-                                  onClick={() => {
-                                    const updatedDefinition = item.definition.filter(
-                                      (_: any, i: number) => i !== definitionIndex
-                                    )
-
-                                    AddNewJDFormik.setFieldValue(
-                                      `skillsAndAttributesDetails[${sectionIndex}].definition`,
-                                      updatedDefinition
-                                    )
-                                  }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
-                              {definitionIndex === item.definition.length - 1 && (
-                                <Tooltip title='Add Definition'>
-                                  <IconButton
-                                    color='primary'
-                                    onClick={() => {
-                                      const newDefinition = { value: '' }
-                                      const updatedDefinition = [...item.definition, newDefinition]
-
-                                      AddNewJDFormik.setFieldValue(
-                                        `skillsAndAttributesDetails[${sectionIndex}].definition`,
-                                        updatedDefinition
-                                      )
-                                    }}
-                                  >
-                                    <AddIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className='flex-grow'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>Behavioural Attributes</label>
-                          {item.behavioural_attributes.map((attrItem: any, attrIndex: number) => (
-                            <div key={attrIndex} className='flex items-center space-x-4'>
-                              <DynamicTextField
-                                id={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
-                                name={`skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes[${attrIndex}].value`}
-                                value={attrItem.value}
-                                onChange={AddNewJDFormik.handleChange}
-                                placeholder='Enter Attribute'
-                                className='flex-1'
-                              />
-                              <Tooltip title='Delete item' placement='top'>
-                                <IconButton
-                                  color='secondary'
-                                  aria-label='delete'
-                                  component='span'
-                                  disabled={item.behavioural_attributes.length === 1}
-                                  onClick={() => {
-                                    const updatedAttributes = item.behavioural_attributes.filter(
-                                      (_: any, i: number) => i !== attrIndex
-                                    )
-
-                                    AddNewJDFormik.setFieldValue(
-                                      `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
-                                      updatedAttributes
-                                    )
-                                  }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
-                              {attrIndex === item.behavioural_attributes.length - 1 && (
-                                <Tooltip title='Add Attribute'>
-                                  <IconButton
-                                    color='primary'
-                                    onClick={() => {
-                                      const newAttribute = { value: '' }
-                                      const updatedAttributes = [...item.behavioural_attributes, newAttribute]
-
-                                      AddNewJDFormik.setFieldValue(
-                                        `skillsAndAttributesDetails[${sectionIndex}].behavioural_attributes`,
-                                        updatedAttributes
-                                      )
-                                    }}
-                                  >
-                                    <AddIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </Box>
-                    </div>
-                  ))}
-                  <div className='flex justify-end'>
-                    <DynamicButton
+              {savedOrgChart && (
+                <div className='p-4 border border-gray-200 rounded-lg'>
+                  <div className='flex justify-between items-center'>
+                    <Typography>Nodes: {countNodes(formData.organizationChart)}</Typography>
+                    <Button
                       type='button'
-                      variant='contained'
-                      onClick={() =>
-                        AddNewJDFormik.setFieldValue('skillsAndAttributesDetails', [
-                          ...AddNewJDFormik.values.skillsAndAttributesDetails,
-                          {
-                            factor: '',
-                            competency: [{ value: '' }],
-                            definition: [{ value: '' }],
-                            behavioural_attributes: [{ value: '' }]
-                          }
-                        ])
-                      }
-                      className='bg-green-600 text-white hover:bg-green-700'
+                      variant='outlined'
+                      onClick={() => setIsChartVisible(prev => !prev)}
+                      className='px-4 py-2 border border-gray-300 rounded hover:bg-gray-100'
                     >
-                      Add Section
-                    </DynamicButton>
+                      {isChartVisible ? 'Hide Chart' : 'Show Chart'}
+                    </Button>
                   </div>
+                  {isChartVisible && (
+                    <div className='mt-4 border border-gray-300 rounded-lg overflow-auto p-4'>
+                      <Tree
+                        children
+                        lineWidth={'2px'}
+                        lineColor={'#1976d2'}
+                        lineBorderRadius={'8px'}
+                        label={<Box>{renderOrgChart(formData.organizationChart)}</Box>}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </fieldset>
-
-            <h3>Educational and Experience Requirements</h3>
-            <fieldset className='border border-gray-300 rounded pl-8 pr-8 mb-6 mt-2'>
-              <div className=''>
-                {true && (
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Role Summary</h2>
+              <FormControl fullWidth>
+                <TextField
+                  label='Role Summary'
+                  multiline
+                  minRows={6}
+                  value={formData.roleSummary}
+                  onChange={e => handleInputChange(e.target.value, 'roleSummary')}
+                  variant='outlined'
+                />
+              </FormControl>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Key Responsibilities</h2>
+              {formData.keyResponsibilities.map((item, index) => (
+                <Accordion key={index} defaultExpanded sx={{ mb: 2 }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box className='flex items-center justify-between w-full'>
+                      <span className='text-base font-medium'>{item.title || `Responsibility ${index + 1}`}</span>
+                      <Button
+                        type='button'
+                        onClick={() => handleDeleteItem('keyResponsibilities', index)}
+                        className='ml-4 px-2 py-1 text-gray-500 rounded hover:bg-gray-300 hover:text-black flex items-center'
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <FormControl fullWidth className='mb-4'>
+                      <label className='block text-sm font-medium text-gray-700'>Title *</label>
+                      <DynamicTextField
+                        type='text'
+                        placeholder='Title'
+                        value={item.title}
+                        onChange={e => handleInputChange(e, 'keyResponsibilities', index, 'title')}
+                        className='border p-2 rounded w-full mb-2'
+                      />
+                    </FormControl>
+                    <FormControl fullWidth>
+                      <label className='block text-sm font-medium text-gray-700'>Description *</label>
+                      <ReactQuill
+                        id={`keyResponsibilities[${index}].description`}
+                        style={{ height: '40vh', paddingBottom: 50 }}
+                        value={item.description}
+                        onChange={value => handleInputChange(value, 'keyResponsibilities', index, 'description')}
+                        modules={{
+                          toolbar: {
+                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                          }
+                        }}
+                      />
+                    </FormControl>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              <Button
+                type='button'
+                onClick={() => handleAddItem('keyResponsibilities')}
+                className='mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
+              >
+                Add Responsibility
+              </Button>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Key Challenges</h2>
+              <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
+                <FormControl fullWidth margin='normal'>
+                  <ReactQuill
+                    id='keyChallenges'
+                    style={{ height: '40vh', paddingBottom: 50 }}
+                    value={formData.keyChallenges}
+                    onChange={value => handleInputChange(value, 'keyChallenges')}
+                    modules={{
+                      toolbar: {
+                        container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                      }
+                    }}
+                  />
+                </FormControl>
+              </fieldset>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Key Decisions Taken</h2>
+              <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
+                <FormControl fullWidth margin='normal'>
+                  <ReactQuill
+                    id='keyDecisions'
+                    style={{ height: '40vh', paddingBottom: 50 }}
+                    value={formData.keyDecisions}
+                    onChange={value => handleInputChange(value, 'keyDecisions')}
+                    modules={{
+                      toolbar: {
+                        container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                      }
+                    }}
+                  />
+                </FormControl>
+              </fieldset>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Key Interactions</h2>
+              <fieldset className='border border-gray-300 rounded p-8 mt-2 mb-6'>
+                {formData.keyInteractions.map((item, index) => (
+                  <div key={index} className='grid grid-cols-2 gap-4'>
+                    <FormControl fullWidth margin='normal'>
+                      <label
+                        htmlFor={`keyInteractions[${index}].internalStakeholders`}
+                        className='block text-sm font-medium text-gray-700'
+                      >
+                        Internal Stakeholders *
+                      </label>
+                      <ReactQuill
+                        id={`keyInteractions[${index}].internalStakeholders`}
+                        style={{ height: '40vh', marginBottom: '1rem' }}
+                        value={item.internalStakeholders}
+                        onChange={value => handleInputChange(value, 'keyInteractions', index, 'internalStakeholders')}
+                        modules={{
+                          toolbar: {
+                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormControl fullWidth margin='normal'>
+                      <label
+                        htmlFor={`keyInteractions[${index}].externalStakeholders`}
+                        className='block text-sm font-medium text-gray-700'
+                      >
+                        External Stakeholders *
+                      </label>
+                      <ReactQuill
+                        id={`keyInteractions[${index}].externalStakeholders`}
+                        style={{ height: '40vh', marginBottom: '1rem' }}
+                        value={item.externalStakeholders}
+                        onChange={value => handleInputChange(value, 'keyInteractions', index, 'externalStakeholders')}
+                        modules={{
+                          toolbar: {
+                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                          }
+                        }}
+                      />
+                    </FormControl>
+                  </div>
+                ))}
+              </fieldset>
+            </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Key Role Dimensions</h2>
+              <fieldset className='border border-gray-300 rounded p-8 mb-6 mt-2'>
+                <div className='grid grid-cols-2 gap-4'>
                   <FormControl fullWidth margin='normal'>
-                    <label htmlFor='minimumQualification' className='block text-sm font-medium text-gray-700'>
+                    <label htmlFor='portfolioSize' className='block text-sm font-medium text-gray-700'>
+                      Portfolio Size *
+                    </label>
+                    <DynamicTextField
+                      type='text'
+                      value={formData.keyRoleDimensions[0].portfolioSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'portfolioSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label htmlFor='geographicalCoverage' className='block text-sm font-medium text-gray-700'>
+                      Geographical Coverage *
+                    </label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].geographicalCoverage}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'geographicalCoverage')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label className='block text-sm font-medium text-gray-700'>Team Size *</label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].teamSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'teamSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label className='block text-sm font-medium text-gray-700'>Total Team Size *</label>
+                    <DynamicTextField
+                      value={formData.keyRoleDimensions[0].totalTeamSize}
+                      onChange={e => handleInputChange(e, 'keyRoleDimensions', 0, 'totalTeamSize')}
+                      className='border p-2 rounded w-full'
+                    />
+                  </FormControl>
+                </div>
+              </fieldset>
+            </div>
+            <Card sx={{ p: 4, borderRadius: '14px', mb: 4, border: '1px solid #e0e0e0' }}>
+              <Typography variant='h6' gutterBottom sx={{ fontWeight: 600 }}>
+                Skills
+              </Typography>
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <Typography
+                  component='label'
+                  htmlFor='skills'
+                  sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'text.secondary', mb: 1 }}
+                >
+                  Select Skills *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  options={skillsData || []}
+                  getOptionLabel={(option: Skill) => option.name || ''}
+                  value={(formData.skills || []).map(
+                    skill => skillsData?.find(s => s.name === skill) || { id: '', name: skill }
+                  )}
+                  onChange={(event, newValue: Skill[]) => {
+                    handleInputChange(
+                      newValue.map(skill => skill.name),
+                      'skills'
+                    )
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      placeholder={skillsData ? 'Choose skills...' : 'Loading skills...'}
+                      variant='outlined'
+                    />
+                  )}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '4px' } }}
+                />
+              </FormControl>
+            </Card>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Educational and Experience Requirements</h2>
+              {formData.educationAndExperience.map((item, index) => (
+                <div key={index} className='mb-2'>
+                  <FormControl fullWidth margin='normal'>
+                    <label htmlFor='ageLimit' className='block text-sm font-medium text-gray-700'>
+                      Age Limit *
+                    </label>
+                    <DynamicTextField
+                      type='number'
+                      placeholder='Age Limit'
+                      value={item.ageLimit}
+                      onChange={e => handleInputChange(e, 'educationAndExperience', 0, 'ageLimit')}
+                      className='border p-2 rounded w-full mb-2'
+                      InputProps={{ inputProps: { min: 0, step: 1 } }}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth margin='normal'>
+                    <label
+                      htmlFor={`minimumQualification-${index}`}
+                      className='block text-sm font-medium text-gray-700'
+                    >
                       Minimum Qualification *
                     </label>
                     <DynamicTextField
-                      id='minimumQualification'
-                      name='minimumQualification'
                       type='text'
-                      value={AddNewJDFormik.values.minimumQualification}
-                      onChange={AddNewJDFormik.handleChange}
-                      error={
-                        AddNewJDFormik.touched.minimumQualification &&
-                        Boolean(AddNewJDFormik.errors.minimumQualification)
-                      }
-                      helperText={
-                        AddNewJDFormik.touched.minimumQualification && AddNewJDFormik.errors.minimumQualification
-                          ? AddNewJDFormik.errors.minimumQualification
-                          : undefined
-                      }
+                      placeholder='Minimum Qualification'
+                      value={item.minimumQualification}
+                      onChange={e => handleInputChange(e, 'educationAndExperience', index, 'minimumQualification')}
+                      className='border p-2 rounded w-full mb-2'
                     />
                   </FormControl>
-                )}
-                {true && (
                   <FormControl fullWidth margin='normal'>
-                    <label htmlFor='experienceDescription' className='block text-sm font-medium text-gray-700'>
-                      Experience Description *
+                    <label htmlFor={`min-${index}`} className='block text-sm font-medium text-gray-700'>
+                      Min Experience *
                     </label>
                     <DynamicTextField
-                      id='experienceDescription'
-                      multiline
-                      rows={4}
-                      name='experienceDescription'
-                      value={AddNewJDFormik.values.experienceDescription}
-                      onChange={AddNewJDFormik.handleChange}
-                      error={
-                        AddNewJDFormik.touched.experienceDescription &&
-                        Boolean(AddNewJDFormik.errors.experienceDescription)
-                      }
-                      helperText={
-                        AddNewJDFormik.touched.experienceDescription && AddNewJDFormik.errors.experienceDescription
-                          ? AddNewJDFormik.errors.experienceDescription
-                          : undefined
-                      }
+                      type='number'
+                      placeholder='Min Experience'
+                      value={item.experienceDescription.min}
+                      onChange={e => handleInputChange(e, 'educationAndExperience', index, 'experienceDescription.min')}
+                      className='border p-2 rounded w-full mb-2'
+                      InputProps={{ inputProps: { min: 0, step: 1 } }}
                     />
                   </FormControl>
-                )}
-              </div>
-            </fieldset>
-
-            <div className='flex justify-between space-x-4'>
-              <Box>
-                <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
-                  Back to JD List
-                </Button>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 5 }}>
-                <DynamicButton type='button' variant='outlined' className='' onClick={handleResetForm}>
-                  Reset Form
-                </DynamicButton>
-                <DynamicButton type='submit' variant='contained' className='bg-blue-500 text-white hover:bg-blue-700'>
-                  {mode === 'add' ? 'Create Request' : 'Update Request'}
-                </DynamicButton>
-              </Box>
+                  <FormControl fullWidth margin='normal'>
+                    <label htmlFor={`max-${index}`} className='block text-sm font-medium text-gray-700'>
+                      Max Experience *
+                    </label>
+                    <DynamicTextField
+                      type='number'
+                      placeholder='Max Experience'
+                      value={item.experienceDescription.max}
+                      onChange={e => handleInputChange(e, 'educationAndExperience', index, 'experienceDescription.max')}
+                      className='border p-2 rounded w-full mb-2'
+                      InputProps={{ inputProps: { min: 0, step: 1 } }}
+                    />
+                  </FormControl>
+                </div>
+              ))}
             </div>
+            <div className='border p-4 rounded'>
+              <h2 className='text-lg font-semibold mb-2'>Interview Levels</h2>
+              <FormControl fullWidth margin='normal'>
+                <label htmlFor='numberOfLevels' className='block text-sm font-medium text-gray-700'>
+                  Number of Interview Levels *
+                </label>
+                <DynamicTextField
+                  type='number'
+                  placeholder='Number of Levels'
+                  value={formData.interviewLevels.numberOfLevels}
+                  onChange={e => handleInputChange(e.target.value, 'interviewLevels', undefined, 'numberOfLevels')}
+                  className='border p-2 rounded w-full mb-2'
+                  InputProps={{ inputProps: { min: 0, step: 1 } }}
+                />
+              </FormControl>
+              {formData.interviewLevels.levels.map((level, index) => (
+                <FormControl fullWidth margin='normal' key={index} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant='body2' sx={{ minWidth: '50px' }}>
+                      Level {level.level}:
+                    </Typography>
+                    <Autocomplete
+                      options={designationData || []}
+                      getOptionLabel={option => option.name || ''}
+                      value={designationData?.find(d => d.name === level.designation) || null}
+                      onChange={(event, newValue) =>
+                        handleInputChange(newValue ? newValue.name : '', 'interviewLevels', index, 'designation')
+                      }
+                      sx={{ flexGrow: 1 }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label={`Designation for Level ${level.level}`}
+                          variant='outlined'
+                          placeholder={designationData ? 'Select designation' : 'Loading designations...'}
+                        />
+                      )}
+                    />
+                  </Box>
+                </FormControl>
+              ))}
+            </div>
+            <div className='flex justify-end'>
+              <Button
+                sx={{ border: '1px solid #1976d2', color: '#1976d2' }}
+                type='submit'
+                disabled={isAddJdLoading || activeStep < steps.length}
+                className={`px-4 py-2 rounded transition
+                  ${
+                    isAddJdLoading || activeStep < steps.length
+                      ? 'border border-gray-400 text-gray-400 cursor-not-allowed'
+                      : 'border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+                  }`}
+              >
+                {isAddJdLoading ? 'Submitting...' : 'Add JD'}
+              </Button>
+            </div>
+
+            {isShowOrgChart && (
+              <Grid container spacing={3} className=''>
+                <Box className='fixed inset-0 bg-white z-20 ml-[243px] flex items-center justify-center'>
+                  <Box className='w-full pt-[150px]'>
+                    <OrgChartCanvas
+                      onSave={handleOrgChartSave}
+                      initialChart={
+                        savedOrgChart
+                          ? {
+                              nodes: savedOrgChart.nodes.map(node =>
+                                node.isJobRole
+                                  ? {
+                                      ...node,
+                                      name: formData.roleSpecification.jobRole || node.name || 'Untitled Role'
+                                    }
+                                  : node
+                              )
+                            }
+                          : {
+                              nodes: [
+                                {
+                                  id: 'root',
+                                  name: formData.roleSpecification.jobRole || 'Untitled Role',
+                                  parentId: null,
+                                  children: [],
+                                  isJobRole: true
+                                }
+                              ]
+                            }
+                      }
+                      onCancel={cancelOrgChart}
+                    />
+                  </Box>
+                </Box>
+              </Grid>
+            )}
           </form>
-        )}
-      </div>
+        </div>
+      </Card>
     </>
   )
 }
-
-export default AddNewJdSample

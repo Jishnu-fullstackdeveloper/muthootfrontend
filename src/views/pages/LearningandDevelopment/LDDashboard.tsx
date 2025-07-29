@@ -664,7 +664,7 @@ const LDDashboard = () => {
                     }}
                   >
                     <Typography className='text-[10px]' variant='caption' component='div' color='white'>
-                      +86%
+                      +76%
                     </Typography>
                   </Box>
                 </Box>

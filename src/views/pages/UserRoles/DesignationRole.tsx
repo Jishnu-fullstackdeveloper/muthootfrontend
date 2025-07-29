@@ -1,16 +1,17 @@
 'use client'
 
-import React, { useMemo, useEffect } from 'react'
+import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, Grid, Chip, Button, Typography, Divider, CircularProgress } from '@mui/material'
+import { Box, Card, Grid, Chip, Button, Typography, Divider, CircularProgress, Tooltip } from '@mui/material'
+import { createColumnHelper } from '@tanstack/react-table'
 
-import { fetchDesignationRole } from '@/redux/UserRoles/userRoleSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { ROUTES } from '@/utils/routes'
+import DynamicTable from '@/components/Table/dynamicTable'
+import { fetchDesignationRole } from '@/redux/UserRoles/userRoleSlice'
 
-// Define the type for designation role (aligned with JSON data)
 interface DesignationRole {
   id: string
   name: string
@@ -20,35 +21,47 @@ interface DesignationRole {
 
 interface DesignationRoleProps {
   searchText: string
+  view: 'table' | 'grid'
 }
 
-const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '' }) => {
+interface Pagination {
+  totalCount: number
+  totalPages: number
+  currentPage: number
+  limit: number
+}
+
+const columnHelper = createColumnHelper<DesignationRole>()
+
+const cleanName = (name: string): string => {
+  return name?.replace(/^DES_/, '').trim() || 'N/A'
+}
+
+const getFirstFiveRoles = (permissions: string[]) => {
+  return permissions.slice(0, 5).join(', ')
+}
+
+const truncateText = (text: string, length: number): string => {
+  return text?.length > length ? text.slice(0, length) + '...' : text || 'No description available'
+}
+
+const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view }) => {
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const [page, setPage] = useState(1)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
-  const { designationRoleData, isDesignationRoleLoading, designationRoleFailure } = useAppSelector(
+  const { designationRoleData, isDesignationRoleLoading, designationRoleFailure, pagination } = useAppSelector(
     state => state.UserRoleReducer
   )
 
-  console.log(designationRoleData, 'designationRoleData')
-  const page = 1
-  const limit = 10
+  // Use pagination data from Redux state (from API response)
+  const { totalCount = 0, totalPages = 1, limit = 10 } = (pagination as Pagination) || {}
 
-  // Format text to title case
-  const toTitleCase = (str: string): string => {
-    return str
-      .toLowerCase()
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
-  // Clean role name by removing 'DES_' prefix
-  const cleanName = (name: string): string => {
-    return name?.replace(/^DES_/, '').replace(/\s+/g, '-') || 'N/A'
-  }
-
-  // Filter roles based on searchText
   const filteredRoles = useMemo(() => {
     if (!searchText) return designationRoleData
     const lowerSearch = searchText.toLowerCase()
@@ -60,21 +73,141 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '' }) =>
     )
   }, [searchText, designationRoleData])
 
-  // Fetch designation roles on mount or when page/limit changes
+  // Fetch initial data
   useEffect(() => {
-    dispatch(fetchDesignationRole({ page, limit }))
-  }, [dispatch, page, limit])
+    dispatch(fetchDesignationRole({ page: 1, limit }))
+      .unwrap()
+      .catch(err => setFetchError(err.message || 'Failed to fetch designation roles'))
+  }, [dispatch, limit])
+
+  // Debounced load more function
+  const loadMore = useCallback(() => {
+    if (isFetchingMore || page >= totalPages) return
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(async () => {
+      setIsFetchingMore(true)
+      setFetchError(null)
+
+      try {
+        await dispatch(fetchDesignationRole({ page: page + 1, limit })).unwrap()
+        setPage(prev => prev + 1)
+      } catch (error: any) {
+        setFetchError(error.message || 'Failed to fetch more roles')
+      } finally {
+        setIsFetchingMore(false)
+      }
+    }, 300) // 300ms debounce
+  }, [dispatch, page, limit, totalPages, isFetchingMore])
+
+  // Set up IntersectionObserver for lazy loading
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && !isFetchingMore && page < totalPages) {
+          loadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const currentLoadMoreRef = loadMoreRef.current
+
+    if (currentLoadMoreRef) {
+      observerRef.current.observe(currentLoadMoreRef)
+    }
+
+    return () => {
+      if (observerRef.current && currentLoadMoreRef) {
+        observerRef.current.unobserve(currentLoadMoreRef)
+      }
+    }
+  }, [loadMore, isFetchingMore, page, totalPages])
+
+  // Clean up debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  // Define table columns
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('name', {
+        header: 'Role Name',
+        cell: ({ row }) => cleanName(row.original.name)
+      }),
+      columnHelper.accessor('description', {
+        header: 'Description',
+        cell: ({ row }) => truncateText(row.original.description || 'No description available', 50)
+      }),
+      columnHelper.accessor('inheritedPermissions', {
+        header: 'Permissions',
+        cell: ({ row }) => {
+          const permissions = row.original.inheritedPermissions?.map(p => p.name) || []
+
+          return permissions.length > 0 ? getFirstFiveRoles(permissions) : 'No permissions'
+        }
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant='outlined'
+              size='small'
+              onClick={() => router.push(`/user-management/designation-role/edit/${row.original.id}`)}
+              sx={{
+                borderRadius: '8px',
+                border: '1px solid #0096DA',
+                color: '#0096DA',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant='contained'
+              size='small'
+              onClick={() => router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(row.original.id))}
+              sx={{
+                borderRadius: '8px',
+                border: '1px solid #0096DA',
+                backgroundColor: '#FFFFFF',
+                color: '#0096DA',
+                textTransform: 'none',
+                boxShadow: 'none',
+                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
+              }}
+            >
+              View Details
+            </Button>
+          </Box>
+        )
+      })
+    ],
+    [router]
+  )
 
   return (
-    <Box>
-      {isDesignationRoleLoading && (
+    <Box sx={{ p: 3 }}>
+      {isDesignationRoleLoading && page === 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
       )}
       {designationRoleFailure && (
         <Box sx={{ textAlign: 'center', my: 4 }}>
-          <Typography color='error'>Failed to load designation roles</Typography>
+          <Typography color='error'>{designationRoleFailure.message || 'Failed to load designation roles'}</Typography>
+        </Box>
+      )}
+      {fetchError && (
+        <Box sx={{ textAlign: 'center', my: 4 }}>
+          <Typography color='error'>{fetchError}</Typography>
         </Box>
       )}
       {!isDesignationRoleLoading && !designationRoleFailure && filteredRoles.length === 0 && (
@@ -83,116 +216,169 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '' }) =>
         </Box>
       )}
       {!isDesignationRoleLoading && !designationRoleFailure && filteredRoles.length > 0 && (
-        <Grid container spacing={3}>
-          {filteredRoles.map(role => (
-            <Grid item xs={12} sm={6} md={6} key={role.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  borderRadius: '14px',
-                  padding: 3,
-                  justifyContent: 'space-between'
+        <>
+          {view === 'table' ? (
+            <Box>
+              <DynamicTable
+                tableName='Designation Roles'
+                columns={columns}
+                data={filteredRoles}
+                pagination={{ pageIndex: page - 1, pageSize: limit }}
+                totalCount={totalCount}
+                onPageChange={newPage => {
+                  setPage(newPage + 1)
                 }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-                  <Typography variant='h6'>{toTitleCase(cleanName(role.name))}</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Button
-                      variant='outlined'
-                      size='small'
-                      disabled={isDesignationRoleLoading}
-                      onClick={() => router.push(`/user-management/designation-role/edit/${role.id}`)}
-                      sx={{
-                        borderRadius: '8px',
-                        border: '1px solid #0096DA',
-                        color: '#0096DA',
-                        textTransform: 'none',
-                        '&:hover': {
-                          backgroundColor: '#D0E4F7',
-                          borderColor: '#007BBD'
-                        }
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </Box>
+                onRowsPerPageChange={newPageSize => {
+                  setPage(1) // Reset to first page
+                  dispatch(fetchDesignationRole({ page: 1, limit: newPageSize }))
+                }}
+                sorting={undefined}
+                onSortingChange={undefined}
+                initialState={undefined}
+              />
+              <div ref={loadMoreRef} style={{ height: '20px' }} />
+              {isFetchingMore && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                  <CircularProgress size={24} />
                 </Box>
-                <Divider />
-                <Grid container sx={{ pl: 1, pt: 2 }}>
-                  <Grid item xs={12}>
-                    <Typography
-                      color='text.secondary'
-                      sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
-                    >
-                      Description
-                      <Typography component='span' sx={{ fontWeight: 'bold', fontSize: '14px' }}>
-                        {role.description || 'N/A'}
-                      </Typography>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sx={{ pt: 2 }}>
-                    <Typography
-                      color='text.secondary'
-                      sx={{ display: 'flex', gap: 1, flexDirection: 'column', fontSize: '12px' }}
-                    >
-                      Permissions
-                      <Box sx={{ mt: 1, display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
-                        {role.inheritedPermissions?.length ? (
-                          [...new Set(role.inheritedPermissions.map(p => p.name))].map((permission, idx) => (
-                            <Chip
-                              key={idx}
-                              label={toTitleCase(permission.replace(/_/g, ' '))}
-                              size='small'
-                              sx={{
-                                background: '#377DFF33',
-                                color: '#0096DA',
-                                fontSize: '12px'
-                              }}
-                            />
-                          ))
-                        ) : (
-                          <Typography variant='body2'>N/A</Typography>
-                        )}
-                      </Box>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sx={{ pt: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button
-                        variant='contained'
-                        size='small'
-                        disabled={isDesignationRoleLoading}
-                        onClick={() => {
-                          router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(role.id))
-                        }}
+              )}
+              {page >= totalPages && filteredRoles.length > 0 && (
+                <Box sx={{ textAlign: 'center', my: 2 }}>
+                  <Typography>No more roles to load.</Typography>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box>
+              <Grid container spacing={3}>
+                {filteredRoles.map(role => {
+                  const permissionNames = role.inheritedPermissions?.map(p => p.name) || []
+                  const showMore = permissionNames.length > 10
+
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={role.id}>
+                      <Card
                         sx={{
-                          width: 130,
-                          height: 36,
-                          borderRadius: '8px',
-                          border: '1px solid #0096DA',
-                          backgroundColor: '#FFFFFF',
-                          color: '#0096DA',
-                          textTransform: 'none',
-                          boxShadow: 'none',
-                          '&:hover': {
-                            backgroundColor: '#D0E4F7',
-                            borderColor: '#007BBD'
-                          }
+                          p: 4,
+                          borderRadius: '14px',
+                          mb: 4,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column'
                         }}
                       >
-                        View Details
-                      </Button>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                        <Grid container alignItems='center' spacing={2}>
+                          <Grid item xs>
+                            <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
+                              {cleanName(role.name)}
+                            </Typography>
+                          </Grid>
+                          <Grid item>
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              disabled={isDesignationRoleLoading}
+                              onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_EDIT(role.id))}
+                              sx={{
+                                borderRadius: '8px',
+                                border: '1px solid #0096DA',
+                                color: '#0096DA',
+                                textTransform: 'none',
+                                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </Grid>
+                        </Grid>
+                        <Divider sx={{ my: 2 }} />
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant='h6' color='text.secondary'>
+                            {truncateText(role.description || 'No description available', 100)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ mt: 3 }}>
+                          <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1 }}>
+                            Role Permissions
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 3 }}>
+                            {role.inheritedPermissions?.length ? (
+                              <>
+                                {getFirstFiveRoles(permissionNames)
+                                  .split(', ')
+                                  .filter(Boolean)
+                                  .map((permission, idx) => (
+                                    <Tooltip
+                                      key={idx}
+                                      title={
+                                        role.inheritedPermissions.find(p => p.name === permission)?.description ||
+                                        'No description available'
+                                      }
+                                      placement='top'
+                                      arrow
+                                    >
+                                      <Chip
+                                        label={permission.replace(/_/g, ' ')}
+                                        sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
+                                      />
+                                    </Tooltip>
+                                  ))}
+                                {showMore && (
+                                  <Button
+                                    variant='text'
+                                    sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
+                                  >
+                                    ...
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <Typography>No role permissions</Typography>
+                            )}
+                          </Box>
+                        </Box>
+                        <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+                          <Button
+                            variant='contained'
+                            size='small'
+                            disabled={isDesignationRoleLoading}
+                            onClick={() => router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(role.id))}
+                            sx={{
+                              width: 130,
+                              height: 36,
+                              borderRadius: '8px',
+                              border: '1px solid #0096DA',
+                              backgroundColor: '#FFFFFF',
+                              color: '#0096DA',
+                              textTransform: 'none',
+                              boxShadow: 'none',
+                              '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </Box>
+                      </Card>
+                    </Grid>
+                  )
+                })}
+              </Grid>
+              <div ref={loadMoreRef} style={{ height: '20px' }} />
+              {isFetchingMore && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
+              {page >= totalPages && filteredRoles.length > 0 && (
+                <Box sx={{ textAlign: 'center', my: 2 }}>
+                  <Typography>No more roles to load.</Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+        </>
       )}
-      {/* TODO: Implement pagination controls */}
     </Box>
   )
 }

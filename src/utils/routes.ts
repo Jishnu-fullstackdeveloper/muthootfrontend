@@ -5,14 +5,17 @@ export const ROUTES = {
     USER: '/user-management/user',
     USER_EDIT: (id: string) => `/user-management/user/edit/${id}`,
     USER_VIEW: (id: string) => `/user-management/user/view/${id}`,
+   
     ROLE: '/user-management/role',
 
-    // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
-    DESIGNATION_VIEW: (id: string) => `/user-management/role/view/detail?id=${id}`,
+    DESIGNATION_VIEW: (id: string) => `/user-management/role/DesinationDetails/detail?id=${id}`,
+    GROUP_VIEW: (id: string) => `/user-management/role/GroupRoleDetails/detail?id=${id}`,
 
-    // DESIGNATION_VIEW: (id: string) => `/user-management/role/designationRole/${id}`,
+    GROUP_ROLE_EDIT: (id: string) => `/user-management/role/edit/GroupRole?id=${id}`,
+    GROUP_ROLE_PERMISSION_EDIT: (id: string) => `/user-management/role/edit/GroupRolePermission?id=${id}`,
 
-    // DESIGNATION_VIEW:'/user-management/role/designationRole/j',
+    GROUP_ROLE_ADD:'/user-management/role/add/new',
+
     ROLE_EDIT: (query: string, name: string) => `/user-management/role/edit/${name.replace(/\s+/g, '-')}?${query}`,
     ROLE_ADD: '/user-management/role/add/new',
     EMPLOYEE: '/user-management/employee',

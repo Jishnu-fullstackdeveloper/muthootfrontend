@@ -2,15 +2,18 @@
 
 import React, { useState } from 'react'
 
-// import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { IconButton, InputAdornment, Box, Card, CardContent, Button, Tabs, Tab } from '@mui/material'
 
 import DynamicTextField from '@/components/TextField/dynamicTextField'
-
-// import { ROUTES } from '@/utils/routes'
 import DesignationRole from './DesignationRole'
 import GroupRole from './GroupRole'
+
+import GridIcon from '@/icons/GridAndTableIcons/Grid'
+import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
+
+import { ROUTES } from '@/utils/routes'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -27,29 +30,21 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 }
 
 const UserRolesAndPermissionList: React.FC = () => {
-  // const router = useRouter()
+  const router = useRouter()
   const [searchText, setSearchText] = useState<string>('')
-
-  // const [ setDebouncedSearchText] = useState<string>('')
   const [tabValue, setTabValue] = useState<number>(0)
-
-  // Debounce search input
-  // useEffect(() => {
-  //   const timer = setTimeout(() => setDebouncedSearchText(searchText), 500)
-
-  //   return () => clearTimeout(timer)
-  // }, [searchText])
+  const [view, setView] = useState<'table' | 'grid'>('grid') // State for table/grid view
 
   // Handle search input change
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchText(event.target.value)
   }
 
-  // Handle add button based on active tab
-  // const handleAdd = (): void => {
-  //   const route = tabValue === 0 ? ROUTES.USER_MANAGEMENT.DESIGNATION_ROLE_ADD : ROUTES.USER_MANAGEMENT.GROUP_ROLE_ADD
-
-  //   router.push(route)
+  // Handle view change
+  // const handleViewChange = (event: React.MouseEvent<HTMLElement>, newView: 'table' | 'grid' | null) => {
+  //   if (newView !== null) {
+  //     setView(newView)
+  //   }
   // }
 
   // Handle tab change
@@ -97,16 +92,43 @@ const UserRolesAndPermissionList: React.FC = () => {
                 )
               }}
             />
-            <Button
-              variant='contained'
-              color='primary'
-              
-              // onClick={handleAdd}
-              startIcon={<i className='tabler-plus' />}
-              sx={{ borderRadius: 1 }}
-            >
-              Add Role
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<i className='tabler-plus' />}
+                sx={{ borderRadius: 1 }}
+                onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_ADD)}
+              >
+                Add Role
+              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
+                <Box
+                  sx={{
+                    backgroundColor: view === 'grid' ? '#0096DA' : 'transparent',
+                    color: view === 'grid' ? 'white' : '#0096DA',
+                    borderRadius: '8px',
+                    padding: 2,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setView('grid')}
+                >
+                  <GridIcon className={''} />
+                </Box>
+                <Box
+                  sx={{
+                    backgroundColor: view === 'table' ? '#0096DA' : 'transparent',
+                    color: view === 'table' ? 'white' : '#0096DA',
+                    cursor: 'pointer',
+                    borderRadius: '8px',
+                    padding: 1
+                  }}
+                  onClick={() => setView('table')}
+                >
+                  <TableIcon className='h-5 w-6' />
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </CardContent>
       </Card>
@@ -116,13 +138,12 @@ const UserRolesAndPermissionList: React.FC = () => {
           <Tab label='Group Roles' id='tab-1' aria-controls='tabpanel-1' />
         </Tabs>
       </Card>
-
       <Card>
         <TabPanel value={tabValue} index={0}>
-          <DesignationRole searchText='' />
+          <DesignationRole searchText={searchText} view={view} />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <GroupRole searchText='' />
+          <GroupRole searchText={searchText} view={view} />
         </TabPanel>
       </Card>
     </>

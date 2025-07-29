@@ -80,7 +80,7 @@ const JobPostGrid = ({ data, loading }: JobPostGridProps) => {
                   </div>
                   {/* <div
                     className="flex justify-center items-center p-[2px_10px]  bg-[rgba(237,159,11,0.2)] border border-[#eee] rounded-[6px] font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[12px] leading-[14px] uppercase"
-                    style={{ color: statusColors[job.status] || '#000' }}.
+                    style={{ color: statusColors[job.status] || '#000' }}
                   >
                     {job.status}
                   </div> */}

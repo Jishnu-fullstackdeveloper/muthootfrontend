@@ -315,6 +315,37 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         iconClass: 'tabler-calendar-event',
         permission: '',
         read: 'HIRING_INTERVIEW_READ'
+      },
+      {
+        path: ROUTES.LEARNING_AND_DEVELOPMENT.DASHBOARD,
+        label: 'L & D',
+        iconClass: 'tabler-brand-databricks',
+        permission: 'l&d',
+        read: 'USER_USER_READ',
+        children: [
+          {
+            path: ROUTES.LEARNING_AND_DEVELOPMENT.TRAINER_MANAGEMENT.TRAINER_MANAGEMENT,
+            label: 'Trainer management ',
+            iconClass: 'tabler-chalkboard',
+            permission: 'userRoles',
+            read: 'USER_ROLE_READ'
+          }
+
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.USER,
+          //   label: 'Training management',
+          //   iconClass: 'tabler-book',
+          //   permission: 'training-management',
+          //   read: 'USER_USER_READ'
+          // },
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
+          //   label: 'Trainee management ',
+          //   iconClass: 'tabler-users-group',
+          //   permission: 'traineeManagement ',
+          //   read: 'USER_EMPLOYEE_READ'
+          // }
+        ]
       }
     ],
     []
@@ -507,7 +538,10 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     }
                     onClick={() => {
                       if (hasChildren) {
-                        toggleMenu(item.label)
+                        if (item.path) {
+                          handleNavigation(item.path)
+                          toggleMenu(item.label)
+                        }
                       } else {
                         handleNavigation(item.path)
                       }

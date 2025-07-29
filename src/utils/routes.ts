@@ -12,8 +12,8 @@ export const ROUTES = {
     EMPLOYEE: '/user-management/employee',
     EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`
   },
- 
-  JD_VIEW: (id: string) =>`/jd-management/view/${id}`,
+
+  JD_VIEW: (id: string) => `/jd-management/view/${id}`,
   JD_EDIT: (id: string) => `/jd-management/edit/${id}`,
   APPROVALS: '/approvals',
   APPROVALS_VIEW: `/approvals/approval-detail/view`,

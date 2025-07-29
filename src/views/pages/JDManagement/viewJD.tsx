@@ -1,7 +1,8 @@
 'use client'
+
 import React, { useEffect } from 'react'
 
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import { Box, Typography, CircularProgress, Alert, Card, Grid, Divider } from '@mui/material'
 
@@ -10,18 +11,26 @@ import { Tree, TreeNode } from 'react-organizational-chart'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchJdById } from '@/redux/jdManagemenet/jdManagemnetSlice'
 
-const JobRoleDetails = () => {
-  const { id } = useParams()
+interface ViewJDProps {
+  jdId?: string
+}
+
+const JobRoleDetails: React.FC<ViewJDProps> = ({ jdId }) => {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
+
   const dispatch = useAppDispatch()
 
   const { selectedJd, isSelectedJdLoading, selectedJdSuccess, selectedJdFailure, selectedJdFailureMessage } =
     useAppSelector(state => state.jdManagementReducer)
 
   useEffect(() => {
-    if (id && typeof id === 'string') {
-      dispatch(fetchJdById(id))
+    const idToUse = jdId || (id && typeof id === 'string' ? id : null)
+
+    if (idToUse) {
+      dispatch(fetchJdById(idToUse))
     }
-  }, [id, dispatch])
+  }, [id, jdId, dispatch])
 
   if (isSelectedJdLoading) return <CircularProgress />
   if (selectedJdFailure) return <Alert severity='error'>{selectedJdFailureMessage}</Alert>
@@ -153,7 +162,7 @@ const JobRoleDetails = () => {
                         {kr.title || 'N/A'}
                       </Typography>
                       <Box
-                        sx={{ fontSize: '14px', fontWeight: 500, color: 'black',paddingLeft:5,mt:2 }}
+                        sx={{ fontSize: '14px', fontWeight: 500, color: 'black', paddingLeft: 5, mt: 2 }}
                         dangerouslySetInnerHTML={{ __html: kr.description || 'N/A' }}
                       />
                     </Box>
@@ -171,7 +180,7 @@ const JobRoleDetails = () => {
                 </Typography>
                 {selectedJd.details.keyInteractions?.length > 0 ? (
                   selectedJd.details.keyInteractions.map((interaction, index) => (
-                    <Box key={index} sx={{ mb: 2 ,mt:3 }}>
+                    <Box key={index} sx={{ mb: 2, mt: 3 }}>
                       <Grid container spacing={4}>
                         {/* Internal Stakeholders */}
                         <Grid item xs={12} sm={6}>
@@ -190,7 +199,7 @@ const JobRoleDetails = () => {
                           <Box sx={{ mt: 2 }}>
                             {interaction.internalStakeholders ? (
                               <Typography
-                                sx={{ fontSize: '12px', color: 'text.primary' ,paddingLeft:10}}
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
                                 component='div'
                                 dangerouslySetInnerHTML={{ __html: interaction.internalStakeholders }}
                               />
@@ -217,7 +226,7 @@ const JobRoleDetails = () => {
                           <Box sx={{ mt: 2 }}>
                             {interaction.externalStakeholders ? (
                               <Typography
-                                sx={{ fontSize: '12px', color: 'text.primary',paddingLeft:10 }}
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
                                 component='div'
                                 dangerouslySetInnerHTML={{ __html: interaction.externalStakeholders }}
                               />
@@ -320,10 +329,10 @@ const JobRoleDetails = () => {
                 </Typography>
                 {selectedJd.details.interviewLevels?.levels?.length > 0 ? (
                   <Box>
-                    <Typography sx={{ fontSize: '14px', color: 'black', }}>Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}</Typography>
-                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
-                      
+                    <Typography sx={{ fontSize: '14px', color: 'black' }}>
+                      Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}
                     </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}></Typography>
                     <Grid container spacing={2}>
                       {selectedJd.details.interviewLevels.levels.map((level, index) => (
                         <Grid item xs={6} key={index}>

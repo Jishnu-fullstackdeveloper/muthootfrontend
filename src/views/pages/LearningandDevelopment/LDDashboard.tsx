@@ -12,8 +12,6 @@ import {
   IconButton,
   TextField,
   Typography,
-  LinearProgress,
-  styled,
   Stack,
   CardContent,
   CircularProgress,
@@ -24,7 +22,7 @@ import {
   TableRow
 } from '@mui/material'
 
-import { linearProgressClasses } from '@mui/material/LinearProgress'
+// import { linearProgressClasses } from '@mui/material/LinearProgress'
 
 import { Gauge } from '@mui/x-charts/Gauge'
 
@@ -125,23 +123,23 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
   return <span>{displayNumber}</span>
 }
 
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-  height: 10,
-  borderRadius: 5,
-  [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: theme.palette.grey[200],
-    ...theme.applyStyles('dark', {
-      backgroundColor: theme.palette.grey[800]
-    })
-  },
-  [`& .${linearProgressClasses.bar}`]: {
-    borderRadius: 5,
-    backgroundColor: '#1a90ff',
-    ...theme.applyStyles('dark', {
-      backgroundColor: '#308fe8'
-    })
-  }
-}))
+// const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+//   height: 10,
+//   borderRadius: 5,
+//   [`&.${linearProgressClasses.colorPrimary}`]: {
+//     backgroundColor: theme.palette.grey[200],
+//     ...theme.applyStyles('dark', {
+//       backgroundColor: theme.palette.grey[800]
+//     })
+//   },
+//   [`& .${linearProgressClasses.bar}`]: {
+//     borderRadius: 5,
+//     backgroundColor: '#1a90ff',
+//     ...theme.applyStyles('dark', {
+//       backgroundColor: '#308fe8'
+//     })
+//   }
+// }))
 
 // Define ViewType for type safety
 type ViewType = 'Branch' | 'Area' | 'Cluster' | 'Region' | 'Zone' | 'Territory' | 'Corporate'
@@ -203,23 +201,24 @@ const LDDashboard = () => {
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   // Data array for Target and Actual Learning Hours
-  const learningHoursData = [
-    { type: 'Target Learning Hours', value: 20 },
-    { type: 'Actual Learning Hours', value: 17 }
-  ]
+  // const learningHoursData = [
+  //   { type: 'Target Learning Hours', value: 20 },
+  //   { type: 'Actual Learning Hours', value: 17 }
+  // ]
 
   // Calculate fill percentage
-  const targetHours = learningHoursData.find(item => item.type === 'Target Learning Hours')?.value || 0
-  const actualHours = learningHoursData.find(item => item.type === 'Actual Learning Hours')?.value || 0
-  const fillPercentage = targetHours > 0 ? (actualHours / targetHours) * 100 : 0
+  // const targetHours = learningHoursData.find(item => item.type === 'Target Learning Hours')?.value || 0
+  // const actualHours = learningHoursData.find(item => item.type === 'Actual Learning Hours')?.value || 0
+
+  // const fillPercentage = targetHours > 0 ? (actualHours / targetHours) * 100 : 0
 
   // Data array for Progress on Mandatory Courses
-  const mandatoryCoursesData = [
-    { title: 'Courses Assigned', count: 5023683 },
-    { title: 'In Progress', count: 173147 },
-    { title: 'Course Completed', count: 2023097 },
-    { title: 'Not Started', count: 2827439 }
-  ]
+  // const mandatoryCoursesData = [
+  //   { title: 'Courses Assigned', count: 5023683 },
+  //   { title: 'In Progress', count: 173147 },
+  //   { title: 'Course Completed', count: 2023097 },
+  //   { title: 'Not Started', count: 2827439 }
+  // ]
 
   // Data array for Training Undergoing Candidates
   const trainingTypesData = [

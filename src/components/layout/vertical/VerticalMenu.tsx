@@ -444,8 +444,8 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
               backgroundColor: theme.palette.action.hover
             },
             '&.Mui-selected': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.common.white,
+              backgroundColor: '#fff',
+              color: '#0191DA',
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark
               }
@@ -472,7 +472,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             const permissionValue = item.read ? getPermissionRenderConfig()?.[item.read] || '' : ''
 
             return (
-              <Box key={`${item.label}-${index}`} sx={{ mb: '4px' }}>
+              <Box key={`${item.label}-${index}`} sx={{ mb: '' }}>
                 {/* Main menu item */}
                 <ListItem
                   disablePadding
@@ -480,12 +480,12 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     width: '100%',
                     borderRadius: '6px',
                     alignItems: 'center',
-                    backgroundColor: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit',
-                    color: isActive ? custom_theme_settings?.theme?.colors.buttonText : 'inherit'
+                    backgroundColor: isActive ? '#fff' : 'inherit',
+                    color: isActive ? '#0191DA' : 'inherit'
                   }}
                 >
                   <MenuItemWithPermission
-                    icon={<i className={item.iconClass} />}
+                    icon={<i className={`${item.iconClass} ${isActive ? 'text-[#0191DA]' : 'text-white'}`} />}
                     selected={isActive}
                     individualPermission={permissionValue}
                     suffix={
@@ -498,7 +498,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                           }}
                           sx={{
                             marginLeft: 'auto',
-                            color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
+                            color: isActive ? '#0191DA' : 'inherit'
                           }}
                         >
                           {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
@@ -513,12 +513,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                       }
                     }}
                     sx={{
-                      width: '100%',
-                      '&:hover': {
-                        backgroundColor: isActive
-                          ? custom_theme_settings?.theme?.primaryColor
-                          : theme.palette.action.hover
-                      }
+                      width: '100%'
+
+                      // '&:hover': {
+                      //   backgroundColor: isActive
+                      //     ? custom_theme_settings?.theme?.primaryColor
+                      //     : theme.palette.action.hover
+                      // }
                     }}
                   >
                     {item.label}
@@ -568,12 +569,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                   }
                                 }}
                                 sx={{
-                                  width: '100%',
-                                  '&:hover': {
-                                    backgroundColor: childIsActive
-                                      ? theme.palette.primary.dark
-                                      : theme.palette.action.hover
-                                  }
+                                  width: '100%'
+
+                                  // '&:hover': {
+                                  //   backgroundColor: childIsActive
+                                  //     ? theme.palette.primary.dark
+                                  //     : theme.palette.action.hover
+                                  // }
                                 }}
                               >
                                 {child.label}

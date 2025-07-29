@@ -40,7 +40,11 @@ import DynamicTable from '@/components/Table/dynamicTable'
 import { ROUTES } from '@/utils/routes'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import type { Trainer } from '@/redux/TrainerManagement/TrainerManagementSlice'
-import { fetchTrainers, fetchTrainerById, resetTrainerManagementState } from '@/redux/TrainerManagement/TrainerManagementSlice'
+import {
+  fetchTrainers,
+  fetchTrainerById,
+  resetTrainerManagementState
+} from '@/redux/TrainerManagement/TrainerManagementSlice'
 
 interface AnimatedNumberProps {
   number: number
@@ -85,7 +89,9 @@ const TrainerDashboard = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { trainersData, selectedTrainer, trainingCounts, totalCount, status } = useAppSelector(state => state.TrainerManagementReducer)
+  const { trainersData, selectedTrainer, trainingCounts, totalCount, status } = useAppSelector(
+    state => state.TrainerManagementReducer
+  )
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [searchQuery, setSearchQuery] = useState('')
@@ -178,6 +184,7 @@ const TrainerDashboard = () => {
         { name: 'Cancelled', value: 0, color: '#FF8042' }
       ]
     }
+
     return [
       { name: 'Completed', value: trainingCounts.COMPLETED, color: '#0088FE' },
       { name: 'In Progress', value: trainingCounts.INPROGRESS, color: '#00C49F' },
@@ -468,7 +475,7 @@ const TrainerDashboard = () => {
                 Active Trainers
               </Typography>
               <Typography variant='h3' color='white' fontWeight='bold'>
-                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'Active').length} />
+                <AnimatedNumber number={trainersData.filter(trainer => trainer.status === 'ACTIVE').length} />
               </Typography>
             </Box>
             <Box className='flex items-center justify-center'>
@@ -816,9 +823,7 @@ const TrainerDashboard = () => {
                     <Typography>{selectedTrainer ? selectedTrainer.empCode : 'N/A'}</Typography>
                   </Box>
                   <Box className='flex justify-end w-full'>
-                    <Typography
-                      className='flex items-center justify-center px-3 py-2 rounded-md bg-green-500 bg-opacity-40 text-green-600'
-                    >
+                    <Typography className='flex items-center justify-center px-3 py-2 rounded-md bg-green-500 bg-opacity-40 text-green-600'>
                       {selectedTrainer ? selectedTrainer.status : 'N/A'}
                     </Typography>
                   </Box>

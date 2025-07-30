@@ -89,7 +89,7 @@ const TrainerDashboard = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
 
-  const { trainersData, selectedTrainer, trainingCounts, totalCount, status } = useAppSelector(
+  const { trainersData, selectedTrainer, trainingCounts, totalCount, status, error } = useAppSelector(
     state => state.TrainerManagementReducer
   )
 
@@ -159,7 +159,7 @@ const TrainerDashboard = () => {
           <Box className='flex items-center'>
             <IconButton
               onClick={() => {
-                dispatch(fetchTrainerById(row.original.id))
+                dispatch(fetchTrainerById(row.id))
                 setDrawerOpen(true)
               }}
               sx={{ fontSize: 18 }}
@@ -802,6 +802,14 @@ const TrainerDashboard = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <CircularProgress />
               </Box>
+            ) : status === 'failed' ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <Typography color='error'>Error: {error || 'Failed to load trainer details'}</Typography>
+              </Box>
+            ) : !selectedTrainer ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <Typography color='text.secondary'>No trainer data available</Typography>
+              </Box>
             ) : (
               <Box
                 sx={{
@@ -818,13 +826,13 @@ const TrainerDashboard = () => {
                   <Avatar />
                   <Box className='flex flex-col gap-1 py-3 w-full'>
                     <Typography variant='h6'>
-                      {selectedTrainer ? `${selectedTrainer.firstName} ${selectedTrainer.lastName}` : 'N/A'}
+                      {selectedTrainer.firstName} {selectedTrainer.lastName}
                     </Typography>
-                    <Typography>{selectedTrainer ? selectedTrainer.empCode : 'N/A'}</Typography>
+                    <Typography>{selectedTrainer.empCode}</Typography>
                   </Box>
                   <Box className='flex justify-end w-full'>
                     <Typography className='flex items-center justify-center px-3 py-2 rounded-md bg-green-500 bg-opacity-40 text-green-600'>
-                      {selectedTrainer ? selectedTrainer.status : 'N/A'}
+                      {selectedTrainer.status}
                     </Typography>
                   </Box>
                 </Box>
@@ -832,11 +840,11 @@ const TrainerDashboard = () => {
                 <Box className='flex justify-between items-center w-full border-b py-3 px-1'>
                   <Box className='flex gap-2 items-center'>
                     <MailOutlined />
-                    <Typography>{selectedTrainer ? selectedTrainer.email : 'N/A'}</Typography>
+                    <Typography>{selectedTrainer.email}</Typography>
                   </Box>
                   <Box className='flex gap-2 items-center'>
                     <Call />
-                    <Typography>{selectedTrainer ? selectedTrainer.phone : 'N/A'}</Typography>
+                    <Typography>{selectedTrainer.phone}</Typography>
                   </Box>
                 </Box>
 
@@ -845,7 +853,7 @@ const TrainerDashboard = () => {
                     Languages
                   </Typography>
                   <Box className='flex flex-wrap gap-2'>
-                    {selectedTrainer?.languages?.length ? (
+                    {selectedTrainer.languages && selectedTrainer.languages.length > 0 ? (
                       selectedTrainer.languages.map((language, index) => (
                         <Chip
                           key={index}

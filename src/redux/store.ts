@@ -13,6 +13,7 @@ import budgetManagementReducer from './BudgetManagement/BudgetManagementSlice'
 import ResignedxFactorReducer from './ResignedXFactor/resignedXFactorSlice'
 import VacancyXFactorReducer from './VacancyXFactor/vacancyXFactorSlice'
 import employeeManagementReducer from './EmployeeManagement/employeeManagementSlice'
+import TrainerManagementReducer from './TrainerManagement/TrainerManagementSlice'
 import approvalsReducer from './Approvals/approvalsSlice'
 import resignationDataListingReducer from './ResignationDataListing/ResignationDataListingSlice'
 import dataUploadReducer from './DataUpload/dataUploadSlice'
@@ -22,6 +23,7 @@ import OrganizationalMappingReducer from './OrganizationalMapping/organizational
 import schedulerManagementSliceReducer from './Scheduler/schedulerSlice'
 import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
 import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
+import InterviewManagementReducer from './InterviewManagement/InterviewManagementSlice'
 import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
 
 export const makeStore = () =>
@@ -40,6 +42,7 @@ export const makeStore = () =>
       ResignedxFactorReducer,
       VacancyXFactorReducer,
       employeeManagementReducer,
+      TrainerManagementReducer,
       approvalsReducer,
       resignationDataListingReducer,
       dataUploadReducer,
@@ -49,6 +52,7 @@ export const makeStore = () =>
       schedulerManagementSliceReducer,
       noticePeriodReducer,
       positionBudgetMatrixReducer,
+      InterviewManagementReducer,
       jdManagementReducer
     }
   })

@@ -12,9 +12,11 @@ export const ROUTES = {
     EMPLOYEE: '/user-management/employee',
     EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`
   },
- 
-  JD_VIEW: (id: string) =>`/jd-management/view/${id}`,
-  JD_EDIT: (id: string) => `/jd-management/edit/${id}`,
+
+
+  JD_VIEW: (id: string) => `/jd-management/view/detail?id=${id}`,
+  JD_EDIT: (id: string) => `/jd-management/edit/detail?id=${id}`,
+
   APPROVALS: '/approvals',
   APPROVALS_VIEW: `/approvals/approval-detail/view`,
   APPROVALS_VACANCY_GROUP: `/approvals/approval-detail/Vacancy-Request-Group`,

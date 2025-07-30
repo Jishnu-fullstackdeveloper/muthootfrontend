@@ -315,6 +315,37 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         iconClass: 'tabler-calendar-event',
         permission: '',
         read: 'HIRING_INTERVIEW_READ'
+      },
+      {
+        path: ROUTES.LEARNING_AND_DEVELOPMENT.DASHBOARD,
+        label: 'L & D',
+        iconClass: 'tabler-brand-databricks',
+        permission: 'l&d',
+        read: 'USER_USER_READ',
+        children: [
+          {
+            path: ROUTES.LEARNING_AND_DEVELOPMENT.TRAINER_MANAGEMENT.TRAINER_MANAGEMENT,
+            label: 'Trainer management ',
+            iconClass: 'tabler-chalkboard',
+            permission: 'userRoles',
+            read: 'USER_ROLE_READ'
+          }
+
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.USER,
+          //   label: 'Training management',
+          //   iconClass: 'tabler-book',
+          //   permission: 'training-management',
+          //   read: 'USER_USER_READ'
+          // },
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
+          //   label: 'Trainee management ',
+          //   iconClass: 'tabler-users-group',
+          //   permission: 'traineeManagement ',
+          //   read: 'USER_EMPLOYEE_READ'
+          // }
+        ]
       }
     ],
     []
@@ -444,8 +475,8 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
               backgroundColor: theme.palette.action.hover
             },
             '&.Mui-selected': {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.common.white,
+              backgroundColor: '#fff',
+              color: '#0191DA',
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark
               }
@@ -472,7 +503,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             const permissionValue = item.read ? getPermissionRenderConfig()?.[item.read] || '' : ''
 
             return (
-              <Box key={`${item.label}-${index}`} sx={{ mb: '4px' }}>
+              <Box key={`${item.label}-${index}`} sx={{ mb: '' }}>
                 {/* Main menu item */}
                 <ListItem
                   disablePadding
@@ -480,12 +511,12 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     width: '100%',
                     borderRadius: '6px',
                     alignItems: 'center',
-                    backgroundColor: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit',
-                    color: isActive ? custom_theme_settings?.theme?.colors.buttonText : 'inherit'
+                    backgroundColor: isActive ? '#fff' : 'inherit',
+                    color: isActive ? '#0191DA' : 'inherit'
                   }}
                 >
                   <MenuItemWithPermission
-                    icon={<i className={item.iconClass} />}
+                    icon={<i className={`${item.iconClass} ${isActive ? 'text-[#0191DA]' : 'text-white'}`} />}
                     selected={isActive}
                     individualPermission={permissionValue}
                     suffix={
@@ -498,7 +529,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                           }}
                           sx={{
                             marginLeft: 'auto',
-                            color: isActive ? custom_theme_settings?.theme?.primaryColor : 'inherit'
+                            color: isActive ? '#0191DA' : 'inherit'
                           }}
                         >
                           {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
@@ -507,18 +538,22 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                     }
                     onClick={() => {
                       if (hasChildren) {
-                        toggleMenu(item.label)
+                        if (item.path) {
+                          handleNavigation(item.path)
+                          toggleMenu(item.label)
+                        }
                       } else {
                         handleNavigation(item.path)
                       }
                     }}
                     sx={{
-                      width: '100%',
-                      '&:hover': {
-                        backgroundColor: isActive
-                          ? custom_theme_settings?.theme?.primaryColor
-                          : theme.palette.action.hover
-                      }
+                      width: '100%'
+
+                      // '&:hover': {
+                      //   backgroundColor: isActive
+                      //     ? custom_theme_settings?.theme?.primaryColor
+                      //     : theme.palette.action.hover
+                      // }
                     }}
                   >
                     {item.label}
@@ -568,12 +603,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                                   }
                                 }}
                                 sx={{
-                                  width: '100%',
-                                  '&:hover': {
-                                    backgroundColor: childIsActive
-                                      ? theme.palette.primary.dark
-                                      : theme.palette.action.hover
-                                  }
+                                  width: '100%'
+
+                                  // '&:hover': {
+                                  //   backgroundColor: childIsActive
+                                  //     ? theme.palette.primary.dark
+                                  //     : theme.palette.action.hover
+                                  // }
                                 }}
                               >
                                 {child.label}

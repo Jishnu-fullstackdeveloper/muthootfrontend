@@ -50,7 +50,7 @@ const Logo = () => {
   const logoTextRef = useRef<HTMLSpanElement>(null)
 
   // Hooks
-  const { isHovered } = useVerticalNav() //transitionDuration.
+  const { isHovered } = useVerticalNav() //transitionDuration
   const { settings } = useSettings()
 
   // Vars

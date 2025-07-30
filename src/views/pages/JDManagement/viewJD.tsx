@@ -1,7 +1,8 @@
 'use client'
+
 import React, { useEffect } from 'react'
 
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import { Box, Typography, CircularProgress, Alert, Card, Grid, Divider } from '@mui/material'
 import { Tree, TreeNode } from 'react-organizational-chart'
@@ -11,8 +12,14 @@ import { fetchJdById } from '@/redux/jdManagemenet/jdManagemnetSlice'
 import { fetchVacancyXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice'
 import { fetchResignedXFactor } from '@/redux/ResignedXFactor/resignedXFactorSlice'
 
-const JobRoleDetails = () => {
-  const { id } = useParams()
+interface ViewJDProps {
+  jdId?: string
+}
+
+const JobRoleDetails: React.FC<ViewJDProps> = ({ jdId }) => {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
+
   const dispatch = useAppDispatch()
 
   const { selectedJd, isSelectedJdLoading, selectedJdSuccess, selectedJdFailure, selectedJdFailureMessage } =
@@ -27,10 +34,12 @@ const JobRoleDetails = () => {
   )
 
   useEffect(() => {
-    if (id && typeof id === 'string') {
-      dispatch(fetchJdById(id))
+    const idToUse = jdId || (id && typeof id === 'string' ? id : null)
+
+    if (idToUse) {
+      dispatch(fetchJdById(idToUse))
     }
-  }, [id, dispatch])
+  }, [id, jdId, dispatch])
 
   useEffect(() => {
     if (selectedJd?.details?.roleSpecification?.jobRole) {
@@ -420,9 +429,9 @@ const JobRoleDetails = () => {
                 {selectedJd.details.interviewLevels?.levels?.length > 0 ? (
                   <Box>
                     <Typography sx={{ fontSize: '14px', color: 'black' }}>
-                      Number of Levels: {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}
+                      Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}
                     </Typography>
-                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }} />
+                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}></Typography>
                     <Grid container spacing={2}>
                       {selectedJd.details.interviewLevels.levels.map((level, index) => (
                         <Grid item xs={6} key={index}>

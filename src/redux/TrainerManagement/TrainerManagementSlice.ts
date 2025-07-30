@@ -48,6 +48,19 @@ export interface TrainerLanguage {
   deletedBy: string | null
   trainerId: number
   languageId: number
+  name: string
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+}
+
+export interface TrainingType {
+  id: number
+  createdBy: string | null
+  updatedBy: string | null
+  deletedBy: string | null
+  name: string
+  duration_days: string
   createdAt: string
   updatedAt: string
   deletedAt: string | null
@@ -62,7 +75,8 @@ export interface TrainerManagementState {
   error: string | null
   page: number
   limit: number
-  trainerLanguages: TrainerLanguage[] // Added for storing trainer-language mappings
+  trainerLanguages: TrainerLanguage[]
+  trainingTypes: TrainingType[] // Added for storing training types
 }
 
 const initialState: TrainerManagementState = {
@@ -74,7 +88,8 @@ const initialState: TrainerManagementState = {
   error: null,
   page: 1,
   limit: 10,
-  trainerLanguages: [] // Initialize new state field
+  trainerLanguages: [], // Initialize new state field
+  trainingTypes: [] // Initialize new state field
 }
 
 // Fetch trainers data
@@ -98,9 +113,9 @@ export const fetchTrainers = createAsyncThunk(
 // Fetch trainer by ID
 export const fetchTrainerById = createAsyncThunk(
   'trainerManagement/fetchTrainerById',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`${API_ENDPOINTS.fetchTrainerById}/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchTrainerById(id))
 
       const { trainer, trainingCounts } = response.data.data || {}
 
@@ -155,6 +170,22 @@ export const fetchTrainerLanguages = createAsyncThunk(
   }
 )
 
+// Fetch training types
+export const fetchTrainingTypes = createAsyncThunk(
+  'trainerManagement/fetchTrainingTypes',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.trainingTypes)
+
+      const { data = [] } = response.data || {}
+
+      return { trainingTypes: data }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch training types data')
+    }
+  }
+)
+
 const trainerManagementSlice = createSlice({
   name: 'trainerManagement',
   initialState,
@@ -169,6 +200,7 @@ const trainerManagementSlice = createSlice({
       state.page = 1
       state.limit = 10
       state.trainerLanguages = [] // Reset new state field
+      state.trainingTypes = [] // Reset new state field
     }
   },
   extraReducers: builder => {
@@ -231,6 +263,20 @@ const trainerManagementSlice = createSlice({
         state.error = null
       })
       .addCase(fetchTrainerLanguages.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.payload as string
+      })
+
+      // Fetch Training Types
+      .addCase(fetchTrainingTypes.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(fetchTrainingTypes.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.trainingTypes = action.payload.trainingTypes
+        state.error = null
+      })
+      .addCase(fetchTrainingTypes.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload as string
       })

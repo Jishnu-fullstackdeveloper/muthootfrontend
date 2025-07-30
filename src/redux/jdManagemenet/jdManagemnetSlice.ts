@@ -10,15 +10,19 @@ interface UpdateJdPayload {
     approvalStatus: string
     details: {
       interviewLevels: {
-        levels: { level: string; designation: string }
+        numberOfLevels: string
+        levels: { level: string; designation: string }[]
       }
       roleSpecification: {
         jobRole: string
         jobType: string
-        xFactor: string
+
         companyName: string
-        noticePeriod: string
-      }[]
+        noticePeriod: any
+        salaryRange?: any
+      }
+
+      // xFactor: { vacancyXFactor: string; resignedXFactor: string }
       roleSummary: string
       keyResponsibilities: { title: string; description: string }[]
       keyChallenges: string
@@ -32,7 +36,7 @@ interface UpdateJdPayload {
       }[]
       skills: string[]
       educationAndExperience: {
-        ageLimit: number
+        ageLimit: any
         minimumQualification: string
         experienceDescription: { max: string; min: string }
       }[]
@@ -44,7 +48,7 @@ interface UpdateJdPayload {
           id: string
           name: string
           parentId: string
-          children: any[] // Recursive structure
+          children: any[]
         }[]
       }
     }

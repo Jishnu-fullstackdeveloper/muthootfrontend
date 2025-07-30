@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import ReactQuill from 'react-quill'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
@@ -32,6 +34,7 @@ import { fetchSkills, fetchDesignation, addNewJd } from '@/redux/jdManagemenet/j
 import DynamicTextField from '@/components/TextField/dynamicTextField'
 import DynamicSelect from '@/components/Select/dynamicSelect'
 
+// Interfaces remain the same
 interface NodeData {
   id: string
   name: string
@@ -42,10 +45,11 @@ interface NodeData {
 
 interface RoleSpecification {
   jobRole: string
+  jobRoleType: string
   jobType: string
   companyName: string
   noticePeriod?: number
-  xFactor?: number
+  salaryRange?: string
 }
 
 interface KeyResponsibility {
@@ -93,12 +97,14 @@ interface OrganizationChart {
   children: NodeData[]
   isJobRole?: boolean
 }
+
 interface Skill {
   name: string
 }
 
 interface JobDescription {
   roleSpecification: RoleSpecification
+  jdType: string
   roleSummary: string
   keyResponsibilities: KeyResponsibility[]
   keyChallenges: string
@@ -114,11 +120,13 @@ interface JobDescription {
 const initialFormData: JobDescription = {
   roleSpecification: {
     jobRole: '',
+    jobRoleType: '',
     jobType: '',
     companyName: '',
-    noticePeriod: 0,
-    xFactor: 0
+    noticePeriod: undefined, // Changed to undefined to align with optional type
+    salaryRange: ''
   },
+  jdType: '',
   roleSummary: '',
   keyResponsibilities: [{ title: '', description: '' }],
   keyChallenges: '',
@@ -134,7 +142,7 @@ const initialFormData: JobDescription = {
 // Function to strip isJobRole and ensure id/parentId are strings
 const stripIsJobRole = (node: NodeData): Omit<NodeData, 'isJobRole'> => ({
   id: String(node.id),
-  name: node.name, // Preserve the original name
+  name: node.name,
   parentId: node.parentId !== null ? String(node.parentId) : null,
   children: node.children.map(stripIsJobRole)
 })
@@ -163,8 +171,20 @@ const renderOrgChart = (node: OrganizationChart) => (
   </TreeNode>
 )
 
+// Function to update the job role node in a node tree
+const updateJobRoleNode = (nodes: NodeData[], newJobRole: string): NodeData[] => {
+  return nodes.map(node => {
+    if (node.isJobRole) {
+      return { ...node, name: newJobRole }
+    }
+
+    return { ...node, children: updateJobRoleNode(node.children, newJobRole) }
+  })
+}
+
 export default function CreateJDForm() {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const [formData, setFormData] = useState<JobDescription>(initialFormData)
   const [isShowOrgChart, setIsShowOrgChart] = useState(false)
   const [savedOrgChart, setSavedOrgChart] = useState<{ nodes: NodeData[] } | null>(null)
@@ -179,6 +199,7 @@ export default function CreateJDForm() {
   const steps = [
     'Role Specification',
     'Organization Chart',
+    'JD Type',
     'Role Summary',
     'Responsibilities',
     'Challenges',
@@ -219,6 +240,12 @@ export default function CreateJDForm() {
         value = e
       }
 
+      // Ensure noticePeriod is an integer
+      if (section === 'roleSpecification' && subField === 'noticePeriod') {
+        value = value ? parseInt(value, 10) : undefined
+        if (isNaN(value)) value = undefined
+      }
+
       if (section === 'interviewLevels' && subField === 'numberOfLevels') {
         const numLevels = parseInt(value, 10) || 0
 
@@ -243,22 +270,22 @@ export default function CreateJDForm() {
         ;(newData.roleSpecification as any)[subField] = value
 
         if (subField === 'jobRole') {
-          // Update organizationChart and savedOrgChart job role node name
-          const jobRoleNode = savedOrgChart
-            ? findNode(savedOrgChart.nodes, savedOrgChart.nodes.find(n => n.isJobRole)?.id || 'root')
-            : { id: 'root', name: value || '', parentId: null, children: [], isJobRole: true }
-
-          if (jobRoleNode) {
-            const updatedNodes = savedOrgChart
-              ? savedOrgChart.nodes.map(node => (node.isJobRole ? { ...node, name: value || '' } : node))
-              : [{ ...jobRoleNode, name: value || '', isJobRole: true }]
+          if (savedOrgChart) {
+            const updatedNodes = updateJobRoleNode(savedOrgChart.nodes, value || '')
 
             setSavedOrgChart({ nodes: updatedNodes })
+            const updatedOrgChart = updateJobRoleNode([newData.organizationChart], value || '')[0]
+
+            newData.organizationChart = updatedOrgChart
+          } else {
             newData.organizationChart = {
               ...newData.organizationChart,
               name: value || '',
               isJobRole: true
             }
+            setSavedOrgChart({
+              nodes: [{ id: 'root', name: value || '', parentId: null, children: [], isJobRole: true }]
+            })
           }
         }
       } else if (index !== undefined && subField) {
@@ -295,15 +322,11 @@ export default function CreateJDForm() {
   }, [dispatch, limit, page])
 
   const cancelOrgChart = () => {
-    console.log('Cancel org chart')
     setIsShowOrgChart(false)
   }
 
   const handleOrgChartSave = (chartData: { nodes: NodeData[] }) => {
-    console.log('handleOrgChartSave triggered, received chartData:', JSON.stringify(chartData, null, 2))
-
     if (!chartData.nodes.length) {
-      console.error('No nodes provided in chart data')
       alert('Cannot save: No nodes provided')
 
       return
@@ -312,59 +335,46 @@ export default function CreateJDForm() {
     const topNode = chartData.nodes.find(node => !node.parentId)
 
     if (!topNode) {
-      console.error('Topmost node not found in chart data')
       alert('Cannot save: Topmost node not found')
 
       return
     }
 
-    // Find the job role node
     const jobRoleNode = findNode(chartData.nodes, chartData.nodes.find(n => n.isJobRole)?.id || 'root')
 
     if (!jobRoleNode) {
-      console.error('Job role node not found in chart data')
       alert('Cannot save: Job role node not found')
 
       return
     }
 
-    // Update only the job role node's name
     const updatedNodes = chartData.nodes.map(node =>
       node.id === jobRoleNode.id
         ? { ...node, name: formData.roleSpecification.jobRole || node.name || 'Untitled Role' }
         : node
     )
 
-    // Construct the organization chart, preserving the topmost node's name
     const organizationChart: OrganizationChart = {
       id: String(topNode.id),
-      name: topNode.name || 'Untitled Role', // Preserve the user-selected name
+      name: topNode.name || 'Untitled Role',
       parentId: null,
       children: topNode.children,
       isJobRole: topNode.isJobRole || false
     }
 
-    console.log('Setting savedOrgChart:', JSON.stringify({ nodes: updatedNodes }, null, 2))
     setSavedOrgChart({ nodes: updatedNodes })
-    console.log('Updating formData.organizationChart:', JSON.stringify(organizationChart, null, 2))
     setFormData(prev => ({
       ...prev,
       organizationChart
     }))
     updateActiveStep({ ...formData, organizationChart })
     setIsShowOrgChart(false)
-    console.log(
-      'Updated Form Data with Organization Chart:',
-      JSON.stringify({ ...formData, organizationChart }, null, 2)
-    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitting Form Data:', JSON.stringify(formData, null, 2))
 
     try {
-      // Update the job role node's name in the organization chart
       const updateNodeName = (node: NodeData): NodeData => {
         if (node.isJobRole) {
           return { ...node, name: formData.roleSpecification.jobRole || node.name || 'Untitled Role' }
@@ -376,13 +386,11 @@ export default function CreateJDForm() {
         }
       }
 
-      // Create a new organization chart with the updated job role node name
       const updatedOrgChart = {
         ...formData.organizationChart,
         children: formData.organizationChart.children.map(updateNodeName)
       }
 
-      // Transform organizationChart to remove isJobRole and ensure id/parentId are strings
       const transformedOrgChart = stripIsJobRole(updatedOrgChart)
 
       const transformedFormData = {
@@ -391,14 +399,12 @@ export default function CreateJDForm() {
         organizationChart: transformedOrgChart
       }
 
-      console.log('Transformed Form Data for Submission:', JSON.stringify(transformedFormData, null, 2))
+      await dispatch(addNewJd(transformedFormData)).unwrap()
 
-      const result = await dispatch(addNewJd(transformedFormData)).unwrap()
-
-      console.log('Job Description Created:', result)
       setFormData(initialFormData)
       setSavedOrgChart(null)
       setActiveStep(0)
+      router.back()
     } catch (error) {
       console.error('Failed to create job description:', error)
       alert('Failed to create job description: ' + (error.message || addJdFailureMessage || 'Unknown error'))
@@ -410,10 +416,11 @@ export default function CreateJDForm() {
 
     if (
       data.roleSpecification.jobRole &&
+      data.roleSpecification.jobRoleType &&
       data.roleSpecification.jobType &&
       data.roleSpecification.companyName &&
-      data.roleSpecification.noticePeriod &&
-      data.roleSpecification.xFactor
+      data.roleSpecification.noticePeriod !== undefined &&
+      data.roleSpecification.salaryRange
     ) {
       completedSteps = 1
     }
@@ -422,56 +429,60 @@ export default function CreateJDForm() {
       completedSteps = 2
     }
 
-    if (completedSteps >= 2 && data.roleSummary) {
+    if (completedSteps >= 2 && data.jdType) {
       completedSteps = 3
     }
 
-    if (completedSteps >= 3 && data.keyResponsibilities.some(r => r.title && r.description)) {
+    if (completedSteps >= 3 && data.roleSummary) {
       completedSteps = 4
     }
 
-    if (completedSteps >= 4 && data.keyChallenges) {
+    if (completedSteps >= 4 && data.keyResponsibilities.some(r => r.title && r.description)) {
       completedSteps = 5
     }
 
-    if (completedSteps >= 5 && data.keyDecisions) {
+    if (completedSteps >= 5 && data.keyChallenges) {
       completedSteps = 6
     }
 
-    if (completedSteps >= 6 && data.keyInteractions.some(i => i.internalStakeholders && i.externalStakeholders)) {
+    if (completedSteps >= 6 && data.keyDecisions) {
       completedSteps = 7
     }
 
+    if (completedSteps >= 7 && data.keyInteractions.some(i => i.internalStakeholders && i.externalStakeholders)) {
+      completedSteps = 8
+    }
+
     if (
-      completedSteps >= 7 &&
+      completedSteps >= 8 &&
       data.keyRoleDimensions[0].portfolioSize &&
       data.keyRoleDimensions[0].geographicalCoverage &&
       data.keyRoleDimensions[0].teamSize &&
       data.keyRoleDimensions[0].totalTeamSize
     ) {
-      completedSteps = 8
-    }
-
-    if (completedSteps >= 8 && data.skills.length > 0) {
       completedSteps = 9
     }
 
-    if (
-      completedSteps >= 9 &&
-      data.educationAndExperience.some(
-        e => e.ageLimit && e.minimumQualification && e.experienceDescription.min && e.experienceDescription.max
-      )
-    ) {
+    if (completedSteps >= 9 && data.skills.length > 0) {
       completedSteps = 10
     }
 
     if (
       completedSteps >= 10 &&
+      data.educationAndExperience.some(
+        e => e.ageLimit && e.minimumQualification && e.experienceDescription.min && e.experienceDescription.max
+      )
+    ) {
+      completedSteps = 11
+    }
+
+    if (
+      completedSteps >= 11 &&
       data.interviewLevels.numberOfLevels &&
       parseInt(data.interviewLevels.numberOfLevels) > 0 &&
       data.interviewLevels.levels.every(l => l.designation)
     ) {
-      completedSteps = 11
+      completedSteps = 12
     }
 
     setActiveStep(completedSteps)
@@ -490,10 +501,28 @@ export default function CreateJDForm() {
   }
 
   const handleDeleteItem = (section: keyof JobDescription, index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: Array.isArray(prev[section]) ? prev[section].filter((_, i) => i !== index) : prev[section]
-    }))
+    setFormData(prev => {
+      const newData = { ...prev }
+
+      if (section === 'keyResponsibilities' || section === 'keyInteractions' || section === 'educationAndExperience') {
+        newData[section] = (newData[section] as any).filter((_: any, i: number) => i !== index)
+      } else if (section === 'interviewLevels') {
+        newData.interviewLevels = {
+          ...newData.interviewLevels,
+          levels: newData.interviewLevels.levels
+            .filter((_: any, i: number) => i !== index)
+            .map((level: InterviewLevel, i: number) => ({
+              ...level,
+              level: String(i + 1)
+            })),
+          numberOfLevels: String(newData.interviewLevels.levels.length - 1)
+        }
+      }
+
+      updateActiveStep(newData)
+
+      return newData
+    })
   }
 
   return (
@@ -547,6 +576,25 @@ export default function CreateJDForm() {
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
+                  <label htmlFor='jobRoleType' className='block text-sm font-medium text-gray-700'>
+                    Job Role Type *
+                  </label>
+                  <Box className='p-3 rounded w-full mb-2'>
+                    <DynamicSelect
+                      value={formData.roleSpecification.jobRoleType}
+                      onChange={e => handleInputChange(e.target.value, 'roleSpecification', 0, 'jobRoleType')}
+                    >
+                      <MenuItem value='branch'>BRANCH</MenuItem>
+                      <MenuItem value='cluster'>CLUSTER</MenuItem>
+                      <MenuItem value='area'>AREA</MenuItem>
+                      <MenuItem value='region'>REGION</MenuItem>
+                      <MenuItem value='zone'>ZONE</MenuItem>
+                      <MenuItem value='territory'>TERRITORY</MenuItem>
+                      <MenuItem value='corporate'>CORPORATE</MenuItem>
+                    </DynamicSelect>
+                  </Box>
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
                   <label htmlFor='jobType' className='block text-sm font-medium text-gray-700'>
                     Job Type *
                   </label>
@@ -560,7 +608,7 @@ export default function CreateJDForm() {
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
                   <label htmlFor='noticePeriod' className='block text-sm font-medium text-gray-700'>
-                    Notice Period *
+                    Notice Period (days) *
                   </label>
                   <DynamicTextField
                     type='number'
@@ -572,16 +620,15 @@ export default function CreateJDForm() {
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
-                  <label htmlFor='xFactor' className='block text-sm font-medium text-gray-700'>
-                    X Factor *
+                  <label htmlFor='salaryRange' className='block text-sm font-medium text-gray-700'>
+                    Salary Range *
                   </label>
                   <DynamicTextField
-                    type='number'
-                    placeholder='X Factor'
-                    value={formData.roleSpecification.xFactor || ''}
-                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'xFactor')}
+                    type='text'
+                    placeholder='Salary Range'
+                    value={formData.roleSpecification.salaryRange || ''}
+                    onChange={e => handleInputChange(e, 'roleSpecification', 0, 'salaryRange')}
                     className='border p-2 rounded w-full mb-2'
-                    InputProps={{ inputProps: { min: 0, step: 1 } }}
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
@@ -639,6 +686,20 @@ export default function CreateJDForm() {
                 </div>
               )}
             </div>
+            <div className='border p-4 rounded'>
+              <FormControl fullWidth margin='normal'>
+                <label htmlFor='jdType' className='block text-sm font-medium text-gray-700'>
+                  JD Type *
+                </label>
+                <Box className='p-3 rounded w-full mb-2'>
+                  <DynamicSelect value={formData.jdType} onChange={e => handleInputChange(e.target.value, 'jdType')}>
+                    <MenuItem value='lateral'>Lateral</MenuItem>
+                    <MenuItem value='campus'>Campus</MenuItem>
+                  </DynamicSelect>
+                </Box>
+              </FormControl>
+            </div>
+            {/* The rest of the form remains unchanged */}
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Role Summary</h2>
               <FormControl fullWidth>
@@ -949,23 +1010,45 @@ export default function CreateJDForm() {
                     <Typography variant='body2' sx={{ minWidth: '50px' }}>
                       Level {level.level}:
                     </Typography>
-                    <Autocomplete
-                      options={designationData || []}
-                      getOptionLabel={option => option.name || ''}
-                      value={designationData?.find(d => d.name === level.designation) || null}
-                      onChange={(event, newValue) =>
-                        handleInputChange(newValue ? newValue.name : '', 'interviewLevels', index, 'designation')
-                      }
-                      sx={{ flexGrow: 1 }}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          label={`Designation for Level ${level.level}`}
-                          variant='outlined'
-                          placeholder={designationData ? 'Select designation' : 'Loading designations...'}
-                        />
-                      )}
-                    />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Autocomplete
+                        options={designationData || []}
+                        getOptionLabel={option => option.name || ''}
+                        value={designationData?.find(d => d.name === level.designation) || null}
+                        onChange={(event, newValue) =>
+                          handleInputChange(newValue ? newValue.name : '', 'interviewLevels', index, 'designation')
+                        }
+                        sx={{ flexGrow: 1 }}
+                        renderInput={params => (
+                          <TextField
+                            {...params}
+                            label={`Designation for Level ${level.level}`}
+                            variant='outlined'
+                            placeholder={designationData ? 'Select designation' : 'Loading designations...'}
+                          />
+                        )}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Button
+                        type='button'
+                        onClick={() => handleDeleteItem('interviewLevels', index)}
+                        sx={{
+                          minWidth: 0,
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          backgroundColor: '#f0f0f0',
+                          color: '#555',
+                          '&:hover': {
+                            backgroundColor: '#d3d3d3',
+                            color: '#000'
+                          }
+                        }}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </Button>
+                    </Box>
                   </Box>
                 </FormControl>
               ))}

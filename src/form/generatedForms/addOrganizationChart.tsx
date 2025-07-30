@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { Tree, TreeNode } from 'react-organizational-chart'
-import { Box, Select, MenuItem, Button } from '@mui/material'
+import { Box, Select, MenuItem, Button, TextField } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -83,8 +83,13 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
         const prevNode = findNode(nodes, id)
         const prevLabel = prevNode?.name
 
-        if (prevLabel) newUsed.splice(newUsed.indexOf(prevLabel), 1)
-        if (value && !newUsed.includes(value)) newUsed.push(value)
+        if (prevLabel && !prevNode?.isJobRole) {
+          newUsed.splice(newUsed.indexOf(prevLabel), 1)
+        }
+
+        if (value && !newUsed.includes(value) && !prevNode?.isJobRole) {
+          newUsed.push(value)
+        }
 
         return newUsed
       })
@@ -147,8 +152,8 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
 
   const addParentNode = useCallback((nodeId: string) => {
     const newParent: NodeData = {
-      id: Date.now().toString(), // Unique ID
-      name: 'Parent Role', // Default name
+      id: Date.now().toString(),
+      name: 'Parent Role',
       children: [],
       parentId: null,
       isJobRole: false
@@ -295,24 +300,35 @@ export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleC
       key={node.id}
       label={
         <StyledNode sx={{ borderColor: node.isJobRole ? '#1976d2' : '#ccc' }}>
-          <Select
-            value={node.name}
-            onChange={e => updateNode(node.id, 'name', e.target.value)}
-            size='small'
-            fullWidth
-            sx={{ mt: 1 }}
-          >
-            <MenuItem value=''>Select Role</MenuItem>
-            {roles.map(designation => (
-              <MenuItem
-                key={designation}
-                value={designation}
-                disabled={usedRoles.includes(designation) && node.name !== designation}
-              >
-                {designation}
-              </MenuItem>
-            ))}
-          </Select>
+          {node.isJobRole ? (
+            <TextField
+              value={node.name}
+              onChange={e => updateNode(node.id, 'name', e.target.value)}
+              size='small'
+              fullWidth
+              placeholder='Enter Job Role'
+              sx={{ mt: 1 }}
+            />
+          ) : (
+            <Select
+              value={node.name}
+              onChange={e => updateNode(node.id, 'name', e.target.value)}
+              size='small'
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value=''>Select Role</MenuItem>
+              {roles.map(designation => (
+                <MenuItem
+                  key={designation}
+                  value={designation}
+                  disabled={usedRoles.includes(designation) && node.name !== designation}
+                >
+                  {designation}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
           <Button variant='contained' size='small' onClick={() => addNode(node.id)} sx={{ mt: 1 }}>
             Add Child
           </Button>

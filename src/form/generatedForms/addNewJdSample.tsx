@@ -641,7 +641,7 @@ export default function CreateJDForm() {
                       onChange={e => handleInputChange(e.target.value, 'roleSpecification', 0, 'companyName')}
                     >
                       <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
-                      <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
+                      <MenuItem value='muthoot_pappachan'>Muthoot Pappachan</MenuItem>
                     </DynamicSelect>
                   </Box>
                 </FormControl>

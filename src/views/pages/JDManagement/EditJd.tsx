@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import ReactQuill from 'react-quill'
 import Stepper from '@mui/material/Stepper'
@@ -197,7 +197,8 @@ const updateJobRoleNode = (nodes: NodeData[], newJobRole: string): NodeData[] =>
 export default function EditJDForm() {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const { id } = useParams()
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
   const jobId = Array.isArray(id) ? id[0] : id
   const [formData, setFormData] = useState<JobDescription>(initialFormData)
   const [isShowOrgChart, setIsShowOrgChart] = useState(false)
@@ -822,7 +823,7 @@ export default function EditJDForm() {
                       onChange={e => handleInputChange(e.target.value, 'roleSpecification', undefined, 'companyName')}
                     >
                       <MenuItem value='muthoot_finCorp'>Muthoot FinCorp</MenuItem>
-                      <MenuItem value='muthoot_finance'>Muthoot Finance</MenuItem>
+                      <MenuItem value='muthoot_pappachan'>Muthoot Pappachan</MenuItem>
                     </DynamicSelect>
                   </Box>
                 </FormControl>
@@ -869,14 +870,21 @@ export default function EditJDForm() {
             </div>
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Jd Type</h2>
-              <FormControl fullWidth>
-                <TextField
-                  label='Jd Type'
-                  value={formData.details.jdType}
-                  onChange={e => handleInputChange(e.target.value, 'jdType')}
-                  variant='outlined'
-                />
-              </FormControl>
+             
+               <FormControl fullWidth margin='normal'>
+                  <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
+                   Jd Type*
+                  </label>
+                  <Box className='p-3 rounded w-full mb-2'>
+                    <DynamicSelect
+                      value={formData.details.jdType || ''}
+                      onChange={e => handleInputChange(e.target.value,'jdType')}
+                    >
+                      <MenuItem value='lateral'>Lateral</MenuItem>
+                      <MenuItem value='campus'>Campus</MenuItem>
+                    </DynamicSelect>
+                  </Box>
+                </FormControl>
             </div>
 
             <div className='border p-4 rounded'>

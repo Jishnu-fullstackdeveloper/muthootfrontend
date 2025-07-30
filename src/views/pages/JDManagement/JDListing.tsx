@@ -9,10 +9,7 @@ import {
   CircularProgress,
   Alert,
   Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+
   IconButton,
   TextField,
   Chip,
@@ -60,7 +57,6 @@ const JobDetailsList = () => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   }
-
 
   useEffect(() => {
     dispatch(
@@ -417,7 +413,7 @@ const JobDetailsList = () => {
                         color: '#0096DA'
                       }
                     }}
-                    onClick={() => router.push(ROUTES.JD_EDIT(jobRole.id))}
+                    onClick={() => router.push(ROUTES.JD_EDIT(jobRole.id, jobRole?.details.roleSpecification?.jobRole))}
                   >
                     <Typography className='edit-text' sx={{ color: '#fff', fontWeight: 500 }}>
                       Edit
@@ -452,25 +448,7 @@ const JobDetailsList = () => {
         </Box>
       )}
 
-      {/* Keep limit selector for grid view */}
-      {viewMode === 'grid' && (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
-          <FormControl size='small' sx={{ minWidth: 70 }}>
-            <InputLabel>Count</InputLabel>
-            <Select
-              value={paginationState.limit}
-              onChange={e => handleChangeLimit(Number(e.target.value))}
-              label='Limit per page'
-            >
-              {[10, 25, 50, 100].map(option => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-      )}
+      
 
       {isJdLoading && !isFetchingMore && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>

@@ -1,9 +1,14 @@
 'use client'
 import React, { useMemo } from 'react'
 
-import { Box, Typography } from '@mui/material'
+import { useRouter } from 'next/navigation'
+
+import { Box, Typography, IconButton, Tooltip } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
@@ -77,6 +82,65 @@ const CollegeTableView = ({ colleges }: CollegeTableViewProps) => {
       columnHelper.accessor('district', {
         header: 'DISTRICT',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.district}</Typography>
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'ACTIONS',
+        cell: ({ row }) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const router = useRouter()
+
+          return (
+            <Box className='flex items-center gap-1'>
+              <Tooltip title='View College'>
+                <IconButton
+                  onClick={() => router.push(`/hiring-management/campus-management/college/view/${row.original.id}`)}
+                  aria-label={`View ${row.original.name}`}
+                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+                >
+                  <VisibilityIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Edit College'>
+                <IconButton
+                  onClick={() => {
+                    const queryParams = new URLSearchParams()
+
+                    // Convert college object to URL params
+                    Object.entries(row.original).forEach(([key, value]) => {
+                      if (value !== null && value !== undefined) {
+                        if (Array.isArray(value)) {
+                          // Handle array fields (like preferred_drive_months)
+                          value.forEach(item => queryParams.append(key, item))
+                        } else if (typeof value === 'object') {
+                          // Skip complex objects
+                        } else {
+                          queryParams.set(key, String(value))
+                        }
+                      }
+                    })
+                    router.push(
+                      `/hiring-management/campus-management/college/edit/${row.original.id}?${queryParams.toString()}`
+                    )
+                  }}
+                  aria-label={`Edit ${row.original.name}`}
+                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+                >
+                  <EditIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Delete College'>
+                <IconButton
+                  onClick={() => console.log(`Delete college ${row.original.id}`)} // Placeholder for delete logic
+                  aria-label={`Delete ${row.original.name}`}
+                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+                >
+                  <DeleteIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )
+        }
       }),
       columnHelper.accessor('pin_code', {
         header: 'PIN CODE',

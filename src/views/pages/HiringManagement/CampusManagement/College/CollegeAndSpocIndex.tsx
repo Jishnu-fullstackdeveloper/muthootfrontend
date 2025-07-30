@@ -4,12 +4,12 @@ import React from 'react'
 
 import { usePathname } from 'next/navigation'
 
-import CollegeDetails from './College/CollegeDetailView'
+import CollegeDetails from './CollegeDetailView'
 
 // Placeholder import for AddOrEditCollege (implement separately)
-import CollegeAndSpocForm from './College/AddCollegeAndSpoc'
+import CollegeAndSpocForm from './AddCollegeAndSpoc'
 
-const CampusManagementIndex = () => {
+const CollegeAndSpocIndex = () => {
   const pathname = usePathname()
   const segments = pathname.split('/')
   const mode = segments[4] // e.g., /hiring-management/campus-management/[mode]
@@ -17,10 +17,10 @@ const CampusManagementIndex = () => {
 
   return (
     <>
-      {(mode === 'add' || (mode === 'edit' && id)) && <CollegeAndSpocForm mode={'add'} />}
+      {(mode === 'add' || (mode === 'edit' && id)) && <CollegeAndSpocForm mode={mode} />}
       {mode === 'view' && id && <CollegeDetails />}
     </>
   )
 }
 
-export default CampusManagementIndex
+export default CollegeAndSpocIndex

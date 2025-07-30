@@ -93,11 +93,11 @@ const CollegeListingPage = () => {
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
             <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
-              College Data List
+              College & SPOC
             </Typography>
           </Box>
 
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 3, zIndex: 1100 }}>
+          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 1, zIndex: 1100 }}>
             <TextField
               label='Search'
               variant='outlined'

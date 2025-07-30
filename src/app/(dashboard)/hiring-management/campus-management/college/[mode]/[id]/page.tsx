@@ -1,9 +1,9 @@
-import CampusManagementIndex from '@/views/pages/HiringManagement/CampusManagement/CampusManagementIndex'
+import CollegeAndSpocIndex from '@/views/pages/HiringManagement/CampusManagement/College/CollegeAndSpocIndex'
 
 const Page = () => {
   return (
     <div>
-      <CampusManagementIndex />
+      <CollegeAndSpocIndex />
     </div>
   )
 }

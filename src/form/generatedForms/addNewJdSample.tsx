@@ -749,7 +749,12 @@ export default function CreateJDForm() {
                         onChange={value => handleInputChange(value, 'keyResponsibilities', index, 'description')}
                         modules={{
                           toolbar: {
-                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                          
+                            container: [
+                              ['bold', 'italic', 'underline'],
+                              [{ list: 'ordered' }, { list: 'bullet' }]
+                            ]
+                          
                           }
                         }}
                       />
@@ -776,7 +781,10 @@ export default function CreateJDForm() {
                     onChange={value => handleInputChange(value, 'keyChallenges')}
                     modules={{
                       toolbar: {
-                        container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                         container: [
+                              ['bold', 'italic', 'underline'],
+                              [{ list: 'ordered' }, { list: 'bullet' }]
+                            ]
                       }
                     }}
                   />
@@ -794,7 +802,10 @@ export default function CreateJDForm() {
                     onChange={value => handleInputChange(value, 'keyDecisions')}
                     modules={{
                       toolbar: {
-                        container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                         container: [
+                              ['bold', 'italic', 'underline'],
+                              [{ list: 'ordered' }, { list: 'bullet' }]
+                            ]
                       }
                     }}
                   />
@@ -820,7 +831,10 @@ export default function CreateJDForm() {
                         onChange={value => handleInputChange(value, 'keyInteractions', index, 'internalStakeholders')}
                         modules={{
                           toolbar: {
-                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                            container: [
+                              ['bold', 'italic', 'underline'],
+                              [{ list: 'ordered' }, { list: 'bullet' }]
+                            ]
                           }
                         }}
                       />
@@ -839,7 +853,10 @@ export default function CreateJDForm() {
                         onChange={value => handleInputChange(value, 'keyInteractions', index, 'externalStakeholders')}
                         modules={{
                           toolbar: {
-                            container: [[{ list: 'ordered' }, { list: 'bullet' }]]
+                             container: [
+                              ['bold', 'italic', 'underline'],
+                              [{ list: 'ordered' }, { list: 'bullet' }]
+                            ]
                           }
                         }}
                       />

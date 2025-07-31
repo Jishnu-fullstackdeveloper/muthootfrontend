@@ -18,7 +18,7 @@ interface UpdateJdPayload {
         jobType: string
 
         companyName: string
-        noticePeriod: any
+        noticePeriod: number
         salaryRange?: any
       }
 
@@ -98,7 +98,7 @@ export const addNewJd = createAsyncThunk<any, any>(
 
 export const fetchJd = createAsyncThunk(
   'jdManagement/fetchJd',
-  async (params: { page: number; limit: number; search: string }, { rejectWithValue }) => {
+  async (params: { page: number; limit: number; search: string ; JdType:string }, { rejectWithValue }) => {
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getJd, { params })
 

@@ -9,17 +9,20 @@ import {
   CircularProgress,
   Alert,
   Box,
-
   IconButton,
   TextField,
   Chip,
-  Tooltip
+  Tooltip,
+  Button,
+  Menu,
+  MenuItem
 } from '@mui/material'
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   GridView as GridViewIcon,
-  TableView as TableChartIcon
+  TableView as TableChartIcon,
+  FilterList as FilterListIcon
 } from '@mui/icons-material'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -39,6 +42,9 @@ const JobDetailsList = () => {
 
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'table'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
+  const [filter, setFilter] = useState<string | null>(null) // State for jdType filter
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null) // For filter menu
+  const open = Boolean(anchorEl)
 
   const [paginationState, setPaginationState] = useState({
     page: 1,
@@ -58,17 +64,40 @@ const JobDetailsList = () => {
       .join(' ')
   }
 
+  // Handle filter menu open/close
+  const handleFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleFilterClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleFilterSelect = (jdType: string | null) => {
+    setFilter(jdType)
+    setPaginationState(prev => ({ ...prev, page: 1, hasMore: true })) // Reset pagination
+    setIsFetchingMore(false)
+    handleFilterClose()
+  }
+
   useEffect(() => {
-    dispatch(
-      fetchJd({
-        page: paginationState.page,
-        limit: paginationState.limit,
-        search: searchQuery
-      })
-    ).then(() => {
+    const payload: any = {
+      page: paginationState.page,
+      limit: paginationState.limit
+    }
+
+    if (searchQuery) {
+      payload.search = searchQuery
+    }
+
+    if (filter) {
+      payload.jdType = filter
+    }
+
+    dispatch(fetchJd(payload)).then(() => {
       setIsFetchingMore(false)
     })
-  }, [dispatch, paginationState.page, paginationState.limit, searchQuery])
+  }, [dispatch, paginationState.page, paginationState.limit, searchQuery, filter])
 
   // Update hasMore based on totalCount and loaded data
   useEffect(() => {
@@ -121,16 +150,14 @@ const JobDetailsList = () => {
         }}
       >
         <div className='flex flex-col md:flex-row justify-between items-start md:items-center p-6 gap-4'>
-          <Box
-            sx={{ display: 'flex', flex: { xs: '1 1 100%', sm: '0 0 auto' }, maxWidth: { xs: '100%', sm: '420px' } }}
-          >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: { xs: '1 1 100%', sm: '0 0 auto' } }}>
             <TextField
               size='small'
               placeholder='Search JD...'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               aria-label='Search job descriptions'
-              sx={{ width: '100%', minWidth: '200px' }}
+              sx={{ width: '100%', minWidth: '200px', maxWidth: '420px' }}
               InputProps={{
                 startAdornment: <SearchIcon sx={{ mr: 1, color: 'grey.400' }} />,
                 endAdornment: searchQuery && (
@@ -140,6 +167,31 @@ const JobDetailsList = () => {
                 )
               }}
             />
+
+            {/* Filter Button and Menu */}
+            <Box>
+              <Button
+                variant='outlined'
+                startIcon={<FilterListIcon />}
+                onClick={handleFilterClick}
+                sx={{ textTransform: 'none', fontWeight: 500 }}
+                aria-label='Open filter menu'
+              >
+                {filter ? toTitleCase(filter) : 'Filter by JD Type'}
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleFilterClose}
+                MenuListProps={{
+                  'aria-labelledby': 'filter-button'
+                }}
+              >
+                <MenuItem onClick={() => handleFilterSelect(null)}>All</MenuItem>
+                <MenuItem onClick={() => handleFilterSelect('campus')}>Campus</MenuItem>
+                <MenuItem onClick={() => handleFilterSelect('lateral')}>Lateral</MenuItem>
+              </Menu>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'start', md: 'end' }, alignItems: 'center' }}>
             <DynamicButton
@@ -194,7 +246,7 @@ const JobDetailsList = () => {
             jdData.map((jobRole, index) => (
               <Card
                 key={jobRole.id}
-                ref={index === jdData.length - 1 ? lastElementRef : null} // Attach ref to the last card
+                ref={index === jdData.length - 1 ? lastElementRef : null}
                 sx={{
                   borderRadius: '8px',
                   border: '1px solid #e0e0e0',
@@ -211,7 +263,6 @@ const JobDetailsList = () => {
                   }
                 }}
               >
-                {/* Header */}
                 <Box
                   sx={{
                     display: 'flex',
@@ -228,8 +279,6 @@ const JobDetailsList = () => {
                       {jobRole.details.roleSpecification?.jobRole?.toUpperCase() || 'N/A'}
                     </Typography>
                   </Box>
-
-                  {/* Top-Right Status Dot */}
                   <Box
                     sx={{
                       display: 'flex',
@@ -282,10 +331,8 @@ const JobDetailsList = () => {
                   </Box>
                 </Box>
 
-                {/* Body Content */}
                 <Box sx={{ p: 3, flex: 1 }}>
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                    {/* Experience & Education */}
                     <Box>
                       <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78' }}>Experience:</Typography>
                       <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mt: 1 }}>
@@ -293,7 +340,6 @@ const JobDetailsList = () => {
                           ? `${jobRole.details.educationAndExperience[0].experienceDescription.min} - ${jobRole.details.educationAndExperience[0].experienceDescription.max} years`
                           : 'N/A'}
                       </Typography>
-
                       <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78', mt: 2 }}>
                         Salary:
                       </Typography>
@@ -302,7 +348,6 @@ const JobDetailsList = () => {
                           ? `₹ ${toTitleCase(jobRole.details.roleSpecification.salaryRange.replace(/_/g, ' '))}`
                           : 'N/A'}
                       </Typography>
-
                       <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78', mt: 2 }}>
                         Education:
                       </Typography>
@@ -312,8 +357,6 @@ const JobDetailsList = () => {
                           : 'N/A'}
                       </Typography>
                     </Box>
-
-                    {/* Company & Job Type */}
                     <Box>
                       <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78' }}>
                         Company Name:
@@ -323,7 +366,6 @@ const JobDetailsList = () => {
                           ? toTitleCase(jobRole.details.roleSpecification.companyName.replace(/_/g, ' '))
                           : 'N/A'}
                       </Typography>
-
                       <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78', mt: 2 }}>
                         Job Type:
                       </Typography>
@@ -332,10 +374,14 @@ const JobDetailsList = () => {
                           ? toTitleCase(jobRole.details.roleSpecification.jobType)
                           : 'N/A'}
                       </Typography>
+                      <Typography sx={{ fontSize: '12px', fontWeight: 400, color: '#5E6E78', mt: 2 }}>
+                        JD Type:
+                      </Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mt: 1 }}>
+                        {jobRole.details.jdType ? toTitleCase(jobRole.details.jdType) : 'N/A'}
+                      </Typography>
                     </Box>
                   </Box>
-
-                  {/* Skills */}
                   <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1, mt: 4 }}>
                     Skills
                   </Typography>
@@ -356,7 +402,6 @@ const JobDetailsList = () => {
                   </Box>
                 </Box>
 
-                {/* Footer Buttons */}
                 <Box
                   sx={{
                     width: '100%',
@@ -393,7 +438,6 @@ const JobDetailsList = () => {
                       View Details
                     </Typography>
                   </Box>
-
                   <Box
                     sx={{
                       width: '50%',
@@ -436,19 +480,16 @@ const JobDetailsList = () => {
         />
       )}
 
-      {/* Lazy Loading Indicator */}
       {viewMode === 'grid' && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           {isFetchingMore && <CircularProgress />}
           {!isFetchingMore && !paginationState.hasMore && jdData.length > 0 && (
             <Typography variant='body2' color='text.secondary'>
-              No more job Details to load
+              No more job details to load
             </Typography>
           )}
         </Box>
       )}
-
-      
 
       {isJdLoading && !isFetchingMore && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -460,7 +501,7 @@ const JobDetailsList = () => {
           {jdFailureMessage}
         </Alert>
       )}
-      {jdSuccess && jdData.length === 0 && <Alert severity='info'>No job Details found.</Alert>}
+      {jdSuccess && jdData.length === 0 && <Alert severity='info'>No job details found.</Alert>}
       {!isJdLoading && !jdSuccess && !jdFailure && (
         <Alert severity='warning'>No data loaded. Check Redux state or API call.</Alert>
       )}

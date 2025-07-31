@@ -47,7 +47,7 @@ interface RoleSpecification {
   jobRoleType: string
   jobType: string
   companyName: string
-  noticePeriod: any
+  noticePeriod: number
   salaryRange: any
 }
 
@@ -273,7 +273,8 @@ export default function EditJDForm() {
             jobType: selectedJd.details?.roleSpecification.jobType || '',
             jobRoleType: selectedJd.details?.roleSpecification.jobRoleType || '',
             companyName: selectedJd.details?.roleSpecification.companyName || '',
-            noticePeriod: selectedJd.details?.roleSpecification.noticePeriod || '',
+            noticePeriod: Number(selectedJd.details?.roleSpecification.noticePeriod || ''),
+
             salaryRange: selectedJd.details?.roleSpecification.salaryRange || ''
           },
           jdType: selectedJd.details?.jdType || '',
@@ -331,6 +332,12 @@ export default function EditJDForm() {
         value = e
       }
 
+      if (section === 'roleSpecification' && subField === 'noticePeriod') {
+        // Convert noticePeriod to an integer
+        value = value ? parseInt(value, 10) : 0
+      }
+
+      // Rest of the existing handleInputChange logic remains unchanged
       if (section === 'interviewLevels' && subField === 'numberOfLevels') {
         const numLevels = parseInt(value, 10) || 0
 
@@ -363,14 +370,9 @@ export default function EditJDForm() {
           [field]: value
         }
       } else if (section === 'roleSpecification' && subField) {
-        if (subField === 'noticePeriod' || subField === 'xFactor') {
-          newData.details.roleSpecification[subField] = value // Store as string
-        } else {
-          newData.details.roleSpecification[subField] = value
-        }
+        newData.details.roleSpecification[subField] = value
 
         if (subField === 'jobRole') {
-          // Update only the job role node's name in savedOrgChart and formData.organizationChart
           if (savedOrgChart) {
             const updatedNodes = updateJobRoleNode(savedOrgChart.nodes, value || '')
 
@@ -393,7 +395,7 @@ export default function EditJDForm() {
         if (section === 'educationAndExperience' && subField === 'ageLimit') {
           newData.details.educationAndExperience[index] = {
             ...newData.details.educationAndExperience[index],
-            [subField]: value // Store as string
+            [subField]: value
           }
         } else if (section === 'keyResponsibilities' || section === 'keyInteractions') {
           newData.details[section] = newData.details[section].map((item: any, i: number) =>
@@ -545,6 +547,10 @@ export default function EditJDForm() {
           ...formData,
           details: {
             ...formData.details,
+            roleSpecification: {
+              ...formData.details.roleSpecification,
+              noticePeriod: parseInt(String(formData.details.roleSpecification.noticePeriod), 10) || 0 // Ensure integer
+            },
             skills: formData.details.skills,
             organizationChart: transformedOrgChart
           }
@@ -870,21 +876,21 @@ export default function EditJDForm() {
             </div>
             <div className='border p-4 rounded'>
               <h2 className='text-lg font-semibold mb-2'>Jd Type</h2>
-             
-               <FormControl fullWidth margin='normal'>
-                  <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
-                   Jd Type*
-                  </label>
-                  <Box className='p-3 rounded w-full mb-2'>
-                    <DynamicSelect
-                      value={formData.details.jdType || ''}
-                      onChange={e => handleInputChange(e.target.value,'jdType')}
-                    >
-                      <MenuItem value='lateral'>Lateral</MenuItem>
-                      <MenuItem value='campus'>Campus</MenuItem>
-                    </DynamicSelect>
-                  </Box>
-                </FormControl>
+
+              <FormControl fullWidth margin='normal'>
+                <label htmlFor='companyName' className='block text-sm font-medium text-gray-700'>
+                  Jd Type*
+                </label>
+                <Box className='p-3 rounded w-full mb-2'>
+                  <DynamicSelect
+                    value={formData.details.jdType || ''}
+                    onChange={e => handleInputChange(e.target.value, 'jdType')}
+                  >
+                    <MenuItem value='lateral'>Lateral</MenuItem>
+                    <MenuItem value='campus'>Campus</MenuItem>
+                  </DynamicSelect>
+                </Box>
+              </FormControl>
             </div>
 
             <div className='border p-4 rounded'>

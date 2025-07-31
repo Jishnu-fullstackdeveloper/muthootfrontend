@@ -153,7 +153,7 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
           },
 
           {
-            path: '',
+            path: ROUTES.HIRING_MANAGEMENT.CAMPUS_MANAGEMENT.COLLEGE_COORDINATOR_LIST,
             label: 'Campus Management',
             iconClass: 'tabler-school',
             permission: '',

@@ -57,6 +57,10 @@ export const ROUTES = {
 
     INTERVIEW_MANAGEMENT: '/hiring-management/interview-management/candidates-management',
     CV_POOL: '/hiring-management/cv-pool',
+    CAMPUS_MANAGEMENT: {
+      COLLEGE_COORDINATOR_LIST: '/hiring-management/campus-management/college',
+      CAMPUS_DRIVE_LIST: '/hiring-management/campus-management/campus-drive'
+    },
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
     RESIGNED_EMPLOYEE_DETAIL: (id: string) => `/hiring-management/resigned-employee/view/detail?id=${id}`,

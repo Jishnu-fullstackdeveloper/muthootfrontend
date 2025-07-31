@@ -14,7 +14,7 @@ export const ROUTES = {
   },
 
   JD_VIEW: (id: string) => `/hiring-management/jd-management/view/detail?id=${id}`,
-  JD_EDIT: (id: string) => `/hiring-management/jd-management/edit/detail?id=${id}`,
+  JD_EDIT: (id: string, jobRole: string) => `/hiring-management/jd-management/edit/${jobRole}?id=${id}`,
   JD_ADD: `/hiring-management/jd-management/add/jd`,
   APPROVALS: '/approvals',
   APPROVALS_VIEW: `/approvals/approval-detail/view`,

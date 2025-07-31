@@ -93,9 +93,9 @@ const Providers = (props: Props) => {
       router.push('/login')
     }
 
-    if (url?.endsWith('jd-management')) {
-      router.push('/jd-management')
-    }
+    // if (url?.endsWith('jd-management')) {
+    //   router.push('/jd-management')
+    // }
   }, [])
 
   const storeRef = useRef<AppStore | null>(null)

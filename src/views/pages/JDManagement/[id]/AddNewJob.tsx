@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation'
 const AddNewJob = () => {
   const pathname = usePathname() // Gets the full pathname
   const segments = pathname.split('/') // Split by "/"
-  const mode = segments[2] // Extract "add, view or edit"
+  const mode = segments[3] // Extract "add, view or edit"
   // const id = segments[3] // Extract "id"
 
   return (

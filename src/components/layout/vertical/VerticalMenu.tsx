@@ -65,20 +65,21 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
     () => [
       {
         path: ROUTES.HOME,
-        label: 'Dashboard',
+        label: 'Home',
         iconClass: 'tabler-home',
         permission: 'home',
         read: 'HOME_READ'
       },
+
+      // {
+      //   path: ROUTES.RECRUITMENT_HR,
+      //   label: 'Recruitment HR',
+      //   iconClass: 'tabler-home',
+      //   permission: 'home',
+      //   read: 'HOME_READ'
+      // },
       {
-        path: ROUTES.RECRUITMENT_HR,
-        label: 'Recruitment HR',
-        iconClass: 'tabler-home',
-        permission: 'home',
-        read: 'HOME_READ'
-      },
-      {
-        path: '',
+        path: ROUTES.USER_MANAGEMENT.USER,
         label: 'User Management',
         iconClass: 'tabler-users',
         permission: 'userManagement',
@@ -104,6 +105,13 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             iconClass: 'tabler-users-group',
             permission: 'employeeManagement',
             read: 'USER_EMPLOYEE_READ'
+          },
+          {
+            path: ROUTES.BRANCH_MANAGEMENT,
+            label: 'Branch',
+            iconClass: 'tabler-git-merge',
+            permission: 'branchManagement',
+            read: 'BRANCH_READ'
           }
         ]
       },
@@ -115,8 +123,8 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
         read: 'APPROVALS_READ'
       },
       {
-        path: '',
-        label: 'Hiring Management',
+        path: ROUTES.RECRUITMENT_HR,
+        label: 'Recruitment Management',
         iconClass: 'tabler-apps',
         permission: 'hiringManagement',
         read: 'HIRING_READ',
@@ -143,23 +151,25 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             permission: 'cvPool',
             read: 'HIRING_CVPOOL_READ'
           },
-          {
-            path: ROUTES.HIRING_MANAGEMENT.ONBOARDING,
-            label: 'Onboarding',
-            iconClass: 'tabler-user-check',
-            permission: 'onboarding',
-            read: 'HIRING_ONBOARDING_READ'
-          },
-          {
-            path: ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE,
-            label: 'Resignation',
-            iconClass: 'tabler-user-x',
-            permission: 'resignedEmployee',
-            read: 'HIRING_RESIGNATION_READ'
-          },
+
+          // {
+          //   path: ROUTES.HIRING_MANAGEMENT.ONBOARDING,
+          //   label: 'Onboarding',
+          //   iconClass: 'tabler-user-check',
+          //   permission: 'onboarding',
+          //   read: 'HIRING_ONBOARDING_READ'
+          // },
+
+          // {
+          //   path: ROUTES.HIRING_MANAGEMENT.RESIGNED_EMPLOYEE,
+          //   label: 'Resignation',
+          //   iconClass: 'tabler-user-x',
+          //   permission: 'resignedEmployee',
+          //   read: 'HIRING_RESIGNATION_READ'
+          // },
           {
             path: ROUTES.HIRING_MANAGEMENT.VACANCY_MANAGEMENT.VACANCY_LIST,
-            label: 'Vacancy Management',
+            label: 'Vacancy List',
             iconClass: 'tabler-briefcase', // still appropriate for the main category
             permission: 'vacancyManagement',
             read: 'HIRING_VACANCY_READ'
@@ -182,6 +192,29 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             // ]
           },
           {
+            path: ROUTES.JD_MANAGEMENT,
+            label: 'JD Management',
+            iconClass: 'tabler-file-description',
+            permission: 'jdManagement',
+            read: 'JD_READ'
+          },
+          {
+            path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
+            label: 'Interview Management',
+            iconClass: 'tabler-calendar-event',
+            permission: '',
+            read: 'HIRING_INTERVIEW_READ',
+            children: [
+              {
+                path: ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT,
+                label: 'Candidates Management',
+                iconClass: 'tabler-calendar-user',
+                permission: 'candidatesManagement',
+                read: 'HIRING_BUDGET_REQUEST_READ'
+              }
+            ]
+          },
+          {
             path: ROUTES.HIRING_MANAGEMENT.BUDGET,
             label: 'Budget Management',
             iconClass: 'tabler-report-money',
@@ -201,27 +234,100 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
                 iconClass: 'tabler-hierarchy-3',
                 permission: 'positionMatrix',
                 read: 'HIRING_BUDGET_POSITIONMATRIX_READ'
+              },
+              {
+                path: ROUTES.HIRING_MANAGEMENT.BUCKET.BUCKET_VIEW,
+                label: 'Bucket Management',
+                iconClass: 'tabler-basket-search',
+                permission: 'bucketManagement',
+                read: 'HIRING_BUDGET_POSITIONMATRIX_READ'
               }
             ]
           }
         ]
       },
+
+      // {
+      //   path: ROUTES.JD_MANAGEMENT,
+      //   label: 'JD Management',
+      //   iconClass: 'tabler-file-description',
+      //   permission: 'jdManagement',
+      //   read: 'JD_READ'
+      // },
+
       {
-        path: ROUTES.JD_MANAGEMENT,
-        label: 'JD Management',
-        iconClass: 'tabler-file-description',
-        permission: 'jdManagement',
-        read: 'JD_READ'
+        path: ROUTES.LEARNING_AND_DEVELOPMENT.DASHBOARD,
+        label: 'L & D',
+        iconClass: 'tabler-brand-databricks',
+        permission: 'l&d',
+        read: 'USER_USER_READ',
+        children: [
+          {
+            path: ROUTES.LEARNING_AND_DEVELOPMENT.TRAINER_MANAGEMENT.TRAINER_MANAGEMENT,
+            label: 'Trainer management ',
+            iconClass: 'tabler-chalkboard',
+            permission: 'userRoles',
+            read: 'USER_ROLE_READ'
+          }
+
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.USER,
+          //   label: 'Training management',
+          //   iconClass: 'tabler-book',
+          //   permission: 'training-management',
+          //   read: 'USER_USER_READ'
+          // },
+          // {
+          //   path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
+          //   label: 'Trainee management ',
+          //   iconClass: 'tabler-users-group',
+          //   permission: 'traineeManagement ',
+          //   read: 'USER_EMPLOYEE_READ'
+          // }
+        ]
+      },
+
+      {
+        path: ROUTES.ONBOARD.DOCUMENT_VERIFICATION,
+        label: 'Onboarding',
+        iconClass: 'tabler-clipboard',
+        permission: 'exit',
+        read: 'HIRING_RESIGNATION_READ',
+        children: [
+          {
+            path: ROUTES.ONBOARD.DOCUMENT_VERIFICATION,
+            label: 'Document Verification',
+            iconClass: 'tabler-checklist',
+            permission: 'documentVerification',
+            read: 'HIRING_RESIGNATION_READ'
+          },
+          {
+            path: ROUTES.ONBOARD.ONBOARD_TASK,
+            label: 'Onboard Task',
+            iconClass: 'tabler-list-check',
+            permission: 'onboardTask',
+            read: 'HIRING_RESIGNATION_READ'
+          }
+        ]
       },
       {
-        path: ROUTES.BRANCH_MANAGEMENT,
-        label: 'Branch Management',
-        iconClass: 'tabler-git-merge',
-        permission: 'branchManagement',
-        read: 'BRANCH_READ'
+        path: ROUTES.EXIT.RESIGNED_EMPLOYEE,
+        label: 'Exit',
+        iconClass: 'tabler-user-x',
+        permission: 'exit',
+        read: 'HIRING_RESIGNATION_READ',
+        children: [
+          {
+            path: ROUTES.EXIT.RESIGNED_EMPLOYEE,
+            label: 'Resignation',
+            iconClass: 'tabler-user-cancel',
+            permission: 'resignedEmployee',
+            read: 'HIRING_RESIGNATION_READ'
+          }
+        ]
       },
       {
-        path: '',
+        path: ROUTES.SYSTEM_MANAGEMENT.X_FACTOR.RESIGNED_X_FACTOR,
         label: 'System Management',
         iconClass: 'tabler-settings-check',
         permission: 'systemManagement',
@@ -307,44 +413,6 @@ const VerticalMenu = ({ scrollMenu }: VerticalMenuProps) => {
             permission: 'interviewCustomization',
             read: 'SYSTEM_READ'
           }
-        ]
-      },
-      {
-        path: ROUTES.INTERVIEW_MANAGEMENT,
-        label: 'Interview Management',
-        iconClass: 'tabler-calendar-event',
-        permission: '',
-        read: 'HIRING_INTERVIEW_READ'
-      },
-      {
-        path: ROUTES.LEARNING_AND_DEVELOPMENT.DASHBOARD,
-        label: 'L & D',
-        iconClass: 'tabler-brand-databricks',
-        permission: 'l&d',
-        read: 'USER_USER_READ',
-        children: [
-          {
-            path: ROUTES.LEARNING_AND_DEVELOPMENT.TRAINER_MANAGEMENT.TRAINER_MANAGEMENT,
-            label: 'Trainer management ',
-            iconClass: 'tabler-chalkboard',
-            permission: 'userRoles',
-            read: 'USER_ROLE_READ'
-          }
-
-          // {
-          //   path: ROUTES.USER_MANAGEMENT.USER,
-          //   label: 'Training management',
-          //   iconClass: 'tabler-book',
-          //   permission: 'training-management',
-          //   read: 'USER_USER_READ'
-          // },
-          // {
-          //   path: ROUTES.USER_MANAGEMENT.EMPLOYEE,
-          //   label: 'Trainee management ',
-          //   iconClass: 'tabler-users-group',
-          //   permission: 'traineeManagement ',
-          //   read: 'USER_EMPLOYEE_READ'
-          // }
         ]
       }
     ],

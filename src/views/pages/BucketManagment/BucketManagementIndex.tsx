@@ -10,8 +10,8 @@ import BucketView from './BucketView'
 const BucketManagementIndex = () => {
   const pathname = usePathname()
   const segments = pathname.split('/')
-  const mode = segments[2]
-  const id = segments[3]
+  const mode = segments[4]
+  const id = segments[5]
 
   return (
     <>

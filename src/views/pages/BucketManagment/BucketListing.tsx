@@ -88,7 +88,7 @@ const BucketListing = () => {
           <Button
             onClick={() =>
               router.push(
-                `${ROUTES.BUCKET_MANAGEMENT.BUCKET_EDIT(row.original.id)}?name=${encodeURIComponent(row.original.name)}&level=${row.original.level}&positionCategories=${encodeURIComponent(JSON.stringify(row.original.positionCategories))}`
+                `${ROUTES.HIRING_MANAGEMENT.BUCKET.BUCKET_EDIT(row.original.id)}?name=${encodeURIComponent(row.original.name)}&level=${row.original.level}&positionCategories=${encodeURIComponent(JSON.stringify(row.original.positionCategories))}`
               )
             }
             size='small'
@@ -165,7 +165,7 @@ const BucketListing = () => {
             <Button
               variant='contained'
               size='small'
-              onClick={() => router.push(ROUTES.BUCKET_MANAGEMENT.BUCKET_ADD)}
+              onClick={() => router.push(ROUTES.HIRING_MANAGEMENT.BUCKET.BUCKET_ADD)}
               sx={{
                 borderRadius: '8px',
                 backgroundColor: '#0096DA',
@@ -249,7 +249,7 @@ const BucketListing = () => {
                         </Typography>
                       </Box>
                       <Button
-                        onClick={() => router.push(`${ROUTES.BUCKET_MANAGEMENT.BUCKET_EDIT(bucket.id)}`)}
+                        onClick={() => router.push(`${ROUTES.HIRING_MANAGEMENT.BUCKET.BUCKET_EDIT(bucket.id)}`)}
                         size='small'
                         variant='outlined'
                       >
@@ -320,7 +320,7 @@ const BucketListing = () => {
                           bucketNames: bucket.name
                         })
 
-                        router.push(`${ROUTES.BUCKET_MANAGEMENT.BUCKET_VIEW}?${queryParams.toString()}`)
+                        router.push(`${ROUTES.HIRING_MANAGEMENT.BUCKET.BUCKET_VIEW}?${queryParams.toString()}`)
                       }}
                       sx={{
                         mt: 2,

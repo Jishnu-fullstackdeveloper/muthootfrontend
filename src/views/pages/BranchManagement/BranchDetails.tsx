@@ -13,8 +13,8 @@ const ViewBranch = dynamic(() => import('./ViewBranch'), { ssr: false })
 const BranchDetails = () => {
   const pathname = usePathname() // Gets the current path
   const segments = pathname.split('/') // Splits the path into segments
-  const mode = segments[2] // Extract the mode: 'add', 'edit', or 'view'
-  const branch_tab = segments[3] // Extract the branch ID
+  const mode = segments[3] // Extract the mode: 'add', 'edit', or 'view'
+  const branch_tab = segments[4] // Extract the branch ID
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
 

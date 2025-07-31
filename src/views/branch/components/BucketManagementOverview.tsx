@@ -71,7 +71,7 @@ const BucketManagementOverview: React.FC<BucketManagementOverviewProps> = ({ bra
                     <ListItemText
                       primary={
                         <Typography variant='body2' sx={{ fontWeight: '500', color: '#444' }}>
-                          {category.designationName}
+                          {category.jobRole}
                         </Typography>
                       }
 

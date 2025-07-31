@@ -1,6 +1,6 @@
 export const ROUTES = {
   HOME: '/home',
-  RECRUITMENT_HR: '/dashboard-recruitment-hr',
+  RECRUITMENT_HR: '/recruitment-dashboard',
   USER_MANAGEMENT: {
     USER: '/user-management/user',
     USER_EDIT: (id: string) => `/user-management/user/edit/${id}`,
@@ -13,10 +13,9 @@ export const ROUTES = {
     EMPLOYEE_VIEW: (id: string) => `/user-management/employee/view/profile-?id=${id}`
   },
 
-
-  JD_VIEW: (id: string) => `/jd-management/view/detail?id=${id}`,
-  JD_EDIT: (id: string) => `/jd-management/edit/detail?id=${id}`,
-
+  JD_VIEW: (id: string) => `/hiring-management/jd-management/view/detail?id=${id}`,
+  JD_EDIT: (id: string) => `/hiring-management/jd-management/edit/detail?id=${id}`,
+  JD_ADD: `/hiring-management/jd-management/add/jd`,
   APPROVALS: '/approvals',
   APPROVALS_VIEW: `/approvals/approval-detail/view`,
   APPROVALS_VACANCY_GROUP: `/approvals/approval-detail/Vacancy-Request-Group`,
@@ -56,7 +55,7 @@ export const ROUTES = {
   HIRING_MANAGEMENT: {
     JOB_POSTING: '/hiring-management/job-posting',
 
-    // INTERVIEW_MANAGEMENT: '/interview-management',
+    INTERVIEW_MANAGEMENT: '/hiring-management/interview-management/candidates-management',
     CV_POOL: '/hiring-management/cv-pool',
     ONBOARDING: '/hiring-management/onboard-management',
     RESIGNED_EMPLOYEE: '/hiring-management/resigned-employee',
@@ -113,10 +112,17 @@ export const ROUTES = {
     },
     BUDGET_ADD: '/hiring-management/budget-management/budget-request/add/new',
     BUDGET_VIEW: (jobTitle: string, id: string) =>
-      `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`
+      `/hiring-management/budget-management/budget-request/view/${jobTitle}?id=${id}`,
+    BUCKET: {
+      BUCKET_VIEW: '/hiring-management/budget-management/bucket-management',
+      BUCKET_VIEW_DETAIL: (id: string) => `/hiring-management/budget-management/bucket-management/view/detail?id=${id}`,
+      BUCKET_ADD: '/hiring-management/budget-management/bucket-management/add/new',
+      BUCKET_EDIT: (id: string) => `/hiring-management/budget-management/bucket-management/edit/${id}`
+    }
   },
-  JD_MANAGEMENT: '/jd-management',
-  BRANCH_MANAGEMENT: '/branch-management',
+  JD_MANAGEMENT: '/hiring-management/jd-management',
+  BRANCH_MANAGEMENT: '/user-management/branch',
+  BRANCH_MANAGEMENT_VIEW: (id: string) => `/user-management/branch/view/employees-details?id=${id}`,
   LEARNING_AND_DEVELOPMENT: {
     DASHBOARD: '/learning-and-development',
     TRAINER_MANAGEMENT: {
@@ -146,5 +152,12 @@ export const ROUTES = {
     BUCKET_VIEW: '/branch-management',
     BUCKET_ADD: '/bucket-management/add/new',
     BUCKET_EDIT: (id: string) => `/bucket-management/edit/${id}`
+  },
+  EXIT: {
+    RESIGNED_EMPLOYEE: '/exit/resigned-employee'
+  },
+  ONBOARD: {
+    DOCUMENT_VERIFICATION: '/onboard-management/document-verification',
+    ONBOARD_TASK: '/onboard-management/onboard-task'
   }
 }

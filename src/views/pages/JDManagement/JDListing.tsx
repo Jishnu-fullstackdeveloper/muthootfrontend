@@ -128,7 +128,7 @@ const JobRoleList = () => {
               variant='contained'
               icon={<i className='tabler-plus' />}
               position='start'
-              onClick={() => router.push('/jd-management/add/jd')}
+              onClick={() => router.push(ROUTES.JD_ADD)}
               sx={{ fontSize: '14px', fontWeight: 500 }}
             >
               New JD

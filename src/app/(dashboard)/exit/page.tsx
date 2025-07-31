@@ -8,7 +8,7 @@ import { ROUTES } from '@/utils/routes'
 const Page = () => {
   const router = useRouter()
 
-  router.push(ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT)
+  router.push(ROUTES.EXIT.RESIGNED_EMPLOYEE)
 
   return <div></div>
 }

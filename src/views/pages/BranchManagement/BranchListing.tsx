@@ -41,6 +41,7 @@ import type { Branch, BranchManagementState } from '@/types/branch'
 
 import GridIcon from '@/icons/GridAndTableIcons/Grid'
 import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
+import { ROUTES } from '@/utils/routes'
 
 const BranchListing = () => {
   const router = useRouter()
@@ -143,7 +144,7 @@ const BranchListing = () => {
   // const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => handlePaginationChange('page', value)
   // const handleChangeLimit = (value: number) => handlePaginationChange('limit', value)
 
-  const handleBranchClick = (branch: Branch) => router.push(`/branch-management/view/employees-details?id=${branch.id}`)
+  const handleBranchClick = (branch: Branch) => router.push(ROUTES.BRANCH_MANAGEMENT_VIEW(branch.id))
 
   // Drawer toggle
   const toggleDrawer = () => setDrawerOpen(!drawerOpen)

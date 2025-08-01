@@ -71,7 +71,9 @@ const validationSchema = Yup.object().shape({
     .max(255, 'Must be 255 characters or less')
     .required('Name is required')
     .test('unique', 'Name must be unique', async value => {
-      // Replace with API call to check uniqueness
+      // Replace with actual API call to check uniqueness
+      if (!value) return false // Ensure value is not empty
+
       return true // Placeholder: Assume unique for now
     }),
   college_code: Yup.string()
@@ -79,7 +81,9 @@ const validationSchema = Yup.object().shape({
     .matches(/^[A-Z0-9-]+$/, 'Only uppercase letters, numbers, and hyphens allowed')
     .required('College code is required')
     .test('unique', 'College code must be unique', async value => {
-      // Replace with API call to check uniqueness
+      // Replace with actual API call to check uniqueness
+      if (!value) return false // Ensure value is not empty
+
       return true // Placeholder: Assume unique for now
     }),
   university_affiliation: Yup.string().max(255, 'Must be 255 characters or less'),
@@ -136,7 +140,7 @@ const validationSchema = Yup.object().shape({
   remarks: Yup.string().max(2000, 'Must be 2000 characters or less').optional()
 })
 
-const CollegeAndSpocForm = ({ mode, id }: AddOrEditCollegeProps) => {
+const CollegeAndSpocForm = ({ mode }: AddOrEditCollegeProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1) // 1 for College, 2 for SPOC

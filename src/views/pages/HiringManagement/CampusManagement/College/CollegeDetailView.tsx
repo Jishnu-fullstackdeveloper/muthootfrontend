@@ -1,7 +1,7 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Box, Typography, Button, Divider, Chip, Grid } from '@mui/material'
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
@@ -13,7 +13,17 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EventIcon from '@mui/icons-material/Event'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
+
 interface College {
+  collegeCode: string
+  universityAffiliation: string
+  collegeType: string
+  pinCode: string
+  websiteUrl: string
+  fullAddress: string
+  collegeName: string
   id: string
   name: string
   college_code: string
@@ -60,18 +70,12 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
             <SchoolOutlinedIcon className='w-8 h-8 text-[#23262F]' />
           </Box>
           <Box>
-            <Typography
-              variant='h5'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#23262F]"
-            >
-              {college.name}
-            </Typography>
-            <Box className='flex items-center gap-2 mt-1'>
+            <Box className='flex gap-2'>
               <Typography
-                variant='body2'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[18px] text-[#5E6E78]"
+                variant='h5'
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#23262F]"
               >
-                College Code: <strong>{college.college_code}</strong>
+                {college.collegeName}
               </Typography>
               <Chip
                 label={college.status}
@@ -79,6 +83,14 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
                 color={college.status === 'Active' ? 'success' : college.status === 'Inactive' ? 'warning' : 'error'}
                 className="font-['Public_Sans',_Roboto,_sans-serif] text-[12px]"
               />
+            </Box>
+            <Box className='flex items-center gap-2 mt-1'>
+              <Typography
+                variant='body2'
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[18px] text-[#5E6E78]"
+              >
+                <strong>{college.collegeCode}</strong>
+              </Typography>
             </Box>
           </Box>
         </Box>
@@ -113,7 +125,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               variant='body1'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
             >
-              {college.university_affiliation}
+              {college.universityAffiliation}
             </Typography>
           </Box>
         </Grid>
@@ -129,7 +141,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               variant='body1'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
             >
-              {college.college_type}
+              {college.collegeType}
             </Typography>
           </Box>
         </Grid>
@@ -177,7 +189,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               variant='body1'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
             >
-              {college.pin_code}
+              {college.pinCode}
             </Typography>
           </Box>
         </Grid>
@@ -193,11 +205,11 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               variant='body1'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#0096DA] hover:underline"
               component='a'
-              href={college.website_url}
+              href={college.websiteUrl}
               target='_blank'
               rel='noopener noreferrer'
             >
-              {college.website_url}
+              {college.websiteUrl}
             </Typography>
           </Box>
         </Grid>
@@ -213,7 +225,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               variant='body1'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
             >
-              {college.full_address}
+              {college.fullAddress}
             </Typography>
           </Box>
         </Grid>
@@ -445,7 +457,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <Box className='flex flex-col gap-1'>
             <Typography
               variant='body2'
@@ -473,7 +485,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
               )}
             </Box>
           </Box>
-        </Grid>
+        </Grid> */}
         <Grid item xs={12}>
           <Box className='flex flex-col gap-1'>
             <Typography
@@ -493,13 +505,13 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
       </Grid>
       <Divider className='my-6 border-[#eee]' />
       {/* Audit Information */}
-      <Typography
+      {/* <Typography
         variant='h6'
         className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
       >
         Audit Information
-      </Typography>
-      <Grid container spacing={4} className='mb-6'>
+      </Typography> */}
+      {/* <Grid container spacing={4} className='mb-6'>
         <Grid item xs={12} sm={6}>
           <Box className='flex flex-col gap-1'>
             <Typography
@@ -564,7 +576,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
             </Typography>
           </Box>
         </Grid>
-      </Grid>
+      </Grid> */}
       {/* Footer Actions */}
       <Box className='mt-8 flex justify-end'>
         <Button
@@ -580,45 +592,43 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
   )
 }
 
-// Example usage with collegesData
-const collegesData: College[] = [
-  {
-    id: '1',
-    name: 'ABC College',
-    college_code: 'COL001',
-    university_affiliation: 'University of Example',
-    college_type: 'Private',
-    location: 'City Center',
-    district: 'District A',
-    pin_code: '123456',
-    full_address: '123 Main St, City Center, District A',
-    website_url: 'https://www.abccollege.edu',
-    spoc_name: 'John Doe',
-    spoc_designation: 'Placement Coordinator',
-    spoc_email: 'john.doe@abccollege.edu',
-    spoc_alt_email: 'jdoe@abccollege.edu',
-    spoc_mobile: '+91-9876543210',
-    spoc_alt_phone: '+91-9876543211',
-    spoc_linkedin: 'https://linkedin.com/in/johndoe',
-    spoc_whatsapp: '+91-9876543212',
-    last_visited_date: '2025-07-01',
-    last_engagement_type: 'Campus Visit',
-    last_feedback: 'Positive response',
-    preferred_drive_months: ['August', 'September'],
-    remarks: 'Good infrastructure',
-    created_by: 'admin1',
-    created_at: '2025-06-15T10:00:00Z',
-    updated_by: 'admin2',
-    updated_at: '2025-07-28T15:30:00Z',
-    status: 'Active'
-  }
-]
-
-// Wrapper component to pass sample data (for demonstration)
+// Wrapper component to fetch college data dynamically
 const CollegeDetailWrapper = () => {
-  const college = collegesData[0] // Use the first college from the data
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
+  const dispatch = useAppDispatch()
 
-  return <CollegeDetails college={college} />
+  const { colleges, status, error } = useAppSelector((state: any) => state.collegeAndSpocReducer)
+
+  useEffect(() => {
+    if (id) {
+      dispatch(
+        fetchColleges({
+          page: 1,
+          limit: 1,
+          collegeId: id as string
+        })
+      )
+    }
+  }, [dispatch, id])
+
+  if (status === 'loading') {
+    return (
+      <Box className='flex justify-center items-center h-screen'>
+        <Typography>Loading...</Typography>
+      </Box>
+    )
+  }
+
+  if (status === 'failed' || !colleges[0]) {
+    return (
+      <Box className='flex justify-center items-center h-screen'>
+        <Typography>{error || 'College not found'}</Typography>
+      </Box>
+    )
+  }
+
+  return <CollegeDetails college={colleges[0]} />
 }
 
 export default CollegeDetailWrapper

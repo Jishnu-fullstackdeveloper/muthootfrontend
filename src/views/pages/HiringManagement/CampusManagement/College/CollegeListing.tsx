@@ -1,18 +1,22 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment } from '@mui/material'
+import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Autocomplete } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+
+import 'react-toastify/dist/ReactToastify.css'
+import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
 import CollegeGridView from './CollegeCardView'
 import CollegeTableView from './CollegeTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface College {
   id: string
   name: string
@@ -46,24 +50,71 @@ interface College {
 
 const CollegeListingPage = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [search, setSearch] = useState('')
-  const [visibleColleges, setVisibleColleges] = useState<College[]>(collegesData)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+
+  const [filters, setFilters] = useState({
+    engagementType: '',
+    status: '',
+    isPrimary: '',
+    collegeId: ''
+  })
+
+  const { colleges, totalCount, status } = useAppSelector((state: any) => state.collegeAndSpocReducer)
+
+  useEffect(() => {
+    // Initial fetch with no filters to load all data
+    dispatch(
+      fetchColleges({
+        page,
+        limit,
+        search
+      })
+    )
+  }, [dispatch, page, limit, search])
+
+  // Apply filters only when changed or reset when both are cleared
+  useEffect(() => {
+    if (filters.engagementType || filters.status) {
+      dispatch(
+        fetchColleges({
+          page,
+          limit,
+          search,
+          engagementType: filters.engagementType || undefined,
+          status: filters.status || undefined,
+          isPrimary: filters.isPrimary,
+          collegeId: filters.collegeId
+        })
+      )
+    } else if (!filters.engagementType && !filters.status) {
+      // Reset to fetch all data when both filters are cleared
+      dispatch(
+        fetchColleges({
+          page,
+          limit,
+          search,
+          isPrimary: '',
+          collegeId: ''
+        })
+      )
+    }
+  }, [dispatch, page, limit, search, filters.engagementType, filters.status])
 
   // Filter colleges based on search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
 
     setSearch(value)
+    setPage(1) // Reset to first page on search
+  }
 
-    const filteredColleges = collegesData.filter(
-      college =>
-        college.name.toLowerCase().includes(value.toLowerCase()) ||
-        college.college_code.toLowerCase().includes(value.toLowerCase()) ||
-        college.location.toLowerCase().includes(value.toLowerCase())
-    )
-
-    setVisibleColleges(filteredColleges)
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+    setPage(1) // Reset to first page on filter change
   }
 
   return (
@@ -92,27 +143,12 @@ const CollegeListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
-            <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
+            <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 2 }}>
               College & SPOC
             </Typography>
           </Box>
 
           <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 1, zIndex: 1100 }}>
-            <TextField
-              label='Search'
-              variant='outlined'
-              size='small'
-              value={search}
-              onChange={handleSearch}
-              sx={{ width: '300px', mt: 1 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <i className='tabler-search text-xxl' />
-                  </InputAdornment>
-                )
-              }}
-            />
             <DynamicButton
               variant='contained'
               color='primary'
@@ -158,107 +194,71 @@ const CollegeListingPage = () => {
         </Box>
       </Card>
 
-      {viewMode === 'grid' ? (
-        <CollegeGridView colleges={visibleColleges} />
-      ) : (
-        <CollegeTableView colleges={visibleColleges} />
-      )}
+      {/* New Autocomplete Filters */}
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          gap: 2,
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          bgcolor: '#FFFFFF',
+          borderRadius: 1
+        }}
+      >
+        <TextField
+          label='Search'
+          variant='outlined'
+          size='small'
+          value={search}
+          onChange={handleSearch}
+          sx={{ width: '300px' }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position='end'>
+                <i className='tabler-search text-xxl' />
+              </InputAdornment>
+            )
+          }}
+        />
+        <Box className='flex gap-2 '>
+          <Autocomplete
+            options={['Webinar', 'Drive', 'Talk', 'None']}
+            value={filters.engagementType}
+            onChange={(event, newValue) => handleFilterChange('engagementType', newValue || '')}
+            renderInput={params => <TextField {...params} label='Engagement Type' variant='outlined' size='small' />}
+            sx={{ minWidth: 200 }}
+          />
+          <Autocomplete
+            options={['Active', 'Inactive', 'Blocked']}
+            value={filters.status}
+            onChange={(event, newValue) => handleFilterChange('status', newValue || '')}
+            renderInput={params => <TextField {...params} label='Status' variant='outlined' size='small' />}
+            sx={{ minWidth: 200 }}
+          />
+        </Box>
+      </Box>
+
+      <Box sx={{ justifyContent: 'center', alignItems: 'center', mt: 2 }}>
+        {status === 'loading' ? (
+          <Typography>Loading...</Typography>
+        ) : status === 'failed' ? (
+          <Typography>No Data Found</Typography>
+        ) : viewMode === 'grid' ? (
+          <CollegeGridView colleges={colleges} />
+        ) : (
+          <CollegeTableView
+            colleges={colleges}
+            totalCount={totalCount}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        )}
+      </Box>
     </Box>
   )
 }
-
-// Sample data as an array of objects
-const collegesData: College[] = [
-  {
-    id: '1',
-    name: 'ABC College',
-    college_code: 'COL001',
-    university_affiliation: 'University of Example',
-    college_type: 'Private',
-    location: 'City Center',
-    district: 'District A',
-    pin_code: '123456',
-    full_address: '123 Main St, City Center, District A',
-    website_url: 'https://www.abccollege.edu',
-    spoc_name: 'John Doe',
-    spoc_designation: 'Placement Coordinator',
-    spoc_email: 'john.doe@abccollege.edu',
-    spoc_alt_email: 'jdoe@abccollege.edu',
-    spoc_mobile: '+91-9876543210',
-    spoc_alt_phone: '+91-9876543211',
-    spoc_linkedin: 'https://linkedin.com/in/johndoe',
-    spoc_whatsapp: '+91-9876543212',
-    last_visited_date: '2025-07-01',
-    last_engagement_type: 'Campus Visit',
-    last_feedback: 'Positive response',
-    preferred_drive_months: ['August', 'September'],
-    remarks: 'Good infrastructure',
-    created_by: 'admin1',
-    created_at: '2025-06-15T10:00:00Z',
-    updated_by: 'admin2',
-    updated_at: '2025-07-28T15:30:00Z',
-    status: 'Active'
-  },
-  {
-    id: '2',
-    name: 'XYZ University',
-    college_code: 'COL002',
-    university_affiliation: 'XYZ University',
-    college_type: 'Public',
-    location: 'Downtown',
-    district: 'District B',
-    pin_code: '654321',
-    full_address: '456 Oak Ave, Downtown, District B',
-    website_url: 'https://www.xyzuniversity.edu',
-    spoc_name: 'Jane Smith',
-    spoc_designation: 'Career Counselor',
-    spoc_email: 'jane.smith@xyzuniversity.edu',
-    spoc_alt_email: 'jsmith@xyzuniversity.edu',
-    spoc_mobile: '+91-8765432109',
-    spoc_alt_phone: '+91-8765432110',
-    spoc_linkedin: 'https://linkedin.com/in/janesmith',
-    spoc_whatsapp: '+91-8765432111',
-    last_visited_date: '2025-07-10',
-    last_engagement_type: 'Virtual Meet',
-    last_feedback: 'Needs follow-up',
-    preferred_drive_months: ['October', 'November'],
-    remarks: 'Large student base',
-    created_by: 'admin3',
-    created_at: '2025-06-20T12:00:00Z',
-    updated_by: 'admin4',
-    updated_at: '2025-07-29T09:00:00Z',
-    status: 'Active'
-  },
-  {
-    id: '3',
-    name: 'PQR Institute',
-    college_code: 'COL003',
-    university_affiliation: 'Institute of Technology',
-    college_type: 'Government',
-    location: 'Suburb',
-    district: 'District C',
-    pin_code: '789012',
-    full_address: '789 Pine Rd, Suburb, District C',
-    website_url: 'https://www.pqrinstitute.edu',
-    spoc_name: 'Alice Johnson',
-    spoc_designation: 'Training Head',
-    spoc_email: 'alice.johnson@pqrinstitute.edu',
-    spoc_alt_email: 'ajohnson@pqrinstitute.edu',
-    spoc_mobile: '+91-7654321098',
-    spoc_alt_phone: '+91-7654321099',
-    spoc_linkedin: 'https://linkedin.com/in/alicejohnson',
-    spoc_whatsapp: '+91-7654321100',
-    last_visited_date: '2025-07-05',
-    last_engagement_type: 'Workshop',
-    last_feedback: 'Very cooperative',
-    preferred_drive_months: ['December', 'January'],
-    remarks: 'Excellent faculty',
-    created_by: 'admin5',
-    created_at: '2025-06-25T14:00:00Z',
-    updated_by: 'admin6',
-    updated_at: '2025-07-29T11:00:00Z',
-    status: 'Active'
-  }
-]
 
 export default CollegeListingPage

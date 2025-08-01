@@ -1,11 +1,12 @@
 'use client'
 import React from 'react'
 
-import { useRouter } from 'next/navigation'
+//import { useRouter } from 'next/navigation'
 
-import { Box, Typography, Button, Divider, Chip, Grid } from '@mui/material'
+import { Box, Typography, Divider, Chip, Grid, Paper, Avatar, Stack } from '@mui/material'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+
+//import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EventIcon from '@mui/icons-material/Event'
 import GroupIcon from '@mui/icons-material/Group'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
@@ -31,246 +32,311 @@ interface CampusDriveDetailsProps {
 }
 
 const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
-  const router = useRouter()
+  //const router = useRouter()
+
+  // Define status colors for consistency
+  const statusColors = {
+    Active: '#4CAF50',
+    Inactive: '#FF9800',
+    Completed: '#2196F3',
+    Sent: '#4CAF50',
+    Pending: '#FF9800',
+    Failed: '#F44336',
+    Interested: '#4CAF50',
+    NotInterested: '#F44336',
+    NotResponded: '#9E9E9E'
+  }
 
   return (
-    <Box className="p-4 md:p-8 max-w-5xl mx-auto bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[14px] font-['Public_Sans',_Roboto,_sans-serif]">
+    <Box
+      className="p-4 md:p-7 max-w-6xl mx-auto font-['Public_Sans',_Roboto,_sans-serif]"
+      sx={{ boxShadow: 1, bgcolor: '#F3F3F3', borderRadius: 2 }}
+    >
+      {/* <Box className='flex justify-end'>
+        <Button
+          variant='outlined'
+          startIcon={<ArrowBackIcon />}
+          onClick={() => router.back()}
+          sx={{
+            mb: 2
+          }}
+          aria-label='Back to campus drive list'
+        >
+          Back
+        </Button>
+      </Box> */}
       {/* Header Section */}
-      <Box className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
-        <Box className='flex flex-row items-center gap-3'>
-          <Box className='flex justify-center items-center w-12 h-12 bg-[#F2F3FF] rounded-full'>
-            <WorkOutlineIcon className='w-6 h-6 text-[#23262F]' />
-          </Box>
+      <Box className='flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 bg-gradient-to-r from-[#c3daf1] to-[#dae2f0] p-6 rounded-lg shadow-md'>
+        <Box className='flex flex-row items-center gap-4'>
+          <Avatar sx={{ bgcolor: '#F9F8F7', width: 45, height: 45, borderRadius: 2 }}>
+            <WorkOutlineIcon sx={{ fontSize: 25, color: 'black' }} />
+          </Avatar>
           <Box>
-            <Typography
-              variant='h5'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#23262F]"
-            >
-              {drive.job_role}
-            </Typography>
-            <Box className='flex items-center gap-2 mt-1'>
+            <Box className='flex gap-3'>
               <Typography
-                variant='body2'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[18px] text-[#5E6E78]"
+                variant='h5'
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[34px] text-[#1E1E1E]"
               >
-                College: <strong>{drive.college}</strong>
+                {drive.job_role}
               </Typography>
               <Chip
                 label={drive.status}
                 size='small'
                 sx={{
-                  bgcolor: drive.status === 'Active' ? '#00B798' : drive.status === 'Inactive' ? '#ED960B' : '#00CED1',
+                  bgcolor: statusColors[drive.status],
                   color: '#fff',
                   fontFamily: 'Public Sans, Roboto, sans-serif',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  height: 20,
+                  mt: 2.4
                 }}
               />
             </Box>
+            <Stack direction='row' spacing={1} sx={{ mt: 1 }}>
+              <Typography
+                variant='body2'
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[18px] text-[#616161]"
+              >
+                College: <strong>{drive.college}</strong>
+              </Typography>
+              {/* <Chip
+                label={drive.status}
+                size='small'
+                sx={{
+                  bgcolor: statusColors[drive.status],
+                  color: '#fff',
+                  fontFamily: 'Public Sans, Roboto, sans-serif',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  height: 20
+                }}
+              /> */}
+            </Stack>
           </Box>
         </Box>
-        <Button
-          variant='outlined'
+        {/* <Button
+          variant='contained'
           startIcon={<ArrowBackIcon />}
           onClick={() => router.back()}
-          className='border-[#0096DA] text-[#0096DA] hover:border-[#007BB8] hover:bg-[rgba(0,150,218,0.05)]'
+          sx={{
+            backgroundColor: '#1976D2',
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: '#1565C0'
+            },
+            textTransform: 'none',
+            padding: '6px 16px'
+          }}
           aria-label='Back to campus drive list'
         >
           Back to List
-        </Button>
+        </Button> */}
       </Box>
 
-      <Divider className='my-6 border-[#eee]' />
+      <Divider className='my-8 border-gray-200' />
 
       {/* General Information */}
       <Typography
-        variant='h6'
-        className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
+        variant='h5'
+        className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#1E1E1E] mb-4"
       >
         General Information
       </Typography>
-      <Grid container spacing={4} className='mb-6'>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+      <Grid container spacing={3} className='mb-8'>
+        <Grid item xs={12} sm={6} md={6}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Job Role
             </Typography>
             <Typography
               variant='body1'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
             >
               {drive.job_role}
             </Typography>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={6}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Drive Date
             </Typography>
             <Box className='flex items-center gap-2'>
-              <EventIcon className='text-[#5E6E78] w-5 h-5' />
+              <EventIcon sx={{ color: '#757575', fontSize: 20 }} />
               <Typography
                 variant='body1'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
                 {new Date(drive.drive_date).toLocaleDateString('en-IN')}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={6}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Expected Candidates
             </Typography>
             <Box className='flex items-center gap-2'>
-              <GroupIcon className='text-[#5E6E78] w-5 h-5' />
+              <GroupIcon sx={{ color: '#757575', fontSize: 20 }} />
               <Typography
                 variant='body1'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
                 {drive.expected_candidates}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={6}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               College
             </Typography>
             <Typography
               variant='body1'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
             >
               {drive.college}
             </Typography>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={6}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               College Coordinator
             </Typography>
             <Box className='flex items-center gap-2'>
-              <PersonOutlineIcon className='text-[#5E6E78] w-5 h-5' />
+              <PersonOutlineIcon sx={{ color: '#757575', fontSize: 20 }} />
               <Typography
                 variant='body1'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
                 {drive.college_coordinator}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Grid>
+        {/* <Grid item xs={12} sm={6} md={4}>
+          <Paper elevation={3} sx={{ p: 4, bgcolor: '#F9FAFB', borderRadius: 2 }}>
+            <Typography
+              variant='body2'
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
+            >
+              Status:{' '}
+              <Chip
+                label={drive.status}
+                size='medium'
+                sx={{
+                  bgcolor: statusColors[drive.status],
+                  color: '#fff',
+                  fontFamily: 'Public Sans, Roboto, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600
+                }}
+              />
+            </Typography>
+          </Paper>
+        </Grid> */}
       </Grid>
 
-      <Divider className='my-6 border-[#eee]' />
+      <Divider className='my-8 border-gray-200' />
 
       {/* Engagement Information */}
       <Typography
-        variant='h6'
-        className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
+        variant='h5'
+        className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#1E1E1E] mb-4"
       >
         College & SPOC Information
       </Typography>
-      <Grid container spacing={4} className='mb-6'>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+      <Grid container spacing={3} className='mb-8'>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper elevation={3} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Invite Status
             </Typography>
             <Typography
               variant='body1'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px]"
-              sx={{
-                color:
-                  drive.invite_status === 'Sent' ? '#00B798' : drive.invite_status === 'Pending' ? '#ED960B' : '#FF4500'
-              }}
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px]"
+              sx={{ color: statusColors[drive.invite_status] }}
             >
               {drive.invite_status}
             </Typography>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper elevation={3} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Response Status
             </Typography>
             <Typography
               variant='body1'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px]"
-              sx={{
-                color:
-                  drive.response_status === 'Interested'
-                    ? '#00B798'
-                    : drive.response_status === 'Not Interested'
-                      ? '#FF4500'
-                      : '#5E6E78'
-              }}
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px]"
+              sx={{ color: statusColors[drive.response_status] }}
             >
               {drive.response_status}
             </Typography>
-          </Box>
+          </Paper>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <Box className='flex flex-col gap-1'>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper elevation={3} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               SPOC Notified At
             </Typography>
             <Box className='flex items-center gap-2'>
-              <NotificationsIcon className='text-[#5E6E78] w-5 h-5' />
+              <NotificationsIcon sx={{ color: '#757575', fontSize: 20 }} />
               <Typography
                 variant='body1'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
                 {new Date(drive.spoc_notified_at).toLocaleString('en-IN')}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Grid>
         <Grid item xs={12}>
-          <Box className='flex flex-col gap-1'>
+          <Paper elevation={3} sx={{ p: 3, bgcolor: '#F9FAFB', borderRadius: 2 }}>
             <Typography
               variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]"
+              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
             >
               Remarks
             </Typography>
             <Box className='flex items-center gap-2'>
-              <CommentIcon className='text-[#5E6E78] w-5 h-5' />
+              <CommentIcon sx={{ color: '#757575', fontSize: 20 }} />
               <Typography
                 variant='body1'
-                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
+                className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
                 {drive.remarks || 'N/A'}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Grid>
       </Grid>
 

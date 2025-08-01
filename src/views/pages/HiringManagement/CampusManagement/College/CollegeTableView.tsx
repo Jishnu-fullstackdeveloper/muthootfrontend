@@ -13,6 +13,10 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DynamicTable from '@/components/Table/dynamicTable'
 
 interface College {
+  collegeCode: string
+  collegeName: string
+  universityAffiliation: string
+  collegeType: string
   id: string
   name: string
   college_code: string
@@ -45,35 +49,41 @@ interface College {
 
 interface CollegeTableViewProps {
   colleges: College[]
+  totalCount: number
+  page: number
+  setPage: (page: number) => void
+  limit: number
+  setLimit: (limit: number) => void
 }
 
-const CollegeTableView = ({ colleges }: CollegeTableViewProps) => {
+const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit }: CollegeTableViewProps) => {
   const columnHelper = createColumnHelper<College>()
+  const router = useRouter()
 
   const tableData = useMemo(() => {
     return {
       data: colleges,
-      totalCount: colleges.length
+      totalCount
     }
-  }, [colleges])
+  }, [colleges, totalCount])
 
   const columns = useMemo<ColumnDef<College, any>[]>(
     () => [
       columnHelper.accessor('college_code', {
         header: 'COLLEGE CODE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.college_code}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.collegeCode}</Typography>
       }),
       columnHelper.accessor('name', {
         header: 'NAME',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.name}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.collegeName}</Typography>
       }),
       columnHelper.accessor('university_affiliation', {
         header: 'UNIVERSITY AFFILIATION',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.university_affiliation}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.universityAffiliation}</Typography>
       }),
       columnHelper.accessor('college_type', {
         header: 'COLLEGE TYPE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.college_type}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.collegeType}</Typography>
       }),
       columnHelper.accessor('location', {
         header: 'LOCATION',
@@ -86,61 +96,54 @@ const CollegeTableView = ({ colleges }: CollegeTableViewProps) => {
       columnHelper.display({
         id: 'actions',
         header: 'ACTIONS',
-        cell: ({ row }) => {
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          const router = useRouter()
+        cell: ({ row }) => (
+          <Box className='flex items-center gap-1'>
+            <Tooltip title='View College'>
+              <IconButton
+                onClick={() => router.push(`/hiring-management/campus-management/college/view/${row.original.id}`)}
+                aria-label={`View ${row.original.name}`}
+                sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+              >
+                <VisibilityIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Edit College'>
+              <IconButton
+                onClick={() => {
+                  const queryParams = new URLSearchParams()
 
-          return (
-            <Box className='flex items-center gap-1'>
-              <Tooltip title='View College'>
-                <IconButton
-                  onClick={() => router.push(`/hiring-management/campus-management/college/view/${row.original.id}`)}
-                  aria-label={`View ${row.original.name}`}
-                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
-                >
-                  <VisibilityIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title='Edit College'>
-                <IconButton
-                  onClick={() => {
-                    const queryParams = new URLSearchParams()
-
-                    // Convert college object to URL params
-                    Object.entries(row.original).forEach(([key, value]) => {
-                      if (value !== null && value !== undefined) {
-                        if (Array.isArray(value)) {
-                          // Handle array fields (like preferred_drive_months)
-                          value.forEach(item => queryParams.append(key, item))
-                        } else if (typeof value === 'object') {
-                          // Skip complex objects
-                        } else {
-                          queryParams.set(key, String(value))
-                        }
+                  Object.entries(row.original).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined) {
+                      if (Array.isArray(value)) {
+                        value.forEach(item => queryParams.append(key, item))
+                      } else if (typeof value === 'object') {
+                        // Skip complex objects
+                      } else {
+                        queryParams.set(key, String(value))
                       }
-                    })
-                    router.push(
-                      `/hiring-management/campus-management/college/edit/${row.original.id}?${queryParams.toString()}`
-                    )
-                  }}
-                  aria-label={`Edit ${row.original.name}`}
-                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
-                >
-                  <EditIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title='Delete College'>
-                <IconButton
-                  onClick={() => console.log(`Delete college ${row.original.id}`)} // Placeholder for delete logic
-                  aria-label={`Delete ${row.original.name}`}
-                  sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
-                >
-                  <DeleteIcon fontSize='small' />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          )
-        }
+                    }
+                  })
+                  router.push(
+                    `/hiring-management/campus-management/college/edit/${row.original.id}?${queryParams.toString()}`
+                  )
+                }}
+                aria-label={`Edit ${row.original.name}`}
+                sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+              >
+                <EditIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Delete College'>
+              <IconButton
+                onClick={() => console.log(`Delete college ${row.original.id}`)} // Placeholder for delete logic
+                aria-label={`Delete ${row.original.name}`}
+                sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
+              >
+                <DeleteIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )
       }),
       columnHelper.accessor('pin_code', {
         header: 'PIN CODE',
@@ -267,9 +270,9 @@ const CollegeTableView = ({ colleges }: CollegeTableViewProps) => {
           columns={columns}
           data={tableData.data}
           totalCount={tableData.totalCount}
-          pagination={{ pageIndex: 0, pageSize: 5 }}
-          onPageChange={() => {}}
-          onRowsPerPageChange={() => {}}
+          pagination={{ pageIndex: page - 1, pageSize: limit }}
+          onPageChange={setPage}
+          onRowsPerPageChange={setLimit}
           tableName='College Table'
           sorting={undefined}
           onSortingChange={undefined}

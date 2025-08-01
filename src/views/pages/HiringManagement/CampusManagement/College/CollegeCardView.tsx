@@ -4,14 +4,16 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Box, Typography, IconButton, Tooltip } from '@mui/material'
-
-//import BusinessIcon from '@/icons/BusinessIcon'
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 interface CollegeGridViewProps {
   colleges: {
+    universityAffiliation: string
+    collegeType: string
+    collegeCode: string
+    collegeName: string
     id: string
     name: string
     college_code: string
@@ -47,11 +49,11 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
   const router = useRouter()
 
   return (
-    <Box className='py-2'>
-      <Box className='grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-2'>
+    <Box className='py-2 mt-2'>
+      <Box className='grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-2 md:grid-cols-2 gap-2'>
         {colleges.map(college => (
           <Box key={college.id} className='xs:12 sm:6 md:4'>
-            <Box className="p-3 gap-[16px] w-full bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[14px] font-['Public_Sans',_Roboto,_sans-serif] h-full">
+            <Box className="p-3 gap-[16px] w-full bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[10px] font-['Public_Sans',_Roboto,_sans-serif] h-full">
               <Box className='flex flex-col gap-2 h-full'>
                 <Box className='flex justify-between items-center p-[0_0_10px] gap-2 border-b border-[#eee]'>
                   <Box className='flex flex-row items-center p-0 gap-2 h-[48px]'>
@@ -60,34 +62,22 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                     </Box>
                     <Box className=''>
                       <Typography className="font-['Public_Sans',_Roboto,_sans-serif] whitespace-nowrap font-bold text-[12px] leading-[19px] text-[#23262F]">
-                        {college.name}
+                        {college.collegeName}
                       </Typography>
                       <Typography variant='body1'>
-                        <strong>{college.college_code}</strong>
+                        <strong>{college.collegeCode}</strong>
                       </Typography>
                     </Box>
                   </Box>
                   <Box className='flex items-center'>
-                    {/* <Tooltip title='Edit College'>
-                      <IconButton
-                        onClick={() => router.push(`/hiring-management/campus-management/college/edit/${college.id}`)}
-                        aria-label={`Edit ${college.name}`}
-                        sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                    </Tooltip> */}
-
                     <Tooltip title='Edit College'>
                       <IconButton
                         onClick={() => {
                           const queryParams = new URLSearchParams()
 
-                          // Add all college properties to URL params
                           Object.entries(college).forEach(([key, value]) => {
                             if (value !== null && value !== undefined) {
                               if (Array.isArray(value)) {
-                                // Handle array fields (like preferred_drive_months)
                                 value.forEach(item => queryParams.append(key, item))
                               } else {
                                 queryParams.set(key, String(value))
@@ -121,7 +111,7 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                       College Type
                     </Typography>
                     <Typography className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
-                      {college.college_type}
+                      {college.collegeType}
                     </Typography>
                   </Box>
                   <Box className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
@@ -129,7 +119,7 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                       University Affilation
                     </Typography>
                     <Typography className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
-                      {college.university_affiliation}
+                      {college.universityAffiliation}
                     </Typography>
                   </Box>
                 </Box>
@@ -154,7 +144,7 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                 <button
                   className="flex justify-center items-center p-[5px_10px] bg-white cursor-pointer border border-[#0096DA] rounded-[8px] font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#0096DA] hover:border-[#007BB8] hover:bg-[rgba(0,150,218,0.05)]"
                   onClick={() => {
-                    router.push(`/hiring-management/campus-management/campus-drive/view/${college.id}`)
+                    router.push(`/hiring-management/campus-management/college/view/detail-?id=${college.id}`)
                   }}
                   aria-label={`View details for ${college.name}`}
                 >

@@ -25,6 +25,7 @@ import noticePeriodReducer from './NoticePeriod/noticePeriodSlice'
 import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSlice'
 import InterviewManagementReducer from './InterviewManagement/InterviewManagementSlice'
 import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
+import collegeAndSpocReducer from './CampusManagement/collegeAndSpocSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -53,7 +54,8 @@ export const makeStore = () =>
       noticePeriodReducer,
       positionBudgetMatrixReducer,
       InterviewManagementReducer,
-      jdManagementReducer
+      jdManagementReducer,
+      collegeAndSpocReducer
     }
   })
 

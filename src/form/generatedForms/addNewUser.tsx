@@ -573,20 +573,20 @@ const UserForm = () => {
                     Inherited Permissions:
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {uniqueInheritedPermissions.slice(0, 5).map((permission: { name: string }, idx: number) => (
+                    {uniqueInheritedPermissions.slice(0, 5).map((permission, idx) => (
                       <Chip
                         key={idx}
-                        label={toTitleCase(cleanName(permission.name, ''))}
+                         label={toTitleCase(cleanName((permission as any).name, ''))}
                         sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                       />
                     ))}
                     <>
                       {/* Always show first 5 chips */}
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {uniqueInheritedPermissions.slice(0, 5).map((permission: { name: string }, idx: number) => (
+                        {uniqueInheritedPermissions.slice(0, 5).map((permission, idx) => (
                           <Chip
                             key={idx}
-                            label={toTitleCase(cleanName(permission.name, ''))}
+                            label={toTitleCase(cleanName((permission as any).name, ''))}
                             sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                           />
                         ))}
@@ -604,10 +604,10 @@ const UserForm = () => {
                       {/* Expanded chips appear below when toggled */}
                       <Collapse in={showAllInherited} unmountOnExit>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                          {uniqueInheritedPermissions.slice(5).map((permission: { name: string }, idx: number) => (
+                          {uniqueInheritedPermissions.slice(5).map((permission, idx) => (
                             <Chip
                               key={idx}
-                              label={toTitleCase(cleanName(permission.name, ''))}
+                              label={toTitleCase(cleanName((permission as any).name, ''))}
                               sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                             />
                           ))}
@@ -1166,7 +1166,7 @@ const UserForm = () => {
                       variant='outlined'
                       color='secondary'
                       sx={{ ml: 2 }}
-                      onClick={() => router.push('/user-management')}
+                      onClick={() => router.push('/user-management/user')}
                     >
                       Cancel
                     </Button>

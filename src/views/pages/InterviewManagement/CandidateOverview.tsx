@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import {
   Box,
@@ -14,14 +14,21 @@ import {
   Tooltip,
   CardContent,
   TextField,
-  MenuItem,
+
+  // MenuItem,
   Autocomplete,
   IconButton,
+  InputAdornment,
   Button,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Stepper,
+  StepConnector,
+  Step,
+  StepLabel
 } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -30,15 +37,22 @@ import Rating from '@mui/material/Rating'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import resumeIcon from '@/assets/images/resume_icon_cut.png'
+import JobFilterAutoComplete from './JobFilterAutoComplete'
 
 const CandidateOverview = () => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-  const [selectedJob, setSelectedJob] = useState('ab9247f9-0d8a-4e53-80da-5f1f57065dc0')
+  const [mounted, setMounted] = useState(false)
+  const [selectedJob, setSelectedJob] = useState(null)
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
   const [ratings, setRatings] = useState([])
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
+  const [activeStep, setActiveStep] = useState<number>(0)
+
+  useEffect(() => {
+    setActiveStep(1)
+  }, [])
 
   const interviewers = [
     {
@@ -145,6 +159,20 @@ const CandidateOverview = () => {
     }
   ]
 
+  // const handleBack = () => {
+  //   setActiveStep(prevActiveStep => prevActiveStep - 1)
+  // }
+
+  // const handleNext = () => {
+  //   setActiveStep(prevActiveStep => prevActiveStep + 1)
+  // }
+
+  const steps = ['Level 1 Interview', 'Level 2 Interview', 'Final Interview']
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const skillOptions = ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Python', 'SQL', 'Java', 'AWS', 'Docker']
 
   const handleAddSkill = (skill: string | null) => {
@@ -163,10 +191,31 @@ const CandidateOverview = () => {
   }
 
   const PersonRow = ({ name, sub, avatar }: { name: string; sub: string; avatar: string }) => (
-    <Box display='flex' alignItems='center' mb={2}>
+    <Box
+      display='flex'
+      alignItems='center'
+      mb={2}
+      sx={{
+        p: 1,
+        borderRadius: 2,
+        transition: 'background-color 0.2s',
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: '#F5F5F5',
+          textDecoration: 'none'
+        }
+      }}
+    >
       <Avatar src={avatar} alt={name} sx={{ width: 40, height: 40, mr: 2 }} />
       <Box>
-        <Typography fontWeight={600}>{name}</Typography>
+        <Typography
+          fontWeight={600}
+          sx={{
+            color: 'primary.main'
+          }}
+        >
+          {name}
+        </Typography>
         <Typography variant='body2' color='text.secondary'>
           {sub}
         </Typography>
@@ -174,10 +223,9 @@ const CandidateOverview = () => {
     </Box>
   )
 
-  const handleReschedule = () => {
-    // Add form submission logic here
-    console.log('Rescheduled to:', selectedDate, selectedTime)
-  }
+  const handleReschedule = () => {}
+
+  if (!mounted) return null
 
   return (
     <Box sx={{ p: 1 }}>
@@ -211,28 +259,17 @@ const CandidateOverview = () => {
             </Box>
 
             <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-              <TextField
-                select
-                fullWidth
-                label='Job Applied by Emily Carter'
-                value={selectedJob}
-                onChange={e => setSelectedJob(e.target.value)}
-                variant='outlined'
-                margin='normal'
-                size='small'
-              >
-                {appliedJobs.map((job, index) => (
-                  <MenuItem key={index} value={job?.id}>
-                    {job?.jobRole}
-                    {job?.jobTitle && ', ' + job?.jobTitle}
-                    {job?.grade && ', ' + job?.grade}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <JobFilterAutoComplete
+                selectedJob={selectedJob}
+                setSelectedJob={setSelectedJob}
+                disabled={false}
+                sx={{
+                  flexShrink: 0
+                }}
+              />
             </Box>
           </Box>
 
-          {/* Main Card Sections */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: isSmallScreen ? 2 : 3 }}>
             {/* Applied Job Details Card */}
             <Card variant='outlined' sx={{ p: isSmallScreen ? 2 : 3 }}>
@@ -248,10 +285,6 @@ const CandidateOverview = () => {
                     justifyContent: 'space-between'
                   }}
                 >
-                  {/* jobRole: 'QA Analyst',
-                      designation: 'Quality Assurance Lead',
-                      jobTitle: 'Quality Assurance and Testing' */}
-
                   <Typography variant='body2' color='text.secondary'>
                     Job Role
                   </Typography>
@@ -292,6 +325,29 @@ const CandidateOverview = () => {
                   </Typography>
                 </Box>
               </Stack>
+              <Card
+                sx={{
+                  mt: 5,
+                  pt: 5,
+                  pb: 3,
+                  position: 'sticky',
+                  top: 70,
+                  zIndex: 10
+                }}
+              >
+                <Typography variant='subtitle1' sx={{ fontWeight: 'bold', color: '#3e3636', mb: 4, ml: 3 }}>
+                  Interview Status
+                </Typography>
+                <Stepper alternativeLabel activeStep={activeStep} connector={<StepConnector />}>
+                  {steps.map((label, index) => (
+                    <Step key={label} index={index}>
+                      <StepLabel sx={{ cursor: 'pointer' }}>
+                        <Typography>{label}</Typography>
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Card>
             </Card>
             {/* Resume Info Card */}
             <Card variant='outlined' sx={{ p: isSmallScreen ? 2 : 3 }}>
@@ -552,8 +608,25 @@ const CandidateOverview = () => {
                   </Accordion>
                 ))}
 
+                {/* Candidate's Feedback section */}
+                <Typography variant='h6' fontWeight='bold' mb={2} mt={6}>
+                  Candidate Feedback
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: '#F9F9F9',
+                    border: '1px solid #E0E0E0',
+                    borderRadius: 1,
+                    padding: 2,
+                    mt: 1,
+                    color: '#333'
+                  }}
+                >
+                  <Typography variant='body2'>This is candidate&apos;s feedback section</Typography>
+                </Box>
+
                 {/* Feedback Submission */}
-                <Box mt={4}>
+                <Box mt={6}>
                   <Typography variant='h6' fontWeight='bold' mb={2}>
                     Submit Your Feedback
                   </Typography>
@@ -705,18 +778,64 @@ const CandidateOverview = () => {
 
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <div className='flex flex-col gap-4'>
+                      {/* Date Picker */}
                       <DatePicker
                         label='Select New Date'
                         value={selectedDate}
                         onChange={newValue => setSelectedDate(newValue)}
-                        slotProps={{ textField: { fullWidth: true } }}
+                        slots={{
+                          textField: props => (
+                            <TextField
+                              {...props}
+                              fullWidth
+                              InputProps={{
+                                ...props.InputProps,
+                                endAdornment: (
+                                  <>
+                                    {selectedDate && (
+                                      <InputAdornment position='end'>
+                                        <IconButton onClick={() => setSelectedDate(null)} edge='end'>
+                                          <CloseIcon fontSize='small' />
+                                        </IconButton>
+                                      </InputAdornment>
+                                    )}
+                                    {props.InputProps?.endAdornment}
+                                  </>
+                                )
+                              }}
+                            />
+                          )
+                        }}
                       />
 
+                      {/* Time Picker */}
                       <TimePicker
                         label='Select New Time'
                         value={selectedTime}
                         onChange={newValue => setSelectedTime(newValue)}
-                        slotProps={{ textField: { fullWidth: true } }}
+                        slots={{
+                          textField: props => (
+                            <TextField
+                              {...props}
+                              fullWidth
+                              InputProps={{
+                                ...props.InputProps,
+                                endAdornment: (
+                                  <>
+                                    {selectedTime && (
+                                      <InputAdornment position='end'>
+                                        <IconButton onClick={() => setSelectedTime(null)} edge='end'>
+                                          <CloseIcon fontSize='small' />
+                                        </IconButton>
+                                      </InputAdornment>
+                                    )}
+                                    {props.InputProps?.endAdornment}
+                                  </>
+                                )
+                              }}
+                            />
+                          )
+                        }}
                       />
                     </div>
                   </LocalizationProvider>

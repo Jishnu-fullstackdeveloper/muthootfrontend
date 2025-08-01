@@ -1,27 +1,54 @@
 'use client'
+
 import React, { useEffect } from 'react'
 
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import { Box, Typography, CircularProgress, Alert, Card, Grid, Divider } from '@mui/material'
-
 import { Tree, TreeNode } from 'react-organizational-chart'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchJdById } from '@/redux/jdManagemenet/jdManagemnetSlice'
+import { fetchVacancyXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice'
+import { fetchResignedXFactor } from '@/redux/ResignedXFactor/resignedXFactorSlice'
 
-const JobRoleDetails = () => {
-  const { id } = useParams()
+interface ViewJDProps {
+  jdId?: string
+}
+
+const JobRoleDetails: React.FC<ViewJDProps> = ({ jdId }) => {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
+
   const dispatch = useAppDispatch()
 
   const { selectedJd, isSelectedJdLoading, selectedJdSuccess, selectedJdFailure, selectedJdFailureMessage } =
     useAppSelector(state => state.jdManagementReducer)
 
+  const { vacancyXFactorData, isVacancyXFactorLoading, vacancyXFactorSuccess } = useAppSelector(
+    state => state.VacancyXFactorReducer
+  )
+
+  const { resignedXFactorData, isResignedXFactorLoading, resignedXFactorSuccess } = useAppSelector(
+    state => state.ResignedxFactorReducer
+  )
+
   useEffect(() => {
-    if (id && typeof id === 'string') {
-      dispatch(fetchJdById(id))
+    const idToUse = jdId || (id && typeof id === 'string' ? id : null)
+
+    if (idToUse) {
+      dispatch(fetchJdById(idToUse))
     }
-  }, [id, dispatch])
+  }, [id, jdId, dispatch])
+
+  useEffect(() => {
+    if (selectedJd?.details?.roleSpecification?.jobRole) {
+      const search = selectedJd.details.roleSpecification.jobRole
+
+      dispatch(fetchVacancyXFactor({ page: 1, limit: 10, search }))
+      dispatch(fetchResignedXFactor({ page: 1, limit: 10, search }))
+    }
+  }, [selectedJd, dispatch])
 
   if (isSelectedJdLoading) return <CircularProgress />
   if (selectedJdFailure) return <Alert severity='error'>{selectedJdFailureMessage}</Alert>
@@ -153,7 +180,7 @@ const JobRoleDetails = () => {
                         {kr.title || 'N/A'}
                       </Typography>
                       <Box
-                        sx={{ fontSize: '14px', fontWeight: 500, color: 'black',paddingLeft:5,mt:2 }}
+                        sx={{ fontSize: '14px', fontWeight: 500, color: 'black', paddingLeft: 5, mt: 2 }}
                         dangerouslySetInnerHTML={{ __html: kr.description || 'N/A' }}
                       />
                     </Box>
@@ -171,9 +198,8 @@ const JobRoleDetails = () => {
                 </Typography>
                 {selectedJd.details.keyInteractions?.length > 0 ? (
                   selectedJd.details.keyInteractions.map((interaction, index) => (
-                    <Box key={index} sx={{ mb: 2 ,mt:3 }}>
+                    <Box key={index} sx={{ mb: 2, mt: 3 }}>
                       <Grid container spacing={4}>
-                        {/* Internal Stakeholders */}
                         <Grid item xs={12} sm={6}>
                           <Typography
                             sx={{
@@ -190,7 +216,7 @@ const JobRoleDetails = () => {
                           <Box sx={{ mt: 2 }}>
                             {interaction.internalStakeholders ? (
                               <Typography
-                                sx={{ fontSize: '12px', color: 'text.primary' ,paddingLeft:10}}
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
                                 component='div'
                                 dangerouslySetInnerHTML={{ __html: interaction.internalStakeholders }}
                               />
@@ -199,8 +225,6 @@ const JobRoleDetails = () => {
                             )}
                           </Box>
                         </Grid>
-
-                        {/* External Stakeholders */}
                         <Grid item xs={12} sm={6}>
                           <Typography
                             sx={{
@@ -217,7 +241,7 @@ const JobRoleDetails = () => {
                           <Box sx={{ mt: 2 }}>
                             {interaction.externalStakeholders ? (
                               <Typography
-                                sx={{ fontSize: '12px', color: 'text.primary',paddingLeft:10 }}
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
                                 component='div'
                                 dangerouslySetInnerHTML={{ __html: interaction.externalStakeholders }}
                               />
@@ -242,13 +266,14 @@ const JobRoleDetails = () => {
         <Grid item xs={12} md={6}>
           <Grid container spacing={4} direction='column'>
             <Grid item>
-              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px',mb:-0}}>
                 <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
                   Role Specification
                 </Typography>
                 <Grid container spacing={2}>
                   {[
                     { label: 'Job Role', value: toTitleCase(selectedJd.details.roleSpecification?.jobRole || 'N/A') },
+                    { label: 'job Role Type', value: toTitleCase(selectedJd.details.roleSpecification?.jobRoleType || 'N/A') },
                     { label: 'Job Type', value: toTitleCase(selectedJd.details.roleSpecification?.jobType || 'N/A') },
                     {
                       label: 'Company Name',
@@ -262,7 +287,13 @@ const JobRoleDetails = () => {
                         ? `${selectedJd.details.roleSpecification.noticePeriod} months`
                         : 'N/A'
                     },
-                    { label: 'X Factor', value: selectedJd.details.roleSpecification?.xFactor || 'N/A' }
+                      {
+                      label: 'Salary Range',
+                      value: selectedJd.details.roleSpecification?.salaryRange
+                        ? `₹ ${selectedJd.details.roleSpecification.salaryRange} LPA`
+                        : 'N/A'
+                    },
+
                   ].map((field, index) => (
                     <Grid item xs={4} key={index}>
                       <Typography sx={{ color: 'text.secondary', fontSize: '12px' }}>{field.label}</Typography>
@@ -273,8 +304,85 @@ const JobRoleDetails = () => {
               </Card>
             </Grid>
 
+            {/* Updated X-Factor Section */}
+            <Grid item xs={12}>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' , }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  X-Factors
+                </Typography>
+
+                {(isVacancyXFactorLoading || isResignedXFactorLoading) && <CircularProgress size={24} />}
+
+                {vacancyXFactorSuccess && resignedXFactorSuccess && (
+                  <Grid container spacing={4}>
+                    {/* Vacancy X-Factors - Left */}
+                    <Grid item xs={12} md={6}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
+                        Vacancy X-Factors
+                      </Typography>
+                      {vacancyXFactorData?.length > 0 ? (
+                        vacancyXFactorData.map((factor, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              backgroundColor: '#E3F2FD',
+                              color: '#1976D2',
+                              px: 3,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              mb: 1
+                            }}
+                          >
+                            {factor.xFactor !== null && factor.xFactor !== undefined
+                              ? `X-Factor: ${factor.xFactor}`
+                              : 'N/A'}
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>No Vacancy X-Factors</Typography>
+                      )}
+                    </Grid>
+
+                    {/* Resigned X-Factors - Right */}
+                    <Grid item xs={12} md={6}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
+                        Resigned X-Factors
+                      </Typography>
+                      {resignedXFactorData?.length > 0 ? (
+                        resignedXFactorData.map((factor, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              backgroundColor: '#E3F2FD',
+                              color: '#1976D2',
+                              px: 3,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              mb: 1
+                            }}
+                          >
+                            {factor.xFactor !== null && factor.xFactor !== undefined
+                              ? `X-Factor: ${factor.xFactor}`
+                              : 'N/A'}
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>
+                          No Resigned X-Factors
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                )}
+              </Card>
+            </Grid>
+
             <Grid item>
-              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px',my:0 }}>
                 <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
                   Educational & Experience
                 </Typography>
@@ -314,16 +422,16 @@ const JobRoleDetails = () => {
             </Grid>
 
             <Grid item>
-              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150x' }}>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
                 <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
                   Interview Levels
                 </Typography>
                 {selectedJd.details.interviewLevels?.levels?.length > 0 ? (
                   <Box>
-                    <Typography sx={{ fontSize: '14px', color: 'black', }}>Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}</Typography>
-                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
-                      
+                    <Typography sx={{ fontSize: '14px', color: 'black' }}>
+                      Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}
                     </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}></Typography>
                     <Grid container spacing={2}>
                       {selectedJd.details.interviewLevels.levels.map((level, index) => (
                         <Grid item xs={6} key={index}>
@@ -350,6 +458,7 @@ const JobRoleDetails = () => {
                 )}
               </Card>
             </Grid>
+
             <Grid item>
               <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
                 <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>

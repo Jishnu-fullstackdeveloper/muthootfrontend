@@ -12,14 +12,17 @@ import {
   IconButton,
   TextField,
   Typography,
-  LinearProgress,
-  styled,
   Stack,
   CardContent,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
 } from '@mui/material'
 
-import { linearProgressClasses } from '@mui/material/LinearProgress'
+// import { linearProgressClasses } from '@mui/material/LinearProgress'
 
 import { Gauge } from '@mui/x-charts/Gauge'
 
@@ -120,23 +123,23 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
   return <span>{displayNumber}</span>
 }
 
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-  height: 10,
-  borderRadius: 5,
-  [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: theme.palette.grey[200],
-    ...theme.applyStyles('dark', {
-      backgroundColor: theme.palette.grey[800]
-    })
-  },
-  [`& .${linearProgressClasses.bar}`]: {
-    borderRadius: 5,
-    backgroundColor: '#1a90ff',
-    ...theme.applyStyles('dark', {
-      backgroundColor: '#308fe8'
-    })
-  }
-}))
+// const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+//   height: 10,
+//   borderRadius: 5,
+//   [`&.${linearProgressClasses.colorPrimary}`]: {
+//     backgroundColor: theme.palette.grey[200],
+//     ...theme.applyStyles('dark', {
+//       backgroundColor: theme.palette.grey[800]
+//     })
+//   },
+//   [`& .${linearProgressClasses.bar}`]: {
+//     borderRadius: 5,
+//     backgroundColor: '#1a90ff',
+//     ...theme.applyStyles('dark', {
+//       backgroundColor: '#308fe8'
+//     })
+//   }
+// }))
 
 // Define ViewType for type safety
 type ViewType = 'Branch' | 'Area' | 'Cluster' | 'Region' | 'Zone' | 'Territory' | 'Corporate'
@@ -198,23 +201,24 @@ const LDDashboard = () => {
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   // Data array for Target and Actual Learning Hours
-  const learningHoursData = [
-    { type: 'Target Learning Hours', value: 20 },
-    { type: 'Actual Learning Hours', value: 17 }
-  ]
+  // const learningHoursData = [
+  //   { type: 'Target Learning Hours', value: 20 },
+  //   { type: 'Actual Learning Hours', value: 17 }
+  // ]
 
   // Calculate fill percentage
-  const targetHours = learningHoursData.find(item => item.type === 'Target Learning Hours')?.value || 0
-  const actualHours = learningHoursData.find(item => item.type === 'Actual Learning Hours')?.value || 0
-  const fillPercentage = targetHours > 0 ? (actualHours / targetHours) * 100 : 0
+  // const targetHours = learningHoursData.find(item => item.type === 'Target Learning Hours')?.value || 0
+  // const actualHours = learningHoursData.find(item => item.type === 'Actual Learning Hours')?.value || 0
+
+  // const fillPercentage = targetHours > 0 ? (actualHours / targetHours) * 100 : 0
 
   // Data array for Progress on Mandatory Courses
-  const mandatoryCoursesData = [
-    { title: 'Courses Assigned', count: 5023683 },
-    { title: 'In Progress', count: 173147 },
-    { title: 'Course Completed', count: 2023097 },
-    { title: 'Not Started', count: 2827439 }
-  ]
+  // const mandatoryCoursesData = [
+  //   { title: 'Courses Assigned', count: 5023683 },
+  //   { title: 'In Progress', count: 173147 },
+  //   { title: 'Course Completed', count: 2023097 },
+  //   { title: 'Not Started', count: 2827439 }
+  // ]
 
   // Data array for Training Undergoing Candidates
   const trainingTypesData = [
@@ -226,6 +230,38 @@ const LDDashboard = () => {
 
   // Calculate total candidates for pie chart center
   const totalCandidates = trainingTypesData.reduce((sum, item) => sum + item.value, 0)
+
+  // Data array for Leaderboard
+  const leaderboardData = [
+    { name: 'John Doe', trainingType: 'Online Training', score: 95 },
+    { name: 'Jane Smith', trainingType: 'Classroom Training', score: 90 },
+    { name: 'Alex Johnson', trainingType: 'Mentor Branch Training', score: 85 },
+    { name: 'Emily Brown', trainingType: 'Gurukul Training', score: 80 },
+    { name: 'Michael Lee', trainingType: 'Online Training', score: 75 }
+  ]
+
+  // Data array for Assessment Status
+  const assessmentData = [
+    { title: 'Assessments Assigned', count: 1500 },
+    { title: 'In Progress', count: 300 },
+    { title: 'Completed', count: 900 },
+    { title: 'Not Started', count: 300 }
+  ]
+
+  // Data array for Faculty Insights
+  const facultyData = [
+    { name: 'Dr. Alice Carter', sessions: 25, feedback: 4.8 },
+    { name: 'Prof. Bob Wilson', sessions: 20, feedback: 4.5 },
+    { name: 'Ms. Clara Davis', sessions: 15, feedback: 4.2 }
+  ]
+
+  // Data array for Feedback
+  const feedbackData = [
+    { title: 'Total Feedback Received', count: 1200 },
+    { title: 'Average Feedback Score', count: 4.3 },
+    { title: 'Positive Feedback Rate', count: 85 },
+    { title: 'Negative Feedback Rate', count: 15 }
+  ]
 
   // Handle date range change with future date validation
   const handleDateChange = (date: [Date | null, Date | null] | null) => {
@@ -627,7 +663,7 @@ const LDDashboard = () => {
                     }}
                   >
                     <Typography className='text-[10px]' variant='caption' component='div' color='white'>
-                      +86%
+                      +76%
                     </Typography>
                   </Box>
                 </Box>
@@ -669,7 +705,7 @@ const LDDashboard = () => {
               flexDirection: 'column'
             }}
           >
-            <Typography variant='h6' fontWeight={700} mb={3}>
+            <Typography variant='h6' fontWeight={700}>
               Training Undergoing Candidates
             </Typography>
 
@@ -748,17 +784,7 @@ const LDDashboard = () => {
             </Box>
           </Card>
           <Card className='p-4 space-y-4 col-span-2'>
-            <Typography
-              component='h1'
-              variant='h4'
-              sx={{
-                fontWeight: 'bold',
-                color: 'text.primary',
-                paddingX: 4,
-                letterSpacing: 1,
-                whiteSpace: 'nowrap'
-              }}
-            >
+            <Typography variant='h6' fontWeight={700}>
               Content Consumption Summary
             </Typography>
             <Box className='flex w-full gap-3 items-center'>
@@ -805,122 +831,200 @@ const LDDashboard = () => {
           </Card>
         </Box>
 
-        <Box className='grid grid-cols-3 w-full h-56 gap-4'>
-          <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Target vs Actual Learning Hours Per Employee</Typography>
-            <Box className='flex flex-col space-y-3'>
-              <Box className='flex gap-2 w-full justify-between items-center'>
-                <Autocomplete
-                  className='w-full'
-                  disablePortal
-                  options={viewTypes}
-                  value={selectedViewType}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      setSelectedViewType(newValue as ViewType)
-                    }
+        <Box className='flex gap-4 w-full'>
+          <Card className='flex flex-col gap-4 p-4 w-full'>
+            <Box className='flex w-full justify-between items-center'>
+              <Typography variant='h6' fontWeight={700}>
+                Course Insight
+              </Typography>
+              <Autocomplete
+                className='w-1/3'
+                disablePortal
+                options={viewTypes}
+                value={selectedViewType}
+                onChange={(_, newValue) => {
+                  if (newValue) {
+                    setSelectedViewType(newValue as ViewType)
+                  }
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    sx={{
+                      '& .MuiInputBase-root': {
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '30px'
+                      },
+                      '& .MuiInputBase-input': {
+                        padding: '8px',
+                        textAlign: 'center'
+                      },
+                      '& .MuiAutocomplete-endAdornment': {
+                        right: '8px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      },
+                      '& .MuiInputLabel-root': {
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        padding: '0 8px',
+                        lineHeight: 'normal'
+                      },
+                      '& .MuiInputLabel-shrink': {
+                        top: 0,
+                        transform: 'translate(10%, -50%) scale(0.85)'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                height: 20,
+                borderRadius: 0.5,
+                overflow: 'hidden',
+                mb: 2,
+                mt: 1
+              }}
+            >
+              {calculatedPercentages.map(type => (
+                <Box
+                  key={type.label}
+                  sx={{
+                    flex: type.calculatedPercentage,
+                    bgcolor: type.color
                   }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
+                />
+              ))}
+            </Box>
+            <Box
+              sx={{
+                bgcolor: '#fff',
+                p: 0,
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                border: '1px solid #E0E0E0',
+                borderRadius: 1,
+                overflow: 'hidden',
+                mb: 2,
+                mt: 5
+              }}
+            >
+              {calculatedPercentages.map((type, idx) => (
+                <Box
+                  key={type.label}
+                  sx={{
+                    p: 2,
+                    borderRight: idx % 2 === 0 ? '1px solid #E0E0E0' : 'none',
+                    borderBottom: idx < 2 ? '1px solid #E0E0E0' : 'none'
+                  }}
+                >
+                  <Stack direction='row' spacing={1} alignItems='center' mb={0.5}>
+                    <Box
                       sx={{
-                        '& .MuiInputBase-root': {
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '30px'
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px',
-                          textAlign: 'center'
-                        },
-                        '& .MuiAutocomplete-endAdornment': {
-                          right: '8px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          padding: '0 8px',
-                          lineHeight: 'normal'
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          top: 0,
-                          transform: 'translate(10%, -50%) scale(0.85)'
-                        }
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: type.color
                       }}
                     />
-                  )}
-                />
-                <Box className='flex flex-col gap-2 w-full'>
-                  {/* Date Range Picker */}
-                  <AppReactDatepicker
-                    className='w-full'
-                    selectsRange={true}
-                    startDate={dateRange[0]}
-                    endDate={dateRange[1]}
-                    onChange={handleDateChange}
-                    dateFormat='dd-MMMM-yyyy'
-                    placeholderText='Filter by date range'
-                    customInput={
-                      <CustomTextField
-                        name='date_range'
-                        id='date_range'
-                        sx={{
-                          '& .MuiInputBase-input': {
-                            padding: 0, // Reduced padding
-                            fontSize: '10px' // Reduced font size
-                          }
-                        }}
-                        InputProps={{
-                          endAdornment: (
-                            <>
-                              <IconButton size='small' className='p-1' onClick={() => setDateRange([null, null])}>
-                                <Clear className='w-4 h-4' />
-                              </IconButton>
-                              <IconButton size='small' className='p-0'>
-                                <CalendarToday className='w-4 h-4' />
-                              </IconButton>
-                            </>
-                          )
-                        }}
-                      />
-                    }
-                  />
-
-                  {/* Display error message if future date is selected */}
-                  {errorMessage && (
-                    <Typography color='error' sx={{ mx: 6, mt: 2 }}>
-                      {errorMessage}
+                    <Typography variant='caption' color='text.secondary'>
+                      {type.label} ({type.calculatedPercentage.toFixed(1)}%)
                     </Typography>
-                  )}
-                </Box>
-              </Box>
-
-              <Box className='flex flex-col gap-3 pt-4'>
-                {learningHoursData.map((item, index) => (
-                  <Box key={index} className='flex w-full justify-between'>
-                    <Typography>{item.type}</Typography>
-                    <Typography className='font-bold'>{item.value}</Typography>
-                  </Box>
-                ))}
-                <Box className='flex flex-col gap-0.5 mt-3'>
-                  <BorderLinearProgress variant='determinate' value={fillPercentage} />
-                  <Typography
-                    variant='body2'
-                    fontSize='8px'
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'medium' }}
-                  >
-                    {fillPercentage.toFixed(0)}% Completed
+                  </Stack>
+                  <Typography variant='subtitle1' fontWeight={700} color='black'>
+                    {type.count}
                   </Typography>
                 </Box>
+              ))}
+            </Box>
+          </Card>
+          <Card className='flex flex-col gap-4 p-4 w-full'>
+            <Typography variant='h6' fontWeight={700}>
+              Leader Board
+            </Typography>
+            <Table
+              className='w-full'
+              aria-label='leaderboard table'
+              sx={{
+                '& .MuiTableCell-root': {
+                  border: 'none'
+                }
+              }}
+            >
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#E6F0FFFF' }}>
+                  <TableCell className='rounded-l-md'>
+                    <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                      Rank
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                      Name
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                      Training Type
+                    </Typography>
+                  </TableCell>
+                  <TableCell className='rounded-r-md' align='right'>
+                    <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                      Points
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {leaderboardData.map((row, index) => (
+                  <TableRow key={row.name}>
+                    <TableCell>
+                      <Typography variant='body2' sx={{ fontSize: '12px' }}>
+                        {index + 1}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='body2' sx={{ fontSize: '12px' }}>
+                        {row.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='body2' sx={{ fontSize: '12px' }}>
+                        {row.trainingType}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align='right'>
+                      <Typography variant='body2' fontWeight='bold' sx={{ fontSize: '12px' }}>
+                        <AnimatedNumber number={row.score} />
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </Box>
+
+        <Box className='grid grid-cols-3 w-full h-56 gap-4'>
+          <Card className='flex flex-col space-y-4 p-4'>
+            <Typography className='text-[13px] font-bold'>Assessment Status</Typography>
+            <Box className='flex flex-col space-y-3'>
+              <Box className='grid grid-cols-2 gap-2 w-full'>
+                {assessmentData.map((data, index) => (
+                  <CourseProgressCard key={index} title={data.title} count={data.count} index={index} />
+                ))}
               </Box>
             </Box>
           </Card>
           <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Average Learning Hours This Month</Typography>
+            <Typography className='text-[13px] font-bold'>Faculty Insights</Typography>
             <Box className='flex flex-col space-y-3'>
               <Box className='flex gap-2 w-full justify-between items-center'>
                 <Autocomplete
@@ -1011,134 +1115,65 @@ const LDDashboard = () => {
                   )}
                 </Box>
               </Box>
-
               <Box className='flex flex-col items-center justify-center mt-2 w-full'>
-                <Gauge width={100} height={100} value={50} valueMin={10} valueMax={60} />
-                <Typography>Hours</Typography>
+                <Gauge width={100} height={100} value={4.5} valueMin={0} valueMax={5} />
+                <Typography>Average Feedback Score</Typography>
               </Box>
+              <Table aria-label='faculty insights table'>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#F0F0F0FF' }}>
+                    <TableCell>
+                      <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                        Name
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                        Sessions
+                      </Typography>
+                    </TableCell>
+                    <TableCell align='right'>
+                      <Typography variant='body2' fontWeight={700} sx={{ fontSize: '13px' }}>
+                        Feedback
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {facultyData.map(row => (
+                    <TableRow key={row.name}>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ fontSize: '12px' }}>
+                          {row.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant='body2' sx={{ fontSize: '12px' }}>
+                          {row.sessions}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align='right'>
+                        <Typography variant='body2' fontWeight='bold' sx={{ fontSize: '12px' }}>
+                          <AnimatedNumber number={row.feedback} />
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </Box>
           </Card>
           <Card className='flex flex-col space-y-4 p-4'>
-            <Typography className='text-[13px] font-bold'>Progress on Mandatory Courses</Typography>
-            <Box className='grid grid-cols-2 gap-2 w-full'>
-              {mandatoryCoursesData.map((data, index) => (
-                <CourseProgressCard key={index} title={data.title} count={data.count} index={index} />
-              ))}
+            <Typography className='text-[13px] font-bold'>Feedback</Typography>
+            <Box className='flex flex-col space-y-3'>
+              <Box className='grid grid-cols-2 gap-2 w-full'>
+                {feedbackData.map((data, index) => (
+                  <CourseProgressCard key={index} title={data.title} count={data.count} index={index} />
+                ))}
+              </Box>
             </Box>
           </Card>
         </Box>
-
-        <Card className='flex flex-col gap-4 p-4'>
-          <Box className='flex w-full justify-between items-center'>
-            <Typography className='text-lg font-bold'>Course Analysis</Typography>
-            <Autocomplete
-              className='w-1/5'
-              disablePortal
-              options={viewTypes}
-              value={selectedViewType}
-              onChange={(_, newValue) => {
-                if (newValue) {
-                  setSelectedViewType(newValue as ViewType)
-                }
-              }}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '30px'
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '8px',
-                      textAlign: 'center'
-                    },
-                    '& .MuiAutocomplete-endAdornment': {
-                      right: '8px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    },
-                    '& .MuiInputLabel-root': {
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      padding: '0 8px',
-                      lineHeight: 'normal'
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      top: 0,
-                      transform: 'translate(10%, -50%) scale(0.85)'
-                    }
-                  }}
-                />
-              )}
-            />
-          </Box>
-
-          <Box
-            sx={{
-              display: 'flex',
-              height: 20,
-              borderRadius: 0.5,
-              overflow: 'hidden',
-              mb: 2,
-              mt: 1
-            }}
-          >
-            {calculatedPercentages.map(type => (
-              <Box
-                key={type.label}
-                sx={{
-                  flex: type.calculatedPercentage,
-                  bgcolor: type.color
-                }}
-              />
-            ))}
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#fff',
-              p: 0,
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              border: '1px solid #E0E0E0',
-              borderRadius: 1,
-              overflow: 'hidden',
-              mb: 2,
-              mt: 5
-            }}
-          >
-            {calculatedPercentages.map((type, idx) => (
-              <Box
-                key={type.label}
-                sx={{
-                  p: 2,
-                  borderRight: idx % 2 === 0 ? '1px solid #E0E0E0' : 'none',
-                  borderBottom: idx < 2 ? '1px solid #E0E0E0' : 'none'
-                }}
-              >
-                <Stack direction='row' spacing={1} alignItems='center' mb={0.5}>
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: type.color
-                    }}
-                  />
-                  <Typography variant='caption' color='text.secondary'>
-                    {type.label} ({type.calculatedPercentage.toFixed(1)}%)
-                  </Typography>
-                </Stack>
-                <Typography variant='subtitle1' fontWeight={700} color='black'>
-                  {type.count}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Card>
       </Box>
     </Box>
   )

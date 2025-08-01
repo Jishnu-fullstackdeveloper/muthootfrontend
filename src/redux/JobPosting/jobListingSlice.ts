@@ -50,6 +50,7 @@ export const JobPostingSlice = createSlice({
   name: 'JobPosting',
   initialState: {
     jobPostingsData: null,
+    jobPostingMeta: null,
     isJobPostingsLoading: false,
     jobPostingsSuccess: false,
     jobPostingsFailure: false,
@@ -98,6 +99,10 @@ export const JobPostingSlice = createSlice({
     })
     builder.addCase(fetchJobPostings.fulfilled, (state, action) => {
       state.jobPostingsData = action.payload?.data || []
+      state.jobPostingMeta = {
+        current_count: action.payload?.current_count || 0,
+        total_count: action.payload?.totalCount || 0
+      }
       state.isJobPostingsLoading = false
       state.jobPostingsSuccess = true
     })

@@ -53,13 +53,9 @@ export const makeStore = () =>
       schedulerManagementSliceReducer,
       noticePeriodReducer,
       positionBudgetMatrixReducer,
-<<<<<<< HEAD
+      InterviewManagementReducer,
       jdManagementReducer,
       collegeAndSpocReducer
-=======
-      InterviewManagementReducer,
-      jdManagementReducer
->>>>>>> dev-environment
     }
   })
 

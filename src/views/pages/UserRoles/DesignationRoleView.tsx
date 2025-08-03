@@ -20,6 +20,8 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchDesignationRoleById, fetchGroupRole, updateGroupRole } from '@/redux/UserRoles/userRoleSlice'
@@ -60,6 +62,7 @@ interface DesignationRoleState {
   groupRoleData: GroupRole[]
   isGroupRoleLoading: boolean
   groupRoleFailure: boolean
+  groupRoleFailureMessage: string
   isGroupRoleUpdating: boolean
   groupRoleUpdateSuccess: boolean
   groupRoleUpdateFailure: boolean
@@ -75,7 +78,7 @@ const toTitleCase = (str: string): string => {
 }
 
 const cleanName = (name: string): string => {
-  return name?.replace(/^DES_/, '').trim() || 'N/A'
+  return name?.replace(/^DES_|^prv_/, '').trim() || 'N/A'
 }
 
 const DesignationRoleView = () => {
@@ -96,49 +99,80 @@ const DesignationRoleView = () => {
     groupRoleData,
     isGroupRoleLoading,
     groupRoleFailure,
+    groupRoleFailureMessage,
     isGroupRoleUpdating,
     groupRoleUpdateSuccess,
     groupRoleUpdateFailure,
     groupRoleUpdateFailureMessage
-  } = useAppSelector((state: RootState) => state.UserRoleReducer) as DesignationRoleState
+  } = useAppSelector((state: RootState) => state.UserRoleReducer) as unknown as DesignationRoleState
 
   useEffect(() => {
     if (id && typeof id === 'string') {
       dispatch(fetchDesignationRoleById(id))
-      dispatch(fetchGroupRole())
+      dispatch(fetchGroupRole({ page: 1, limit: 100 }))
     }
   }, [id, dispatch])
 
   useEffect(() => {
     if (selectedDesignationRoleData?.groupRoles) {
       setSelectedGroupRoles(selectedDesignationRoleData.groupRoles.map(role => role.id))
+    } else {
+      setSelectedGroupRoles([])
     }
   }, [selectedDesignationRoleData])
 
   useEffect(() => {
     if (groupRoleUpdateSuccess) {
+      toast.success('Group roles updated successfully', { position: 'top-right', autoClose: 3000 })
       setIsEditingGroupRoles(false)
 
       if (id) {
         dispatch(fetchDesignationRoleById(id))
       }
+    } else if (groupRoleUpdateFailure) {
+      toast.error(groupRoleUpdateFailureMessage || 'Failed to update group roles', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } else if (groupRoleFailure) {
+      toast.error(groupRoleFailureMessage || 'Failed to load group roles', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+
+      // Allow component to continue rendering even if group roles fail to load
     }
-  }, [groupRoleUpdateSuccess, dispatch, id])
+  }, [
+    groupRoleUpdateSuccess,
+    groupRoleUpdateFailure,
+    groupRoleUpdateFailureMessage,
+    groupRoleFailure,
+    groupRoleFailureMessage,
+    dispatch,
+    id
+  ])
+
+  useEffect(() => {
+    if (isEditingGroupRoles && groupRoleData.length === 0 && !isGroupRoleLoading && !groupRoleFailure) {
+      toast.warn('No group roles available to edit', { position: 'top-right', autoClose: 3000 })
+      setIsEditingGroupRoles(false)
+    }
+  }, [isEditingGroupRoles, groupRoleData, isGroupRoleLoading, groupRoleFailure])
 
   const handleSaveGroupRoles = () => {
     if (!id || !selectedDesignationRoleData) {
-      dispatch({
-        type: 'userManagement/updateGroupRole/rejected',
-        payload: { message: 'Designation role not found. Please check the role ID.', statusCode: 400 }
+      toast.error('Designation role not found. Please check the role ID.', {
+        position: 'top-right',
+        autoClose: 3000
       })
 
       return
     }
 
     if (selectedGroupRoles.length === 0) {
-      dispatch({
-        type: 'userManagement/updateGroupRole/rejected',
-        payload: { message: 'Please select at least one group role.', statusCode: 400 }
+      toast.error('Please select at least one group role.', {
+        position: 'top-right',
+        autoClose: 3000
       })
 
       return
@@ -163,6 +197,11 @@ const DesignationRoleView = () => {
     setSelectedGroupRoles(prev => prev.filter(id => id !== roleId))
   }
 
+  const handleCancelEdit = () => {
+    setIsEditingGroupRoles(false)
+    setSelectedGroupRoles(selectedDesignationRoleData?.groupRoles?.map(role => role.id) || [])
+  }
+
   if (isSelectedDesignationRoleLoading || isGroupRoleLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
@@ -179,14 +218,6 @@ const DesignationRoleView = () => {
     )
   }
 
-  if (groupRoleFailure) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography color='error'>Error: Failed to load group roles</Typography>
-      </Box>
-    )
-  }
-
   if (!selectedDesignationRoleData) {
     return (
       <Box sx={{ p: 3 }}>
@@ -199,6 +230,7 @@ const DesignationRoleView = () => {
 
   return (
     <Box sx={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+      <ToastContainer />
       <Card
         sx={{ p: 4, borderRadius: '14px', mb: 4, backgroundColor: '#FFFFFF', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
       >
@@ -227,47 +259,73 @@ const DesignationRoleView = () => {
           <Typography variant='h6' gutterBottom>
             Group Roles
           </Typography>
-          <IconButton onClick={() => setIsEditingGroupRoles(!isEditingGroupRoles)} sx={{ color: '#377DFF' }}>
+          <IconButton onClick={() => setIsEditingGroupRoles(!isEditingGroupRoles)} >
             <EditIcon />
           </IconButton>
         </Box>
         <Divider sx={{ mb: 2 }} />
-
         {isEditingGroupRoles ? (
           <Box sx={{ mb: 3 }}>
-            <Autocomplete
-              multiple
-              options={groupRoleData}
-              getOptionLabel={option => toTitleCase(cleanName(option.name))}
-              value={groupRoleData.filter(role => selectedGroupRoles.includes(role.id))}
-              onChange={(event, newValue) => {
-                setSelectedGroupRoles(newValue.map(role => role.id))
-              }}
-              renderInput={params => (
-                <TextField {...params} variant='outlined' label='Select Group Roles' placeholder='Type to search' />
-              )}
-              renderTags={(value: GroupRole[], getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    key={option.id}
-                    label={toTitleCase(cleanName(option.name))}
-                    onDelete={() => handleRemoveGroupRole(option.id)}
-                    deleteIcon={<CloseIcon />}
-                    {...getTagProps({ index })}
-                    sx={{ background: '#E3F2FD', color: '#1976D2', fontSize: '14px' }}
-                  />
-                ))
-              }
-              sx={{ mb: 2 }}
-            />
-            <Button
-              variant='contained'
-              onClick={handleSaveGroupRoles}
-              disabled={isGroupRoleUpdating || !selectedDesignationRoleData}
-              sx={{ backgroundColor: '#377DFF', '&:hover': { backgroundColor: '#2f6ad9' } }}
-            >
-              {isGroupRoleUpdating ? 'Savings..': 'Save' }
-            </Button>
+            {Array.isArray(groupRoleData) && groupRoleData.length === 0 ? (
+              <Typography>No group roles available to select</Typography>
+            ) : (
+              <>
+                <Autocomplete
+                  multiple
+                  options={Array.isArray(groupRoleData) ? groupRoleData : []}
+                  getOptionLabel={option => toTitleCase(cleanName(option.name))}
+                  value={
+                    Array.isArray(groupRoleData)
+                      ? groupRoleData.filter(role => selectedGroupRoles.includes(role.id))
+                      : []
+                  }
+                  onChange={(event, newValue) => {
+                    setSelectedGroupRoles(newValue.map(role => role.id))
+                  }}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  renderInput={params => (
+                    <TextField {...params} variant='outlined' label='Select Group Roles' placeholder='Type to search' />
+                  )}
+                  renderTags={(value: GroupRole[], getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        key={option.id}
+                        label={toTitleCase(cleanName(option.name))}
+                        onDelete={() => handleRemoveGroupRole(option.id)}
+                        deleteIcon={<CloseIcon />}
+                        {...getTagProps({ index })}
+                        sx={{ background: '#E3F2FD', color: '#1976D2', fontSize: '14px' }}
+                      />
+                    ))
+                  }
+                  sx={{ mb: 2 }}
+                />
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant='contained'
+                    onClick={handleSaveGroupRoles}
+                    disabled={isGroupRoleUpdating || !selectedDesignationRoleData}
+                    sx={{
+                      backgroundColor: '#377DFF',
+                      '&:hover': { backgroundColor: '#2f6ad9' },
+                      textTransform: 'none'
+                    }}
+                  >
+                    {isGroupRoleUpdating ? (
+                      <>
+                        <CircularProgress size={20} color='inherit' sx={{ mr: 1 }} />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save'
+                    )}
+                  </Button>
+                  <Button variant='outlined' onClick={handleCancelEdit} sx={{ textTransform: 'none' }}>
+                    Cancel
+                  </Button>
+                </Box>
+              </>
+            )}
             {groupRoleUpdateFailure && (
               <Typography color='error' sx={{ mt: 2 }}>
                 {groupRoleUpdateFailureMessage || 'Failed to update group roles. Please try again.'}
@@ -329,7 +387,7 @@ const DesignationRoleView = () => {
                         onClick={() =>
                           setShowAllPermissions(prev => ({ ...prev, [showPermissions]: !prev[showPermissions] }))
                         }
-                        sx={{ color: '#00695C', fontSize: '14px', mt: 1 }}
+                        sx={{ color: '#00695C', fontSize: '14px', mt: 1, textTransform: 'none' }}
                       >
                         {showAllPermissions[showPermissions]
                           ? 'Show Less'
@@ -374,7 +432,7 @@ const DesignationRoleView = () => {
                 <Button
                   variant='text'
                   onClick={() => setShowAllInheritedPermissions(!showAllInheritedPermissions)}
-                  sx={{ color: '#00695C', fontSize: '14px', mt: 1 }}
+                  sx={{ color: '#00695C', fontSize: '14px', mt: 1, textTransform: 'none' }}
                 >
                   {showAllInheritedPermissions
                     ? 'Show Less'

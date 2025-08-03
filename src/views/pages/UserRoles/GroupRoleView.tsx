@@ -4,7 +4,20 @@ import React, { useEffect, useState } from 'react'
 
 import { useSearchParams, useRouter } from 'next/navigation'
 
-import { Box, Card, Typography, Divider, Chip, CircularProgress, Grid, Tooltip, Button } from '@mui/material'
+import {
+  Box,
+  Card,
+  Typography,
+  Divider,
+  Chip,
+  CircularProgress,
+  Grid,
+  Tooltip,
+  Button,
+  IconButton
+} from '@mui/material'
+
+import EditIcon from '@mui/icons-material/Edit'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchGroupRoleById } from '@/redux/UserRoles/userRoleSlice'
@@ -118,23 +131,10 @@ const GroupRoleView = () => {
       <Card sx={{ p: 4, borderRadius: '14px', minHeight: '150px' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant='h6'>Role Permissions</Typography>
-          <Button
-            variant='outlined'
-            size='small'
-            onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(GroupRole.id))}
-            sx={{
-              borderRadius: '8px',
-              border: '1px solid #0096DA',
-              color: '#0096DA',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: '#D0F7E7',
-                borderColor: '#007BBD'
-              }
-            }}
-          >
-            Edit
-          </Button>
+         
+          <IconButton onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(GroupRole.id))}>
+            <EditIcon />
+          </IconButton>
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 3, minHeight: '40px' }}>

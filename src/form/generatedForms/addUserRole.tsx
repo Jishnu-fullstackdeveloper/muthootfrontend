@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import {
@@ -12,8 +14,6 @@ import {
   Button,
   Divider,
   List,
-  ListItem,
-  ListItemText,
   Grid,
   Checkbox,
   CircularProgress,
@@ -22,10 +22,13 @@ import {
   Tooltip,
   Autocomplete
 } from '@mui/material'
+
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { toast, ToastContainer } from 'react-toastify'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import type { DropResult } from 'react-beautiful-dnd'
 import CloseIcon from '@mui/icons-material/Close'
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import 'react-toastify/dist/ReactToastify.css'
 import {
@@ -71,6 +74,7 @@ interface PermissionGroup {
 
 const parsePermissionName = (name: string) => {
   const parts = name.replace('prv_', '').split('_')
+
   if (parts.length === 2) {
     return `${parts[0]}: ${parts[1]}`
   } else if (parts.length === 3) {
@@ -78,11 +82,13 @@ const parsePermissionName = (name: string) => {
   } else if (parts.length === 4) {
     return `${parts[0]} - ${parts[1]} - ${parts[2]}: ${parts[3]}`
   }
+
   return name
 }
 
 const parseModuleAndSubModule = (name: string) => {
   const parts = name.replace('prv_', '').split('_')
+
   if (parts.length === 2) {
     return { module: parts[0], subModule: undefined, action: parts[1] }
   } else if (parts.length === 3) {
@@ -90,12 +96,14 @@ const parseModuleAndSubModule = (name: string) => {
   } else if (parts.length === 4) {
     return { module: parts[0], subModule: `${parts[1]} - ${parts[2]}`, action: parts[3] }
   }
+
   return { module: parts[0], subModule: undefined, action: parts.slice(1).join('_') }
 }
 
 // Validate permission format
 const isValidPermissionFormat = (name: string): boolean => {
   const pattern = /^prv_[a-zA-Z0-9]+(_[a-zA-Z0-9]+){1,2}$/
+
   return pattern.test(name)
 }
 
@@ -113,7 +121,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     groupRolePermissionUpdateSuccess,
     groupRolePermissionUpdateFailure,
     groupRolePermissionUpdateFailureMessage,
-    designationRoleData,
+
     isDesignationRoleLoading,
     designationRoleFailureMessage,
     isGroupRoleCreating,
@@ -148,10 +156,11 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     selectedPermissions: Yup.array()
       .of(Yup.string())
       .min(1, 'At least one permission is required')
-      .test('valid-format', 'Invalid permission format', values =>
-        values.every(name => isValidPermissionFormat(name))
-      ),
-    designationRoles: mode === 'add' ? Yup.array().of(Yup.string()).min(1, 'At least one designation role is required') : Yup.array().of(Yup.string())
+      .test('valid-format', 'Invalid permission format', values => values.every(name => isValidPermissionFormat(name))),
+    designationRoles:
+      mode === 'add'
+        ? Yup.array().of(Yup.string()).min(1, 'At least one designation role is required')
+        : Yup.array().of(Yup.string())
   })
 
   const formik = useFormik<FormValues>({
@@ -160,15 +169,18 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       console.log('Form submission triggered with values:', values)
+
       try {
         // Validate permissions before submission
         const invalidPermissions = values.selectedPermissions.filter(name => !isValidPermissionFormat(name))
+
         if (invalidPermissions.length > 0) {
           console.error('Invalid permissions:', invalidPermissions)
           toast.error(`Invalid permission format: ${invalidPermissions.join(', ')}`, {
             position: 'top-right',
             autoClose: 3000
           })
+
           return
         }
 
@@ -176,11 +188,13 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         const designationRoleNames = values.designationRoles
           .map(id => designationRoles.find(role => role.id === id)?.name)
           .filter((name): name is string => !!name)
+
         console.log('Mapped designation role names:', designationRoleNames)
 
         if (mode === 'add' && designationRoleNames.length !== values.designationRoles.length) {
           console.error('Some designation role IDs could not be mapped to names:', values.designationRoles)
           toast.error('Failed to map some designation roles', { position: 'top-right', autoClose: 3000 })
+
           return
         }
 
@@ -192,6 +206,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               newPermissions: values.selectedPermissions
             }
           }
+
           console.log('Edit payload:', payload)
           await dispatch(updateGroupRolePermission(payload)).unwrap()
         } else {
@@ -201,6 +216,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             groupRoleDescription: values.groupRoleDescription,
             permissions: values.selectedPermissions
           }
+
           console.log('Add payload:', payload)
           await dispatch(createGroupRole(payload)).unwrap()
         }
@@ -228,7 +244,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         let totalPages = 1
 
         while (currentPage <= totalPages) {
-          const response = await dispatch(fetchPermissions({ page: currentPage })).unwrap()
+          const response = await dispatch(fetchPermissions({ page: currentPage, limit: 100 })).unwrap()
+
           allPermissions = [...allPermissions, ...response.data]
           totalPages = response.pagination.totalPages
           currentPage++
@@ -237,6 +254,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         setAvailablePermissions(allPermissions)
         setInitialPermissionsFetched(true)
         console.log('Fetched permissions:', allPermissions)
+
         if (allPermissions.length === 0) {
           toast.warn('No permissions available', { position: 'top-right', autoClose: 3000 })
         }
@@ -254,7 +272,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         let totalPages = 1
 
         while (currentPage <= totalPages) {
-          const response = await dispatch(fetchDesignationRole({ page: currentPage })).unwrap()
+          const response = await dispatch(fetchDesignationRole({ page: currentPage, limit: 100 })).unwrap()
+
           allDesignationRoles = [...allDesignationRoles, ...response.data]
           totalPages = response.pagination.totalPages
           currentPage++
@@ -262,6 +281,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
         setDesignationRoles(allDesignationRoles)
         console.log('Fetched designation roles:', allDesignationRoles)
+
         if (allDesignationRoles.length === 0) {
           toast.warn('No designation roles available', { position: 'top-right', autoClose: 3000 })
         }
@@ -293,11 +313,13 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     }
 
     group.permissions.push(perm)
+
     return acc
   }, [])
 
   const handleCheckboxToggle = (permissionId: string) => {
     const permission = availablePermissions.find(p => p.id === permissionId)
+
     if (!permission) return
 
     const newSelectedPermissions = formik.values.selectedPermissions.includes(permission.name)
@@ -311,6 +333,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
   const handleRemovePermission = (permissionName: string) => {
     const newSelectedPermissions = formik.values.selectedPermissions.filter(p => p !== permissionName)
+
     formik.setFieldValue('selectedPermissions', newSelectedPermissions)
     setIsFormEdited(true)
     console.log('Removed permission:', permissionName, 'New selected:', newSelectedPermissions)
@@ -321,28 +344,31 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
     if (result.source.droppableId.startsWith('available') && result.destination.droppableId === 'selected') {
       const permission = availablePermissions[result.source.index]
+
       if (!permission) return
 
       const newSelectedPermissions = [...formik.values.selectedPermissions, permission.name]
+
       formik.setFieldValue('selectedPermissions', newSelectedPermissions)
       setIsFormEdited(true)
       console.log('Moved to selected:', newSelectedPermissions)
     } else if (result.source.droppableId === 'selected' && result.destination.droppableId.startsWith('available')) {
-      const movedItem = formik.values.selectedPermissions[result.source.index]
       const newSelectedPermissions = formik.values.selectedPermissions.filter(
         (_, index) => index !== result.source.index
       )
+
       formik.setFieldValue('selectedPermissions', newSelectedPermissions)
       setIsFormEdited(true)
       console.log('Moved back to available:', newSelectedPermissions)
     }
   }
 
-  const handleCancel = () => {
+  const handleClear = () => {
     formik.resetForm()
     setIsFormEdited(false)
     dispatch(resetGroupRoleCreateStatus())
-    router.push('/group-roles')
+
+    // router.back()
   }
 
   useEffect(() => {
@@ -439,7 +465,10 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 getOptionLabel={(option: DesignationRole) => option.name}
                 value={designationRoles.filter(role => formik.values.designationRoles.includes(role.id))}
                 onChange={(_, newValue) => {
-                  formik.setFieldValue('designationRoles', newValue.map((role: DesignationRole) => role.id))
+                  formik.setFieldValue(
+                    'designationRoles',
+                    newValue.map((role: DesignationRole) => role.id)
+                  )
                   setIsFormEdited(true)
                 }}
                 renderInput={params => (
@@ -455,6 +484,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip
+                      key=''
                       label={option.name}
                       {...getTagProps({ index })}
                       sx={{ background: '#E0F7FA', color: '#00695C' }}
@@ -489,7 +519,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                   <List sx={{ maxHeight: '400px', overflowY: 'auto' }}>
                     {groupedPermissions.map(group => (
                       <Box key={`${group.module}-${group.subModule || 'none'}`} sx={{ mb: 3 }}>
-                        <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 1 }}>
+                        <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 1, mt: 3 }}>
                           {group.module} {group.subModule ? `- ${group.subModule}` : ''}
                         </Typography>
                         <Droppable
@@ -500,7 +530,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                             <Box
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}
+                              sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}
                             >
                               {group.permissions.map((permission, index) => (
                                 <Draggable draggableId={permission.id} index={index} key={permission.id}>
@@ -633,39 +663,19 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           </Grid>
         </DragDropContext>
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 10 }}>
+          {/* Go Back Button - Left Aligned */}
           <Button
             variant='contained'
-            onClick={handleCancel}
-            disabled={!isFormEdited}
+            onClick={() => router.back()}
             sx={{
-              backgroundColor: '#6B7280',
-              color: 'white',
-              '&:hover': { backgroundColor: '#4B5563' },
-              borderRadius: '8px',
-              textTransform: 'none'
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant='contained'
-            onClick={() => {
-              console.log('Add button clicked, form valid:', formik.isValid)
-              console.log('Button disabled state:', {
-                isFormEdited,
-                isSubmitting: formik.isSubmitting,
-                isGroupRoleCreating,
-                isGroupRolePermissionUpdating,
-                isValid: formik.isValid
-              })
-              formik.handleSubmit()
-            }}
-            disabled={!isFormEdited || formik.isSubmitting || isGroupRolePermissionUpdating || isGroupRoleCreating || !formik.isValid}
-            sx={{
-              backgroundColor: '#377DFF',
-              color: 'white',
-              '&:hover': { backgroundColor: '#2563EB' },
+              backgroundColor: 'white',
+              color: '#377DFF',
+              border: '1px solid #377DFF',
+              '&:hover': {
+                backgroundColor: '#E0E7FF', // light blue on hover
+                borderColor: '#2563EB'
+              },
               borderRadius: '8px',
               textTransform: 'none',
               display: 'flex',
@@ -673,15 +683,67 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               gap: 1
             }}
           >
-            {(isGroupRolePermissionUpdating || isGroupRoleCreating) ? (
-              <>
-                <CircularProgress size={20} color='inherit' />
-                Saving...
-              </>
-            ) : (
-              <>{mode === 'edit' ? 'Update Role' : 'Add Role'}</>
-            )}
+            <ArrowBackIcon sx={{ color: '#377DFF' }} />
+            Go Back
           </Button>
+
+          {/* Clear & Submit Buttons - Right Aligned */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant='contained'
+              onClick={handleClear}
+              disabled={!isFormEdited}
+              sx={{
+                backgroundColor: '#6B7280',
+                color: 'white',
+                '&:hover': { backgroundColor: '#4B5563' },
+                borderRadius: '8px',
+                textTransform: 'none'
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              variant='contained'
+              onClick={() => {
+                console.log('Add button clicked, form valid:', formik.isValid)
+                console.log('Button disabled state:', {
+                  isFormEdited,
+                  isSubmitting: formik.isSubmitting,
+                  isGroupRoleCreating,
+                  isGroupRolePermissionUpdating,
+                  isValid: formik.isValid
+                })
+                formik.handleSubmit()
+              }}
+              disabled={
+                !isFormEdited ||
+                formik.isSubmitting ||
+                isGroupRolePermissionUpdating ||
+                isGroupRoleCreating ||
+                !formik.isValid
+              }
+              sx={{
+                backgroundColor: '#377DFF',
+                color: 'white',
+                '&:hover': { backgroundColor: '#2563EB' },
+                borderRadius: '8px',
+                textTransform: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              {isGroupRolePermissionUpdating || isGroupRoleCreating ? (
+                <>
+                  <CircularProgress size={20} color='inherit' />
+                  Saving...
+                </>
+              ) : (
+                <>{mode === 'edit' ? 'Update Role' : 'Add Role'}</>
+              )}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Card>

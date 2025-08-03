@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { Box, Card, Grid, Chip, Button, Typography, Divider, CircularProgress, Tooltip } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { ROUTES } from '@/utils/routes'
@@ -33,12 +34,20 @@ interface Pagination {
 
 const columnHelper = createColumnHelper<DesignationRole>()
 
+const toTitleCase = (str: string): string => {
+  return str
+    .toLowerCase()
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 const cleanName = (name: string): string => {
   return name?.replace(/^DES_/, '').trim() || 'N/A'
 }
 
-const getFirstFiveRoles = (permissions: string[]) => {
-  return permissions.slice(0, 5).join(', ')
+const getFirstThreePermissions = (permissions: string[]): string[] => {
+  return permissions.slice(0, 3)
 }
 
 const truncateText = (text: string, length: number): string => {
@@ -137,7 +146,7 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
     () => [
       columnHelper.accessor('name', {
         header: 'Role Name',
-        cell: ({ row }) => cleanName(row.original.name)
+        cell: ({ row }) => toTitleCase(cleanName(row.original.name))
       }),
       columnHelper.accessor('description', {
         header: 'Description',
@@ -147,8 +156,44 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
         header: 'Permissions',
         cell: ({ row }) => {
           const permissions = row.original.inheritedPermissions?.map(p => p.name) || []
+          const showMore = permissions.length > 3
 
-          return permissions.length > 0 ? getFirstFiveRoles(permissions) : 'No permissions'
+          return (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              {permissions.length > 0 ? (
+                <>
+                  {getFirstThreePermissions(permissions).map((permission, idx) => (
+                    <Tooltip
+                      key={idx}
+                      title={
+                        row.original.inheritedPermissions?.find(p => p.name === permission)?.description ||
+                        'No description available'
+                      }
+                      placement='top'
+                      arrow
+                    >
+                      <Chip
+                        label={toTitleCase(permission.replace(/_/g, ' '))}
+                        sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '10px' }}
+                      />
+                    </Tooltip>
+                  ))}
+                  {showMore && (
+                    <Button
+                      variant='text'
+                      sx={{ color: '#00695C', fontSize: '10px', minWidth: 'unset', padding: '4px' }}
+                    >
+                      +{permissions.length - 3}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <Typography variant='body2' color='text.secondary'>
+                  No permissions
+                </Typography>
+              )}
+            </Box>
+          )
         }
       }),
       columnHelper.display({
@@ -156,10 +201,10 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
         header: 'Actions',
         cell: ({ row }) => (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
+            {/* <Button
               variant='outlined'
               size='small'
-              onClick={() => router.push(`/user-management/designation-role/edit/${row.original.id}`)}
+              onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(row.original.id))}
               sx={{
                 borderRadius: '8px',
                 border: '1px solid #0096DA',
@@ -169,23 +214,10 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
               }}
             >
               Edit
-            </Button>
-            <Button
-              variant='contained'
-              size='small'
-              onClick={() => router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(row.original.id))}
-              sx={{
-                borderRadius: '8px',
-                border: '1px solid #0096DA',
-                backgroundColor: '#FFFFFF',
-                color: '#0096DA',
-                textTransform: 'none',
-                boxShadow: 'none',
-                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
-              }}
-            >
-              View Details
-            </Button>
+            </Button> */}
+            <Box onClick={() => router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(row.original.id))}>
+              <VisibilityIcon />
+            </Box>
           </Box>
         )
       })
@@ -202,7 +234,7 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
       )}
       {designationRoleFailure && (
         <Box sx={{ textAlign: 'center', my: 4 }}>
-          <Typography color='error'>{designationRoleFailure.message || 'Failed to load designation roles'}</Typography>
+          <Typography color='error'>{'Failed to load designation roles'}</Typography>
         </Box>
       )}
       {fetchError && (
@@ -253,7 +285,7 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
               <Grid container spacing={3}>
                 {filteredRoles.map(role => {
                   const permissionNames = role.inheritedPermissions?.map(p => p.name) || []
-                  const showMore = permissionNames.length > 10
+                  const showMore = permissionNames.length > 3
 
                   return (
                     <Grid item xs={12} sm={6} md={4} key={role.id}>
@@ -261,91 +293,89 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
                         sx={{
                           p: 4,
                           borderRadius: '14px',
-                          mb: 4,
-                          height: '100%',
+                          minHeight: '350px',
                           display: 'flex',
-                          flexDirection: 'column'
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
                         }}
                       >
-                        <Grid container alignItems='center' spacing={2}>
-                          <Grid item xs>
-                            <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
-                              {cleanName(role.name)}
+                        <Box>
+                          <Grid container alignItems='center' spacing={2}>
+                            <Grid item xs>
+                              <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
+                                {toTitleCase(cleanName(role.name))}
+                              </Typography>
+                            </Grid>
+                            {/* <Grid item>
+                              <Button
+                                variant='outlined'
+                                size='small'
+                                disabled={isDesignationRoleLoading}
+                                onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(role.id))}
+                                sx={{
+                                  borderRadius: '8px',
+                                  border: '1px solid #0096DA',
+                                  color: '#0096DA',
+                                  textTransform: 'none',
+                                  '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </Grid> */}
+                          </Grid>
+                          <Divider sx={{ my: 2 }} />
+                          <Box sx={{ mb: 2, minHeight: '60px' }}>
+                            <Typography variant='h6' color='text.secondary'>
+                              {truncateText(role.description || 'No description available', 100)}
                             </Typography>
-                          </Grid>
-                          <Grid item>
-                            <Button
-                              variant='outlined'
-                              size='small'
-                              disabled={isDesignationRoleLoading}
-                              onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_EDIT(role.id))}
-                              sx={{
-                                borderRadius: '8px',
-                                border: '1px solid #0096DA',
-                                color: '#0096DA',
-                                textTransform: 'none',
-                                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
-                              }}
-                            >
-                              Edit
-                            </Button>
-                          </Grid>
-                        </Grid>
-                        <Divider sx={{ my: 2 }} />
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant='h6' color='text.secondary'>
-                            {truncateText(role.description || 'No description available', 100)}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ mt: 3 }}>
-                          <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1 }}>
-                            Role Permissions
-                          </Typography>
-                          <Divider sx={{ mb: 2 }} />
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 3 }}>
-                            {role.inheritedPermissions?.length ? (
-                              <>
-                                {getFirstFiveRoles(permissionNames)
-                                  .split(', ')
-                                  .filter(Boolean)
-                                  .map((permission, idx) => (
+                          </Box>
+                          <Box sx={{ mt: 4, minHeight: '40px' }}>
+                            <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1 }}>
+                              Role Permissions
+                            </Typography>
+                            <Divider sx={{ mb: 2 }} />
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, minHeight: '40px', mt: 4 }}>
+                              {role.inheritedPermissions?.length ? (
+                                <>
+                                  {getFirstThreePermissions(permissionNames).map((permission, idx) => (
                                     <Tooltip
                                       key={idx}
                                       title={
-                                        role.inheritedPermissions.find(p => p.name === permission)?.description ||
+                                        role.inheritedPermissions?.find(p => p.name === permission)?.description ||
                                         'No description available'
                                       }
                                       placement='top'
                                       arrow
                                     >
                                       <Chip
-                                        label={permission.replace(/_/g, ' ')}
+                                        label={toTitleCase(permission.replace(/_/g, ' '))}
                                         sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                                       />
                                     </Tooltip>
                                   ))}
-                                {showMore && (
-                                  <Button
-                                    variant='text'
-                                    sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
-                                  >
-                                    ...
-                                  </Button>
-                                )}
-                              </>
-                            ) : (
-                              <Typography>No role permissions</Typography>
-                            )}
+                                  {showMore && (
+                                    <Button variant='text' sx={{ color: '#00695C', fontSize: '14px' }}>
+                                      +{permissionNames.length - 3}
+                                    </Button>
+                                  )}
+                                </>
+                              ) : (
+                                <Typography variant='body2' color='text.secondary'>
+                                  No role permissions
+                                </Typography>
+                              )}
+                            </Box>
                           </Box>
                         </Box>
-                        <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
                           <Button
                             variant='contained'
                             size='small'
                             disabled={isDesignationRoleLoading}
                             onClick={() => router.push(ROUTES.USER_MANAGEMENT.DESIGNATION_VIEW(role.id))}
                             sx={{
-                              width: 130,
+                              width: '100%',
                               height: 36,
                               borderRadius: '8px',
                               border: '1px solid #0096DA',
@@ -372,7 +402,7 @@ const DesignationRole: React.FC<DesignationRoleProps> = ({ searchText = '', view
               )}
               {page >= totalPages && filteredRoles.length > 0 && (
                 <Box sx={{ textAlign: 'center', my: 2 }}>
-                  <Typography>No more roles to load.</Typography>
+                  <Typography color='textSecondary'>No more roles to load</Typography>
                 </Box>
               )}
             </Box>

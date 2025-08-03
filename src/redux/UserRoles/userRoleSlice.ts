@@ -5,13 +5,6 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import AxiosLib from '@/lib/AxiosLib'
 import { API_ENDPOINTS } from '../ApiUrls/userRoles'
 
-interface Pagination {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-}
-
 export const fetchDesignationRole = createAsyncThunk(
   'userRoles/fetchDesignationRole',
   async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
@@ -43,21 +36,26 @@ export const fetchDesignationRoleById = createAsyncThunk(
   }
 )
 
-export const fetchGroupRole = createAsyncThunk('userRoles/fetchGroupRole', async (params: any, { rejectWithValue }) => {
-  try {
-    const response = await AxiosLib.get(API_ENDPOINTS.getGroupRole, { params })
+export const fetchGroupRole = createAsyncThunk(
+  'userRoles/fetchGroupRole',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.getGroupRole, { params: { page, limit } })
 
-    return response.data
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data || { message: 'Failed to fetch group roles' })
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch group roles' })
+    }
   }
-})
+)
 
 export const fetchPermissions = createAsyncThunk(
   'userRoles/fetchPermissions',
-  async (params: any, { rejectWithValue }) => {
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getPermssions, { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getPermssions, {
+        params: { page, limit }
+      })
 
       return response.data
     } catch (error: any) {
@@ -166,14 +164,14 @@ export const userRoleSlice = createSlice({
     isDesignationRoleLoading: false,
     designationRoleSuccess: false,
     designationRoleFailure: false,
-    designationRoleFailureMessage: '',
+    designationRoleFailureMessage: false,
     pagination: null,
-    
+
     selectedDesignationRoleData: null,
     isSelectedDesignationRoleLoading: false,
     selectedDesignationRoleSuccess: false,
     selectedDesignationRoleFailure: false,
-    selectedDesignationRoleFailureMessage: '',
+    selectedDesignationRoleFailureMessage: false,
     groupRoleData: {
       data: [],
       totalCount: 0
@@ -213,12 +211,12 @@ export const userRoleSlice = createSlice({
       state.isDesignationRoleLoading = false
       state.designationRoleSuccess = false
       state.designationRoleFailure = false
-      state.designationRoleFailureMessage = ''
+      state.designationRoleFailureMessage = false
     },
     resetAddUserStatus: state => {
       state.designationRoleSuccess = false
       state.designationRoleFailure = false
-      state.designationRoleFailureMessage = ''
+      state.designationRoleFailureMessage = false
     },
     resetGroupRoleUpdateStatus: state => {
       state.isGroupRoleUpdating = false
@@ -240,7 +238,6 @@ export const userRoleSlice = createSlice({
     }
   },
   extraReducers: builder => {
- 
     builder
       .addCase(fetchDesignationRole.pending, state => {
         state.isDesignationRoleLoading = true
@@ -253,8 +250,7 @@ export const userRoleSlice = createSlice({
       })
       .addCase(fetchDesignationRole.rejected, (state, action) => {
         state.isDesignationRoleLoading = false
-        state.designationRoleFailureMessage =
-          (action.payload as any)?.message || 'Failed to fetch designation role'
+        state.designationRoleFailureMessage = (action.payload as any)?.message || 'Failed to fetch designation role'
       })
 
     builder
@@ -262,14 +258,14 @@ export const userRoleSlice = createSlice({
         state.isSelectedDesignationRoleLoading = true
         state.selectedDesignationRoleSuccess = false
         state.selectedDesignationRoleFailure = false
-        state.selectedDesignationRoleFailureMessage = ''
+        state.selectedDesignationRoleFailureMessage = false
       })
       .addCase(fetchDesignationRoleById.fulfilled, (state, action) => {
         state.selectedDesignationRoleData = action.payload.data || null
         state.isSelectedDesignationRoleLoading = false
         state.selectedDesignationRoleSuccess = true
         state.selectedDesignationRoleFailure = false
-        state.selectedDesignationRoleFailureMessage = ''
+        state.selectedDesignationRoleFailureMessage = false
       })
       .addCase(fetchDesignationRoleById.rejected, (state, action) => {
         state.isSelectedDesignationRoleLoading = false

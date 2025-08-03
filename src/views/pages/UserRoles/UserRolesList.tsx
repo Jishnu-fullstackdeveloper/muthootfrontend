@@ -100,7 +100,7 @@ const UserRolesAndPermissionList: React.FC = () => {
                 sx={{ borderRadius: 1 }}
                 onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_ADD)}
               >
-                Add Role
+                Add Group Role
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
                 <Box

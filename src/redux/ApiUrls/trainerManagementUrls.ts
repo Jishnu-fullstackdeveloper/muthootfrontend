@@ -3,5 +3,6 @@ export const API_ENDPOINTS = {
   fetchTrainerById: (id: string) => `/trainers/getTrainerById/${id}`,
   createTrainer: '/trainers',
   trainerLanguages: '/trainerlanguage/getTrainerLanguages',
-  trainingTypes: '/training-type'
+  trainingTypes: '/training-type',
+  fetchEmployeeByCode: '/employee'
 }

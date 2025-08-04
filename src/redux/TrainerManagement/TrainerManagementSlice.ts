@@ -66,6 +66,18 @@ export interface TrainingType {
   deletedAt: string | null
 }
 
+export interface Employee {
+  id: string
+  employeeCode: string
+  firstName: string
+  lastName: string
+  officeEmailAddress: string
+  mobileNumber: string
+  companyStructure: {
+    regionId: string
+  }
+}
+
 export interface TrainerManagementState {
   trainersData: Trainer[]
   selectedTrainer: Trainer | null
@@ -76,7 +88,8 @@ export interface TrainerManagementState {
   page: number
   limit: number
   trainerLanguages: TrainerLanguage[]
-  trainingTypes: TrainingType[] // Added for storing training types
+  trainingTypes: TrainingType[]
+  selectedEmployee: Employee | null // Added for storing fetched employee data
 }
 
 const initialState: TrainerManagementState = {
@@ -88,8 +101,9 @@ const initialState: TrainerManagementState = {
   error: null,
   page: 1,
   limit: 10,
-  trainerLanguages: [], // Initialize new state field
-  trainingTypes: [] // Initialize new state field
+  trainerLanguages: [],
+  trainingTypes: [],
+  selectedEmployee: null // Initialize new state field
 }
 
 // Fetch trainers data
@@ -186,6 +200,25 @@ export const fetchTrainingTypes = createAsyncThunk(
   }
 )
 
+// Fetch employee by employeeCode
+export const fetchEmployeeByCode = createAsyncThunk(
+  'trainerManagement/fetchEmployeeByCode',
+  async (employeeCode: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.fetchEmployeeByCode, {
+        params: { employeeCode }
+      })
+
+      const { data = [] } = response.data || {}
+      const employee = data[0] || null // Take the first employee or null if empty
+
+      return { employee }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch employee data')
+    }
+  }
+)
+
 const trainerManagementSlice = createSlice({
   name: 'trainerManagement',
   initialState,
@@ -199,8 +232,9 @@ const trainerManagementSlice = createSlice({
       state.totalCount = 0
       state.page = 1
       state.limit = 10
-      state.trainerLanguages = [] // Reset new state field
-      state.trainingTypes = [] // Reset new state field
+      state.trainerLanguages = []
+      state.trainingTypes = []
+      state.selectedEmployee = null // Reset new state field
     }
   },
   extraReducers: builder => {
@@ -277,6 +311,20 @@ const trainerManagementSlice = createSlice({
         state.error = null
       })
       .addCase(fetchTrainingTypes.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.payload as string
+      })
+
+      // Fetch Employee by Code
+      .addCase(fetchEmployeeByCode.pending, state => {
+        state.status = 'loading'
+      })
+      .addCase(fetchEmployeeByCode.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.selectedEmployee = action.payload.employee
+        state.error = null
+      })
+      .addCase(fetchEmployeeByCode.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload as string
       })

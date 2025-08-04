@@ -159,7 +159,7 @@ const TrainerDashboard = () => {
           <Box className='flex items-center'>
             <IconButton
               onClick={() => {
-                dispatch(fetchTrainerById(row.id))
+                dispatch(fetchTrainerById(row.original.empCode))
                 setDrawerOpen(true)
               }}
               sx={{ fontSize: 18 }}

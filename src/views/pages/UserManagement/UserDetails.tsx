@@ -258,7 +258,7 @@ const UserDetails = () => {
                         {displayedInheritedPermissions.map((permission, idx) => (
                           <Chip
                             key={idx}
-                            label={toTitleCase(cleanName(permission.name, ''))}
+                            label={toTitleCase(cleanName((permission as any).name, ''))}
                             sx={{ background: '#E0F7FA', color: '#00695C', fontSize: '14px' }}
                           />
                         ))}

@@ -8,7 +8,6 @@ import { Box, Card, Grid, Chip, Button, Typography, Divider, CircularProgress, T
 import { createColumnHelper } from '@tanstack/react-table'
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
-
 import { fetchGroupRole } from '@/redux/UserRoles/userRoleSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { ROUTES } from '@/utils/routes'
@@ -61,15 +60,15 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
 
   // Append new data to allData when groupRoleData changes
   useEffect(() => {
-    if (groupRoleData.length > 0) {
+    if (groupRoleData.data?.length > 0) {
       setAllData(prev => {
         // Avoid duplicating data by checking IDs
-        const newData = groupRoleData.filter(newRole => !prev.some(existingRole => existingRole.id === newRole.id))
+        const newData = groupRoleData.data.filter(newRole => !prev.some(existingRole => existingRole.id === newRole.id))
 
         return [...prev, ...newData]
       })
 
-      if (groupRoleData.length < limit) {
+      if (groupRoleData.data.length < limit) {
         setHasMore(false)
       }
     }
@@ -204,9 +203,7 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
               Edit
             </Button> */}
             <Box
-             
               onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_VIEW(row.original.id))}
-             
             >
              <VisibilityIcon />
             </Box>
@@ -242,7 +239,7 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
               columns={columns}
               data={filteredRoles}
               pagination={{ pageIndex: page - 1, pageSize: limit }}
-              totalCount={allData.length} // Update this if you have access to totalCount from API
+              totalCount={groupRoleData.totalCount} // Use totalCount from groupRoleData
               onPageChange={newPage => {
                 setPage(newPage + 1)
               }}

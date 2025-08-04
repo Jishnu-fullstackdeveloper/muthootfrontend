@@ -51,6 +51,26 @@ export interface ToggleSchedulerConfigResponse {
   data: SchedulerConfig
 }
 
+export interface CreateSchedulerConfigResponse {
+  success: boolean
+  message: string
+  data: {
+    id: string
+    url: string
+    category: string
+    duration: number
+    cronExpression: string
+    params: { [key: string]: string | number }
+    isActive: boolean
+    nextRunAt: string
+    updatedAt: string
+    createdAt: string
+    deletedBy: string | null
+    lastRunAt: string | null
+    deletedAt: string | null
+  }
+}
+
 export interface SchedulerManagementState {
   schedulerConfigListLoading: boolean
   schedulerConfigListSuccess: boolean

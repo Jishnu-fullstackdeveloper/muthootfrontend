@@ -14,8 +14,8 @@ export const fetchDesignationRole = createAsyncThunk(
       })
 
       return {
-        data: response.data.data, // Assuming response.data.data contains the roles array
-        pagination: response.data.pagination // Assuming response.data.pagination contains pagination info
+        data: response.data.data,
+        pagination: response.data.pagination
       }
     } catch (error: any) {
       return rejectWithValue(error.response?.data || { message: 'Failed to fetch designation roles' })
@@ -42,8 +42,18 @@ export const fetchGroupRole = createAsyncThunk(
     try {
       const response = await AxiosLib.get(API_ENDPOINTS.getGroupRole, { params: { page, limit } })
 
-      return response.data
+      console.log('API Response:', response.data) // Debug log
+
+      // Handle different API response structures
+      const payload = {
+        data: Array.isArray(response.data) ? response.data : response.data.data || [],
+        totalCount: response.data.totalCount || response.data.length || 0
+      }
+
+      return payload
     } catch (error: any) {
+      console.error('API Error:', error.response?.data || error.message) // Debug log
+
       return rejectWithValue(error.response?.data || { message: 'Failed to fetch group roles' })
     }
   }
@@ -172,14 +182,13 @@ export const userRoleSlice = createSlice({
     selectedDesignationRoleSuccess: false,
     selectedDesignationRoleFailure: false,
     selectedDesignationRoleFailureMessage: false,
-    groupRoleData: {
-      data: [],
-      totalCount: 0
-    },
+
+    groupRoleData: [],
     isGroupRoleLoading: false,
     groupRoleSuccess: false,
     groupRoleFailure: false,
     groupRoleFailureMessage: '',
+
     permissionData: {
       data: [],
       totalCount: 0
@@ -292,7 +301,7 @@ export const userRoleSlice = createSlice({
       })
       .addCase(fetchGroupRole.rejected, (state, action) => {
         state.isGroupRoleLoading = false
-        state.groupRoleData = { data: [], totalCount: 0 }
+       
         state.groupRoleFailure = true
         state.groupRoleFailureMessage = (action.payload as any)?.message || 'Failed to fetch group role data'
       })
@@ -390,13 +399,14 @@ export const userRoleSlice = createSlice({
         state.groupRoleCreateFailure = false
         state.groupRoleCreateFailureMessage = ''
       })
-      .addCase(createGroupRole.fulfilled, (state, action) => {
+      .addCase(createGroupRole.fulfilled, state => {
         state.isGroupRoleCreating = false
         state.groupRoleCreateSuccess = true
         state.groupRoleCreateFailure = false
         state.groupRoleCreateFailureMessage = ''
-        state.groupRoleData.data = [...state.groupRoleData.data, action.payload.data]
-        state.groupRoleData.totalCount += 1
+
+        // state.groupRoleData.data = [...state.groupRoleData.data, action.payload.data]
+        // state.groupRoleData.totalCount += 1
       })
       .addCase(createGroupRole.rejected, (state, action) => {
         state.isGroupRoleCreating = false

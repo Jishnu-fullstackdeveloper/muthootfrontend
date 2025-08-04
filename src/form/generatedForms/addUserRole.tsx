@@ -20,9 +20,9 @@ import {
   IconButton,
   Chip,
   Tooltip,
-  Autocomplete
+  Autocomplete,
+  FormControlLabel
 } from '@mui/material'
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { toast, ToastContainer } from 'react-toastify'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
@@ -121,7 +121,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     groupRolePermissionUpdateSuccess,
     groupRolePermissionUpdateFailure,
     groupRolePermissionUpdateFailureMessage,
-
     isDesignationRoleLoading,
     designationRoleFailureMessage,
     isGroupRoleCreating,
@@ -171,7 +170,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       console.log('Form submission triggered with values:', values)
 
       try {
-        // Validate permissions before submission
         const invalidPermissions = values.selectedPermissions.filter(name => !isValidPermissionFormat(name))
 
         if (invalidPermissions.length > 0) {
@@ -184,7 +182,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           return
         }
 
-        // Map designation role IDs to names
         const designationRoleNames = values.designationRoles
           .map(id => designationRoles.find(role => role.id === id)?.name)
           .filter((name): name is string => !!name)
@@ -211,7 +208,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
           await dispatch(updateGroupRolePermission(payload)).unwrap()
         } else {
           const payload = {
-            designationRoles: designationRoleNames, // Send names instead of IDs
+            designationRoles: designationRoleNames,
             groupRole: values.groupRoleName,
             groupRoleDescription: values.groupRoleDescription,
             permissions: values.selectedPermissions
@@ -223,7 +220,8 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
 
         setIsFormEdited(false)
         formik.setFieldValue('selectedPermissions', [])
-        router.push('/group-roles')
+       router.back()
+
       } catch (error: any) {
         console.error('Submit error:', error)
         toast.error(`Failed to ${mode === 'edit' ? 'update' : 'add'} group role: ${error.message || 'Unknown error'}`, {
@@ -299,7 +297,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       dispatch(fetchGroupRoleById(groupRoleId))
     }
 
-    // Reset create status on mount to avoid stuck state
     dispatch(resetGroupRoleCreateStatus())
   }, [dispatch, mode, groupRoleId])
 
@@ -317,14 +314,49 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     return acc
   }, [])
 
-  const handleCheckboxToggle = (permissionId: string) => {
-    const permission = availablePermissions.find(p => p.id === permissionId)
+  const handleCheckboxToggle = (permissionId: string | 'all' | { module: string; subModule?: string }) => {
+    let newSelectedPermissions = [...formik.values.selectedPermissions]
 
-    if (!permission) return
+    if (permissionId === 'all') {
+      // Select or deselect all permissions
+      if (newSelectedPermissions.length === availablePermissions.length) {
+        newSelectedPermissions = []
+      } else {
+        newSelectedPermissions = availablePermissions.map(p => p.name)
+      }
+    } else if (typeof permissionId === 'object') {
+      // Select or deselect all permissions in a module or sub-module
+      const group = groupedPermissions.find(
+        g => g.module === permissionId.module && g.subModule === permissionId.subModule
+      )
 
-    const newSelectedPermissions = formik.values.selectedPermissions.includes(permission.name)
-      ? formik.values.selectedPermissions.filter(name => name !== permission.name)
-      : [...formik.values.selectedPermissions, permission.name]
+      if (!group) return
+
+      const groupPermissionNames = group.permissions.map(p => p.name)
+      const allSelected = groupPermissionNames.every(name => newSelectedPermissions.includes(name))
+
+      if (allSelected) {
+        // Deselect all permissions in the group
+        newSelectedPermissions = newSelectedPermissions.filter(name => !groupPermissionNames.includes(name))
+      } else {
+        // Select all permissions in the group
+        newSelectedPermissions = [
+          ...newSelectedPermissions,
+          ...groupPermissionNames.filter(name => !newSelectedPermissions.includes(name))
+        ]
+      }
+    } else {
+      // Toggle individual permission
+      const permission = availablePermissions.find(p => p.id === permissionId)
+
+      if (!permission) return
+
+      if (newSelectedPermissions.includes(permission.name)) {
+        newSelectedPermissions = newSelectedPermissions.filter(name => name !== permission.name)
+      } else {
+        newSelectedPermissions.push(permission.name)
+      }
+    }
 
     formik.setFieldValue('selectedPermissions', newSelectedPermissions)
     setIsFormEdited(true)
@@ -367,8 +399,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
     formik.resetForm()
     setIsFormEdited(false)
     dispatch(resetGroupRoleCreateStatus())
-
-    // router.back()
   }
 
   useEffect(() => {
@@ -418,6 +448,18 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
       console.log('isGroupRolePermissionUpdating:', isGroupRolePermissionUpdating)
     })
   }, [formik.values, isFormEdited])
+
+  // Check if all permissions or module/sub-module permissions are selected
+  const allPermissionsSelected =
+    availablePermissions.length > 0 && formik.values.selectedPermissions.length === availablePermissions.length
+
+  const getModuleSelectionState = (module: string, subModule?: string) => {
+    const group = groupedPermissions.find(g => g.module === module && g.subModule === subModule)
+
+    if (!group) return false
+
+    return group.permissions.every(p => formik.values.selectedPermissions.includes(p.name))
+  }
 
   return (
     <Card sx={{ padding: 5 }}>
@@ -484,7 +526,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip
-                      key=''
+                      key={option.id}
                       label={option.name}
                       {...getTagProps({ index })}
                       sx={{ background: '#E0F7FA', color: '#00695C' }}
@@ -509,6 +551,17 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                   Available Permissions
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={allPermissionsSelected}
+                      onChange={() => handleCheckboxToggle('all')}
+                      size='small'
+                    />
+                  }
+                  label='Select All Permissions'
+                  sx={{ mb: 2 }}
+                />
                 {isPermissionLoading ? (
                   <Typography>Loading permissions...</Typography>
                 ) : permissionFailureMessage ? (
@@ -518,10 +571,23 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 ) : (
                   <List sx={{ maxHeight: '400px', overflowY: 'auto' }}>
                     {groupedPermissions.map(group => (
-                      <Box key={`${group.module}-${group.subModule || 'none'}`} sx={{ mb: 3 }}>
+                      <Box key={`${group.module}-${group.subModule || 'none'}`} sx={{ mb: 3,padding:1 }}>
                         <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 1, mt: 3 }}>
                           {group.module} {group.subModule ? `- ${group.subModule}` : ''}
                         </Typography>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={getModuleSelectionState(group.module, group.subModule)}
+                              onChange={() =>
+                                handleCheckboxToggle({ module: group.module, subModule: group.subModule })
+                              }
+                              size='small'
+                            />
+                          }
+                          label={`Select All ${group.subModule || group.module} Permissions`}
+                          sx={{ mb: 3 }}
+                        />
                         <Droppable
                           droppableId={`available-${group.module}-${group.subModule || 'none'}`}
                           direction='horizontal'
@@ -664,7 +730,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
         </DragDropContext>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 10 }}>
-          {/* Go Back Button - Left Aligned */}
           <Button
             variant='contained'
             onClick={() => router.back()}
@@ -673,7 +738,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
               color: '#377DFF',
               border: '1px solid #377DFF',
               '&:hover': {
-                backgroundColor: '#E0E7FF', // light blue on hover
+                backgroundColor: '#E0E7FF',
                 borderColor: '#2563EB'
               },
               borderRadius: '8px',
@@ -687,7 +752,6 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             Go Back
           </Button>
 
-          {/* Clear & Submit Buttons - Right Aligned */}
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
               variant='contained'
@@ -706,7 +770,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
             <Button
               variant='contained'
               onClick={() => {
-                console.log('Add button clicked, form valid:', formik.isValid)
+                
                 console.log('Button disabled state:', {
                   isFormEdited,
                   isSubmitting: formik.isSubmitting,
@@ -717,9 +781,7 @@ const AddOrEditUserRole: React.FC<{ mode: 'add' | 'edit'; id?: string }> = ({ mo
                 formik.handleSubmit()
               }}
               disabled={
-                !isFormEdited ||
-                formik.isSubmitting ||
-                isGroupRolePermissionUpdating ||
+
                 isGroupRoleCreating ||
                 !formik.isValid
               }

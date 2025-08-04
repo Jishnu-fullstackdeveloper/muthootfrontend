@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { Box, Card, Grid, Chip, Button, Typography, Divider, CircularProgress, Tooltip } from '@mui/material'
 import { createColumnHelper } from '@tanstack/react-table'
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityIcon from '@mui/icons-material/Visibility'
 
 import { fetchGroupRole } from '@/redux/UserRoles/userRoleSlice'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
@@ -23,6 +23,11 @@ interface GroupRole {
 interface GroupRoleProps {
   searchText: string
   view: 'table' | 'grid'
+}
+
+interface Pagination {
+  totalCount: number
+  
 }
 
 const columnHelper = createColumnHelper<GroupRole>()
@@ -56,21 +61,34 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [allData, setAllData] = useState<GroupRole[]>([])
 
-  const { groupRoleData, isGroupRoleLoading, groupRoleFailure } = useAppSelector(state => state.UserRoleReducer)
+  const { groupRoleData, isGroupRoleLoading, groupRoleFailure, groupRoleFailureMessage ,pagination} = useAppSelector(
+    state => state.UserRoleReducer
+  )
+
+    const { totalCount = 0 } = (pagination as Pagination) || {}
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('groupRoleData:', groupRoleData)
+    console.log('allData:', allData)
+  }, [groupRoleData, allData])
 
   // Append new data to allData when groupRoleData changes
   useEffect(() => {
-    if (groupRoleData.data?.length > 0) {
+    if (groupRoleData?.length > 0) {
       setAllData(prev => {
-        // Avoid duplicating data by checking IDs
-        const newData = groupRoleData.data.filter(newRole => !prev.some(existingRole => existingRole.id === newRole.id))
+        const newData = groupRoleData.filter(newRole => !prev.some(existingRole => existingRole.id === newRole.id))
+
+        console.log('Appending newData:', newData) // Debug log
 
         return [...prev, ...newData]
       })
 
-      if (groupRoleData.data.length < limit) {
+      if (groupRoleData.length < limit) {
         setHasMore(false)
       }
+    } else {
+      console.log('No data in groupRoleData.data') // Debug log
     }
   }, [groupRoleData, limit])
 
@@ -79,19 +97,25 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
     setPage(1)
     setHasMore(true)
     setAllData([])
+    console.log('Fetching group roles with page: 1, limit:', limit, 'searchText:', searchText) // Debug log
     dispatch(fetchGroupRole({ page: 1, limit }))
   }, [dispatch, limit, searchText])
 
   // Filter roles based on search text
   const filteredRoles = useMemo(() => {
+    console.log('searchText:', searchText) // Debug log
     if (!searchText) return allData
     const lowerSearch = searchText.toLowerCase()
 
-    return allData.filter(
+    const filtered = allData.filter(
       role =>
         cleanName(role.name).toLowerCase().includes(lowerSearch) ||
         (role.description?.toLowerCase().includes(lowerSearch) ?? false)
     )
+
+    console.log('filteredRoles:', filtered) // Debug log
+
+    return filtered
   }, [searchText, allData])
 
   // Infinite scroll handler
@@ -107,6 +131,8 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
 
     setIsLoadingMore(true)
     const nextPage = page + 1
+
+    console.log('Fetching next page:', nextPage) // Debug log
 
     dispatch(fetchGroupRole({ page: nextPage, limit }))
       .unwrap()
@@ -188,24 +214,8 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
         header: 'Actions',
         cell: ({ row }) => (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {/* <Button
-              variant='outlined'
-              size='small'
-              onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(row.original.id))}
-              sx={{
-                borderRadius: '8px',
-                border: '1px solid #0096DA',
-                color: '#0096DA',
-                textTransform: 'none',
-                '&:hover': { backgroundColor: '#D0F7E7', borderColor: '#007BBD' }
-              }}
-            >
-              Edit
-            </Button> */}
-            <Box
-              onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_VIEW(row.original.id))}
-            >
-             <VisibilityIcon />
+            <Box onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_VIEW(row.original.id))}>
+              <VisibilityIcon />
             </Box>
           </Box>
         )
@@ -223,7 +233,7 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
       )}
       {groupRoleFailure && (
         <Box sx={{ textAlign: 'center', my: 4 }}>
-          <Typography color='error'>Failed to load group roles</Typography>
+          <Typography color='error'>{groupRoleFailureMessage || 'Failed to load group roles'}</Typography>
         </Box>
       )}
       {!isGroupRoleLoading && !groupRoleFailure && filteredRoles.length === 0 && (
@@ -239,7 +249,7 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
               columns={columns}
               data={filteredRoles}
               pagination={{ pageIndex: page - 1, pageSize: limit }}
-              totalCount={groupRoleData.totalCount} // Use totalCount from groupRoleData
+              totalCount={totalCount}
               onPageChange={newPage => {
                 setPage(newPage + 1)
               }}
@@ -273,26 +283,6 @@ const GroupRole: React.FC<GroupRoleProps> = ({ searchText = '', view }) => {
                                 {toTitleCase(cleanName(role.name))}
                               </Typography>
                             </Grid>
-                            {/* <Grid item>
-                              <Button
-                                variant='outlined'
-                                size='small'
-                                disabled={isGroupRoleLoading}
-                                onClick={() => router.push(ROUTES.USER_MANAGEMENT.GROUP_ROLE_PERMISSION_EDIT(role.id))}
-                                sx={{
-                                  borderRadius: '8px',
-                                  border: '1px solid #0096DA',
-                                  color: '#0096DA',
-                                  textTransform: 'none',
-                                  '&:hover': {
-                                    backgroundColor: '#D0F7E7',
-                                    borderColor: '#007BBD'
-                                  }
-                                }}
-                              >
-                                Edit
-                              </Button>
-                            </Grid> */}
                           </Grid>
                           <Divider sx={{ my: 2 }} />
                           <Box sx={{ mb: 2, minHeight: '60px' }}>

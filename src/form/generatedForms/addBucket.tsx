@@ -34,6 +34,7 @@ import type { RootState } from '@/redux/store'
 
 type Props = {
   mode: 'add' | 'edit'
+  id?: string
 }
 
 // interface PositionCategory {

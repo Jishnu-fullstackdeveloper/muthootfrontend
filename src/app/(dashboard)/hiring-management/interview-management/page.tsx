@@ -1,9 +1,16 @@
+'use client'
 import React from 'react'
 
-import InterviewListingPage from '@/views/pages/HiringManagement/InterviewManagement/InterviewListing'
+import { useRouter } from 'next/navigation'
 
-const page = () => {
-  return <InterviewListingPage />
+import { ROUTES } from '@/utils/routes'
+
+const Page = () => {
+  const router = useRouter()
+
+  router.push(ROUTES.HIRING_MANAGEMENT.INTERVIEW_MANAGEMENT)
+
+  return <div></div>
 }
 
-export default page
+export default Page

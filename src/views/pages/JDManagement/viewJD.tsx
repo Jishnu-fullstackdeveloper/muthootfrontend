@@ -1,557 +1,522 @@
-import React from 'react'
+'use client'
 
-import { useRouter } from 'next/navigation'
+import React, { useEffect } from 'react'
 
-import {
-  Box,
-  Card,
-  Typography,
-  Grid,
-  Button,
-  TableCell,
-  TableContainer,
-  TableBody,
-  TableRow,
-  Table
-} from '@mui/material'
+import { useSearchParams } from 'next/navigation'
 
-import { ArrowBack } from '@mui/icons-material'
+import { Box, Typography, CircularProgress, Alert, Card, Grid, Divider } from '@mui/material'
+import { Tree, TreeNode } from 'react-organizational-chart'
 
-type Props = {
-  mode: any
-  id: any
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchJdById } from '@/redux/jdManagemenet/jdManagemnetSlice'
+import { fetchVacancyXFactor } from '@/redux/VacancyXFactor/vacancyXFactorSlice'
+import { fetchResignedXFactor } from '@/redux/ResignedXFactor/resignedXFactorSlice'
+
+interface ViewJDProps {
+  jdId?: string
 }
 
-const ViewJD: React.FC<Props> = () => {
-  const router = useRouter()
+const JobRoleDetails: React.FC<ViewJDProps> = ({ jdId }) => {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
 
-  const keyResponsibilities = [
-    {
-      title: 'Operational Governance',
-      description: ['Cascade and communicate branch-wise targets to the team, create daily/weekly/monthly targets, ']
-    },
-    {
-      title: 'Business Development',
-      description: [
-        'Leverage market and customer insights to support product strategy, market opportunities and potential new branch locations within the assigned area.'
-      ]
+  const dispatch = useAppDispatch()
+
+  const { selectedJd, isSelectedJdLoading, selectedJdSuccess, selectedJdFailure, selectedJdFailureMessage } =
+    useAppSelector(state => state.jdManagementReducer)
+
+  const { vacancyXFactorData, isVacancyXFactorLoading, vacancyXFactorSuccess } = useAppSelector(
+    state => state.VacancyXFactorReducer
+  )
+
+  const { resignedXFactorData, isResignedXFactorLoading, resignedXFactorSuccess } = useAppSelector(
+    state => state.ResignedxFactorReducer
+  )
+
+  useEffect(() => {
+    const idToUse = jdId || (id && typeof id === 'string' ? id : null)
+
+    if (idToUse) {
+      dispatch(fetchJdById(idToUse))
     }
-  ]
+  }, [id, jdId, dispatch])
 
-  const keyInteractions = [
-    {
-      type: 'Internal Stakeholders',
-      description: [
-        'RM: For review of operational performance and approvals.',
-        'SULB: For credit checks, collections, and disbursements.',
-        'Internal Team: Branch Manager for operational matters, guidance and support.'
-      ]
-    },
-    {
-      type: 'External Stakeholders',
-      description: ['Key customers and relationships.', 'Regulatory bodies for compliance related matters.']
+  useEffect(() => {
+    if (selectedJd?.details?.roleSpecification?.jobRole) {
+      const search = selectedJd.details.roleSpecification.jobRole
+
+      dispatch(fetchVacancyXFactor({ page: 1, limit: 10, search }))
+      dispatch(fetchResignedXFactor({ page: 1, limit: 10, search }))
     }
-  ]
+  }, [selectedJd, dispatch])
 
-  const keySkillsAndAttributes = [
-    {
-      factor: 'Technical Expertise',
-      competencies: ['Java', 'Spring Boot', 'API Integration'],
-      definitions: ['Java development', 'Backend design'],
-      behavioralAttributes: ['Adaptability', 'Problem-solving']
-    },
-    {
-      factor: 'Communication Skills',
-      competencies: ['Stakeholder Engagement'],
-      definitions: ['Effective communication with clients'],
-      behavioralAttributes: ['Team leadership', 'Cross-functional collaboration']
-    }
-  ]
+  if (isSelectedJdLoading) return <CircularProgress />
+  if (selectedJdFailure) return <Alert severity='error'>{selectedJdFailureMessage}</Alert>
+  if (!selectedJdSuccess || !selectedJd) return <Alert severity='info'>No job role data found.</Alert>
 
-  const keyRoleDimentions = [
-    {
-      portfolioSize: ' 100+',
-      geographicalCoverage: ' 10-14',
-      branchesTeamSize: '12-15',
-      totalTeamSize: ' 40-50'
-    }
-  ]
-
-  const chartData = {
-    title: 'CEO',
-    children: [
-      {
-        title: 'CTO',
-        children: [{ title: 'Lead Developer' }, { title: 'QA Manager' }]
-      },
-      {
-        title: 'CFO',
-        children: [{ title: 'Finance Manager' }, { title: 'Accountant' }]
-      }
-    ]
+  const toTitleCase = (str: string): string => {
+    return str
+      .toLowerCase()
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
   }
 
-  // Recursive function to render the tree
-  // const renderNode = (node: any) => (
-  //   <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
-  //     {/* Parent Node */}
-  //     <Box
-  //       sx={{
-  //         width: 160,
-  //         height: 50,
-  //         backgroundColor: '#2196F3',
-  //         borderRadius: 8,
-  //         display: 'flex',
-  //         alignItems: 'center',
-  //         justifyContent: 'center',
-  //         fontWeight: 'bold',
-  //         color: '#fff',
-  //         margin: '0 auto'
-  //       }}
-  //     >
-  //       {node.title}
-  //     </Box>
-
-  //     {/* Render children recursively */}
-  //     {node.children && (
-  //       <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-  //         {/* Vertical line connecting parent to the children */}
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 0,
-  //             left: '50%',
-  //             width: 2,
-  //             height: 30,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-
-  //         {/* Horizontal lines to connect left and right children */}
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 30,
-  //             // left: 0,
-  //             width: '20%',
-  //             height: 2,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-  //         <Box
-  //           sx={{
-  //             position: 'absolute',
-  //             top: 30,
-  //             // right: 0,
-  //             width: '20%',
-  //             height: 2,
-  //             backgroundColor: '#3f51b5'
-  //           }}
-  //         />
-
-  //         {/* Render child nodes */}
-  //         <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '50%' }}>
-  //           {node.children.map((child: any, index: number) => (
-  //             <Box
-  //               key={index}
-  //               sx={{
-  //                 display: 'flex',
-  //                 flexDirection: 'column',
-  //                 alignItems: 'center',
-  //                 position: 'relative'
-  //               }}
-  //             >
-  //               {/* Child Node */}
-  //               <Box
-  //                 sx={{
-  //                   width: 140,
-  //                   height: 50,
-  //                   marginTop: 2,
-  //                   backgroundColor: '#e3f2fd',
-  //                   borderRadius: 8,
-  //                   display: 'flex',
-  //                   alignItems: 'center',
-  //                   justifyContent: 'center',
-  //                   fontWeight: 'bold',
-  //                   color: '#1e88e5'
-  //                 }}
-  //               >
-  //                 {child.title}
-  //               </Box>
-
-  //               {/* Recursively render child nodes */}
-  //               {child.children && (
-  //                 <Box sx={{ mt: 3 }}>
-  //                   {child.children.map((subChild: any, subIndex: number) => (
-  //                     <Box
-  //                       key={subIndex}
-  //                       sx={{
-  //                         display: 'flex',
-  //                         flexDirection: 'row',
-  //                         alignItems: 'center',
-  //                         position: 'relative'
-  //                       }}
-  //                     >
-  //                       {/* Render sub-child node */}
-  //                       <Box
-  //                         sx={{
-  //                           width: 140,
-  //                           height: 50,
-  //                           backgroundColor: '#e3f2fd',
-  //                           borderRadius: 8,
-  //                           display: 'flex',
-  //                           alignItems: 'center',
-  //                           justifyContent: 'center',
-  //                           fontWeight: 'bold',
-  //                           color: '#1e88e5'
-  //                         }}
-  //                       >
-  //                         {subChild.title}
-  //                       </Box>
-  //                     </Box>
-  //                   ))}
-  //                 </Box>
-  //               )}
-  //             </Box>
-  //           ))}
-  //         </Box>
-  //       </Box>
-  //     )}
-  //   </Box>
-  // )
-
-  const renderNode = (node: any) => (
-    <Box sx={{ textAlign: 'center', position: 'relative', mb: 6 }}>
-      {/* Parent Node */}
-      <Box
-        sx={{
-          width: 160,
-          height: 50,
-          backgroundColor: '#2196F3',
-          borderRadius: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 'bold',
-          color: '#fff',
-          margin: '0 auto'
-        }}
-      >
-        {node.title}
-      </Box>
-
-      {/* Render children recursively */}
-      {node.children && (
-        <Box sx={{ position: 'relative' }}>
-          {/* Vertical Line */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -16,
-              left: '50%',
-              width: 2,
-              height: 62,
-              backgroundColor: '#3f51b5'
-
-              // transform: 'translateX(-50%)'
-            }}
-          />
-
-          {/* Children Container */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 4 }}>
-            {node.children.map((child: any, index: number) => (
-              <Box key={index} sx={{ position: '', textAlign: 'center' }}>
-                {/* Horizontal Line */}
-                {node.children.length > 1 && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 45,
-                      left: '50%',
-                      width: index === 0 ? 'calc(50% + 40px)' : '0',
-                      height: 2,
-                      backgroundColor: '#3f51b5',
-                      transform: 'translateX(-50%)'
-                    }}
-                  />
-                )}
-
-                {/* Render Child Node */}
-                <Box sx={{ mt: 5, zIndex: 100, marginRight: 10, marginLeft: 10 }}>{renderNode(child)}</Box>
-              </Box>
-            ))}
-          </Box>
+  const renderNode = node => (
+    <TreeNode
+      key={node.id}
+      label={
+        <Box
+          sx={{
+            border: '1px solid #1976d2',
+            borderRadius: '8px',
+            px: 2,
+            py: 1,
+            backgroundColor: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            fontSize: '14px',
+            display: 'inline-block'
+          }}
+        >
+          {node.name}
         </Box>
-      )}
-    </Box>
+      }
+    >
+      {node.children && node.children.map(child => renderNode(child))}
+    </TreeNode>
   )
 
   return (
-    <>
-      <Box display='flex' alignItems='center' justifyContent='space-between' marginBottom={4}>
-        <Button startIcon={<ArrowBack />} variant='text' onClick={() => router.push('/jd-management')}>
-          Back to JD List
-        </Button>
-      </Box>
-      {/* Header Section */}
-      <Box
-        sx={{
-          mb: 4,
-          backgroundColor: '#f5f5f5',
-          padding: 2,
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}
-      >
-        <Typography variant='h4' sx={{ fontWeight: 'bold', color: '#3f51b5' }}>
-          ASST. BRANCH MANAGER
-        </Typography>
-      </Box>
-
-      {/* Oragnizational chart */}
-
-      <Box
-        sx={{
-          // position: 'sticky',
-          top: 0,
-          mb: 4,
-          backgroundColor: '#fff',
-          padding: 2,
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}
-      >
-        <Typography variant='h5' sx={{ fontWeight: 'bold', color: '#3f51b5', mb: 2, pl: 4, pt: 2 }}>
+    <Box>
+      <Card sx={{ mb: 4, p: 3, overflow: 'auto' }}>
+        <Typography variant='h5' gutterBottom>
           Organizational Chart
         </Typography>
-
-        {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}> */}
-        {renderNode(chartData)}
-        {/* </Box> */}
-      </Box>
-      <Grid container spacing={6}>
-        {/* Left Side Content */}
-        <Grid item xs={8}>
-          {/* Role Summary */}
-          <Card
-            variant='outlined'
-            sx={{
-              mb: 3,
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              '&:hover': { boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }
-            }}
-          >
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Role Summary
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-              Proven hands-on experience in leadership and full-stack development within a corporate setting. Candidates
-              should demonstrate strong decision-making and communication skills, with proven expertise in technical
-              design and agile project delivery.
-            </Typography>
-          </Card>
-
-          {/* Key Responsibilities */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Responsibilities
-            </Typography>
-            {keyResponsibilities.map((item, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <TableContainer sx={{ maxHeight: 'none', overflow: 'hidden' }}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '30%', paddingRight: 2 }}>
-                          <Typography variant='body1' sx={{ fontWeight: 'bold', color: '#444' }}>
-                            {item.title}
-                          </Typography>
-                        </TableCell>
-                        <TableCell sx={{ border: 'none', verticalAlign: 'top', width: '70%' }}>
-                          {item.description.map((desc, idx) => {
-                            const words = desc.split(' ')
-                            const lines = []
-                            let currentLine = ''
-
-                            words.forEach((word, i) => {
-                              if ((currentLine + word).split(' ').length > 10 || i === words.length - 1) {
-                                lines.push(currentLine.trim())
-                                currentLine = word + ' '
-                              } else {
-                                currentLine += word + ' '
-                              }
-                            })
-
-                            return lines.map((line, lineIdx) => (
-                              <Typography key={`${idx}-${lineIdx}`} variant='body2' sx={{ color: '#666', mb: 1 }}>
-                                {line}
-                              </Typography>
-                            ))
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+        {selectedJd.details.organizationChart ? (
+          <Tree
+            lineWidth={'2px'}
+            lineColor={'#1976d2'}
+            lineBorderRadius={'8px'}
+            label={
+              <Box
+                sx={{
+                  border: '1px solid #1976d2',
+                  borderRadius: '8px',
+                  px: 2,
+                  py: 1,
+                  backgroundColor: '#fff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  fontSize: '14px',
+                  display: 'inline-block'
+                }}
+              >
+                {selectedJd.details.organizationChart.name}
               </Box>
-            ))}
-          </Card>
+            }
+          >
+            {selectedJd.details.organizationChart.children.map(child => renderNode(child))}
+          </Tree>
+        ) : (
+          <Typography variant='body2'>No organizational chart available.</Typography>
+        )}
+      </Card>
 
-          {/* Key Challenges */}
+      <Grid container spacing={2}>
+        {/* Left column */}
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction='column'>
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Role Summary
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: '14px', padding: '5px' }}>
+                  {selectedJd.details.roleSummary || 'N/A'}
+                </Typography>
+              </Card>
+            </Grid>
 
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Challenges
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-              Adapting to evolving market trends, driving technical innovation while maintaining compliance, and
-              ensuring cross-functional collaboration with varying business unit objectives.
-            </Typography>
-          </Card>
-
-          {/* Key Interactions */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Interactions
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              {keyInteractions.map((interaction, index) => (
-                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
-                  <Typography
-                    variant='body2'
-                    sx={{ color: '#444', mb: 2, backgroundColor: '#f5f5f5', padding: '6px 10px', borderRadius: '4px' }}
-                  >
-                    <strong>{interaction.type}</strong>
-                  </Typography>
-                  <Typography variant='body2' sx={{ color: '#666', paddingLeft: 2 }}>
-                    {interaction.description.map((item, idx) => (
-                      <span key={idx}>
-                        {item.trim()}
-                        <br />
-                        <br />
-                      </span>
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Key Skills
+                </Typography>
+                {selectedJd.details.skills?.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                    {selectedJd.details.skills.map((skill, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          backgroundColor: '#E3F2FD',
+                          color: '#1976D2',
+                          px: 3,
+                          py: 1,
+                          borderRadius: '5px',
+                          fontSize: '13px',
+                          fontWeight: 500
+                        }}
+                      >
+                        {skill}
+                      </Box>
                     ))}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
+                  </Box>
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
 
-       {/* Education & Experience */}
+            <Grid item sx={{ mb: 2 }}>
+              <Card sx={{ p: 5, borderRadius: 2 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Key Responsibilities
+                </Typography>
+                {selectedJd.details.keyResponsibilities?.length > 0 ? (
+                  selectedJd.details.keyResponsibilities.map((kr, index) => (
+                    <Box key={index} sx={{ mb: 2, mt: 2 }}>
+                      <Typography
+                        sx={{ fontSize: '15px', backgroundColor: '#f5f5f5', px: 3, py: 1, borderRadius: '5px' }}
+                      >
+                        {kr.title || 'N/A'}
+                      </Typography>
+                      <Box
+                        sx={{ fontSize: '14px', fontWeight: 500, color: 'black', paddingLeft: 5, mt: 2 }}
+                        dangerouslySetInnerHTML={{ __html: kr.description || 'N/A' }}
+                      />
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
 
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Educational & Experience 
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-            <strong>Minimum Qualification:</strong>  Bachelor’s Degree in Computer Science/Related Fields 
-            </Typography>
-            <Typography sx={{ color: '#555' }}>
-            <strong>Nature of Experience::</strong> 5+ years of experience in software development, with at least 2 years in a leadership role.
-            </Typography>
-          </Card>
-
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Key Interactions
+                </Typography>
+                {selectedJd.details.keyInteractions?.length > 0 ? (
+                  selectedJd.details.keyInteractions.map((interaction, index) => (
+                    <Box key={index} sx={{ mb: 2, mt: 3 }}>
+                      <Grid container spacing={4}>
+                        <Grid item xs={12} sm={6}>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              backgroundColor: '#DCDCDC',
+                              px: 2,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontWeight: 500
+                            }}
+                          >
+                            Internal Stakeholders
+                          </Typography>
+                          <Box sx={{ mt: 2 }}>
+                            {interaction.internalStakeholders ? (
+                              <Typography
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
+                                component='div'
+                                dangerouslySetInnerHTML={{ __html: interaction.internalStakeholders }}
+                              />
+                            ) : (
+                              <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                            )}
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              backgroundColor: '#DCDCDC',
+                              px: 2,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontWeight: 500
+                            }}
+                          >
+                            External Stakeholders
+                          </Typography>
+                          <Box sx={{ mt: 2 }}>
+                            {interaction.externalStakeholders ? (
+                              <Typography
+                                sx={{ fontSize: '12px', color: 'text.primary', paddingLeft: 10 }}
+                                component='div'
+                                dangerouslySetInnerHTML={{ __html: interaction.externalStakeholders }}
+                              />
+                            ) : (
+                              <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                            )}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                      {index < selectedJd.details.keyInteractions.length - 1 && <Divider sx={{ my: 3 }} />}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
+          </Grid>
         </Grid>
 
-        {/* Right Side Content */}
-        <Grid item xs={4}>
-          {/* Company & Reporting Details */}
-          <Card
-            variant='outlined'
-            sx={{
-              mb: 3,
-              padding: 3,
-              borderRadius: 2,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              '&:hover': { boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }
-            }}
-          >
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Role Details
-            </Typography>
-            <Typography>
-              <strong>Role Title:</strong> ABC Developer
-            </Typography>
-            <Typography>
-              <strong>Employee Interviewed:</strong> ABC Ltd.
-            </Typography>
-            <Typography>
-              <strong>Reports To:</strong>Regional Manager
-            </Typography>
-            <Typography>
-              <strong>Company Name:</strong> ABC Ltd.
-            </Typography>
-            <Typography>
-              <strong>Function/Department:</strong>Branch Business
-            </Typography>
-            <Typography>
-              <strong>Written By:</strong> Korn Ferry
-            </Typography>
-            <Typography>
-              <strong>Approved By (Jobholder):</strong> HR Department
-            </Typography>
-            <Typography>
-              <strong>Approved By (Immediate Superior):</strong> HR Department
-            </Typography>
-            <Typography>
-              <strong>Date (Written On):</strong> 10-01-2023
-            </Typography>
-          </Card>
+        {/* Right column */}
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction='column'>
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px',mb:-0}}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Role Specification
+                </Typography>
+                <Grid container spacing={2}>
+                  {[
+                    { label: 'Job Role', value: toTitleCase(selectedJd.details.roleSpecification?.jobRole || 'N/A') },
+                    { label: 'job Role Type', value: toTitleCase(selectedJd.details.roleSpecification?.jobRoleType || 'N/A') },
+                    { label: 'Job Type', value: toTitleCase(selectedJd.details.roleSpecification?.jobType || 'N/A') },
+                    {
+                      label: 'Company Name',
+                      value: toTitleCase(
+                        (selectedJd.details.roleSpecification?.companyName || 'N/A').replace(/_/g, ' ')
+                      )
+                    },
+                    {
+                      label: 'Notice Period',
+                      value: selectedJd.details.roleSpecification?.noticePeriod
+                        ? `${selectedJd.details.roleSpecification.noticePeriod} months`
+                        : 'N/A'
+                    },
+                      {
+                      label: 'Salary Range',
+                      value: selectedJd.details.roleSpecification?.salaryRange
+                        ? `₹ ${selectedJd.details.roleSpecification.salaryRange} LPA`
+                        : 'N/A'
+                    },
 
-          {/* Skills & Attributes */}
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              Key Skills & Attributes
-            </Typography>
-            {keySkillsAndAttributes.map((section, index) => (
-              <Box key={index} sx={{ mb: 3, borderBottom: '1px solid #ddd', pb: 2 }}>
-                <Typography variant='body2' sx={{ fontWeight: 'bold', mb: 1, color: '#444' }}>
-                  Factor/Category: {section.factor}
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                  <strong>Competencies:</strong> {section.competencies.join(', ')}
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                  <strong>Definitions:</strong> {section.definitions.join(', ')}
-                </Typography>
-                <Typography variant='body2' sx={{ color: '#666' }}>
-                  <strong>Behavioral Attributes:</strong> {section.behavioralAttributes.join(', ')}
-                </Typography>
-              </Box>
-            ))}
-          </Card>
+                  ].map((field, index) => (
+                    <Grid item xs={4} key={index}>
+                      <Typography sx={{ color: 'text.secondary', fontSize: '12px' }}>{field.label}</Typography>
+                      <Typography sx={{ fontWeight: 500, fontSize: '14px', color: 'black' }}>{field.value}</Typography>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Card>
+            </Grid>
 
-          {/* KEY ROLE DIMENTIONS */}
+            {/* Updated X-Factor Section */}
+            <Grid item xs={12}>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' , }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  X-Factors
+                </Typography>
 
-          <Card variant='outlined' sx={{ mb: 3, padding: 3, borderRadius: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <Typography variant='h6' sx={{ fontWeight: 'bold', mb: 2, color: '#3f51b5' }}>
-              KEY ROLE DIMENSIONS
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              {keyRoleDimentions.map((dimentions, index) => (
-                <Box key={index} sx={{ width: '48%', padding: index === 0 ? '0 1% 0 0' : '0 0 0 1%' }}>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Portfolio Size:</strong> {dimentions.portfolioSize}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Geographical Coverage:</strong> {dimentions.geographicalCoverage}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Branches Team Size:</strong> {dimentions.branchesTeamSize}
-                  </Typography>
-                  <Typography variant='body2' sx={{ mb: 1, color: '#666' }}>
-                    <strong>Total Team Size:</strong> {dimentions.totalTeamSize}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
+                {(isVacancyXFactorLoading || isResignedXFactorLoading) && <CircularProgress size={24} />}
+
+                {vacancyXFactorSuccess && resignedXFactorSuccess && (
+                  <Grid container spacing={4}>
+                    {/* Vacancy X-Factors - Left */}
+                    <Grid item xs={12} md={6}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
+                        Vacancy X-Factors
+                      </Typography>
+                      {vacancyXFactorData?.length > 0 ? (
+                        vacancyXFactorData.map((factor, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              backgroundColor: '#E3F2FD',
+                              color: '#1976D2',
+                              px: 3,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              mb: 1
+                            }}
+                          >
+                            {factor.xFactor !== null && factor.xFactor !== undefined
+                              ? `X-Factor: ${factor.xFactor}`
+                              : 'N/A'}
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>No Vacancy X-Factors</Typography>
+                      )}
+                    </Grid>
+
+                    {/* Resigned X-Factors - Right */}
+                    <Grid item xs={12} md={6}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}>
+                        Resigned X-Factors
+                      </Typography>
+                      {resignedXFactorData?.length > 0 ? (
+                        resignedXFactorData.map((factor, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              backgroundColor: '#E3F2FD',
+                              color: '#1976D2',
+                              px: 3,
+                              py: 1,
+                              borderRadius: '5px',
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              mb: 1
+                            }}
+                          >
+                            {factor.xFactor !== null && factor.xFactor !== undefined
+                              ? `X-Factor: ${factor.xFactor}`
+                              : 'N/A'}
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>
+                          No Resigned X-Factors
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                )}
+              </Card>
+            </Grid>
+
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px',my:0 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Educational & Experience
+                </Typography>
+                {selectedJd.details.educationAndExperience?.length > 0 ? (
+                  selectedJd.details.educationAndExperience.map((edu, index) => (
+                    <Box key={index} sx={{ mb: 2 }}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Experience</Typography>
+                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: 'black' }}>
+                            {edu.experienceDescription
+                              ? `${edu.experienceDescription.min || 'N/A'} - ${edu.experienceDescription.max || 'N/A'} years`
+                              : 'N/A'}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Age Limit</Typography>
+                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: 'black' }}>
+                            {edu.ageLimit || 'N/A'}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                            Minimum Qualification
+                          </Typography>
+                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: 'black' }}>
+                            {toTitleCase(edu.minimumQualification || 'N/A')}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
+
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Interview Levels
+                </Typography>
+                {selectedJd.details.interviewLevels?.levels?.length > 0 ? (
+                  <Box>
+                    <Typography sx={{ fontSize: '14px', color: 'black' }}>
+                      Number of Levels : {selectedJd.details.interviewLevels?.numberOfLevels || 'N/A'}
+                    </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black', mb: 2 }}></Typography>
+                    <Grid container spacing={2}>
+                      {selectedJd.details.interviewLevels.levels.map((level, index) => (
+                        <Grid item xs={6} key={index}>
+                          <Box sx={{ mb: 1 }}>
+                            <Typography sx={{ fontSize: '14px', color: 'black' }}>
+                              <strong
+                                style={{
+                                  backgroundColor: '#E0F7FA',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px'
+                                }}
+                              >
+                                Level {level.level}:
+                              </strong>{' '}
+                              {toTitleCase(level.designation || 'N/A')}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
+
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2, minHeight: '150px' }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Key Role Dimensions
+                </Typography>
+                {selectedJd.details.keyRoleDimensions?.length > 0 ? (
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Portfolio Size</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black' }}>
+                        {selectedJd.details.keyRoleDimensions[0]?.portfolioSize || 'N/A'}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Geographical Coverage</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black' }}>
+                        {selectedJd.details.keyRoleDimensions[0]?.geographicalCoverage || 'N/A'}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Team Size</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black' }}>
+                        {selectedJd.details.keyRoleDimensions[0]?.teamSize || 'N/A'}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>Total Team Size</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: 'black' }}>
+                        {selectedJd.details.keyRoleDimensions[0]?.totalTeamSize || 'N/A'}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
+
+            <Grid item>
+              <Card sx={{ p: 5, borderRadius: 2 }}>
+                <Typography gutterBottom sx={{ fontWeight: 600, fontSize: '16px', color: 'black' }}>
+                  Key Challenges
+                </Typography>
+                {selectedJd.details.keyChallenges ? (
+                  <Box
+                    sx={{ color: 'text.secondary', fontSize: '14px' }}
+                    dangerouslySetInnerHTML={{ __html: selectedJd.details.keyChallenges }}
+                  />
+                ) : (
+                  <Typography sx={{ color: 'text.secondary', fontSize: '14px' }}>N/A</Typography>
+                )}
+              </Card>
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
-    </>
+    </Box>
   )
 }
 
-export default ViewJD
+export default JobRoleDetails

@@ -1,237 +1,368 @@
 'use client'
-import React, { useCallback, useEffect, useState } from 'react'
 
-import type { Connection, Edge, Node, NodeProps } from 'reactflow'
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Handle,
-  Position,
-  ReactFlowProvider
-} from 'reactflow'
-import 'reactflow/dist/style.css'
+import React, { useState, useEffect, useCallback } from 'react'
 
-const roles = ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR']
+import { Tree, TreeNode } from 'react-organizational-chart'
+import { Box, Select, MenuItem, Button, TextField } from '@mui/material'
+import { styled } from '@mui/material/styles'
 
-// Editable dropdown node
-function CustomNode({ data, selected, id }: NodeProps) {
-  const shape = data.shape || 'rectangle'
-  const base = 'p-2 text-sm text-center shadow border'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchDesignation } from '@/redux/jdManagemenet/jdManagemnetSlice'
 
-  const shapeStyles: Record<string, string> = {
-    rectangle: 'rounded bg-white w-32 h-16',
-    circle: 'rounded-full bg-blue-100 w-20 h-20 flex items-center justify-center',
-    diamond: 'w-20 h-20 bg-green-100 rotate-45 flex items-center justify-center'
-  }
-
-  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    data.onChange?.(id, e.target.value)
-  }
-
-  return (
-    <div
-      className={`${base} ${shapeStyles[shape]} ${selected ? 'ring-2 ring-blue-400' : ''}`}
-      style={{ transform: shape === 'diamond' ? 'rotate(-45deg)' : 'none' }}
-    >
-      <Handle type='target' position={Position.Top} />
-      <div style={{ transform: shape === 'diamond' ? 'rotate(45deg)' : 'none' }}>
-        <select
-          value={data.label}
-          onChange={onChange}
-          className='w-full text-center bg-transparent outline-none font-medium'
-        >
-          <option value=''>Select Role</option>
-          {data.options.map((role: string) => (
-            <option key={role} value={role} disabled={data.usedRoles.includes(role)}>
-              {role}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Handle type='source' position={Position.Bottom} />
-    </div>
-  )
+interface NodeData {
+  id: string
+  name: string
+  parentId: string | null
+  children: NodeData[]
+  isJobRole?: boolean
 }
 
-const nodeTypes = { custom: CustomNode }
-
-let id = 1
-const getId = () => `${++id}`
+const StyledNode = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  backgroundColor: '#fff',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  display: 'inline-block',
+  minWidth: '200px',
+  textAlign: 'center'
+}))
 
 interface OrgChartCanvasProps {
-  onSave: (chartData: any) => void
-  initialChart: any | null
+  onSave: (chartData: { nodes: NodeData[] }) => void
+  initialChart: { nodes: NodeData[] } | null
+  onCancel: () => void
 }
 
-export default function OrgChartCanvas({ onSave, initialChart }: OrgChartCanvasProps) {
-  const [usedRoles, setUsedRoles] = useState<string[]>([])
+export default function OrgChartCanvas({ onSave, initialChart, onCancel: handleCancel }: OrgChartCanvasProps) {
+  const dispatch = useAppDispatch()
+  const [limit] = useState(10)
+  const [page] = useState(1)
+  const { designationData } = useAppSelector(state => state.jdManagementReducer)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    initialChart?.nodes || [
-      {
-        id: '1',
-        position: { x: 100, y: 100 },
-        data: {
-          label: '',
-          shape: 'rectangle',
-          options: roles,
-          usedRoles: [],
-          onChange: () => {}
-        },
-        type: 'custom'
-      }
-    ]
+  // Initialize nodes, ensuring the job role node is marked
+  const defaultNodes: NodeData[] = [
+    {
+      id: 'root',
+      name: initialChart?.nodes[0]?.name || 'Root',
+      parentId: null,
+      children: [],
+      isJobRole: true
+    }
+  ]
+
+  const [nodes, setNodes] = useState<NodeData[]>(initialChart?.nodes?.length ? initialChart.nodes : defaultNodes)
+
+  const [usedRoles, setUsedRoles] = useState<string[]>(
+    initialChart?.nodes.map(node => node.name).filter(label => label) || []
   )
 
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialChart?.edges || [])
+  useEffect(() => {
+    console.log('OrgChartCanvas mounted, nodes:', JSON.stringify(nodes, null, 2))
+    const params = { limit, page }
 
-  const onConnect = useCallback((params: Edge | Connection) => setEdges(eds => addEdge(params, eds)), [])
+    dispatch(fetchDesignation(params))
+      .unwrap()
+      .catch(error => {
+        console.error('Failed to fetch designations:', error)
+      })
+  }, [dispatch, limit, page])
 
-  const updateNodeLabel = (id: string, newLabel: string) => {
-    setUsedRoles(prev => {
-      const newUsed = [...prev]
-      const prevLabel = nodes.find(n => n.id === id)?.data.label
+  useEffect(() => {
+    console.log('Nodes updated:', JSON.stringify(nodes, null, 2))
+  }, [nodes])
 
-      if (prevLabel) newUsed.splice(newUsed.indexOf(prevLabel), 1)
-      if (newLabel && !newUsed.includes(newLabel)) newUsed.push(newLabel)
+  const roles = designationData?.length
+    ? designationData.map((item: { name: string }) => item.name)
+    : ['CEO', 'CTO', 'CFO', 'Manager', 'Engineer', 'HR', 'SYSTEM ADMIN', 'jr.Hr']
 
-      return newUsed
-    })
+  const updateNode = useCallback(
+    (id: string, field: 'name', value: string) => {
+      setUsedRoles(prev => {
+        const newUsed = [...prev]
+        const prevNode = findNode(nodes, id)
+        const prevLabel = prevNode?.name
 
-    setNodes(nds =>
-      nds.map(node =>
-        node.id === id
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                label: newLabel,
-                usedRoles,
-                onChange: updateNodeLabel
-              }
+        if (prevLabel && !prevNode?.isJobRole) {
+          newUsed.splice(newUsed.indexOf(prevLabel), 1)
+        }
+
+        if (value && !newUsed.includes(value) && !prevNode?.isJobRole) {
+          newUsed.push(value)
+        }
+
+        return newUsed
+      })
+
+      setNodes(prevNodes => {
+        const updateNodes = (nodes: NodeData[]): NodeData[] => {
+          return nodes.map(node => {
+            if (node.id === id) {
+              return { ...node, [field]: value }
             }
-          : node
-      )
-    )
-  }
 
-  const addNode = (shape: string) => {
-    const newNode: Node = {
-      id: getId(),
-      type: 'custom',
-      data: {
-        label: '',
-        shape,
-        options: roles,
-        usedRoles,
-        onChange: updateNodeLabel
-      },
-      position: {
-        x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100
-      }
+            return { ...node, children: updateNodes(node.children) }
+          })
+        }
+
+        return updateNodes(prevNodes)
+      })
+    },
+    [nodes]
+  )
+
+  const findNode = (nodes: NodeData[], id: string): NodeData | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) return node
+      const found = findNode(node.children, id)
+
+      if (found) return found
     }
 
-    setNodes(nds => [...nds, newNode])
+    return undefined
   }
+
+  const addNode = useCallback((parentId: string) => {
+    const newNode: NodeData = {
+      id: Date.now().toString(),
+      name: '',
+      children: [],
+      parentId,
+      isJobRole: false
+    }
+
+    setNodes(prevNodes => {
+      const updateNodes = (nodes: NodeData[]): NodeData[] => {
+        return nodes.map(node => {
+          if (node.id === parentId) {
+            return { ...node, children: [...node.children, newNode] }
+          }
+
+          return { ...node, children: updateNodes(node.children) }
+        })
+      }
+
+      const updatedNodes = updateNodes(prevNodes)
+
+      console.log('After addNode, nodes:', JSON.stringify(updatedNodes, null, 2))
+
+      return updatedNodes
+    })
+  }, [])
+
+  const addParentNode = useCallback((nodeId: string) => {
+    const newParent: NodeData = {
+      id: Date.now().toString(),
+      name: 'Parent Role',
+      children: [],
+      parentId: null,
+      isJobRole: false
+    }
+
+    setNodes(prevNodes => {
+      const targetNode = findNode(prevNodes, nodeId)
+
+      if (!targetNode) return prevNodes
+
+      const updateNodes = (nodes: NodeData[]): NodeData[] => {
+        if (!targetNode.parentId) {
+          newParent.children = [{ ...targetNode, parentId: newParent.id }]
+
+          return [newParent, ...nodes.filter(n => n.id !== nodeId)]
+        }
+
+        return nodes.map(node => {
+          if (node.children.some(child => child.id === nodeId)) {
+            return {
+              ...node,
+              children: node.children.map(child =>
+                child.id === nodeId
+                  ? { ...newParent, children: [{ ...child, parentId: newParent.id }], parentId: node.id }
+                  : child
+              )
+            }
+          }
+
+          return { ...node, children: updateNodes(node.children) }
+        })
+      }
+
+      const updatedNodes = updateNodes(prevNodes)
+
+      console.log('After addParentNode, nodes:', JSON.stringify(updatedNodes, null, 2))
+
+      return updatedNodes
+    })
+  }, [])
+
+  const deleteNode = useCallback(
+    (id: string) => {
+      const nodeToDelete = findNode(nodes, id)
+
+      if (!nodeToDelete) return
+
+      if (nodes.length === 1 && nodeToDelete.id === nodes[0].id && nodeToDelete.isJobRole) {
+        console.log('Attempted to delete the job role node, operation blocked')
+
+        return
+      }
+
+      if (nodeToDelete?.name) {
+        setUsedRoles(prev => prev.filter(role => role !== nodeToDelete.name))
+      }
+
+      setNodes(prevNodes => {
+        const updateNodes = (nodes: NodeData[]): NodeData[] => {
+          return nodes
+            .filter(node => node.id !== id)
+            .map(node => ({
+              ...node,
+              children: updateNodes(node.children)
+            }))
+        }
+
+        const updatedNodes = updateNodes(prevNodes)
+
+        console.log('After deleteNode, nodes:', JSON.stringify(updatedNodes, null, 2))
+
+        return updatedNodes
+      })
+    },
+    [nodes]
+  )
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        const selectedNodeIds = nodes.filter(n => n.selected).map(n => n.id)
-        const removedLabels = nodes.filter(n => selectedNodeIds.includes(n.id)).map(n => n.data.label)
+        const selectedNodeId = nodes[nodes.length - 1]?.id
 
-        setUsedRoles(prev => prev.filter(role => !removedLabels.includes(role)))
-
-        setNodes(nds => nds.filter(n => !selectedNodeIds.includes(n.id)))
-        setEdges(eds => eds.filter(edge => !edge.selected))
+        if (selectedNodeId) {
+          deleteNode(selectedNodeId)
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [nodes, setNodes, setEdges])
-
-  useEffect(() => {
-    setNodes(nds =>
-      nds.map(node => ({
-        ...node,
-        data: {
-          ...node.data,
-          usedRoles,
-          onChange: updateNodeLabel
-        }
-      }))
-    )
-  }, [usedRoles])
-
-  useEffect(() => {
-    if (initialChart) {
-      setUsedRoles(initialChart.nodes.map((node: any) => node.data.label).filter((label: string) => label))
-    }
-  }, [initialChart])
+  }, [nodes, deleteNode])
 
   const handleSave = () => {
-    const chartData = { nodes, edges }
+    console.log('handleSave triggered, nodes:', JSON.stringify(nodes, null, 2))
 
-    onSave(chartData)
+    // Validate that all nodes have non-empty names
+    const hasEmptyNames = nodes.some(node => !node.name || node.name.trim() === '')
+
+    if (hasEmptyNames) {
+      alert('All nodes must have a valid name before saving.')
+
+      return
+    }
+
+    const topNode = nodes.find(node => !node.parentId)
+
+    if (!topNode) {
+      console.error('Topmost node not found')
+      alert('Cannot save: No topmost node found')
+
+      return
+    }
+
+    const jobRoleNode = findNode(nodes, nodes.find(n => n.isJobRole)?.id || 'root')
+
+    if (!jobRoleNode) {
+      console.error('Job role node not found')
+      alert('Cannot save: Job role node not found')
+
+      return
+    }
+
+    const chartData = { nodes }
+
+    console.log('Saving chartData:', JSON.stringify(chartData, null, 2))
+
+    try {
+      onSave(chartData)
+      console.log('onSave callback executed successfully')
+    } catch (error) {
+      console.error('Error in onSave callback:', error)
+      alert('Failed to save chart: ' + (error.message || 'Unknown error'))
+    }
   }
 
+  const onCancel = () => {
+    console.log('Cancel button clicked')
+    handleCancel()
+  }
+
+  const renderNode = (node: NodeData) => (
+    <TreeNode
+      key={node.id}
+      label={
+        <StyledNode sx={{ borderColor: node.isJobRole ? '#1976d2' : '#ccc' }}>
+          {node.isJobRole ? (
+            <TextField
+              value={node.name}
+              onChange={e => updateNode(node.id, 'name', e.target.value)}
+              size='small'
+              fullWidth
+              placeholder='Enter Job Role'
+              sx={{ mt: 1 }}
+            />
+          ) : (
+            <Select
+              value={node.name}
+              onChange={e => updateNode(node.id, 'name', e.target.value)}
+              size='small'
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value=''>Select Role</MenuItem>
+              {roles.map(designation => (
+                <MenuItem
+                  key={designation}
+                  value={designation}
+                  disabled={usedRoles.includes(designation) && node.name !== designation}
+                >
+                  {designation}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
+          <Button variant='contained' size='small' onClick={() => addNode(node.id)} sx={{ mt: 1 }}>
+            Add Child
+          </Button>
+          <Button variant='outlined' size='small' onClick={() => addParentNode(node.id)} sx={{ mt: 1, ml: 1 }}>
+            Add Parent
+          </Button>
+          {!(node.isJobRole && nodes.length === 1) && (
+            <Button variant='outlined' size='small' onClick={() => deleteNode(node.id)} sx={{ mt: 1, ml: 1 }}>
+              Delete
+            </Button>
+          )}
+        </StyledNode>
+      }
+    >
+      {node.children.map(child => renderNode(child))}
+    </TreeNode>
+  )
+
   return (
-    <ReactFlowProvider>
-      <div className='flex h-screen'>
-        <aside className='w-64 bg-gray-100 p-4 border-r'>
-          <h2 className='text-lg font-semibold mb-4'>Add Shapes</h2>
-          <button
-            onClick={() => addNode('rectangle')}
-            className='block w-full mb-2 px-4 py-2 bg-white border rounded hover:bg-blue-50'
-          >
-            ➕ Rectangle
-          </button>
-          <button
-            onClick={() => addNode('circle')}
-            className='block w-full mb-2 px-4 py-2 bg-white border rounded hover:bg-blue-50'
-          >
-            ➕ Circle
-          </button>
-          <button
-            onClick={() => addNode('diamond')}
-            className='block w-full mb-2 px-4 py-2 bg-white border rounded hover:bg-blue-50'
-          >
-            ➕ Diamond
-          </button>
-          <button
-            onClick={handleSave}
-            className='block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
-          >
-            Save Chart
-          </button>
-        </aside>
-        <main className='flex-1'>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            fitView
-            selectionOnDrag
-            panOnDrag
-            panOnScroll
-            multiSelectionKeyCode={['Shift', 'Meta']}
-          >
-            <MiniMap />
-            <Controls />
-            <Background />
-          </ReactFlow>
-        </main>
-      </div>
-    </ReactFlowProvider>
+    <Box sx={{ p: 4, overflow: 'auto', height: '100vh' }}>
+      <Button variant='contained' onClick={handleSave} sx={{ mb: 2 }}>
+        Save Chart
+      </Button>
+      <Button variant='outlined' onClick={onCancel} sx={{ mb: 2, ml: 2 }}>
+        Cancel
+      </Button>
+      <Tree
+        lineWidth={'2px'}
+        lineColor={'#1976d2'}
+        lineBorderRadius={'10px'}
+        label={<StyledNode>Organization Chart</StyledNode>}
+      >
+        {nodes.map(node => renderNode(node))}
+      </Tree>
+    </Box>
   )
 }

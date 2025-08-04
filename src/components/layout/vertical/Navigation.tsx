@@ -39,12 +39,15 @@ const StyledBoxForShadow = styled('div')(({ theme }) => ({
   width: 'calc(100% + 15px)',
   height: theme.mixins.toolbar.minHeight,
   transition: 'opacity .15s ease-in-out',
-  background: `linear-gradient(var(--mui-palette-background-paper) ${
-    theme.direction === 'rtl' ? '95%' : '5%'
-  }, rgb(var(--mui-palette-background-paperChannel) / 0.85) 30%, rgb(var(--mui-palette-background-paperChannel) / 0.5) 65%, rgb(var(--mui-palette-background-paperChannel) / 0.3) 75%, transparent)`,
   '&.scrolled': {
     opacity: 1
   }
+
+  // background:
+  //   'linear-gradient(#0191DA 10%, rgba(1,145,218,0.85) 30%, rgba(1,145,218,0.5) 65%, rgba(1,145,218,0.3) 75%, transparent)',
+  // '&.scrolled': {
+  //   opacity: 1
+  // }
 }))
 
 const Navigation = (props: Props) => {
@@ -103,9 +106,21 @@ const Navigation = (props: Props) => {
     // eslint-disable-next-line lines-around-comment
     // Sidebar Vertical Menu
     <VerticalNav
-      customStyles={navigationCustomStyles(verticalNavOptions, theme)}
+      customStyles={{
+        ...navigationCustomStyles(verticalNavOptions, theme),
+        '&': {
+          backgroundColor: '#0191DA',
+          color: '#FFFFFF'
+        },
+        '& .MuiTypography-root, & .MuiListItemText-primary, & .MuiListItemText-secondary': {
+          color: '#FFFFFF'
+        },
+        '& i': {
+          color: '#FFFFFF'
+        }
+      }}
       collapsedWidth={71}
-      backgroundColor='var(--mui-palette-background-paper)'
+      backgroundColor='#0191DA'
       width={220}
       // eslint-disable-next-line lines-around-comment
       // The following condition adds the data-mui-color-scheme='dark' attribute to the VerticalNav component
@@ -117,7 +132,9 @@ const Navigation = (props: Props) => {
     >
       {/* Nav Header including Logo & nav toggle icons  */}
       <NavHeader>
-        <Logo />
+        <div className='ml-10'>
+          <Logo />
+        </div>
         {!(isCollapsed && !isHovered) && (
           <NavCollapseIcons
             lockedIcon={

@@ -28,7 +28,10 @@ import type {
   ClusterResponse,
   CityResponse,
   DepartmentBudgetResponse,
-  DepartmentBudgetVacancyResponse
+  DepartmentBudgetVacancyResponse,
+  JobRoleNamesByRoleResponse,
+  BandResponse,
+  JDResponse // New type to be added
 } from '@/types/budget'
 
 // Type for the new POST /department-budget request body
@@ -371,10 +374,7 @@ export const fetchBranch = createAsyncThunk<
         districtId?: string
         stateId?: string
         clusterId?: string
-      } = {
-        page,
-        limit
-      }
+      } = { page, limit }
 
       if (search) params.search = search
       if (areaId) params.areaId = areaId
@@ -438,7 +438,20 @@ export const fetchApprovalCategories = createAsyncThunk<
   }
 })
 
-// New thunk for POST /department-budget
+export const fetchJobRoleNamesByRole = createAsyncThunk<JobRoleNamesByRoleResponse, { jobRole: string }>(
+  'budgetManagement/fetchJobRoleNamesByRole',
+  async ({ jobRole }, { rejectWithValue }) => {
+    try {
+      const params = { jobRole }
+      const response = await AxiosLib.get(API_ENDPOINTS.jobRoleNamesByRoleUrl, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 export const createDepartmentBudget = createAsyncThunk<DepartmentBudgetResponse, DepartmentBudgetRequest>(
   'budgetManagement/createDepartmentBudget',
   async (requestData, { rejectWithValue }) => {
@@ -452,7 +465,6 @@ export const createDepartmentBudget = createAsyncThunk<DepartmentBudgetResponse,
   }
 )
 
-// New thunk for GET /department-budget/vacancy
 export const fetchDepartmentBudgetVacancy = createAsyncThunk<
   DepartmentBudgetVacancyResponse,
   { page: number; limit: number; search?: string }
@@ -469,7 +481,39 @@ export const fetchDepartmentBudgetVacancy = createAsyncThunk<
   }
 })
 
-// Create the slice
+export const fetchBand = createAsyncThunk<BandResponse, { page: number; limit: number; search?: string }>(
+  'budgetManagement/fetchBand',
+  async ({ page, limit, search }, { rejectWithValue }) => {
+    try {
+      const params: { page: number; limit: number; search?: string } = { page, limit }
+
+      if (search) params.search = search
+      const response = await AxiosLib.get(API_ENDPOINTS.bandUrl, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+// New thunk for GET /jd
+export const fetchJD = createAsyncThunk<JDResponse, { page: number; limit: number; search?: string }>(
+  'budgetManagement/fetchJD',
+  async ({ page, limit, search }, { rejectWithValue }) => {
+    try {
+      const params: { page: number; limit: number; search?: string } = { page, limit }
+
+      if (search) params.search = search
+      const response = await AxiosLib.get(API_ENDPOINTS.jdUrl, { params })
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
 export const budgetManagementSlice = createSlice({
   name: 'budgetManagement',
   initialState: {
@@ -606,7 +650,25 @@ export const budgetManagementSlice = createSlice({
     fetchDepartmentBudgetVacancyData: null,
     fetchDepartmentBudgetVacancyTotal: 0,
     fetchDepartmentBudgetVacancyFailure: false,
-    fetchDepartmentBudgetVacancyFailureMessage: ''
+    fetchDepartmentBudgetVacancyFailureMessage: '',
+    fetchJobRoleNamesByRoleLoading: false,
+    fetchJobRoleNamesByRoleSuccess: false,
+    fetchJobRoleNamesByRoleData: null,
+    fetchJobRoleNamesByRoleTotal: 0,
+    fetchJobRoleNamesByRoleFailure: false,
+    fetchJobRoleNamesByRoleFailureMessage: '',
+    fetchBandLoading: false,
+    fetchBandSuccess: false,
+    fetchBandData: null,
+    fetchBandTotal: 0,
+    fetchBandFailure: false,
+    fetchBandFailureMessage: '',
+    fetchJDLoading: false, // New state for fetchJD
+    fetchJDSuccess: false,
+    fetchJDData: null,
+    fetchJDTotal: 0,
+    fetchJDFailure: false,
+    fetchJDFailureMessage: ''
   } as BudgetManagementState,
   reducers: {
     // Define any additional reducers if needed
@@ -635,6 +697,9 @@ export const budgetManagementSlice = createSlice({
     handleAsyncThunkStates(builder, fetchApprovalCategories, 'fetchApprovalCategories')
     handleAsyncThunkStates(builder, createDepartmentBudget, 'createDepartmentBudget')
     handleAsyncThunkStates(builder, fetchDepartmentBudgetVacancy, 'fetchDepartmentBudgetVacancy')
+    handleAsyncThunkStates(builder, fetchJobRoleNamesByRole, 'fetchJobRoleNamesByRole')
+    handleAsyncThunkStates(builder, fetchBand, 'fetchBand')
+    handleAsyncThunkStates(builder, fetchJD, 'fetchJD') // New thunk added to extraReducers
   }
 })
 

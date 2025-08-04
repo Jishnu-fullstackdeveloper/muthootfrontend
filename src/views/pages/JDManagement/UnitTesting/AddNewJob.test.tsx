@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 
 import { render, screen } from '@testing-library/react'
 
-import AddNewJob from '../[editid]/AddNewJob'
+import AddNewJob from '../[id]/AddNewJob'
 
 // Mock dynamic imports
 let mod: React.ComponentType<any> | null = null // Define mod as a React component type

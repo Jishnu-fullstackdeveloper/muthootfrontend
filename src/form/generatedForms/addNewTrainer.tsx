@@ -8,7 +8,12 @@ import { FormControl, TextField, Grid, Autocomplete, CircularProgress, Typograph
 
 import DynamicButton from '@/components/Button/dynamicButton'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
-import { fetchTrainerLanguages, fetchTrainingTypes, createTrainer } from '@/redux/TrainerManagement/TrainerManagementSlice'
+import {
+  fetchTrainerLanguages,
+  fetchTrainingTypes,
+  createTrainer,
+  fetchEmployeeByCode
+} from '@/redux/TrainerManagement/TrainerManagementSlice'
 
 // Define interfaces for Autocomplete options
 interface Option {
@@ -19,9 +24,13 @@ interface Option {
 const AddNewTrainer = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const { status, error, trainerLanguages, trainingTypes } = useAppSelector(state => state.TrainerManagementReducer)
+
+  const { status, error, trainerLanguages, trainingTypes, selectedEmployee } = useAppSelector(
+    state => state.TrainerManagementReducer
+  )
 
   // State for form fields
+  const [empCode, setEmpCode] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
@@ -29,6 +38,7 @@ const AddNewTrainer = () => {
   const [trainerStatus, setTrainerStatus] = useState<Option | null>(null)
   const [language, setLanguage] = useState<Option[]>([])
   const [trainingType, setTrainingType] = useState<Option | null>(null)
+  const [region, setRegion] = useState<Option | null>(null)
 
   // State for createTrainer API
   const [createStatus, setCreateStatus] = useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle')
@@ -40,6 +50,38 @@ const AddNewTrainer = () => {
     dispatch(fetchTrainingTypes())
   }, [dispatch])
 
+  // Debounced effect to fetch employee data by empCode
+  useEffect(() => {
+    if (!empCode.trim()) return // Skip if empCode is empty
+
+    const debounceTimer = setTimeout(async () => {
+      try {
+        await dispatch(fetchEmployeeByCode(empCode)).unwrap()
+      } catch (err) {
+        // Error is handled by Redux state (status and error)
+      }
+    }, 500)
+
+    return () => clearTimeout(debounceTimer) // Cleanup on unmount or empCode change
+  }, [empCode, dispatch])
+
+  // Update form fields when selectedEmployee changes
+  useEffect(() => {
+    if (selectedEmployee) {
+      setFirstName(selectedEmployee.firstName || '')
+      setLastName(selectedEmployee.lastName || '')
+      setEmail(selectedEmployee.officeEmailAddress || '')
+      setPhone(selectedEmployee.mobileNumber || '')
+      setRegion(
+        selectedEmployee.companyStructure?.regionId
+          ? { label: selectedEmployee.companyStructure.regionId, value: selectedEmployee.companyStructure.regionId }
+          : null
+      )
+
+      // Do not update trainerStatus, language, or trainingType
+    }
+  }, [selectedEmployee])
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +89,7 @@ const AddNewTrainer = () => {
     setCreateError(null)
 
     const trainerData = {
-      empCode: '', // Default value, as no form field exists
+      empCode,
       firstName,
       lastName,
       email,
@@ -87,9 +129,9 @@ const AddNewTrainer = () => {
   // Map name to label and id to value, filtering duplicates by id
   const trainingTypeOptions: Option[] = trainingTypes
     .filter((tt, index, self) => index === self.findIndex(t => t.id === tt.id))
-    .map(tt => ({
-      label: tt.name,
-      value: tt.id.toString()
+    .map(tl => ({
+      label: tl.name,
+      value: tl.id.toString()
     }))
 
   return (
@@ -115,6 +157,13 @@ const AddNewTrainer = () => {
           Error: {createError || 'Failed to create trainer'}
         </Typography>
       )}
+      <Grid container spacing={2}>
+        <Grid item xs={3}>
+          <FormControl fullWidth margin='normal'>
+            <TextField label='Employee Code' value={empCode} onChange={e => setEmpCode(e.target.value)} />
+          </FormControl>
+        </Grid>
+      </Grid>
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <FormControl fullWidth margin='normal'>
@@ -188,6 +237,15 @@ const AddNewTrainer = () => {
             />
           </FormControl>
         </Grid>
+        <Grid item xs={6}>
+          <FormControl fullWidth margin='normal'>
+            <TextField
+              label='Region ID'
+              value={region?.label || ''}
+              onChange={e => setRegion({ label: e.target.value, value: e.target.value })}
+            />
+          </FormControl>
+        </Grid>
       </Grid>
       <div className='flex justify-end gap-2 mt-4 '>
         <DynamicButton
@@ -195,6 +253,7 @@ const AddNewTrainer = () => {
           variant='outlined'
           className='border-[#0095DA] text-[#0095DA]'
           onClick={() => {
+            setEmpCode('')
             setFirstName('')
             setLastName('')
             setEmail('')
@@ -202,6 +261,7 @@ const AddNewTrainer = () => {
             setTrainerStatus(null)
             setLanguage([])
             setTrainingType(null)
+            setRegion(null)
             setCreateStatus('idle')
             setCreateError(null)
           }}
@@ -213,6 +273,7 @@ const AddNewTrainer = () => {
           variant='contained'
           className='bg-blue-500'
           disabled={
+            !empCode ||
             !firstName ||
             !lastName ||
             !email ||

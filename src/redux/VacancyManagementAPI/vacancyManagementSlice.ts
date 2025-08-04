@@ -335,10 +335,32 @@ export const updateVacancyRequestStatus = createAsyncThunk<
 // Thunk for updating vacancy status
 export const updateVacancyStatus = createAsyncThunk<
   UpdateVacancyStatusResponse,
-  { ids: string[]; status: 'PENDING' | 'APPROVED' | 'FREEZED' }
->('vacancyManagement/updateVacancyStatus', async ({ ids, status }, { rejectWithValue }) => {
+  {
+    ids: string[]
+    status: 'PENDING' | 'APPROVED' | 'FREEZED'
+    notes?: string
+    designation?: any
+    branchName?: any
+    areaName?: any
+    regionName?: any
+    zoneName?: any
+    department?: any
+  }
+>('vacancyManagement/updateVacancyStatus', async (params, { rejectWithValue }) => {
   try {
-    const requestBody = { ids, status }
+    const { ids, status, notes, designation, branchName, areaName, regionName, zoneName, department } = params
+
+    const requestBody = {
+      ids,
+      status,
+      notes,
+      designation: designation,
+      branchName: branchName,
+      areaName: areaName,
+      regionName: regionName,
+      zoneName: zoneName,
+      department: department
+    }
 
     const response = await AxiosLib.put(API_ENDPOINTS.vacancyStatusUpdate, requestBody)
 

@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '../ApiUrls/schedulerUrls' // Adjust the path as n
 import type {
   SchedulerConfigListResponse,
   UpdateSchedulerConfigResponse,
-  ToggleSchedulerConfigResponse,
+  CreateSchedulerConfigResponse,
   SchedulerManagementState
 } from '@/types/scheduler'
 
@@ -27,7 +27,7 @@ export const getSchedulerConfigList = createAsyncThunk<
 
     console.log('API Response for scheduler configs:', response.data)
 
-    return response.data
+    return response.data // Matches the response: { data: [{ id, url, category, duration, isActive, params, lastRunAt, nextRunAt, cronExpression, createdAt, updatedAt, deletedAt }], total, page, limit, totalPages }
   } catch (error: any) {
     console.error('Fetch Scheduler Configs Error:', error)
 
@@ -40,17 +40,18 @@ export const updateSchedulerConfig = createAsyncThunk<
   UpdateSchedulerConfigResponse,
   {
     id: string
-    functionName: string
-    schedule: string
+    url: string
+    category: string
     duration: number
-    isActive: boolean
+    cronExpression: string
     params: { [key: string]: string }
+    isActive: boolean
   }
 >(
   'schedulerManagement/updateSchedulerConfig',
-  async ({ id, functionName, schedule, duration, isActive, params }, { rejectWithValue }) => {
+  async ({ id, url, category, duration, cronExpression, params, isActive }, { rejectWithValue }) => {
     try {
-      const requestBody = { functionName, schedule, duration, isActive, params }
+      const requestBody = { url, category, duration, cronExpression, params, isActive }
 
       console.log('Sending API request to update scheduler config for ID:', id, 'with body:', requestBody)
       const response = await AxiosLib.put(API_ENDPOINTS.updateSchedulerConfigUrl(id), requestBody)
@@ -66,23 +67,33 @@ export const updateSchedulerConfig = createAsyncThunk<
   }
 )
 
-// Thunk for toggling a scheduler config's active status
-export const toggleSchedulerConfig = createAsyncThunk<ToggleSchedulerConfigResponse, { id: string; isActive: boolean }>(
-  'schedulerManagement/toggleSchedulerConfig',
-  async ({ id, isActive }, { rejectWithValue }) => {
+// Thunk for creating a scheduler config
+export const createScheduler = createAsyncThunk<
+  CreateSchedulerConfigResponse,
+  {
+    url: string
+    category: string
+    duration: number
+    cronExpression: string
+    params: { [key: string]: string }
+    isActive: boolean
+  }
+>(
+  'schedulerManagement/createScheduler',
+  async ({ url, category, duration, cronExpression, params, isActive }, { rejectWithValue }) => {
     try {
-      const requestBody = { isActive }
+      const requestBody = { url, category, duration, cronExpression, params, isActive }
 
-      console.log('Sending API request to toggle scheduler config for ID:', id, 'with body:', requestBody)
-      const response = await AxiosLib.put(API_ENDPOINTS.toggleSchedulerConfigUrl(id), requestBody)
+      console.log('Sending API request to create scheduler config with body:', requestBody)
+      const response = await AxiosLib.post(API_ENDPOINTS.createSchedulerConfigUrl, requestBody)
 
-      console.log('API Response for toggling scheduler config:', response.data)
+      console.log('API Response for creating scheduler config:', response.data)
 
       return response.data
     } catch (error: any) {
-      console.error('Toggle Scheduler Config Error:', error)
+      console.error('Create Scheduler Config Error:', error)
 
-      return rejectWithValue(error.response?.data?.message || 'Failed to toggle scheduler config')
+      return rejectWithValue(error.response?.data?.message || 'Failed to create scheduler config')
     }
   }
 )
@@ -102,11 +113,11 @@ export const schedulerManagementSlice = createSlice({
     updateSchedulerConfigData: null,
     updateSchedulerConfigFailure: false,
     updateSchedulerConfigFailureMessage: '',
-    toggleSchedulerConfigLoading: false,
-    toggleSchedulerConfigSuccess: false,
-    toggleSchedulerConfigData: null,
-    toggleSchedulerConfigFailure: false,
-    toggleSchedulerConfigFailureMessage: ''
+    createSchedulerLoading: false,
+    createSchedulerSuccess: false,
+    createSchedulerData: null,
+    createSchedulerFailure: false,
+    createSchedulerFailureMessage: ''
   } as SchedulerManagementState,
   reducers: {
     // Define any additional reducers if needed
@@ -114,7 +125,7 @@ export const schedulerManagementSlice = createSlice({
   extraReducers: builder => {
     handleAsyncThunkStates(builder, getSchedulerConfigList, 'schedulerConfigList')
     handleAsyncThunkStates(builder, updateSchedulerConfig, 'updateSchedulerConfig')
-    handleAsyncThunkStates(builder, toggleSchedulerConfig, 'toggleSchedulerConfig')
+    handleAsyncThunkStates(builder, createScheduler, 'createScheduler')
   }
 })
 

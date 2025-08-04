@@ -131,7 +131,9 @@ export const ROUTES = {
     DASHBOARD: '/learning-and-development',
     TRAINER_MANAGEMENT: {
       TRAINER_MANAGEMENT: '/learning-and-development/trainer-management',
-      ADD_TRAINER: '/learning-and-development/trainer-management/add-trainer'
+      ADD_TRAINER: '/learning-and-development/trainer-management/add-trainer',
+      BATCH_MANAGEMENT: '/learning-and-development/batch-management',
+      TRAINING_MANAGEMENT: '/learning-and-development/training-management'
 
       // TRAINER_PROFILE: `/learning-and-development/trainer-management/view-trainer-profile`
     }

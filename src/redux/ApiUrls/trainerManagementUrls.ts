@@ -1,6 +1,6 @@
 export const API_ENDPOINTS = {
   fetchTrainers: '/trainers/getTrainers',
-  fetchTrainerById: (id: string) => `/trainers/getTrainerById/${id}`,
+  fetchTrainerById: (empCode: string) => `/trainers/getTrainerById/${empCode}`,
   createTrainer: '/trainers',
   trainerLanguages: '/trainerlanguage/getTrainerLanguages',
   trainingTypes: '/training-type',

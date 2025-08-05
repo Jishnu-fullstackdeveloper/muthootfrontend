@@ -236,7 +236,8 @@ const SchedulerPage = () => {
     isActive: boolean
   } | null>(null)
 
-  const [pagination, setPagination] = useState({
+  const [pagination] = useState({
+    //setPagination
     pageIndex: 0, // 0-based index for table compatibility
     pageSize: 5
   })

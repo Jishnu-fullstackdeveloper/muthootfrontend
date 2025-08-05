@@ -11,7 +11,6 @@ import {
   Typography,
   Drawer,
   Divider,
-  Autocomplete,
   Switch,
   CircularProgress
 } from '@mui/material'
@@ -48,20 +47,6 @@ interface SchedulerFormDrawerProps {
 }
 
 const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose, editData, onSubmit }) => {
-  const options = [
-    { name: 'Employment Data', value: 'employment.sync' },
-    { name: 'Resignation Data', value: 'resignation.sync' },
-    { name: 'Branch Data', value: 'branch.sync' },
-    { name: 'Branch Budget Data', value: 'branch.budget.sync' },
-    { name: 'Department Budget Data', value: 'department.budget.sync' }
-  ]
-
-  const categoryOptions = [
-    { name: 'User', value: 'user' },
-    { name: 'Branch', value: 'branch' },
-    { name: 'Budget', value: 'budget' }
-  ]
-
   const validate = (values: {
     url: string
     category: string
@@ -139,36 +124,24 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
               <Box sx={{ width: '100%', boxShadow: 'none' }}>
                 <div className='flex flex-col gap-4' style={{ zIndex: 999 }}>
                   <div>
-                    <Autocomplete
-                      disablePortal
-                      options={options}
-                      getOptionLabel={option => option.name}
-                      value={options.find(opt => opt.value === (SchedulerFormik.values.url || editData?.url)) || null}
-                      onChange={(event, newValue) => {
-                        SchedulerFormik.setFieldValue('url', newValue ? newValue.value : '')
-                      }}
-                      sx={{ width: 300, zIndex: 999 }}
-                      renderInput={params => <TextField {...params} label='Type of Data' />}
+                    <TextField
+                      label='Type of Data'
+                      value={SchedulerFormik.values.url}
+                      onChange={e => SchedulerFormik.setFieldValue('url', e.target.value)}
+                      sx={{ width: 300 }}
+                      placeholder='e.g., employment.sync'
                     />
                     {SchedulerFormik.touched.url && SchedulerFormik.errors.url && (
                       <Typography color='error'>{SchedulerFormik.errors.url}</Typography>
                     )}
                   </div>
                   <div>
-                    <Autocomplete
-                      disablePortal
-                      options={categoryOptions}
-                      getOptionLabel={option => option.name}
-                      value={
-                        categoryOptions.find(
-                          opt => opt.value === (SchedulerFormik.values.category || editData?.category)
-                        ) || null
-                      }
-                      onChange={(event, newValue) => {
-                        SchedulerFormik.setFieldValue('category', newValue ? newValue.value : '')
-                      }}
-                      sx={{ width: 300, zIndex: 999 }}
-                      renderInput={params => <TextField {...params} label='Category' />}
+                    <TextField
+                      label='Category'
+                      value={SchedulerFormik.values.category}
+                      onChange={e => SchedulerFormik.setFieldValue('category', e.target.value)}
+                      sx={{ width: 300 }}
+                      placeholder='e.g., user'
                     />
                     {SchedulerFormik.touched.category && SchedulerFormik.errors.category && (
                       <Typography color='error'>{SchedulerFormik.errors.category}</Typography>

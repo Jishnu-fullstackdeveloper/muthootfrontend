@@ -76,7 +76,7 @@ export interface CreateSchedulerConfigResponse {
 export interface SchedulerManagementState {
   schedulerConfigListLoading: boolean
   schedulerConfigListSuccess: boolean
-  schedulerConfigListData: SchedulerConfigListResponse['data'] | null
+  schedulerConfigListData: SchedulerConfigListResponse | null
   schedulerConfigListTotal: number
   schedulerConfigListFailure: boolean
   schedulerConfigListFailureMessage: string

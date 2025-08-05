@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -7,14 +7,25 @@ import { Box, Typography, IconButton, Tooltip } from '@mui/material'
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { toast } from 'react-toastify'
+
+// MUI Imports for ConfirmModal
+import Modal from '@mui/material/Modal'
+import Button from '@mui/material/Button'
+import DialogActions from '@mui/material/DialogActions'
+
+import { deleteCollegeCoordinator } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { useAppDispatch } from '@/lib/hooks'
 
 interface CollegeGridViewProps {
   colleges: {
+    collegeId: string
     universityAffiliation: string
     collegeType: string
     collegeCode: string
     collegeName: string
     id: string
+    coordinatorId: string
     name: string
     college_code: string
     university_affiliation: string
@@ -35,7 +46,8 @@ interface CollegeGridViewProps {
     last_visited_date: string
     last_engagement_type: string
     last_feedback: string
-    preferred_drive_months: string[]
+    prefferred_drive_months: string[]
+    prefferedDriveMonths: string[]
     remarks: string
     created_by: string
     created_at: string
@@ -45,8 +57,128 @@ interface CollegeGridViewProps {
   }[]
 }
 
+// ConfirmModal Component
+type ConfirmModalProps = {
+  open: boolean
+  onClose: () => void
+  onConfirm: (id?: string | number) => void
+  title?: string
+  description?: string
+  id?: string | number
+}
+
+const ConfirmModal = ({ open, onClose, onConfirm, title, description, id }: ConfirmModalProps) => {
+  const handleConfirm = () => {
+    onConfirm(id)
+  }
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'white',
+          padding: 4,
+          borderRadius: 2,
+          boxShadow: 24,
+          maxWidth: '400px',
+          width: '100%'
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 2
+          }}
+        >
+          <i
+            className='tabler-exclamation-circle'
+            style={{
+              fontSize: '100px',
+              color: 'red'
+            }}
+          ></i>
+        </Box>
+
+        <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
+          <Typography variant='h5' gutterBottom>
+            {title || 'Are you sure?'}
+          </Typography>
+          <Typography variant='body1' color='textSecondary'>
+            {description || "Do you really want to delete this data? This process can't be undone."}
+          </Typography>
+        </Box>
+
+        <DialogActions sx={{ justifyContent: 'center' }}>
+          <Button
+            onClick={onClose}
+            sx={{
+              padding: 1.5,
+              marginX: 2,
+              backgroundColor: '#757575',
+              color: '#f5f5f5',
+              '&:hover': {
+                backgroundColor: '#ffcccc',
+                color: 'darkred'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            sx={{
+              padding: 1.5,
+              marginX: 2,
+              backgroundColor: '#e53935',
+              color: '#f5f5f5',
+              '&:hover': {
+                backgroundColor: '#ffcccc',
+                color: 'darkred'
+              }
+            }}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Box>
+    </Modal>
+  )
+}
+
 const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState<string | null>(null)
+
+  const handleOpenModal = (coordinatorId: string) => {
+    setSelectedCoordinatorId(coordinatorId)
+    setOpenModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setOpenModal(false)
+    setSelectedCoordinatorId(null)
+  }
+
+  const handleConfirmDelete = async (id?: string | number) => {
+    if (id) {
+      try {
+        await dispatch(deleteCollegeCoordinator(id as string)).unwrap()
+        toast.success('College Coordinator deleted successfully.')
+      } catch (error: any) {
+        toast.error(error || 'Failed to delete college coordinator')
+      }
+    }
+
+    handleCloseModal()
+  }
 
   return (
     <Box className='py-2 mt-2'>
@@ -72,22 +204,11 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                   <Box className='flex items-center'>
                     <Tooltip title='Edit College'>
                       <IconButton
-                        onClick={() => {
-                          const queryParams = new URLSearchParams()
-
-                          Object.entries(college).forEach(([key, value]) => {
-                            if (value !== null && value !== undefined) {
-                              if (Array.isArray(value)) {
-                                value.forEach(item => queryParams.append(key, item))
-                              } else {
-                                queryParams.set(key, String(value))
-                              }
-                            }
-                          })
+                        onClick={() =>
                           router.push(
-                            `/hiring-management/campus-management/college/edit/${college.id}?${queryParams.toString()}`
+                            `/hiring-management/campus-management/college/edit/detail?coordinatorId=${college.coordinatorId}&collegeId=${college.id}`
                           )
-                        }}
+                        }
                         aria-label={`Edit ${college.name}`}
                         sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
                       >
@@ -96,7 +217,7 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                     </Tooltip>
                     <Tooltip title='Delete College'>
                       <IconButton
-                        onClick={() => console.log(`Delete college ${college.id}`)} // Placeholder for delete logic
+                        onClick={() => handleOpenModal(college.coordinatorId)}
                         aria-label={`Delete ${college.name}`}
                         sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
                       >
@@ -116,10 +237,10 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
                   </Box>
                   <Box className='flex flex-col items-start p-0 gap-2 w-[250px] h-[38px]'>
                     <Typography className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[12px] leading-[14px] text-[#5E6E78]">
-                      University Affilation
+                      Preferred Drive Months
                     </Typography>
                     <Typography className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[14px] leading-[16px] text-[#23262F]">
-                      {college.universityAffiliation}
+                      {college.prefferedDriveMonths?.join(', ')}
                     </Typography>
                   </Box>
                 </Box>
@@ -155,6 +276,14 @@ const CollegeGridView = ({ colleges }: CollegeGridViewProps) => {
           </Box>
         ))}
       </Box>
+      <ConfirmModal
+        open={openModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        title='Confirm Deletion'
+        description={`Are you sure you want to delete the coordinator for ${colleges.find(college => college.coordinatorId === selectedCoordinatorId)?.collegeName || 'this college'}? This process can't be undone.`}
+        id={selectedCoordinatorId}
+      />
     </Box>
   )
 }

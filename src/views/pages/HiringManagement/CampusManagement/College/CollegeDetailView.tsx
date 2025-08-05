@@ -14,7 +14,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EventIcon from '@mui/icons-material/Event'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { fetchCollegeCoordinators } from '@/redux/CampusManagement/collegeAndSpocSlice'
 
 interface College {
   collegeCode: string
@@ -603,7 +603,7 @@ const CollegeDetailWrapper = () => {
   useEffect(() => {
     if (id) {
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page: 1,
           limit: 1,
           collegeId: id as string

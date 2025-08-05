@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
@@ -13,10 +13,17 @@ import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
 import { toast } from 'react-toastify'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { addCollege, addCollegeCoordinator, fetchCollegeList } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import {
+  fetchCollegeList,
+  fetchCollegeById,
+  fetchCollegeCoordinatorById,
+  updateCollege,
+  updateCollegeCoordinator
+} from '@/redux/CampusManagement/collegeAndSpocSlice'
 
-// College interface (from previous context)
+// College interface
 interface College {
+  collegeName: string
   id: string
   name: string
   college_code: string
@@ -48,8 +55,9 @@ interface College {
   status: 'Active' | 'Inactive' | 'Blocked'
 }
 
-interface AddCollegeProps {
-  mode: 'add'
+interface EditCollegeProps {
+  mode: 'edit'
+  id: string
 }
 
 const collegeTypeOptions = ['Private', 'Public', 'Government']
@@ -71,25 +79,24 @@ const monthOptions = [
 ]
 
 const validationSchema = Yup.object().shape({
-  // College Section
   name: Yup.string()
     .max(255, 'Must be 255 characters or less')
     .required('Name is required')
-    .test('unique', 'Name must be unique', async value => {
-      // Replace with actual API call to check uniqueness
-      if (!value) return false // Ensure value is not empty
+    .test('unique', 'Name must be unique', async (value, context) => {
+      if (!value) return false
+      const { id } = context.parent
 
-      return true // Placeholder: Assume unique for now
+      return true
     }),
   college_code: Yup.string()
     .max(50, 'Must be 50 characters or less')
     .matches(/^[A-Z0-9-]+$/, 'Only uppercase letters, numbers, and hyphens allowed')
     .required('College code is required')
-    .test('unique', 'College code must be unique', async value => {
-      // Replace with actual API call to check uniqueness
-      if (!value) return false // Ensure value is not empty
+    .test('unique', 'College code must be unique', async (value, context) => {
+      if (!value) return false
+      const { id } = context.parent
 
-      return true // Placeholder: Assume unique for now
+      return true
     }),
   university_affiliation: Yup.string().max(255, 'Must be 255 characters or less'),
   college_type: Yup.string().oneOf(collegeTypeOptions, 'Invalid college type').required('College type is required'),
@@ -108,8 +115,6 @@ const validationSchema = Yup.object().shape({
     .max(255, 'Must be 255 characters or less')
     .matches(/^https?:\/\/[a-zA-Z0-9-./]+$/, 'Invalid URL format')
     .url('Must be a valid URL'),
-
-  // SPOC Section
   college_name: Yup.string().required('College name is required'),
   spoc_name: Yup.string()
     .max(255, 'Must be 255 characters or less')
@@ -146,69 +151,120 @@ const validationSchema = Yup.object().shape({
   remarks: Yup.string().max(2000, 'Must be 2000 characters or less').optional()
 })
 
-const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
+const CollegeAndSpocEditForm = ({ mode, id }: EditCollegeProps) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
-  const [step, setStep] = useState(1) // 1 for College, 2 for SPOC
-  const [collegeId, setCollegeId] = useState<string | null>(null) // Store collegeId after first form submission
-  const colleges = useAppSelector(state => state.collegeAndSpocReducer.collegeList) // Access college list from Redux
+  const [step, setStep] = useState(1)
+  const [collegeId, setCollegeId] = useState<string | null>(searchParams.get('collegeId') || id)
+  const [coordinatorId, setCoordinatorId] = useState<string | null>(searchParams.get('coordinatorId'))
+  const colleges = useAppSelector(state => state.collegeAndSpocReducer.collegeList)
 
-  // Fetch colleges for the dropdown when entering SPOC section
+  const [initialValues, setInitialValues] = useState<Partial<College>>({
+    id: '',
+    name: '',
+    college_code: '',
+    university_affiliation: '',
+    college_type: '',
+    location: '',
+    district: '',
+    pin_code: '',
+    full_address: '',
+    website_url: '',
+    college_name: '',
+    spoc_name: '',
+    spoc_designation: '',
+    spoc_email: '',
+    spoc_alt_email: '',
+    spoc_mobile: '',
+    spoc_alt_phone: '',
+    spoc_linkedin: '',
+    spoc_whatsapp: '',
+    last_visited_date: '',
+    last_engagement_type: '',
+    last_feedback: '',
+    preferred_drive_months: [],
+    remarks: '',
+    status: 'Active'
+  })
+
+  const formKey = useRef(0)
+
   useEffect(() => {
-    if (step === 2) {
-      dispatch(fetchCollegeList({ page: 1, limit: 100 }))
-    }
-  }, [step, dispatch])
+    const fetchData = async () => {
+      try {
+        let newValues: Partial<College> = { ...initialValues }
 
-  // Create initial values for add mode
-  const getInitialValues = (): Partial<College> => {
-    return {
-      name: '',
-      college_code: '',
-      university_affiliation: '',
-      college_type: '',
-      location: '',
-      district: '',
-      pin_code: '',
-      full_address: '',
-      website_url: '',
-      college_name: '',
-      spoc_name: '',
-      spoc_designation: '',
-      spoc_email: '',
-      spoc_alt_email: '',
-      spoc_mobile: '',
-      spoc_alt_phone: '',
-      spoc_linkedin: '',
-      spoc_whatsapp: '',
-      last_visited_date: '',
-      last_engagement_type: '',
-      last_feedback: '',
-      preferred_drive_months: [],
-      remarks: '',
-      status: 'Active'
-    }
-  }
+        if (collegeId) {
+          const collegeResponse = await dispatch(fetchCollegeById(collegeId)).unwrap()
 
-  const initialValues = getInitialValues()
+          newValues = {
+            ...newValues,
+            id: collegeResponse.id || '',
+            name: collegeResponse.collegeName || '',
+            college_code: collegeResponse.collegeCode || '',
+            university_affiliation: collegeResponse.universityAffiliation || '',
+            college_type: collegeResponse.collegeType || '',
+            location: collegeResponse.location || '',
+            district: collegeResponse.district || '',
+            pin_code: collegeResponse.pinCode || '',
+            full_address: collegeResponse.fullAddress || '',
+            website_url: collegeResponse.websiteUrl || '',
+            college_name: collegeResponse.collegeName || '',
+            preferred_drive_months: collegeResponse.prefferedDriveMonths || [],
+            status: collegeResponse.status || 'Active'
+          }
+        }
+
+        if (coordinatorId) {
+          const coordinatorResponse = await dispatch(fetchCollegeCoordinatorById(coordinatorId)).unwrap()
+
+          newValues = {
+            ...newValues,
+            id: coordinatorResponse.id || newValues.id,
+            name: coordinatorResponse.name || newValues.name,
+            college_code: coordinatorResponse.college_code || newValues.college_code,
+            university_affiliation: coordinatorResponse.university_affiliation || newValues.university_affiliation,
+            college_type: coordinatorResponse.college_type || newValues.college_type,
+            location: coordinatorResponse.location || newValues.location,
+            district: coordinatorResponse.district || newValues.district,
+            pin_code: coordinatorResponse.pin_code || newValues.pin_code,
+            full_address: coordinatorResponse.full_address || newValues.full_address,
+            website_url: coordinatorResponse.website_url || newValues.website_url,
+            college_name: coordinatorResponse.name || newValues.college_name,
+            spoc_name: coordinatorResponse.spoc_name || '',
+            spoc_designation: coordinatorResponse.spoc_designation || '',
+            spoc_email: coordinatorResponse.spoc_email || '',
+            spoc_alt_email: coordinatorResponse.spoc_alt_email || '',
+            spoc_mobile: coordinatorResponse.spoc_mobile || '',
+            spoc_alt_phone: coordinatorResponse.spoc_alt_phone || '',
+            spoc_linkedin: coordinatorResponse.spoc_linkedin || '',
+            spoc_whatsapp: coordinatorResponse.spoc_whatsapp || '',
+            last_visited_date: coordinatorResponse.last_visited_date || '',
+            last_engagement_type: coordinatorResponse.last_engagement_type || '',
+            last_feedback: coordinatorResponse.last_feedback || '',
+            preferred_drive_months: coordinatorResponse.preferred_drive_months || newValues.preferred_drive_months,
+            remarks: coordinatorResponse.remarks || '',
+            status: coordinatorResponse.status || newValues.status
+          }
+        }
+
+        if (step === 2) {
+          await dispatch(fetchCollegeList({ page: 1, limit: 100 })).unwrap()
+        }
+
+        setInitialValues(newValues)
+        formKey.current += 1 // Increment to force Formik re-render
+      } catch (error: any) {
+        toast.error(error || 'Failed to fetch data')
+      }
+    }
+
+    fetchData()
+  }, [collegeId, coordinatorId, step, dispatch])
 
   const handleNext = async (values: Partial<College>, setErrors: any) => {
     try {
-      // Validate college form fields
-      const collegeFields = [
-        'name',
-        'college_code',
-        'university_affiliation',
-        'college_type',
-        'location',
-        'district',
-        'pin_code',
-        'full_address',
-        'website_url',
-        'preferred_drive_months'
-      ] as const // Use const assertion to create a tuple of literals
-
-      // Map form data to API request body directly, avoiding type error
       const collegePayload = {
         collegeName: values.name || '',
         collegeCode: values.college_code || '',
@@ -222,62 +278,47 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
         prefferedDriveMonths: values.preferred_drive_months || []
       }
 
-      // Dispatch college API call
-      const result = await dispatch(addCollege(collegePayload)).unwrap()
+      const response = await dispatch(updateCollege({ id: collegeId || id, data: collegePayload })).unwrap()
 
-      toast.success('College added successfully') // Add success toast
-      setCollegeId(result.id) // Store collegeId for SPOC form
-      setStep(2) // Proceed to SPOC form
+      setCollegeId(response.id || collegeId || id)
+      setStep(2)
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add college') // Add error toast
-      setErrors({ name: error.message || 'Failed to add college' })
+      toast.error(error || 'Failed to update college data')
+      setErrors({ name: error || 'Failed to update college data' })
     }
   }
 
   const handleSubmit = async (values: Partial<College>, { setErrors }: any) => {
     try {
-      // Find the selected college's ID based on college_name
-      const selectedCollege = colleges.find(college => college.collegeName === values.college_name)
-
-      if (!selectedCollege) {
-        setErrors({ college_name: 'Please select a valid college' })
-        toast.error('Please select a valid college') // Add error toast for invalid college
-
-        return
-      }
-
-      // Map form data to college coordinator API request body
       const coordinatorPayload = {
-        collegeId: selectedCollege.id,
-        name: values.spoc_name,
-        designation: values.spoc_designation,
-        email: values.spoc_email,
-        alternateEmail: values.spoc_alt_email,
-        mobile: values.spoc_mobile,
-        alternateMobile: values.spoc_alt_phone,
-        linkdin: values.spoc_linkedin,
-        whatsAppNumber: values.spoc_whatsapp,
-        lastVisitedDate: values.last_visited_date,
+        collegeId: collegeId || id,
+        name: values.spoc_name || '',
+        designation: values.spoc_designation || '',
+        email: values.spoc_email || '',
+        alternateEmail: values.spoc_alt_email || '',
+        mobile: values.spoc_mobile || '',
+        alternateMobile: values.spoc_alt_phone || '',
+        linkdin: values.spoc_linkedin || '',
+        whatsAppNumber: values.spoc_whatsapp || '',
+        lastVisitedDate: values.last_visited_date || '',
         isPrimary: true,
-        lastEngagementType: values.last_engagement_type,
-        lastFeedback: values.last_feedback,
-        remarks: values.remarks,
+        lastEngagementType: values.last_engagement_type || '',
+        lastFeedback: values.last_feedback || '',
+        remarks: values.remarks || '',
         status: values.status || 'Active'
       }
 
-      // Dispatch college coordinator API call
-      await dispatch(addCollegeCoordinator(coordinatorPayload)).unwrap()
-      toast.success('College coordinator added successfully') // Add success toast
+      await dispatch(updateCollegeCoordinator({ id: coordinatorId || '', data: coordinatorPayload })).unwrap()
+      toast.success('College coordinator updated successfully')
       router.push('/hiring-management/campus-management/college')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add college coordinator') // Add error toast
-      setErrors({ college_name: error.message || 'Failed to add college coordinator' })
+      toast.error(error || 'Failed to update coordinator data')
+      setErrors({ spoc_name: error || 'Failed to update coordinator data' })
     }
   }
 
   return (
     <Box className="p-4 md:p-8 max-w-5xl mx-auto bg-white shadow-[0px_6.84894px_12.1759px_rgba(208,210,218,0.15)] rounded-[14px] font-['Public_Sans',_Roboto,_sans-serif]">
-      {/* Header Section */}
       <Box className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
         <Box className='flex flex-row items-center gap-3'>
           <Box className='flex justify-center items-center w-[48px] h-[48px] bg-[#F2F3FF] rounded-full'>
@@ -287,7 +328,7 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
             variant='h5'
             className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#23262F]"
           >
-            Add New College & Co-ordinator
+            Edit College & Co-ordinator
           </Typography>
         </Box>
         <Button
@@ -303,10 +344,14 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
 
       <Divider className='mb-6 border-[#eee]' />
 
-      <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+      <Formik
+        key={formKey.current}
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+      >
         {({ errors, touched, setFieldValue, values, setErrors }) => (
           <Form>
-            {/* College Information (always shown) */}
             <Typography
               variant='h6'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
@@ -466,7 +511,6 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
             {step === 2 && (
               <>
                 <Divider className='my-6 border-[#eee]' />
-                {/* SPOC Information */}
                 <Typography
                   variant='h6'
                   className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
@@ -479,7 +523,10 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
                       options={colleges}
                       getOptionLabel={option => option.collegeName}
                       value={colleges.find(college => college.collegeName === values.college_name) || null}
-                      onChange={(_, value) => setFieldValue('college_name', value ? value.collegeName : '')}
+                      onChange={(_, value) => {
+                        setFieldValue('college_name', value ? value.collegeName : '')
+                        setCollegeId(value ? value.id : collegeId)
+                      }}
                       renderInput={params => (
                         <TextField
                           {...params}
@@ -674,4 +721,4 @@ const CollegeAndSpocAddForm = ({ mode }: AddCollegeProps) => {
   )
 }
 
-export default CollegeAndSpocAddForm
+export default CollegeAndSpocEditForm

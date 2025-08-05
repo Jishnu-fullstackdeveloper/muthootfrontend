@@ -11,7 +11,7 @@ import { ToastContainer } from 'react-toastify'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
 import 'react-toastify/dist/ReactToastify.css'
-import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { fetchCollegeCoordinators } from '@/redux/CampusManagement/collegeAndSpocSlice'
 import CollegeGridView from './CollegeCardView'
 import CollegeTableView from './CollegeTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -68,7 +68,7 @@ const CollegeListingPage = () => {
   useEffect(() => {
     // Initial fetch with no filters to load all data
     dispatch(
-      fetchColleges({
+      fetchCollegeCoordinators({
         page,
         limit,
         search
@@ -80,7 +80,7 @@ const CollegeListingPage = () => {
   useEffect(() => {
     if (filters.engagementType || filters.status) {
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page,
           limit,
           search,
@@ -93,7 +93,7 @@ const CollegeListingPage = () => {
     } else if (!filters.engagementType && !filters.status) {
       // Reset to fetch all data when both filters are cleared
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page,
           limit,
           search,

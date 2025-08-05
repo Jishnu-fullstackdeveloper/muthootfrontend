@@ -9,40 +9,8 @@ import { useRouter } from 'next/navigation'
 
 // MUI Imports
 import type { TextFieldProps } from '@mui/material'
-import {
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  Grid,
-  Typography,
-  IconButton,
-  Tooltip,
-  CircularProgress,
-  Button,
-  InputAdornment,
-  Autocomplete,
-  TextField
-} from '@mui/material'
-import {
-  Visibility,
-  Warning,
-  WarningAmberRounded,
-  Search as SearchIcon,
-  FilterList as FilterListIcon
-} from '@mui/icons-material'
-import Divider from '@mui/material/Divider'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import GridViewIcon from '@mui/icons-material/GridView'
-import TableChartIcon from '@mui/icons-material/TableChart'
-import CardMembershipOutlinedIcon from '@mui/icons-material/CardMembershipOutlined' // designation
-import EngineeringOutlinedIcon from '@mui/icons-material/EngineeringOutlined' // job role
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined' // openings
-import ViewTimelineOutlinedIcon from '@mui/icons-material/ViewTimelineOutlined' // experience
-import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined' // campusOrLateral
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined' // employeeType
-import EventOutlinedIcon from '@mui/icons-material/EventOutlined' // starting date
-import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined' // closing date
+import { Box, Card, CardContent, Chip, Grid, Typography, IconButton, CircularProgress, Button } from '@mui/material'
+import { Visibility, Search as SearchIcon, FilterList as FilterListIcon } from '@mui/icons-material'
 
 import { styled } from '@mui/material/styles'
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress'
@@ -51,22 +19,12 @@ import { ClearIcon } from '@mui/x-date-pickers'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
-import withPermission from '@/hocs/withPermission'
-
-import { getPermissionRenderConfig, getUserId } from '@/utils/functions'
-
 // Components and Utils
 import CustomTextField from '@/@core/components/mui/TextField'
-import DynamicButton from '@/components/Button/dynamicButton'
 import AreaFilterDialog from '@/@core/components/dialogs/recruitment-location-filters'
-import BudgetListingTableView from './BudgetListingTableView'
 
 // Redux Imports
-import {
-  fetchPositionMatrix,
-  resetPositionBudgetState,
-  createEmployeeCount
-} from '@/redux/PositionBudgetMatrix/positionMatrixSlice'
+import { fetchPositionMatrix, createEmployeeCount } from '@/redux/PositionBudgetMatrix/positionMatrixSlice'
 
 const PositionBudgetMatrix = () => {
   const router = useRouter()
@@ -105,12 +63,12 @@ const PositionBudgetMatrix = () => {
     branch: ['Branch 1', 'Branch 2', 'Branch 3']
   }
 
-  // const truncateDesignation = (designation: string) => {
-  //   if (designation.length > 20) {
-  //     return `${designation.slice(0, 20)}...`
+  // const truncateJobRole = (jobRole: string) => {
+  //   if (jobRole.length > 20) {
+  //     return `${jobRole.slice(0, 20)}...`
   //   }
 
-  //   return designation
+  //   return jobRole
   // }
 
   // Handle Location Filter Changes
@@ -393,7 +351,7 @@ const PositionBudgetMatrix = () => {
             />
             <Autocomplete
               disablePortal
-              options={[...new Set(positionMatrixData.map(item => item.designation))]}
+              options={[...new Set(positionMatrixData.map(item => item.jobRole))]}
               sx={{ width: 150 }}
               renderInput={params => (
                 <TextField
@@ -426,7 +384,7 @@ const PositionBudgetMatrix = () => {
                     }
                   }}
                   {...params}
-                  label='Designation'
+                  label='JobRole'
                 />
               )}
             /> */}
@@ -547,7 +505,7 @@ const PositionBudgetMatrix = () => {
                             className='overflow-hidden text-ellipsis uppercase'
                             sx={{ fontWeight: 'bold', fontSize: 14 }}
                           >
-                            {budget.designation}
+                            {budget.jobRole}
                           </Typography>
                           <Typography className='uppercase' sx={{ fontSize: 10 }}>
                             {budget.locationUnit}
@@ -645,7 +603,7 @@ const PositionBudgetMatrix = () => {
                                       ).unwrap()
 
                                       router.push(
-                                        `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
+                                        `/hiring-management/budget-management/position-budget-matrix/view/detail?jobRole=${encodeURIComponent(budget.jobRole)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
                                       )
                                     } catch (error) {
                                       console.error('Failed to create employee count:', error)

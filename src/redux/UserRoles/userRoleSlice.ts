@@ -1,85 +1,33 @@
+'use client'
+
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AxiosLib from '@/lib/AxiosLib'
 import { API_ENDPOINTS } from '../ApiUrls/userRoles'
 
-// Define interfaces for type safety
-interface UserRoleState {
-  userRoleData: { data: any[] } | null
-  isUserRoleLoading: boolean
-  userRoleSuccess: boolean
-  userRoleFailure: boolean
-  userRoleFailureMessage: string
-  isAddUserRoleLoading: boolean
-  addUserRoleSuccess: boolean
-  addUserRoleFailure: boolean
-  addUserRoleFailureMessage: string
-  designationData: { data: any[] } | null
-  isDesignationLoading: boolean
-  designationSuccess: boolean
-  designationFailure: boolean
-  designationFailureMessage: string
-}
-
-interface AddUserRoleParams {
-  designation: string
-
-  // des_role_description: string
-  group_designation: string
-  grp_role_description: string
-  permissions: string[]
-}
-
-interface UpdateUserRoleParams {
-  id: string // Designation ID
-  groupRoleId?: string // Group role ID (for group role-wise editing)
-  params: {
-    designation: string
-    newGroupDesignations?: string[] // Used for designation-wise edit
-    newPermissionNames?: string[] // Used for designation-wise edit
-    targetGroupDesignation?: string // Used for group role-wise edit
-    targetGroupPermissions?: string[] // Used for group role-wise edit
-    groupRoleDescription?: string // Used for group role-wise edit
-    editType: 'designation' | 'groupRole' // Explicitly specify edit type
-    totalCount?: any
-  }
-}
-
-// Async thunks
-export const fetchUserRole = createAsyncThunk(
-  'userManagement/fetchUserRole',
-  async (params: any, { rejectWithValue }) => {
+export const fetchDesignationRole = createAsyncThunk(
+  'userRoles/fetchDesignationRole',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getUserRolesUrl, { params })
-      const roles = Array.isArray(response.data.data.roles) ? response.data.data.roles : []
+      const response = await AxiosLib.get(API_ENDPOINTS.getDesignationRole, {
+        params: { page, limit }
+      })
 
       return {
-        data: roles,
-        pagination: {
-          totalItems: response.data.data.pagination?.totalCount || 0,
-          totalPages: response.data.data.pagination?.totalPages || 1,
-          page: response.data.data.pagination?.page || 1,
-          limit: response.data.data.pagination?.limit || 10,
-          totalCount: response.data.data.pagination?.totalCount || 10
-        },
-        message: response.data.message
+        data: response.data.data,
+        pagination: response.data.pagination
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch user roles'
-
-      return rejectWithValue({
-        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
-        statusCode: error.response?.status || 500
-      })
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch designation roles' })
     }
   }
 )
 
-export const getUserRoleDetails = createAsyncThunk(
-  'userManagement/getUserRoleDetails',
-  async ({ id }: { id: string }, { rejectWithValue }) => {
+export const fetchDesignationRoleById = createAsyncThunk(
+  'userManagement/fetchDesignationRoleById',
+  async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getUserRoleDetailsUrl(id))
+      const response = await AxiosLib.get(API_ENDPOINTS.getDesignationRoleByIdUrl(id))
 
       return response.data
     } catch (error: any) {
@@ -88,237 +36,394 @@ export const getUserRoleDetails = createAsyncThunk(
   }
 )
 
-export const fetchDesignation = createAsyncThunk(
-  'userManagement/fetchDesignation',
-  async (params: any, { rejectWithValue }) => {
+export const fetchGroupRole = createAsyncThunk(
+  'userRoles/fetchGroupRole',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(API_ENDPOINTS.getUserDesignationsUrl, { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.getGroupRole, { params: { page, limit } })
 
-      return response.data
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch designations'
+      console.log('API Response:', response.data) // Debug log
 
-      return rejectWithValue({
-        message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
-        statusCode: error.response?.status || 500
-      })
-    }
-  }
-)
-
-export const addNewUserRole = createAsyncThunk(
-  'userManagement/addNewUserRole',
-  async (params: AddUserRoleParams, { rejectWithValue }) => {
-    try {
-      const response = await AxiosLib.post('/roles', {
-        designation: params.designation,
-
-        // des_role_description: params.des_role_description,
-        group_designation: params.group_designation,
-        grp_role_description: params.grp_role_description,
-        permissions: params.permissions
-      })
-
-      return response.data
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to add role'
-
-      return rejectWithValue({
-        message: Array.isArray(errorMessage)
-          ? errorMessage.map((err: any) =>
-              typeof err === 'string' ? err : err.constraints?.whitelistValidation || 'Unknown error'
-            )
-          : [errorMessage],
-        statusCode: error.response?.status || 500
-      })
-    }
-  }
-)
-
-export const updateUserRole = createAsyncThunk(
-  'userManagement/updateUserRole',
-  async ({ id, groupRoleId, params }: UpdateUserRoleParams, { rejectWithValue }) => {
-    id
-
-    try {
-      let requestBody: any
-
-      if (!groupRoleId) {
-        // Designation-wise edit
-        // Only add newGroupDesignations if it's not empty
-        if (params.newGroupDesignations) {
-          // requestBody.targetGroupDesignation = params.newGroupDesignations
-          requestBody = {
-            designation: params.designation,
-            newGroupDesignations: params.newGroupDesignations
-
-            // newPermissionNames: params.newPermissionNames || []
-          }
-        } else {
-          requestBody = {
-            designation: params.designation,
-
-            // newGroupDesignations: params.newGroupDesignations || [],
-            newPermissionNames: params.newPermissionNames || []
-          }
-        }
-      } else {
-        // Group role-wise edit
-        console.log(params.targetGroupDesignation)
-        requestBody = {
-          designation: params.designation,
-          targetGroupDesignation: params.targetGroupDesignation,
-          targetGroupPermissions: params.targetGroupPermissions || []
-        }
+      // Handle different API response structures
+      const payload = {
+        data: Array.isArray(response.data) ? response.data : response.data.data || [],
+        totalCount: response.data.totalCount || response.data.length || 0
       }
 
-      const response = await AxiosLib.patch('/roles/update-permissions', requestBody)
-
-      return response.data
+      return payload
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update role'
+      console.error('API Error:', error.response?.data || error.message) // Debug log
 
-      return rejectWithValue({
-        message: Array.isArray(errorMessage)
-          ? errorMessage.map((err: any) =>
-              typeof err === 'string' ? err : err.constraints?.whitelistValidation || 'Unknown error'
-            )
-          : [errorMessage],
-        statusCode: error.response?.status || 500
-      })
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch group roles' })
     }
   }
 )
 
-// Initial state
-const initialState: UserRoleState = {
-  userRoleData: null,
-  isUserRoleLoading: false,
-  userRoleSuccess: false,
-  userRoleFailure: false,
-  userRoleFailureMessage: '',
-  isAddUserRoleLoading: false,
-  addUserRoleSuccess: false,
-  addUserRoleFailure: false,
-  addUserRoleFailureMessage: '',
-  designationData: null,
-  isDesignationLoading: false,
-  designationSuccess: false,
-  designationFailure: false,
-  designationFailureMessage: ''
-}
+export const fetchPermissions = createAsyncThunk(
+  'userRoles/fetchPermissions',
+  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.getPermssions, {
+        params: { page, limit }
+      })
 
-// Slice
-export const UserRoleSlice = createSlice({
-  name: 'UserRole',
-  initialState,
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch permissions' })
+    }
+  }
+)
+
+export const fetchGroupRoleById = createAsyncThunk(
+  'userManagement/fetchGroupRoleById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.get(API_ENDPOINTS.getGroupRoleByIdUrl(id))
+
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response.data)
+    }
+  }
+)
+
+export const createGroupRole = createAsyncThunk<
+  any,
+  {
+    designationRoles: string[]
+    groupRole: string
+    groupRoleDescription: string
+    permissions: string[]
+  },
+  { rejectValue: { message: string | string[]; statusCode: number } }
+>('userRoles/createGroupRole', async (params, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.post(API_ENDPOINTS.addGroupRole, {
+      designationRoles: params.designationRoles,
+      groupRole: params.groupRole,
+      groupRoleDescription: params.groupRoleDescription,
+      permissions: params.permissions
+    })
+
+    return response.data
+  } catch (error: any) {
+    console.error('API Error:', error.response?.data || error)
+    const errorMessage = error.response?.data?.message || 'Failed to create group role'
+
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
+  }
+})
+
+export const updateGroupRole = createAsyncThunk<
+  any,
+  {
+    id: string
+    params: { designationRole: string; newGroupRoles?: string[] }
+  }
+>('userManagement/updateGroupRole', async ({ params }, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updateGroupRole, {
+      designationRole: params.designationRole,
+      ...(params.newGroupRoles !== undefined ? { newGroupRoles: params.newGroupRoles } : {})
+    })
+
+    return response.data
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to update group role'
+
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
+  }
+})
+
+export const updateGroupRolePermission = createAsyncThunk<
+  any,
+  {
+    id?: string
+    params: { groupRole: string; newPermissions: string[] }
+  },
+  { rejectValue: { message: string | string[]; statusCode: number } }
+>('userRoles/updateGroupPermission', async ({ params }, { rejectWithValue }) => {
+  try {
+    const response = await AxiosLib.patch(API_ENDPOINTS.updtaeGroupPermission, {
+      groupRole: params.groupRole,
+      newPermissions: params.newPermissions
+    })
+
+    return response.data
+  } catch (error: any) {
+    console.error('API Error:', error.response?.data || error)
+    const errorMessage = error.response?.data?.message || 'Failed to save group role'
+
+    return rejectWithValue({
+      message: Array.isArray(errorMessage) ? errorMessage : [errorMessage],
+      statusCode: error.response?.data?.statusCode || 500
+    })
+  }
+})
+
+export const userRoleSlice = createSlice({
+  name: 'userRoles',
+  initialState: {
+    designationRoleData: [],
+    isDesignationRoleLoading: false,
+    designationRoleSuccess: false,
+    designationRoleFailure: false,
+    designationRoleFailureMessage: false,
+    pagination: null,
+
+    selectedDesignationRoleData: null,
+    isSelectedDesignationRoleLoading: false,
+    selectedDesignationRoleSuccess: false,
+    selectedDesignationRoleFailure: false,
+    selectedDesignationRoleFailureMessage: false,
+
+    groupRoleData: [],
+    isGroupRoleLoading: false,
+    groupRoleSuccess: false,
+    groupRoleFailure: false,
+    groupRoleFailureMessage: '',
+
+    permissionData: {
+      data: [],
+      totalCount: 0
+    },
+    isPermissionLoading: false,
+    permissionSuccess: false,
+    permissionFailure: false,
+    permissionFailureMessage: '',
+    selectedGroupRoleData: null,
+    isSelectedGroupRoleLoading: false,
+    selectedGroupRoleSuccess: false,
+    selectedGroupRoleFailure: false,
+    selectedGroupRoleFailureMessage: '',
+    isGroupRoleUpdating: false,
+    groupRoleUpdateSuccess: false,
+    groupRoleUpdateFailure: false,
+    groupRoleUpdateFailureMessage: '',
+    isGroupRolePermissionUpdating: false,
+    groupRolePermissionUpdateSuccess: false,
+    groupRolePermissionUpdateFailure: false,
+    groupRolePermissionUpdateFailureMessage: '',
+    isGroupRoleCreating: false,
+    groupRoleCreateSuccess: false,
+    groupRoleCreateFailure: false,
+    groupRoleCreateFailureMessage: ''
+  },
   reducers: {
-    fetchUserRoleDismiss: state => {
-      state.isUserRoleLoading = false
-      state.userRoleSuccess = false
-      state.userRoleFailure = false
-      state.userRoleFailureMessage = ''
+    fetchDesignationRoleDismiss: state => {
+      state.isDesignationRoleLoading = false
+      state.designationRoleSuccess = false
+      state.designationRoleFailure = false
+      state.designationRoleFailureMessage = false
     },
-    resetAddUserRoleStatus: state => {
-      state.isAddUserRoleLoading = false
-      state.addUserRoleSuccess = false
-      state.addUserRoleFailure = false
-      state.addUserRoleFailureMessage = ''
+    resetAddUserStatus: state => {
+      state.designationRoleSuccess = false
+      state.designationRoleFailure = false
+      state.designationRoleFailureMessage = false
     },
-    fetchDesignationDismiss: state => {
-      state.isDesignationLoading = false
-      state.designationSuccess = false
-      state.designationFailure = false
-      state.designationFailureMessage = ''
+    resetGroupRoleUpdateStatus: state => {
+      state.isGroupRoleUpdating = false
+      state.groupRoleUpdateSuccess = false
+      state.groupRoleUpdateFailure = false
+      state.groupRoleUpdateFailureMessage = ''
+    },
+    resetUpdateState: state => {
+      state.isGroupRolePermissionUpdating = false
+      state.groupRolePermissionUpdateSuccess = false
+      state.groupRolePermissionUpdateFailure = false
+      state.groupRolePermissionUpdateFailureMessage = ''
+    },
+    resetGroupRoleCreateStatus: state => {
+      state.isGroupRoleCreating = false
+      state.groupRoleCreateSuccess = false
+      state.groupRoleCreateFailure = false
+      state.groupRoleCreateFailureMessage = ''
     }
   },
   extraReducers: builder => {
     builder
-      .addCase(fetchUserRole.pending, state => {
-        state.isUserRoleLoading = true
-        state.userRoleSuccess = false
-        state.userRoleFailure = false
-        state.userRoleFailureMessage = ''
+      .addCase(fetchDesignationRole.pending, state => {
+        state.isDesignationRoleLoading = true
+        state.designationRoleFailure = null
       })
-      .addCase(fetchUserRole.fulfilled, (state, action) => {
-        state.userRoleData = action.payload
-        state.isUserRoleLoading = false
-        state.userRoleSuccess = true
+      .addCase(fetchDesignationRole.fulfilled, (state, action) => {
+        state.isDesignationRoleLoading = false
+        state.designationRoleData = action.payload.data
+        state.pagination = action.payload.pagination
       })
-      .addCase(fetchUserRole.rejected, (state, action: any) => {
-        state.isUserRoleLoading = false
-        state.userRoleData = null
-        state.userRoleFailure = true
-        state.userRoleFailureMessage = action.payload?.message?.join(', ') || 'Failed to fetch user roles'
+      .addCase(fetchDesignationRole.rejected, (state, action) => {
+        state.isDesignationRoleLoading = false
+        state.designationRoleFailureMessage = (action.payload as any)?.message || 'Failed to fetch designation role'
       })
-      .addCase(fetchDesignation.pending, state => {
-        state.isDesignationLoading = true
-        state.designationSuccess = false
-        state.designationFailure = false
-        state.designationFailureMessage = ''
+
+    builder
+      .addCase(fetchDesignationRoleById.pending, state => {
+        state.isSelectedDesignationRoleLoading = true
+        state.selectedDesignationRoleSuccess = false
+        state.selectedDesignationRoleFailure = false
+        state.selectedDesignationRoleFailureMessage = false
       })
-      .addCase(fetchDesignation.fulfilled, (state, action) => {
-        state.designationData = action.payload
-        state.isDesignationLoading = false
-        state.designationSuccess = true
+      .addCase(fetchDesignationRoleById.fulfilled, (state, action) => {
+        state.selectedDesignationRoleData = action.payload.data || null
+        state.isSelectedDesignationRoleLoading = false
+        state.selectedDesignationRoleSuccess = true
+        state.selectedDesignationRoleFailure = false
+        state.selectedDesignationRoleFailureMessage = false
       })
-      .addCase(fetchDesignation.rejected, (state, action: any) => {
-        state.isDesignationLoading = false
-        state.designationData = null
-        state.designationFailure = true
-        state.designationFailureMessage = action.payload?.message?.join(', ') || 'Failed to fetch designations'
+      .addCase(fetchDesignationRoleById.rejected, (state, action) => {
+        state.isSelectedDesignationRoleLoading = false
+        state.selectedDesignationRoleData = null
+        state.selectedDesignationRoleSuccess = false
+        state.selectedDesignationRoleFailure = true
+        state.selectedDesignationRoleFailureMessage =
+          (action.payload as any)?.message || 'Failed to fetch designation role'
       })
-      .addCase(addNewUserRole.pending, state => {
-        state.isAddUserRoleLoading = true
-        state.addUserRoleSuccess = false
-        state.addUserRoleFailure = false
-        state.addUserRoleFailureMessage = ''
+
+    builder
+      .addCase(fetchGroupRole.pending, state => {
+        state.isGroupRoleLoading = true
+        state.groupRoleSuccess = false
+        state.groupRoleFailure = false
+        state.groupRoleFailureMessage = ''
       })
-      .addCase(addNewUserRole.fulfilled, state => {
-        state.isAddUserRoleLoading = false
-        state.addUserRoleSuccess = true
+      .addCase(fetchGroupRole.fulfilled, (state, action) => {
+        state.groupRoleData = action.payload.data
+        state.isGroupRoleLoading = false
+        state.groupRoleSuccess = true
+        state.groupRoleFailure = false
+        state.groupRoleFailureMessage = ''
       })
-      .addCase(addNewUserRole.rejected, (state, action: any) => {
-        state.isAddUserRoleLoading = false
-        state.addUserRoleSuccess = false
-        state.addUserRoleFailure = true
-        state.addUserRoleFailureMessage = action.payload?.message?.join(', ') || 'Failed to add role'
+      .addCase(fetchGroupRole.rejected, (state, action) => {
+        state.isGroupRoleLoading = false
+       
+        state.groupRoleFailure = true
+        state.groupRoleFailureMessage = (action.payload as any)?.message || 'Failed to fetch group role data'
       })
-      .addCase(updateUserRole.pending, state => {
-        state.isAddUserRoleLoading = true
-        state.addUserRoleSuccess = false
-        state.addUserRoleFailure = false
-        state.addUserRoleFailureMessage = ''
+
+    builder
+      .addCase(fetchPermissions.pending, state => {
+        state.isPermissionLoading = true
+        state.permissionSuccess = false
+        state.permissionFailure = false
+        state.permissionFailureMessage = ''
       })
-      .addCase(updateUserRole.fulfilled, state => {
-        state.isAddUserRoleLoading = false
-        state.addUserRoleSuccess = true
+      .addCase(fetchPermissions.fulfilled, (state, action) => {
+        state.permissionData = action.payload.data
+        state.isPermissionLoading = false
+        state.permissionSuccess = true
+        state.permissionFailure = false
+        state.permissionFailureMessage = ''
       })
-      .addCase(updateUserRole.rejected, (state, action: any) => {
-        state.isAddUserRoleLoading = false
-        state.addUserRoleSuccess = false
-        state.addUserRoleFailure = true
-        state.addUserRoleFailureMessage = action.payload?.message?.join(', ') || 'Failed to update role'
+      .addCase(fetchPermissions.rejected, (state, action) => {
+        state.isPermissionLoading = false
+        state.permissionData = { data: [], totalCount: 0 }
+        state.permissionFailure = true
+        state.permissionFailureMessage = (action.payload as any)?.message || 'Failed to fetch permissions'
       })
-      .addCase(getUserRoleDetails.pending, state => {
-        state.isUserRoleLoading = true
-        state.userRoleSuccess = false
-        state.userRoleFailure = false
-        state.userRoleFailureMessage = ''
+
+    builder
+      .addCase(fetchGroupRoleById.pending, state => {
+        state.isSelectedGroupRoleLoading = true
+        state.selectedGroupRoleSuccess = false
+        state.selectedGroupRoleFailure = false
+        state.selectedGroupRoleFailureMessage = ''
       })
-      .addCase(getUserRoleDetails.fulfilled, (state, action) => {
-        state.userRoleData = { data: [action.payload] } // Store as an array for consistency
-        state.isUserRoleLoading = false
-        state.userRoleSuccess = true
+      .addCase(fetchGroupRoleById.fulfilled, (state, action) => {
+        state.selectedGroupRoleData = action.payload.data || null
+        state.isSelectedGroupRoleLoading = false
+        state.selectedGroupRoleSuccess = true
+        state.selectedGroupRoleFailure = false
+        state.selectedGroupRoleFailureMessage = ''
       })
-      .addCase(getUserRoleDetails.rejected, (state, action: any) => {
-        state.isUserRoleLoading = false
-        state.userRoleData = null
-        state.userRoleFailure = true
-        state.userRoleFailureMessage = action.payload?.message?.join(', ') || 'Failed to fetch role details'
+      .addCase(fetchGroupRoleById.rejected, (state, action) => {
+        state.isSelectedGroupRoleLoading = false
+        state.selectedGroupRoleData = null
+        state.selectedGroupRoleSuccess = false
+        state.selectedGroupRoleFailure = true
+        state.selectedGroupRoleFailureMessage = (action.payload as any)?.message || 'Failed to fetch group role'
+      })
+
+    builder
+      .addCase(updateGroupRole.pending, state => {
+        state.isGroupRoleUpdating = true
+        state.groupRoleUpdateSuccess = false
+        state.groupRoleUpdateFailure = false
+        state.groupRoleUpdateFailureMessage = ''
+      })
+      .addCase(updateGroupRole.fulfilled, state => {
+        state.isGroupRoleUpdating = false
+        state.groupRoleUpdateSuccess = true
+        state.groupRoleUpdateFailure = false
+        state.groupRoleUpdateFailureMessage = ''
+      })
+      .addCase(updateGroupRole.rejected, (state, action) => {
+        state.isGroupRoleUpdating = false
+        state.groupRoleUpdateSuccess = false
+        state.groupRoleUpdateFailure = true
+        state.groupRoleUpdateFailureMessage =
+          (action.payload as any)?.message?.join(', ') || 'Failed to update group role'
+      })
+
+    builder
+      .addCase(updateGroupRolePermission.pending, state => {
+        state.isGroupRolePermissionUpdating = true
+        state.groupRolePermissionUpdateSuccess = false
+        state.groupRolePermissionUpdateFailure = false
+        state.groupRolePermissionUpdateFailureMessage = ''
+      })
+      .addCase(updateGroupRolePermission.fulfilled, (state, action) => {
+        state.isGroupRolePermissionUpdating = false
+        state.groupRolePermissionUpdateSuccess = true
+        state.groupRolePermissionUpdateFailure = false
+        state.groupRolePermissionUpdateFailureMessage = ''
+        state.selectedGroupRoleData = action.payload.data
+      })
+      .addCase(updateGroupRolePermission.rejected, (state, action) => {
+        state.isGroupRolePermissionUpdating = false
+        state.groupRolePermissionUpdateSuccess = false
+        state.groupRolePermissionUpdateFailure = true
+        state.groupRolePermissionUpdateFailureMessage =
+          (action.payload as any)?.message?.join(', ') || 'Failed to update group role permissions'
+      })
+
+    builder
+      .addCase(createGroupRole.pending, state => {
+        state.isGroupRoleCreating = true
+        state.groupRoleCreateSuccess = false
+        state.groupRoleCreateFailure = false
+        state.groupRoleCreateFailureMessage = ''
+      })
+      .addCase(createGroupRole.fulfilled, state => {
+        state.isGroupRoleCreating = false
+        state.groupRoleCreateSuccess = true
+        state.groupRoleCreateFailure = false
+        state.groupRoleCreateFailureMessage = ''
+
+        // state.groupRoleData.data = [...state.groupRoleData.data, action.payload.data]
+        // state.groupRoleData.totalCount += 1
+      })
+      .addCase(createGroupRole.rejected, (state, action) => {
+        state.isGroupRoleCreating = false
+        state.groupRoleCreateSuccess = false
+        state.groupRoleCreateFailure = true
+        state.groupRoleCreateFailureMessage =
+          (action.payload as any)?.message?.join(', ') || 'Failed to create group role'
       })
   }
 })
 
-export const { fetchUserRoleDismiss, resetAddUserRoleStatus, fetchDesignationDismiss } = UserRoleSlice.actions
-export default UserRoleSlice.reducer
+export const {
+  fetchDesignationRoleDismiss,
+  resetAddUserStatus,
+  resetGroupRoleUpdateStatus,
+  resetUpdateState,
+  resetGroupRoleCreateStatus
+} = userRoleSlice.actions
+
+export default userRoleSlice.reducer

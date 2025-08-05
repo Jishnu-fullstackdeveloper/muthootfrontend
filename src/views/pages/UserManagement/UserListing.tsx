@@ -29,7 +29,6 @@ import TableIcon from '@/icons/GridAndTableIcons/TableIcon'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchUserManagement } from '@/redux/UserManagment/userManagementSlice'
-import { fetchUserRole } from '@/redux/UserRoles/userRoleSlice'
 
 // import { ROUTES } from '@/utils/routes'
 
@@ -136,7 +135,7 @@ const UserListing = () => {
     state => state.UserManagementReducer
   ) as unknown as UserManagementResponse
 
-  const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
+  // const { userRoleData } = useAppSelector(state => state.UserRoleReducer)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -169,7 +168,6 @@ const UserListing = () => {
     dispatch(fetchUserManagement(params)).then(result => {
       console.log('fetchUserManagement result:', result)
     })
-    dispatch(fetchUserRole({ limit: 10, page: 1 }))
   }, [debouncedSearch, filters, gridPage, tablePage, view, gridLimit, tableLimit, dispatch])
 
   const handleTablePageChange = (newPage: number) => {
@@ -276,7 +274,7 @@ const UserListing = () => {
         return { ...user, roles: [] as string[] }
       }
     })
-  }, [allUsers, tableUsers, userRoleData, view])
+  }, [allUsers, tableUsers, view])
 
   const handleEdit = (userId: string) => {
     router.push(`/user-management/edit?id=${userId}`)
@@ -336,7 +334,7 @@ const UserListing = () => {
                 Filter
               </Button>
             </Box>
-           <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f8f9fc', borderRadius: '12px' }}>
               <Box
                 sx={{
                   backgroundColor: view === 'grid' ? '#0096DA' : 'transparent',
@@ -361,7 +359,6 @@ const UserListing = () => {
               >
                 <TableIcon className='h-5 w-6' />
               </Box>
-             
             </Box>
           </Box>
           {selectedFilters.length > 0 && (

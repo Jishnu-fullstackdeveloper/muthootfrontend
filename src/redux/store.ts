@@ -27,6 +27,7 @@ import InterviewManagementReducer from './InterviewManagement/InterviewManagemen
 import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
 import collegeAndSpocReducer from './CampusManagement/collegeAndSpocSlice'
 
+
 export const makeStore = () =>
   configureStore({
     reducer: {
@@ -53,6 +54,7 @@ export const makeStore = () =>
       schedulerManagementSliceReducer,
       noticePeriodReducer,
       positionBudgetMatrixReducer,
+
       InterviewManagementReducer,
       jdManagementReducer,
       collegeAndSpocReducer

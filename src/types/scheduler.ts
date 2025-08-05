@@ -20,6 +20,8 @@ export interface SchedulerConfig {
 export interface SchedulerConfigListResponse {
   data: Array<{
     id: string
+    data: any
+    total: any
     deletedBy: string | null
     url: string
     category: string

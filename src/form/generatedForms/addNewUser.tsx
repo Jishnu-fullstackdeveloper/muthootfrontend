@@ -342,7 +342,11 @@ const UserForm = () => {
       try {
         await Promise.all([
           dispatch(updateUserPermission({ id, params: permissionPayload })).unwrap(),
-          dispatch(updateUserRole({ id, params: rolePayload })).unwrap()
+          dispatch(updateUserRole({ id, params: rolePayload })).unwrap(),
+          toast.success('Permission Updated Successfully', {
+            position: 'top-right',
+            autoClose: 3000
+          })
         ])
       } catch (error: any) {
         toast.error(`Failed to update user: ${error.message || 'Unknown error'}`, {
@@ -351,6 +355,8 @@ const UserForm = () => {
         })
       }
     }
+
+    router.back()
   }
 
   if (isUserLoading) {
@@ -753,4 +759,3 @@ const UserForm = () => {
 }
 
 export default UserForm
-

@@ -1,24 +1,27 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 
-//import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
-import { Box, Typography, Divider, Chip, Grid, Paper, Avatar, Stack } from '@mui/material'
+import { Box, Typography, Divider, Chip, Grid, Paper, Avatar, Stack, Button } from '@mui/material'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 
-//import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EventIcon from '@mui/icons-material/Event'
 import GroupIcon from '@mui/icons-material/Group'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import CommentIcon from '@mui/icons-material/Comment'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchCollegeDriveById } from '@/redux/CampusManagement/campusDriveSlice'
+
 interface CampusDrive {
   id: string
   job_role: string
   drive_date: string
   expected_candidates: number
-  status: 'Active' | 'Inactive' | 'Completed'
+  status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
   college: string
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -32,13 +35,16 @@ interface CampusDriveDetailsProps {
 }
 
 const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
-  //const router = useRouter()
+  const router = useRouter()
 
   // Define status colors for consistency
   const statusColors = {
     Active: '#4CAF50',
     Inactive: '#FF9800',
     Completed: '#2196F3',
+    Planned: '#4CAF50', // Align with Active for consistency
+    Ongoing: '#00CED1',
+    Cancelled: '#F44336',
     Sent: '#4CAF50',
     Pending: '#FF9800',
     Failed: '#F44336',
@@ -52,19 +58,6 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
       className="p-4 md:p-7 max-w-6xl mx-auto font-['Public_Sans',_Roboto,_sans-serif]"
       sx={{ boxShadow: 1, bgcolor: '#F3F3F3', borderRadius: 2 }}
     >
-      {/* <Box className='flex justify-end'>
-        <Button
-          variant='outlined'
-          startIcon={<ArrowBackIcon />}
-          onClick={() => router.back()}
-          sx={{
-            mb: 2
-          }}
-          aria-label='Back to campus drive list'
-        >
-          Back
-        </Button>
-      </Box> */}
       {/* Header Section */}
       <Box className='flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 bg-gradient-to-r from-[#c3daf1] to-[#dae2f0] p-6 rounded-lg shadow-md'>
         <Box className='flex flex-row items-center gap-4'>
@@ -100,22 +93,10 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
               >
                 College: <strong>{drive.college}</strong>
               </Typography>
-              {/* <Chip
-                label={drive.status}
-                size='small'
-                sx={{
-                  bgcolor: statusColors[drive.status],
-                  color: '#fff',
-                  fontFamily: 'Public Sans, Roboto, sans-serif',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  height: 20
-                }}
-              /> */}
             </Stack>
           </Box>
         </Box>
-        {/* <Button
+        <Button
           variant='contained'
           startIcon={<ArrowBackIcon />}
           onClick={() => router.back()}
@@ -131,7 +112,7 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
           aria-label='Back to campus drive list'
         >
           Back to List
-        </Button> */}
+        </Button>
       </Box>
 
       <Divider className='my-8 border-gray-200' />
@@ -139,7 +120,7 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
       {/* General Information */}
       <Typography
         variant='h5'
-        className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#1E1E1E] mb-4"
+        className="font-['Public_Sans',_Roboto,_sans-serif] font-semibold text-[20px] leading-[26px] text-[#1E1E1E] mb-4"
       >
         General Information
       </Typography>
@@ -233,27 +214,6 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
             </Box>
           </Paper>
         </Grid>
-        {/* <Grid item xs={12} sm={6} md={4}>
-          <Paper elevation={3} sx={{ p: 4, bgcolor: '#F9FAFB', borderRadius: 2 }}>
-            <Typography
-              variant='body2'
-              className="font-['Public_Sans',_Roboto,_sans-serif] font-normal text-[13px] leading-[18px] text-[#757575]"
-            >
-              Status:{' '}
-              <Chip
-                label={drive.status}
-                size='medium'
-                sx={{
-                  bgcolor: statusColors[drive.status],
-                  color: '#fff',
-                  fontFamily: 'Public Sans, Roboto, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 600
-                }}
-              />
-            </Typography>
-          </Paper>
-        </Grid> */}
       </Grid>
 
       <Divider className='my-8 border-gray-200' />
@@ -314,7 +274,7 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
                 variant='body1'
                 className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[22px] text-[#1E1E1E]"
               >
-                {new Date(drive.spoc_notified_at).toLocaleString('en-IN')}
+                {drive.spoc_notified_at ? new Date(drive.spoc_notified_at).toLocaleString('en-IN') : 'N/A'}
               </Typography>
             </Box>
           </Paper>
@@ -341,7 +301,7 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
       </Grid>
 
       {/* Footer Actions */}
-      {/* <Box className='mt-8 flex justify-end'>
+      <Box className='mt-8 flex justify-end'>
         <Button
           variant='outlined'
           className='border-[#0096DA] text-[#0096DA] hover:border-[#007BB8] hover:bg-[rgba(0,150,218,0.05)]'
@@ -350,33 +310,36 @@ const CampusDriveDetails = ({ drive }: CampusDriveDetailsProps) => {
         >
           Back
         </Button>
-      </Box> */}
+      </Box>
     </Box>
   )
 }
 
-// Sample data for demonstration
-const campusDrivesData: CampusDrive[] = [
-  {
-    id: '1',
-    job_role: 'Software Engineer',
-    drive_date: '2025-08-15',
-    expected_candidates: 50,
-    status: 'Active',
-    college: 'ABC College',
-    college_coordinator: 'John Doe',
-    invite_status: 'Sent',
-    response_status: 'Interested',
-    spoc_notified_at: '2025-07-28T15:30:00Z',
-    remarks: 'Drive scheduled for final-year students'
-  }
-]
-
-// Wrapper component to pass sample data (for demonstration)
+// Wrapper component to fetch data dynamically
 const CampusDriveDetailWrapper = () => {
-  const drive = campusDrivesData[0] // Use the first drive from the data
+  const dispatch = useAppDispatch()
+  const { collegeDrive, collegeDriveStatus, collegeDriveError } = useAppSelector(state => state.campusDriveReducer)
+  const { id } = useParams()
 
-  return <CampusDriveDetails drive={drive} />
+  useEffect(() => {
+    if (id && typeof id === 'string') {
+      dispatch(fetchCollegeDriveById(id))
+    }
+  }, [dispatch, id])
+
+  if (collegeDriveStatus === 'loading') {
+    return <Typography>Loading...</Typography>
+  }
+
+  if (collegeDriveStatus === 'failed') {
+    return <Typography color='error'>{collegeDriveError || 'Failed to fetch drive details'}</Typography>
+  }
+
+  if (!collegeDrive) {
+    return <Typography>No drive data available</Typography>
+  }
+
+  return <CampusDriveDetails drive={collegeDrive} />
 }
 
 export default CampusDriveDetailWrapper

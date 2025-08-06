@@ -14,7 +14,7 @@ interface CampusDriveGridViewProps {
     job_role: string
     drive_date: string
     expected_candidates: number
-    status: 'Active' | 'Inactive' | 'Completed'
+    status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
     college: string
     college_coordinator: string
     invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -49,20 +49,6 @@ const CampusDriveGridView = ({ drives }: CampusDriveGridViewProps) => {
                     </Box>
                   </Box>
                   <Box className='flex items-center'>
-                    {/* <Tooltip title='Edit Drive'>
-                      <IconButton
-                        onClick={() =>
-                          router.push(
-                            `/hiring-management/campus-management/campus-drive/edit/${drive.id}?data=${encodeURIComponent(JSON.stringify(drive))}`
-                          )
-                        }
-                        aria-label={`Edit ${drive.job_role}`}
-                        sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                    </Tooltip> */}
-
                     <Tooltip title='Edit Drive'>
                       <IconButton
                         onClick={() => {

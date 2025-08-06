@@ -76,7 +76,7 @@ export const fetchCollegeList = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await AxiosLib.get('/college', { params })
+      const response = await AxiosLib.get(API_ENDPOINTS.createCollege, { params })
       const { data = [], page, limit, totalCount } = response.data || {}
 
       return {
@@ -98,7 +98,7 @@ export const fetchCollegeById = createAsyncThunk(
   'college/fetchCollegeById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/college/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.getCollegeById.replace(':id', id))
       const collegeData = response.data?.data || {}
 
       return {
@@ -143,7 +143,7 @@ export const fetchCollegeCoordinatorById = createAsyncThunk(
   'college/fetchCollegeCoordinatorById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.get(`/college-coordinator/${id}`)
+      const response = await AxiosLib.get(API_ENDPOINTS.getCollegeCoordinatorById.replace(':id', id))
       const coordinatorData = response.data?.data || {}
 
       return {
@@ -234,7 +234,7 @@ export const updateCollege = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await AxiosLib.put(`/college?id=${id}`, data)
+      const response = await AxiosLib.put(`${API_ENDPOINTS.updateCollege}?id=${id}`, data)
 
       return response.data
     } catch (error: any) {
@@ -304,7 +304,7 @@ export const updateCollegeCoordinator = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await AxiosLib.put(`/college-coordinator?id=${id}`, data)
+      const response = await AxiosLib.put(`${API_ENDPOINTS.updateCollegeCoordinator}?id=${id}`, data)
 
       return response.data
     } catch (error: any) {
@@ -317,7 +317,7 @@ export const deleteCollegeCoordinator = createAsyncThunk(
   'college/deleteCollegeCoordinator',
   async (coordinatorId: string, { rejectWithValue }) => {
     try {
-      const response = await AxiosLib.delete(`/college-coordinator?id=${coordinatorId}`)
+      const response = await AxiosLib.delete(`${API_ENDPOINTS.deleteCollegeCoordinator}?id=${coordinatorId}`)
 
       return { coordinatorId, ...response.data }
     } catch (error: any) {

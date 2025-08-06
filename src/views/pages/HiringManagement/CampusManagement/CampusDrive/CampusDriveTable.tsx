@@ -17,7 +17,7 @@ interface CampusDrive {
   job_role: string
   drive_date: string
   expected_candidates: number
-  status: 'Active' | 'Inactive' | 'Completed'
+  status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
   college: string
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -28,18 +28,23 @@ interface CampusDrive {
 
 interface CampusDriveTableViewProps {
   drives: CampusDrive[]
+  totalCount: number
+  page: number
+  limit: number
+  setPage: (page: number) => void
+  setLimit: (limit: number) => void
 }
 
-const CampusDriveTableView = ({ drives }: CampusDriveTableViewProps) => {
+const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLimit }: CampusDriveTableViewProps) => {
   const columnHelper = createColumnHelper<CampusDrive>()
   const router = useRouter()
 
   const tableData = useMemo(() => {
     return {
       data: drives,
-      totalCount: drives.length
+      totalCount
     }
-  }, [drives])
+  }, [drives, totalCount])
 
   const columns = useMemo<ColumnDef<CampusDrive, any>[]>(
     () => [
@@ -64,11 +69,13 @@ const CampusDriveTableView = ({ drives }: CampusDriveTableViewProps) => {
             color='text.primary'
             sx={{
               color:
-                row.original.status === 'Active'
+                row.original.status === 'Active' || row.original.status === 'Planned'
                   ? '#90EE90'
                   : row.original.status === 'Inactive'
                     ? '#ED960B'
-                    : '#00CED1'
+                    : row.original.status === 'Completed'
+                      ? '#00CED1'
+                      : '#FF4500' // For Ongoing, Cancelled
             }}
           >
             {row.original.status}
@@ -123,13 +130,13 @@ const CampusDriveTableView = ({ drives }: CampusDriveTableViewProps) => {
         header: 'SPOC NOTIFIED AT',
         cell: ({ row }) => (
           <Typography color='text.primary'>
-            {new Date(row.original.spoc_notified_at).toLocaleString('en-IN')}
+            {row.original.spoc_notified_at ? new Date(row.original.spoc_notified_at).toLocaleString('en-IN') : '-'}
           </Typography>
         )
       }),
       columnHelper.accessor('remarks', {
         header: 'REMARKS',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.remarks}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.remarks || '-'}</Typography>
       }),
       columnHelper.display({
         id: 'actions',
@@ -138,7 +145,7 @@ const CampusDriveTableView = ({ drives }: CampusDriveTableViewProps) => {
           <Box className='flex items-center gap-1'>
             <Tooltip title='View Drive'>
               <IconButton
-                onClick={() => router.push(`/hiring-management/campus-management/drive/view/${row.original.id}`)}
+                onClick={() => router.push(`/hiring-management/campus-management/campus-drive/view/${row.original.id}`)}
                 aria-label={`View ${row.original.job_role}`}
                 sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
               >
@@ -200,9 +207,9 @@ const CampusDriveTableView = ({ drives }: CampusDriveTableViewProps) => {
           columns={columns}
           data={tableData.data}
           totalCount={tableData.totalCount}
-          pagination={{ pageIndex: 0, pageSize: 5 }}
-          onPageChange={() => {}}
-          onRowsPerPageChange={() => {}}
+          pagination={{ pageIndex: page - 1, pageSize: limit }}
+          onPageChange={newPage => setPage(newPage + 1)}
+          onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
           tableName='Campus Drive Table'
           sorting={undefined}
           onSortingChange={undefined}

@@ -5,6 +5,10 @@ import React from 'react'
 import { usePathname } from 'next/navigation'
 
 import CampusDriveDetails from './CampusDriveDetails'
+
+//import AddOrEditCampusDrive from './AddCampusDrive'
+// import AddCampusDrive from './AddCampusDrive'
+// import EditCampusDrive from './EditCampusDrive'
 import AddOrEditCampusDrive from './AddCampusDrive'
 
 const CampusDriveIndex = () => {
@@ -15,7 +19,8 @@ const CampusDriveIndex = () => {
 
   return (
     <>
-      {(mode === 'add' || (mode === 'edit' && id)) && <AddOrEditCampusDrive mode={mode} />}
+      {mode === 'add' && <AddOrEditCampusDrive mode='add' />}
+      {mode === 'edit' && id && <AddOrEditCampusDrive mode='edit' id={id} />}
       {mode === 'view' && id && <CampusDriveDetails />}
     </>
   )

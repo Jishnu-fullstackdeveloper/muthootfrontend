@@ -420,7 +420,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
                 variant='body1'
                 className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
               >
-                {college.last_visited_date || 'N/A'}
+                {college.last_visited_date.split('T')[0] || 'N/A'}
               </Typography>
             </Box>
           </Box>

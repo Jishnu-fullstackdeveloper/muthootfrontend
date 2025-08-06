@@ -16,16 +16,18 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
-  Stepper,
-  Step,
-  StepLabel,
+
+  // Stepper,
+  // Step,
+  // StepLabel,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  TextField,
-  Card
+  TextField
+
+  // Card
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
@@ -33,14 +35,16 @@ import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
-import ApprovalIcon from '@mui/icons-material/Approval'
+
+// import ApprovalIcon from '@mui/icons-material/Approval'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { fetchVacancyById, updateVacancyStatus } from '@/redux/VacancyManagementAPI/vacancyManagementSlice'
 import { fetchResignedEmployees } from '@/redux/ResignationDataListing/ResignationDataListingSlice'
-import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
+
+// import { fetchUserById } from '@/redux/UserManagment/userManagementSlice'
 import type { VacancyManagementState } from '@/types/vacancyManagement'
 
 // import type { ResignedEmployeesState } from '@/types/resignationDataListing'
@@ -52,11 +56,11 @@ interface Props {
   vacancyTab: 'vacancy-details' | 'jd-details'
 }
 
-interface ApproverDetails {
-  approverId: string
-  name: string
-  employeeCode: string
-}
+// interface ApproverDetails {
+//   approverId: string
+//   name: string
+//   employeeCode: string
+// }
 
 const tabMapping: { [key: string]: number } = {
   'vacancy-details': 0,
@@ -75,7 +79,8 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [selectedAction, setSelectedAction] = useState<'APPROVED' | 'FREEZED' | null>(null)
   const [notes, setNotes] = useState<string>('')
-  const [approverDetails, setApproverDetails] = useState<ApproverDetails[]>([])
+
+  // const [approverDetails, setApproverDetails] = useState<ApproverDetails[]>([])
   const [resignedEmployee, setResignedEmployee] = useState<any | null>(null)
 
   // Redux selectors
@@ -120,39 +125,39 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
   }, [dispatch, vacancy?.employeeCode])
 
   // Fetch approver details for approvalStatus
-  useEffect(() => {
-    if (vacancy?.approvalStatus?.length) {
-      const approverIds = vacancy.approvalStatus.map(status => status.approverId)
+  // useEffect(() => {
+  //   if (vacancy?.approvalStatus?.length) {
+  //     const approverIds = vacancy.approvalStatus.map(status => status.approverId)
 
-      const fetchApprovers = async () => {
-        const details: ApproverDetails[] = []
+  //     const fetchApprovers = async () => {
+  //       const details: ApproverDetails[] = []
 
-        for (const approverId of approverIds) {
-          try {
-            const res = await dispatch(fetchUserById(approverId)).unwrap()
-            const userData = res.data
+  //       for (const approverId of approverIds) {
+  //         try {
+  //           const res = await dispatch(fetchUserById(approverId)).unwrap()
+  //           const userData = res.data
 
-            details.push({
-              approverId,
-              name: `${userData.firstName} ${userData.lastName || ''}`.trim(),
-              employeeCode: userData.employeeCode || 'N/A'
-            })
-          } catch (err) {
-            console.error(`Failed to fetch user details for approverId ${approverId}:`, err)
-            details.push({
-              approverId,
-              name: 'Unknown',
-              employeeCode: 'N/A'
-            })
-          }
-        }
+  //           details.push({
+  //             approverId,
+  //             name: `${userData.firstName} ${userData.lastName || ''}`.trim(),
+  //             employeeCode: userData.employeeCode || 'N/A'
+  //           })
+  //         } catch (err) {
+  //           console.error(`Failed to fetch user details for approverId ${approverId}:`, err)
+  //           details.push({
+  //             approverId,
+  //             name: 'Unknown',
+  //             employeeCode: 'N/A'
+  //           })
+  //         }
+  //       }
 
-        setApproverDetails(details)
-      }
+  //       setApproverDetails(details)
+  //     }
 
-      fetchApprovers()
-    }
-  }, [dispatch, vacancy?.approvalStatus])
+  //     fetchApprovers()
+  //   }
+  // }, [dispatch, vacancy?.approvalStatus])
 
   // // Handle tab change
   // const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -206,30 +211,30 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
     (vacancy?.status === 'PENDING' || vacancy?.status === 'FREEZED')
 
   // Approval status for stepper
-  const approvalStatus = vacancy?.approvalStatus || []
-  const sortedApprovalStatus = [...approvalStatus].sort((a, b) => a.level - b.level)
+  // const approvalStatus = vacancy?.approvalStatus || []
+  // const sortedApprovalStatus = [...approvalStatus].sort((a, b) => a.level - b.level)
 
-  const budget = {
-    approvalStatusLevel: sortedApprovalStatus.map(status => {
-      const approverDetail = approverDetails.find(detail => detail.approverId === status.approverId)
-      const formattedApprover = status.approver.replace(/_/g, ' ')
+  // const budget = {
+  //   approvalStatusLevel: sortedApprovalStatus.map(status => {
+  //     const approverDetail = approverDetails.find(detail => detail.approverId === status.approverId)
+  //     const formattedApprover = status.approver.replace(/_/g, ' ')
 
-      return {
-        label: `Level ${status.level}: ${formattedApprover}`,
-        status: status.approvalStatus,
-        designation: `${formattedApprover} Approval`,
-        approverName: approverDetail?.name || 'Unknown',
-        employeeCode: approverDetail?.employeeCode || 'N/A'
-      }
-    })
-  }
+  //     return {
+  //       label: `Level ${status.level}: ${formattedApprover}`,
+  //       status: status.approvalStatus,
+  //       designation: `${formattedApprover} Approval`,
+  //       approverName: approverDetail?.name || 'Unknown',
+  //       employeeCode: approverDetail?.employeeCode || 'N/A'
+  //     }
+  //   })
+  // }
 
-  const activeStep =
-    budget.approvalStatusLevel?.reduce((acc: number, step: any, index: number) => {
-      if (step.status === 'PENDING') return acc
+  // const activeStep =
+  //   budget.approvalStatusLevel?.reduce((acc: number, step: any, index: number) => {
+  //     if (step.status === 'PENDING') return acc
 
-      return index + 1
-    }, 0) || 0
+  //     return index + 1
+  //   }, 0) || 0
 
   // Loading and error states
   if (vacancyDetailsLoading) {
@@ -693,7 +698,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
             </Accordion>
 
             {/* Approval Status Accordion */}
-            {budget.approvalStatusLevel?.length > 0 &&
+            {/* {budget.approvalStatusLevel?.length > 0 &&
               withPermission(() => (
                 <Accordion defaultExpanded sx={{ mb: 2, borderRadius: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                   <AccordionSummary
@@ -782,7 +787,7 @@ const JobVacancyView: React.FC<Props> = ({ vacancyTab }) => {
                     </Box>
                   </AccordionDetails>
                 </Accordion>
-              ))({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })}
+              ))({ individualPermission: permissions?.HIRING_VACANCY_VACANCYREQUEST_APPROVAL })} */}
           </Box>
         )}
 

@@ -51,7 +51,6 @@ const ApprovalsListing = () => {
     fetchUserSuccess = false,
     fetchUserData = null,
     fetchUserFailure = false,
-    fetchUserFailureMessage = '',
     fetchApprovalsLoading = false,
     fetchApprovalsData = {
       data: [],
@@ -172,9 +171,7 @@ const ApprovalsListing = () => {
   if (fetchUserFailure) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography color='error' variant='h6'>
-          {fetchUserFailureMessage || 'Failed to fetch user data'}
-        </Typography>
+        <Typography variant='h6'>No data to show</Typography>
       </Box>
     )
   }
@@ -182,9 +179,7 @@ const ApprovalsListing = () => {
   if (fetchApprovalsFailure) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography color='error' variant='h6'>
-          {fetchApprovalsFailureMessage || 'Failed to fetch approvals'}
-        </Typography>
+        <Typography variant='h6'>No data to show</Typography>
       </Box>
     )
   }

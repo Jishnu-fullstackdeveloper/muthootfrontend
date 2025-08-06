@@ -11,14 +11,7 @@ import {
   Typography,
   Drawer,
   Divider,
-  Autocomplete,
   Switch,
-
-  // FormControl,
-  // InputLabel,
-  // Select,
-  // MenuItem,
-  // Pagination,
   CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
@@ -28,54 +21,60 @@ import { useFormik } from 'formik'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import type { RootState } from '@/redux/store'
 import type { SchedulerManagementState } from '@/types/scheduler'
-import { getSchedulerConfigList, updateSchedulerConfig, toggleSchedulerConfig } from '@/redux/Scheduler/schedulerSlice'
+import { getSchedulerConfigList, updateSchedulerConfig, createScheduler } from '@/redux/Scheduler/schedulerSlice'
 import DynamicTable from '@/components/Table/dynamicTable'
 import DynamicButton from '@/components/Button/dynamicButton'
 
 interface SchedulerFormDrawerProps {
   open: boolean
   onClose: () => void
-  editData: { id: string; typeofdata: string; frequency: string; frequencyCount: number; isActive: boolean } | null
+  editData: {
+    id: string
+    url: string
+    category: string
+    cronExpression: string
+    duration: number
+    isActive: boolean
+  } | null
   onSubmit: (values: {
     id?: string
-    typeofdata: string
-    frequency: string
-    frequencyCount: string
-    isActive?: boolean
+    url: string
+    category: string
+    cronExpression: string
+    duration: string
+    isActive: boolean
   }) => void
 }
 
 const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose, editData, onSubmit }) => {
-  const options = [
-    { name: 'Employment Data' },
-    { name: 'Resignation Data' },
-    { name: 'Branch Data' },
-    { name: 'Branch Budget Data' },
-    { name: 'Department Budget Data' }
-  ]
+  const validate = (values: {
+    url: string
+    category: string
+    cronExpression: string
+    duration: string
+    isActive?: boolean
+  }) => {
+    const errors: { url?: string; category?: string; cronExpression?: string; duration?: string } = {}
+    const cronRegex = /^(\*|[0-5]?\d)(\/[1-5]?\d)?(\s+(\*|[0-5]?\d)(\/[1-5]?\d)?){4}$/ // Basic cron validation for 5 fields
 
-  const frequencyOptions = [
-    { name: 'Daily', value: 'd' },
-    { name: 'Weekly', value: 'w' },
-    { name: 'Monthly', value: 'm' },
-    { name: 'Yearly', value: 'y' }
-  ]
-
-  const validate = (values: { typeofdata: string; frequency: string; frequencyCount: string; isActive?: any }) => {
-    const errors: { typeofdata?: string; frequency?: string; frequencyCount?: string } = {}
-
-    if (!values.typeofdata) {
-      errors.typeofdata = 'Type of Data is required'
+    if (!values.url) {
+      errors.url = 'Type of Data is required'
     }
 
-    if (!values.frequency) {
-      errors.frequency = 'Frequency is required'
+    if (!values.category) {
+      errors.category = 'Category is required'
     }
 
-    if (!values.frequencyCount) {
-      errors.frequencyCount = 'Frequency Count is required'
-    } else if (isNaN(Number(values.frequencyCount)) || Number(values.frequencyCount) <= 0) {
-      errors.frequencyCount = 'Frequency Count must be a positive number'
+    if (!values.cronExpression) {
+      errors.cronExpression = 'Cron Expression is required'
+    } else if (!cronRegex.test(values.cronExpression)) {
+      errors.cronExpression = 'Invalid cron expression (e.g., * * * * * or 0/5 * * * *)'
+    }
+
+    if (!values.duration) {
+      errors.duration = 'Duration is required'
+    } else if (isNaN(Number(values.duration)) || Number(values.duration) <= 0) {
+      errors.duration = 'Duration must be a positive number'
     }
 
     return errors
@@ -84,18 +83,20 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
   const SchedulerFormik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      typeofdata: editData?.typeofdata || '',
-      frequency: editData?.frequency || '',
-      frequencyCount: editData?.frequencyCount?.toString() || '',
+      url: editData?.url || '',
+      category: editData?.category || '',
+      cronExpression: editData?.cronExpression || '',
+      duration: editData?.duration?.toString() || '',
       isActive: editData?.isActive ?? false
     },
     validate,
     onSubmit: values => {
       onSubmit({
         id: editData?.id,
-        typeofdata: values.typeofdata,
-        frequency: values.frequency,
-        frequencyCount: values.frequencyCount,
+        url: values.url,
+        category: values.category,
+        cronExpression: values.cronExpression,
+        duration: values.duration,
         isActive: values.isActive
       })
       onClose()
@@ -122,77 +123,80 @@ const SchedulerFormDrawer: React.FC<SchedulerFormDrawerProps> = ({ open, onClose
             >
               <Box sx={{ width: '100%', boxShadow: 'none' }}>
                 <div className='flex flex-col gap-4' style={{ zIndex: 999 }}>
-                  <div className='flex flex-col gap-4'>
-                    <div>
-                      <Autocomplete
-                        disablePortal
-                        options={options}
-                        getOptionLabel={option => option.name}
-                        value={
-                          options.find(
-                            opt => opt.name === (SchedulerFormik.values.typeofdata || editData?.typeofdata)
-                          ) || null
-                        }
-                        onChange={(event, newValue) => {
-                          SchedulerFormik.setFieldValue('typeofdata', newValue ? newValue.name : '')
-                        }}
-                        sx={{ width: 300, zIndex: 999 }}
-                        renderInput={params => <TextField {...params} label='Type of Data' />}
+                  <div>
+                    <TextField
+                      label='Type of Data'
+                      value={SchedulerFormik.values.url}
+                      onChange={e => SchedulerFormik.setFieldValue('url', e.target.value)}
+                      sx={{ width: 300 }}
+                      placeholder='e.g., employment.sync'
+                    />
+                    {SchedulerFormik.touched.url && SchedulerFormik.errors.url && (
+                      <Typography color='error'>{SchedulerFormik.errors.url}</Typography>
+                    )}
+                  </div>
+                  <div>
+                    <TextField
+                      label='Category'
+                      value={SchedulerFormik.values.category}
+                      onChange={e => SchedulerFormik.setFieldValue('category', e.target.value)}
+                      sx={{ width: 300 }}
+                      placeholder='e.g., user'
+                    />
+                    {SchedulerFormik.touched.category && SchedulerFormik.errors.category && (
+                      <Typography color='error'>{SchedulerFormik.errors.category}</Typography>
+                    )}
+                  </div>
+                  <div>
+                    <TextField
+                      label='Cron Expression'
+                      value={SchedulerFormik.values.cronExpression}
+                      onChange={e => SchedulerFormik.setFieldValue('cronExpression', e.target.value)}
+                      sx={{ width: 300 }}
+                      placeholder='e.g., * * * * * or 0/5 * * * *'
+                    />
+                    {SchedulerFormik.touched.cronExpression && SchedulerFormik.errors.cronExpression && (
+                      <Typography color='error'>{SchedulerFormik.errors.cronExpression}</Typography>
+                    )}
+                  </div>
+                  <div>
+                    <TextField
+                      type='number'
+                      label='Duration'
+                      value={SchedulerFormik.values.duration}
+                      onChange={e => SchedulerFormik.setFieldValue('duration', e.target.value)}
+                      sx={{ width: 300 }}
+                    />
+                    {SchedulerFormik.touched.duration && SchedulerFormik.errors.duration && (
+                      <Typography color='error'>{SchedulerFormik.errors.duration}</Typography>
+                    )}
+                  </div>
+                  <div>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography>Active</Typography>
+                      <Switch
+                        checked={SchedulerFormik.values.isActive}
+                        onChange={e => SchedulerFormik.setFieldValue('isActive', e.target.checked)}
                       />
-                      {SchedulerFormik.touched.typeofdata && SchedulerFormik.errors.typeofdata && (
-                        <Typography color='error'>{SchedulerFormik.errors.typeofdata}</Typography>
-                      )}
-                    </div>
-                    <div>
-                      <Autocomplete
-                        disablePortal
-                        options={frequencyOptions}
-                        getOptionLabel={option => option.name}
-                        value={
-                          frequencyOptions.find(
-                            opt => opt.name === (SchedulerFormik.values.frequency || editData?.frequency)
-                          ) || null
-                        }
-                        onChange={(event, newValue) => {
-                          SchedulerFormik.setFieldValue('frequency', newValue ? newValue.name : '')
-                        }}
-                        sx={{ width: 300, zIndex: 999 }}
-                        renderInput={params => <TextField {...params} label='Frequency' />}
-                      />
-                      {SchedulerFormik.touched.frequency && SchedulerFormik.errors.frequency && (
-                        <Typography color='error'>{SchedulerFormik.errors.frequency}</Typography>
-                      )}
-                    </div>
-                    <div>
-                      <TextField
-                        type='number'
-                        label='Frequency Count'
-                        value={SchedulerFormik.values.frequencyCount}
-                        onChange={e => SchedulerFormik.setFieldValue('frequencyCount', e.target.value)}
-                        sx={{ width: 300 }}
-                      />
-                      {SchedulerFormik.touched.frequencyCount && SchedulerFormik.errors.frequencyCount && (
-                        <Typography color='error'>{SchedulerFormik.errors.frequencyCount}</Typography>
-                      )}
-                    </div>
+                    </Box>
                   </div>
                 </div>
               </Box>
             </Box>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
-            <DynamicButton label='Cancel' variant='outlined' size='medium' onClick={onClose}>
-              Cancel
-            </DynamicButton>
-            <DynamicButton
-              label={editData ? 'Update' : 'Save'}
-              type='submit'
-              variant='contained'
-              size='medium'
-              onClick={() => SchedulerFormik.handleSubmit()}
-            >
-              {editData ? 'Update' : 'Save'}
-            </DynamicButton>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+              <DynamicButton label='Cancel' variant='outlined' size='medium' onClick={onClose}>
+                Cancel
+              </DynamicButton>
+              <DynamicButton
+                label={editData ? 'Update' : 'Save'}
+                type='submit'
+                variant='contained'
+                size='medium'
+                onClick={() => SchedulerFormik.handleSubmit()}
+              >
+                {editData ? 'Update' : 'Save'}
+              </DynamicButton>
+            </Box>
           </Box>
         </form>
       </Box>
@@ -225,18 +229,18 @@ const SchedulerPage = () => {
 
   const [editData, setEditData] = useState<{
     id: string
-    typeofdata: string
-    frequency: string
-    frequencyCount: number
+    url: string
+    category: string
+    cronExpression: string
+    duration: number
     isActive: boolean
   } | null>(null)
 
-  const [pagination, setPagination] = useState({
+  const [pagination] = useState({
+    //setPagination
     pageIndex: 0, // 0-based index for table compatibility
     pageSize: 5
   })
-
-  setPagination
 
   // Fetch scheduler configs on mount and when pagination or search changes
   useEffect(() => {
@@ -256,47 +260,85 @@ const SchedulerPage = () => {
 
   const handleSubmit = (values: {
     id?: string
-    typeofdata: string
-    frequency: string
-    frequencyCount: string
+    url: string
+    category: string
+    cronExpression: string
+    duration: string
     isActive: boolean
   }) => {
-    const frequencyMap: { [key: string]: string } = {
-      Daily: 'd',
-      Weekly: 'w',
-      Monthly: 'm',
-      Yearly: 'y'
-    }
+    const params = { key: 'value' } // Replace with actual params if needed
 
+    if (values.id) {
+      // Update existing scheduler
+      dispatch(
+        updateSchedulerConfig({
+          id: values.id,
+          url: values.url,
+          category: values.category,
+          cronExpression: values.cronExpression,
+          duration: Number(values.duration),
+          isActive: values.isActive,
+          params
+        })
+      )
+        .unwrap()
+        .then(() => {
+          dispatch(
+            getSchedulerConfigList({
+              page: pagination.pageIndex + 1,
+              limit: pagination.pageSize,
+              search: searchQuery || undefined
+            })
+          )
+        })
+        .catch(err => console.error('Update scheduler config failed:', err))
+    } else {
+      // Create new scheduler
+      dispatch(
+        createScheduler({
+          url: values.url,
+          category: values.category,
+          cronExpression: values.cronExpression,
+          duration: Number(values.duration),
+          isActive: values.isActive,
+          params
+        })
+      )
+        .unwrap()
+        .then(() => {
+          dispatch(
+            getSchedulerConfigList({
+              page: pagination.pageIndex + 1,
+              limit: pagination.pageSize,
+              search: searchQuery || undefined
+            })
+          )
+        })
+        .catch(err => console.error('Create scheduler config failed:', err))
+    }
+  }
+
+  const handleToggleActive = (
+    id: string,
+    url: string,
+    category: string,
+    cronExpression: string,
+    duration: number,
+    isActive: boolean
+  ) => {
     dispatch(
       updateSchedulerConfig({
-        id: values.id || '',
-        functionName: values.typeofdata,
-        schedule: frequencyMap[values.frequency] || 'd',
-        duration: Number(values.frequencyCount),
-        isActive: values.isActive,
-        params: { key: 'value' } // Include params as specified
+        id,
+        url,
+        category,
+        cronExpression,
+        duration,
+        isActive: !isActive,
+        params: { key: 'value' } // Replace with actual params if needed
       })
     )
       .unwrap()
       .then(() => {
-        // Refetch the scheduler configs to update the table
-        dispatch(
-          getSchedulerConfigList({
-            page: pagination.pageIndex + 1,
-            limit: pagination.pageSize,
-            search: searchQuery || undefined
-          })
-        )
-      })
-      .catch(err => console.error('Update scheduler config failed:', err))
-  }
-
-  const handleToggleActive = (id: string, isActive: boolean) => {
-    dispatch(toggleSchedulerConfig({ id, isActive: !isActive }))
-      .unwrap()
-      .then(() => {
-        // Refetch the scheduler configs to update the table
         dispatch(
           getSchedulerConfigList({
             page: pagination.pageIndex + 1,
@@ -308,23 +350,16 @@ const SchedulerPage = () => {
       .catch(err => console.error('Toggle scheduler config failed:', err))
   }
 
-  // Map schedule values to display names
-  const scheduleDisplayMap: { [key: string]: string } = {
-    d: 'Daily',
-    w: 'Weekly',
-    m: 'Monthly',
-    y: 'Yearly'
-  }
-
-  // Ensure schedulerConfigs is an array before mapping
+  // Map API data to table data
   const tableData = useMemo(() => {
     const configsArray = Array.isArray(schedulerConfigs?.data) ? schedulerConfigs?.data : []
 
     return configsArray.map(config => ({
       id: config.id,
-      typeofdata: config.functionName,
-      frequency: scheduleDisplayMap[config.schedule] || config.schedule,
-      frequencyCount: config.duration,
+      url: config.url,
+      category: config.category,
+      cronExpression: config.cronExpression,
+      duration: config.duration,
       isActive: config.isActive
     }))
   }, [schedulerConfigs])
@@ -333,17 +368,21 @@ const SchedulerPage = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('typeofdata', {
+      columnHelper.accessor('url', {
         header: 'Type of Data',
-        cell: ({ row }) => <Typography>{row.original.typeofdata}</Typography>
+        cell: ({ row }) => <Typography>{row.original.url}</Typography>
       }),
-      columnHelper.accessor('frequency', {
-        header: 'Frequency',
-        cell: ({ row }) => <Typography>{row.original.frequency}</Typography>
+      columnHelper.accessor('category', {
+        header: 'Category',
+        cell: ({ row }) => <Typography>{row.original.category}</Typography>
       }),
-      columnHelper.accessor('frequencyCount', {
-        header: 'Frequency Count',
-        cell: ({ row }) => <Typography>{row.original.frequencyCount}</Typography>
+      columnHelper.accessor('cronExpression', {
+        header: 'Cron Expression',
+        cell: ({ row }) => <Typography>{row.original.cronExpression}</Typography>
+      }),
+      columnHelper.accessor('duration', {
+        header: 'Duration',
+        cell: ({ row }) => <Typography>{row.original.duration}</Typography>
       }),
       columnHelper.accessor('isActive', {
         header: 'Active',
@@ -370,7 +409,16 @@ const SchedulerPage = () => {
             </IconButton>
             <Switch
               checked={row.original.isActive}
-              onChange={() => handleToggleActive(row.original.id, row.original.isActive)}
+              onChange={() =>
+                handleToggleActive(
+                  row.original.id,
+                  row.original.url,
+                  row.original.category,
+                  row.original.cronExpression,
+                  row.original.duration,
+                  row.original.isActive
+                )
+              }
               onClick={e => e.stopPropagation()}
               color='primary'
             />
@@ -380,22 +428,6 @@ const SchedulerPage = () => {
     ],
     []
   )
-
-  // const handlePaginationChange = (key: 'pageIndex' | 'pageSize', value: number) => {
-  //   setPagination(prev => ({
-  //     ...prev,
-  //     [key]: key === 'pageIndex' ? value - 1 : value, // Convert to 0-based index for table
-  //     pageIndex: key === 'pageSize' ? 0 : prev.pageIndex // Reset pageIndex when pageSize changes
-  //   }))
-  // }
-
-  // const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-  //   handlePaginationChange('pageIndex', value)
-  // }
-
-  // const handleChangeLimit = (value: number) => {
-  //   handlePaginationChange('pageSize', value)
-  // }
 
   return (
     <Box sx={{ overflow: 'visible' }}>
@@ -429,19 +461,17 @@ const SchedulerPage = () => {
             />
           </Box>
           <Box className='flex items-center mt-2'>
-            {/* Commented out as requested */}
-            {/* <Button
+            <DynamicButton
               onClick={() => {
                 setEditData(null)
                 setIsOpen(true)
               }}
-              variant="contained"
-              color="primary"
-              sx={{ minWidth: '80px', textTransform: 'none' }}
-              size="small"
+              variant='contained'
+              size='medium'
+              label='New Schedule'
             >
               New Schedule
-            </Button> */}
+            </DynamicButton>
           </Box>
         </Box>
       </Card>
@@ -461,44 +491,16 @@ const SchedulerPage = () => {
       )}
 
       {!loading && tableData.length > 0 && (
-        <>
-          <DynamicTable
-            columns={columns}
-            data={tableData}
-            totalCount={schedulerConfigs?.totalCount}
-            pagination={pagination}
-            tableName='Schedule List'
-            sorting={undefined}
-            onSortingChange={undefined}
-            initialState={undefined}
-          />
-          {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
-            <FormControl size='small' sx={{ minWidth: 70 }}>
-              <InputLabel>Count</InputLabel>
-              <Select
-                value={pagination.pageSize}
-                onChange={e => handleChangeLimit(Number(e.target.value))}
-                label='Limit per page'
-              >
-                {[5, 10, 25, 50, 100].map(option => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Typography>{totalCount}</Typography>
-            <Pagination
-              color='primary'
-              shape='rounded'
-              showFirstButton
-              showLastButton
-              count={Math.ceil(totalCount / pagination.pageSize)}
-              page={pagination.pageIndex + 1} // Convert back to 1-based index for pagination
-              onChange={handlePageChange}
-            />
-          </Box> */}
-        </>
+        <DynamicTable
+          columns={columns}
+          data={tableData}
+          totalCount={schedulerConfigs?.total || 0}
+          pagination={pagination}
+          tableName='Schedule List'
+          sorting={undefined}
+          onSortingChange={undefined}
+          initialState={undefined}
+        />
       )}
     </Box>
   )

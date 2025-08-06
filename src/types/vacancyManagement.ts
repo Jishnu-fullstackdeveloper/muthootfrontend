@@ -1,4 +1,3 @@
-
 // export interface Vacancy {
 //   status: string
 //   territory: string
@@ -401,6 +400,9 @@ export interface Vacancy {
   action?: any
   jobDescription: any
   roleSummary: any
+  areaName?: string
+  regionName?: string
+  zoneName?: string
 }
 
 export interface VacancyListResponse {

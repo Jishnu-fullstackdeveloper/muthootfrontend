@@ -109,6 +109,10 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   const observerRef = useRef<IntersectionObserver>(null)
   const debounceTimeoutRef = useRef<NodeJS.Timeout>(null)
   const [selectedFiltersMap, setSelectedFiltersMap] = useState<Record<string, string[]>>({})
+  const [branch, setBranch] = useState('')
+  const [area, setArea] = useState('')
+  const [region, setRegion] = useState('')
+  const [zone, setZone] = useState('')
 
   // Redux selectors
   const { vacancyListTotal, vacancyListLoading, updateVacancyStatusLoading } = useAppSelector(
@@ -204,8 +208,19 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   }, [visibleVacancies, userId])
 
   // Handle checkbox change for grid view
-  const handleCheckboxChange = (vacancyId: string, checked: boolean) => {
+  const handleCheckboxChange = (
+    vacancyId: string,
+    checked: boolean,
+    branch: string,
+    area: string,
+    region: string,
+    zone: string
+  ) => {
     setSelectedVacancyIds(prev => (checked ? [...prev, vacancyId] : prev.filter(id => id !== vacancyId)))
+    setBranch(branch)
+    setArea(area)
+    setRegion(region)
+    setZone(zone)
   }
 
   // Handle bulk actions
@@ -223,7 +238,20 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
       return
     }
 
-    dispatch(updateVacancyStatus({ ids: vacanciesToUpdate, status }))
+    console.log('ssss', vacanciesToUpdate, selectedVacancyIds)
+
+    dispatch(
+      updateVacancyStatus({
+        ids: vacanciesToUpdate,
+        status,
+        designation: String(initialParams?.designation),
+        branchName: String(initialParams?.branch || branch),
+        areaName: String(initialParams?.area || area),
+        regionName: String(initialParams?.region || region),
+        zoneName: String(initialParams?.zone || zone),
+        department: String(initialParams?.department)
+      })
+    )
       .unwrap()
       .then(res => {
         if (res?.error?.success === false) {
@@ -302,8 +330,19 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
   }
 
   // Handle individual vacancy action
-  const handleVacancyAction = (id: string, status: 'APPROVED' | 'FREEZED') => {
-    dispatch(updateVacancyStatus({ ids: [id], status }))
+  const handleVacancyAction = (
+    id: string,
+    status: 'APPROVED' | 'FREEZED',
+    designation: string,
+    branchName: string,
+    areaName: string,
+    regionName: string,
+    zoneName: string,
+    department: string
+  ) => {
+    dispatch(
+      updateVacancyStatus({ ids: [id], status, designation, branchName, areaName, regionName, zoneName, department })
+    )
       .unwrap()
       .then(res => {
         if (res?.error?.success === false) {
@@ -601,7 +640,18 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                 <Tooltip title='Approve' placement='top'>
                   <IconButton
                     color='success'
-                    onClick={() => handleVacancyAction(row.original.id, 'APPROVED')}
+                    onClick={() =>
+                      handleVacancyAction(
+                        row.original.id,
+                        'APPROVED',
+                        row.original.designation,
+                        row.original.branch,
+                        row.original.area,
+                        row.original.region,
+                        row.original.zone,
+                        row.original.department
+                      )
+                    }
                     disabled={updateVacancyStatusLoading}
                     sx={{ '&:hover': { bgcolor: 'success.light' } }}
                   >
@@ -611,7 +661,18 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                 <Tooltip title='Freeze' placement='top'>
                   <IconButton
                     color='info'
-                    onClick={() => handleVacancyAction(row.original.id, 'FREEZED')}
+                    onClick={() =>
+                      handleVacancyAction(
+                        row.original.id,
+                        'FREEZED',
+                        row.original.designation,
+                        row.original.branch,
+                        row.original.area,
+                        row.original.region,
+                        row.original.zone,
+                        row.original.department
+                      )
+                    }
                     disabled={updateVacancyStatusLoading}
                     sx={{ '&:hover': { bgcolor: 'info.light' } }}
                   >
@@ -833,7 +894,16 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                         <Checkbox
                           size='small'
                           checked={selectedVacancyIds.includes(vacancy.id)}
-                          onChange={e => handleCheckboxChange(vacancy.id, e.target.checked)}
+                          onChange={e =>
+                            handleCheckboxChange(
+                              vacancy.id,
+                              e.target.checked,
+                              vacancy.branch,
+                              vacancy.area,
+                              vacancy.region,
+                              vacancy.zone
+                            )
+                          }
                           onClick={e => e.stopPropagation()}
                           sx={{
                             position: 'absolute',
@@ -1017,7 +1087,18 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                           <Box>
                             <IconButton
                               color='success'
-                              onClick={() => handleVacancyAction(vacancy.id, 'APPROVED')}
+                              onClick={() =>
+                                handleVacancyAction(
+                                  vacancy.id,
+                                  'APPROVED',
+                                  vacancy.designation,
+                                  vacancy.branch,
+                                  vacancy.area,
+                                  vacancy.region,
+                                  vacancy.zone,
+                                  vacancy.department
+                                )
+                              }
                               disabled={updateVacancyStatusLoading}
                               sx={{ '&:hover': { bgcolor: 'success.light' } }}
                             >
@@ -1025,7 +1106,18 @@ const VacancyListingTableView = ({ tabMode }: VacancyListingTableViewProps) => {
                             </IconButton>
                             <IconButton
                               color='info'
-                              onClick={() => handleVacancyAction(vacancy.id, 'FREEZED')}
+                              onClick={() =>
+                                handleVacancyAction(
+                                  vacancy.id,
+                                  'FREEZED',
+                                  vacancy.designation,
+                                  vacancy.branch,
+                                  vacancy.area,
+                                  vacancy.region,
+                                  vacancy.zone,
+                                  vacancy.department
+                                )
+                              }
                               disabled={updateVacancyStatusLoading}
                               sx={{ '&:hover': { bgcolor: 'info.light' } }}
                             >

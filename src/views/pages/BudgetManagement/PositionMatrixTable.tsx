@@ -173,7 +173,7 @@ const PositionMatrixTable = () => {
         cell: ({ row }) => <Typography color='text.primary'>{row.original.fullName}</Typography>
       }),
       columnHelper.accessor('designation', {
-        header: 'DESIGNATION',
+        header: 'JOB ROLE',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.designation}</Typography>
       }),
       columnHelper.accessor('dateOfJoining', {

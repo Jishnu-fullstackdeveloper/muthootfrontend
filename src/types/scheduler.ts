@@ -18,12 +18,27 @@ export interface SchedulerConfig {
 }
 
 export interface SchedulerConfigListResponse {
-  statusCode: number
-  message: string
-  data: SchedulerConfig[]
-  totalCount: number
+  data: Array<{
+    id: string
+    data: any
+    total: any
+    deletedBy: string | null
+    url: string
+    category: string
+    duration: number
+    isActive: boolean
+    params: { [key: string]: string | number }
+    lastRunAt: string | null
+    nextRunAt: string
+    cronExpression: string
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+  }>
+  total: number
   page: number
   limit: number
+  totalPages: number
 }
 
 export interface UpdateSchedulerConfigResponse {
@@ -38,22 +53,41 @@ export interface ToggleSchedulerConfigResponse {
   data: SchedulerConfig
 }
 
+export interface CreateSchedulerConfigResponse {
+  success: boolean
+  message: string
+  data: {
+    id: string
+    url: string
+    category: string
+    duration: number
+    cronExpression: string
+    params: { [key: string]: string | number }
+    isActive: boolean
+    nextRunAt: string
+    updatedAt: string
+    createdAt: string
+    deletedBy: string | null
+    lastRunAt: string | null
+    deletedAt: string | null
+  }
+}
+
 export interface SchedulerManagementState {
   schedulerConfigListLoading: boolean
   schedulerConfigListSuccess: boolean
-  schedulerConfigListData: SchedulerConfig | null
+  schedulerConfigListData: SchedulerConfigListResponse | null
   schedulerConfigListTotal: number
   schedulerConfigListFailure: boolean
   schedulerConfigListFailureMessage: string
   updateSchedulerConfigLoading: boolean
   updateSchedulerConfigSuccess: boolean
-  updateSchedulerConfigData: SchedulerConfig | null
+  updateSchedulerConfigData: UpdateSchedulerConfigResponse | null
   updateSchedulerConfigFailure: boolean
   updateSchedulerConfigFailureMessage: string
-  toggleSchedulerConfigLoading: boolean
-  toggleSchedulerConfigSuccess: boolean
-  toggleSchedulerConfigData: SchedulerConfig | null
-  toggleSchedulerConfigFailure: boolean
-  toggleSchedulerConfigFailureMessage: string
-  totalCount?: any
+  createSchedulerLoading: boolean
+  createSchedulerSuccess: boolean
+  createSchedulerData: CreateSchedulerConfigResponse | null
+  createSchedulerFailure: boolean
+  createSchedulerFailureMessage: string
 }

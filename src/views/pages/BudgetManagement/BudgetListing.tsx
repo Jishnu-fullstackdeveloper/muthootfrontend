@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 
 // Redux Imports
 
-// MUI Imports
+// MUI Imports.
 import type { TextFieldProps } from '@mui/material'
 import {
   Box,

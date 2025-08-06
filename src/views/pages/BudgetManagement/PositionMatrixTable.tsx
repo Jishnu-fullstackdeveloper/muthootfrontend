@@ -59,7 +59,7 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ number, duration = 900 
 interface EmployeeDetails {
   employeeId: string // Maps to employeeCode or id from API
   fullName: string // Maps to title + firstName + middleName + lastName
-  jobRole: string // Maps to jobRole.name
+  designation: string // Maps to designation.name
   dateOfJoining: string // Maps to employeeDetails.dateOfJoining
   employmentStatus: string // Maps to employeeDetails.employmentStatus or type
   id: string // For action column navigation
@@ -73,8 +73,8 @@ const PositionMatrixTable = () => {
   const { employees, status, error, totalCount } = useAppSelector(state => state.employeeManagementReducer)
   const { positionMatrixData } = useAppSelector(state => state.positionBudgetMatrixReducer)
 
-  // Extract jobRole and employeeCodes from searchParams
-  const jobRole = searchParams.get('jobRole') || ''
+  // Extract designation and employeeCodes from searchParams
+  const designation = searchParams.get('designation') || ''
   const employeeCodes = searchParams.get('employeeCodes') ? searchParams.get('employeeCodes')!.split(',') : []
 
   // Get the latest createPositionMatrix response from positionMatrixData
@@ -85,7 +85,7 @@ const PositionMatrixTable = () => {
   // Memoize query parameters to prevent unnecessary re-renders
   const queryParams = useMemo(
     () => ({
-      jobRole,
+      designation,
       employeeCodes
     }),
     [searchParams]
@@ -139,7 +139,7 @@ const PositionMatrixTable = () => {
       fullName: `${item.title || ''} ${item.firstName || 'Unknown'}${item.middleName ? ` ${item.middleName}` : ''}${
         item.lastName ? ` ${item.lastName}` : ''
       }`.trim(), // Combine title, firstName, middleName, lastName
-      jobRole: item.jobRole?.name || queryParams.jobRole || 'Unknown', // Use query jobRole if missing
+      designation: item.designation?.name || queryParams.designation || 'Unknown', // Use query designation if missing
       dateOfJoining: item.employeeDetails?.dateOfJoining || '', // Fallback to empty string if missing
       employmentStatus: item.employeeDetails?.employmentStatus || 'Unknown', // Map type if needed (item.type)
       id: item.id || '' // For action column navigation
@@ -152,7 +152,7 @@ const PositionMatrixTable = () => {
       totalCount:
         latestPositionMatrix && latestPositionMatrix.employees ? latestPositionMatrix.employees.length : totalCount
     }
-  }, [employees, totalCount, queryParams.jobRole, latestPositionMatrix])
+  }, [employees, totalCount, queryParams.designation, latestPositionMatrix])
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, pageIndex: newPage }))
@@ -172,9 +172,9 @@ const PositionMatrixTable = () => {
         header: 'FULL NAME',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.fullName}</Typography>
       }),
-      columnHelper.accessor('jobRole', {
+      columnHelper.accessor('designation', {
         header: 'JOB ROLE',
-        cell: ({ row }) => <Typography color='text.primary'>{row.original.jobRole}</Typography>
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.designation}</Typography>
       }),
       columnHelper.accessor('dateOfJoining', {
         header: 'DATE OF JOINING',

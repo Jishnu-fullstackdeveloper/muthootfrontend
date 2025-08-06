@@ -63,12 +63,12 @@ const PositionBudgetMatrix = () => {
     branch: ['Branch 1', 'Branch 2', 'Branch 3']
   }
 
-  // const truncateJobRole = (jobRole: string) => {
-  //   if (jobRole.length > 20) {
-  //     return `${jobRole.slice(0, 20)}...`
+  // const truncatedesignation = (designation: string) => {
+  //   if (designation.length > 20) {
+  //     return `${designation.slice(0, 20)}...`
   //   }
 
-  //   return jobRole
+  //   return designation
   // }
 
   // Handle Location Filter Changes
@@ -351,7 +351,7 @@ const PositionBudgetMatrix = () => {
             />
             <Autocomplete
               disablePortal
-              options={[...new Set(positionMatrixData.map(item => item.jobRole))]}
+              options={[...new Set(positionMatrixData.map(item => item.designation))]}
               sx={{ width: 150 }}
               renderInput={params => (
                 <TextField
@@ -384,7 +384,7 @@ const PositionBudgetMatrix = () => {
                     }
                   }}
                   {...params}
-                  label='JobRole'
+                  label='designation'
                 />
               )}
             /> */}
@@ -505,7 +505,7 @@ const PositionBudgetMatrix = () => {
                             className='overflow-hidden text-ellipsis uppercase'
                             sx={{ fontWeight: 'bold', fontSize: 14 }}
                           >
-                            {budget.jobRole}
+                            {budget.designation}
                           </Typography>
                           <Typography className='uppercase' sx={{ fontSize: 10 }}>
                             {budget.locationUnit}
@@ -603,7 +603,7 @@ const PositionBudgetMatrix = () => {
                                       ).unwrap()
 
                                       router.push(
-                                        `/hiring-management/budget-management/position-budget-matrix/view/detail?jobRole=${encodeURIComponent(budget.jobRole)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
+                                        `/hiring-management/budget-management/position-budget-matrix/view/detail?designation=${encodeURIComponent(budget.designation)}&employeeCodes=${encodeURIComponent(budget.employeeCodes.join(','))}`
                                       )
                                     } catch (error) {
                                       console.error('Failed to create employee count:', error)

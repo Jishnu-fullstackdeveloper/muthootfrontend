@@ -8,6 +8,7 @@ import CollegeDetails from './CollegeDetailView'
 
 // Placeholder import for AddOrEditCollege (implement separately)
 import CollegeAndSpocForm from './AddCollegeAndSpoc'
+import CollegeAndSpocEditForm from './EditCollegeAndSpoc'
 
 const CollegeAndSpocIndex = () => {
   const pathname = usePathname()
@@ -17,7 +18,8 @@ const CollegeAndSpocIndex = () => {
 
   return (
     <>
-      {(mode === 'add' || (mode === 'edit' && id)) && <CollegeAndSpocForm mode={mode} />}
+      {mode === 'add' && <CollegeAndSpocForm mode={mode} />}
+      {mode === 'edit' && <CollegeAndSpocEditForm mode={mode} id={id} />}
       {mode === 'view' && id && <CollegeDetails />}
     </>
   )

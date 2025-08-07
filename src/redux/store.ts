@@ -26,7 +26,7 @@ import positionBudgetMatrixReducer from './PositionBudgetMatrix/positionMatrixSl
 import InterviewManagementReducer from './InterviewManagement/InterviewManagementSlice'
 import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
 import collegeAndSpocReducer from './CampusManagement/collegeAndSpocSlice'
-
+import campusDriveReducer from './CampusManagement/campusDriveSlice'
 
 export const makeStore = () =>
   configureStore({
@@ -57,7 +57,8 @@ export const makeStore = () =>
 
       InterviewManagementReducer,
       jdManagementReducer,
-      collegeAndSpocReducer
+      collegeAndSpocReducer,
+      campusDriveReducer
     }
   })
 

@@ -1,5 +1,5 @@
 'use client'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -9,10 +9,15 @@ import { createColumnHelper } from '@tanstack/react-table'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { toast } from 'react-toastify'
 
 import DynamicTable from '@/components/Table/dynamicTable'
+import { deleteCollegeCoordinator } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { useAppDispatch } from '@/lib/hooks'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
 interface College {
+  coordinatorId: string
   collegeCode: string
   collegeName: string
   universityAffiliation: string
@@ -59,6 +64,9 @@ interface CollegeTableViewProps {
 const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit }: CollegeTableViewProps) => {
   const columnHelper = createColumnHelper<College>()
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState<string | null>(null)
 
   const tableData = useMemo(() => {
     return {
@@ -66,6 +74,29 @@ const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit
       totalCount
     }
   }, [colleges, totalCount])
+
+  const handleOpenModal = (coordinatorId: string) => {
+    setSelectedCoordinatorId(coordinatorId)
+    setOpenModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setOpenModal(false)
+    setSelectedCoordinatorId(null)
+  }
+
+  const handleConfirmDelete = async (id?: string | number) => {
+    if (id) {
+      try {
+        await dispatch(deleteCollegeCoordinator(id as string)).unwrap()
+        toast.success('College Coordinator deleted successfully.')
+      } catch (error: any) {
+        toast.error(error || 'Failed to delete college coordinator')
+      }
+    }
+
+    handleCloseModal()
+  }
 
   const columns = useMemo<ColumnDef<College, any>[]>(
     () => [
@@ -109,24 +140,11 @@ const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit
             </Tooltip>
             <Tooltip title='Edit College'>
               <IconButton
-                onClick={() => {
-                  const queryParams = new URLSearchParams()
-
-                  Object.entries(row.original).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined) {
-                      if (Array.isArray(value)) {
-                        value.forEach(item => queryParams.append(key, item))
-                      } else if (typeof value === 'object') {
-                        // Skip complex objects
-                      } else {
-                        queryParams.set(key, String(value))
-                      }
-                    }
-                  })
+                onClick={() =>
                   router.push(
-                    `/hiring-management/campus-management/college/edit/${row.original.id}?${queryParams.toString()}`
+                    `/hiring-management/campus-management/college/edit/detail?coordinatorId=${row.original.coordinatorId}&collegeId=${row.original.id}`
                   )
-                }}
+                }
                 aria-label={`Edit ${row.original.name}`}
                 sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
               >
@@ -135,7 +153,7 @@ const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit
             </Tooltip>
             <Tooltip title='Delete College'>
               <IconButton
-                onClick={() => console.log(`Delete college ${row.original.id}`)} // Placeholder for delete logic
+                onClick={() => handleOpenModal(row.original.coordinatorId)}
                 aria-label={`Delete ${row.original.name}`}
                 sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
               >
@@ -266,18 +284,28 @@ const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit
           </Typography>
         </Box>
       ) : (
-        <DynamicTable
-          columns={columns}
-          data={tableData.data}
-          totalCount={tableData.totalCount}
-          pagination={{ pageIndex: page - 1, pageSize: limit }}
-          onPageChange={setPage}
-          onRowsPerPageChange={setLimit}
-          tableName='College Table'
-          sorting={undefined}
-          onSortingChange={undefined}
-          initialState={undefined}
-        />
+        <>
+          <DynamicTable
+            columns={columns}
+            data={tableData.data}
+            totalCount={tableData.totalCount}
+            pagination={{ pageIndex: page - 1, pageSize: limit }}
+            onPageChange={newPage => setPage(newPage + 1)} // Convert zero-based to one-based page
+            onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
+            tableName='College & SPOC Table List'
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
+          />
+          <ConfirmModal
+            open={openModal}
+            onClose={handleCloseModal}
+            onConfirm={handleConfirmDelete}
+            title='Confirm Deletion'
+            description={`Are you sure you want to delete the coordinator for ${colleges.find(college => college.coordinatorId === selectedCoordinatorId)?.collegeName || 'this college'}? This process can't be undone.`}
+            id={selectedCoordinatorId}
+          />
+        </>
       )}
     </Box>
   )

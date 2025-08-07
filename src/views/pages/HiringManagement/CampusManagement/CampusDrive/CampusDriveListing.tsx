@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment } from '@mui/material'
+import { Box, Card, IconButton, Tooltip, Typography, TextField, InputAdornment, Autocomplete } from '@mui/material'
 import GridViewIcon from '@mui/icons-material/GridView'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { fetchCollegeDrives } from '@/redux/CampusManagement/campusDriveSlice'
 import CampusDriveGridView from './CampusDriveCard'
 import CampusDriveTableView from './CampusDriveTable'
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -18,7 +21,7 @@ interface CampusDrive {
   job_role: string
   drive_date: string
   expected_candidates: number
-  status: 'Active' | 'Inactive' | 'Completed'
+  status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
   college: string
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -29,24 +32,73 @@ interface CampusDrive {
 
 const CampusDriveListingPage = () => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const { collegeDrives, status, error, totalCount } = useAppSelector(state => state.campusDriveReducer)
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [search, setSearch] = useState('')
-  const [visibleDrives, setVisibleDrives] = useState<CampusDrive[]>(campusDrivesData)
+
+  const [filters, setFilters] = useState({
+    status: '',
+    driveDate: ''
+  })
+
+  const [localPage, setLocalPage] = useState(1)
+  const [localLimit, setLocalLimit] = useState(10)
+
+  // Derive unique status options for filter
+  const statusOptions = Array.from(new Set(collegeDrives.map(drive => drive.status))).sort()
+
+  // Fetch drives on mount and when search, filters, or pagination change
+  // useEffect(() => {
+  //   const formatDriveDate = (date: string) => {
+  //     if (!date) return undefined
+  //     const [year, month, day] = date.split('-')
+
+  //     return `${month}-${day}-${year.slice(2)}` // Convert YYYY-MM-DD to MM-DD-YY
+  //   }
+
+  //   dispatch(
+  //     fetchCollegeDrives({
+  //       page: localPage,
+  //       limit: localLimit,
+  //       search: search || undefined,
+  //       driveStatus: filters.status || undefined,
+  //       driveDate: formatDriveDate(filters.driveDate)
+  //     })
+  //   )
+  // }, [dispatch, localPage, localLimit, search, filters.status, filters.driveDate])
+
+  // Fetch drives on mount and when search, filters, or pagination change
+  useEffect(() => {
+    const formatDriveDate = (date: string) => {
+      if (!date) return undefined
+      const [year, month, day] = date.split('-')
+
+      return `${month}-${day}-${year.slice(2)}` // Convert YYYY-MM-DD to MM-DD-YY
+    }
+
+    dispatch(
+      fetchCollegeDrives({
+        page: localPage, // Use one-based page for API
+        limit: localLimit,
+        search: search || undefined,
+        driveStatus: filters.status || undefined,
+        driveDate: formatDriveDate(filters.driveDate)
+      })
+    )
+  }, [dispatch, localPage, localLimit, search, filters.status, filters.driveDate])
 
   // Filter drives based on search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
 
     setSearch(value)
+    setLocalPage(1) // Reset to first page on search
+  }
 
-    const filteredDrives = campusDrivesData.filter(
-      drive =>
-        drive.job_role.toLowerCase().includes(value.toLowerCase()) ||
-        drive.college.toLowerCase().includes(value.toLowerCase()) ||
-        drive.college_coordinator.toLowerCase().includes(value.toLowerCase())
-    )
-
-    setVisibleDrives(filteredDrives)
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+    setLocalPage(1) // Reset to first page on filter change
   }
 
   return (
@@ -75,27 +127,12 @@ const CampusDriveListingPage = () => {
       >
         <Box className='flex justify-between flex-col items-start md:flex-row md:items-start p-3 border-bs gap-3 custom-scrollbar-xaxis'>
           <Box className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-3 flex-wrap'>
-            <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 3 }}>
+            <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 2 }}>
               Campus Drive
             </Typography>
           </Box>
 
-          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 1, zIndex: 1100 }}>
-            <TextField
-              label='Search'
-              variant='outlined'
-              size='small'
-              value={search}
-              onChange={handleSearch}
-              sx={{ width: '300px', mt: 1 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <i className='tabler-search text-xxl' />
-                  </InputAdornment>
-                )
-              }}
-            />
+          <Box className='flex gap-4 justify-start' sx={{ alignItems: 'flex-between', mt: 2, zIndex: 1100 }}>
             <DynamicButton
               variant='contained'
               color='primary'
@@ -141,56 +178,80 @@ const CampusDriveListingPage = () => {
         </Box>
       </Card>
 
-      {viewMode === 'grid' ? (
-        <CampusDriveGridView drives={visibleDrives} />
-      ) : (
-        <CampusDriveTableView drives={visibleDrives} />
-      )}
+      {/* New Autocomplete Filters */}
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          gap: 2,
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          bgcolor: '#FFFFFF',
+          borderRadius: 1
+        }}
+      >
+        <TextField
+          label='Search'
+          variant='outlined'
+          size='small'
+          value={search}
+          onChange={handleSearch}
+          sx={{ width: '300px' }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position='end'>
+                <i className='tabler-search text-xxl' />
+              </InputAdornment>
+            )
+          }}
+        />
+        <Box className='flex gap-2'>
+          <Autocomplete
+            options={statusOptions}
+            value={filters.status}
+            onChange={(event, newValue) => handleFilterChange('status', newValue || '')}
+            renderInput={params => <TextField {...params} label='Drive Status' variant='outlined' size='small' />}
+            sx={{ minWidth: 200 }}
+          />
+          <TextField
+            label='Drive Date'
+            type='date'
+            value={filters.driveDate}
+            onChange={e => handleFilterChange('driveDate', e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0] // Set min date to today
+            }}
+            variant='outlined'
+            size='small'
+            sx={{ minWidth: 200 }}
+            className="font-['Public_Sans',_Roboto,_sans-serif]"
+          />
+        </Box>
+      </Box>
+
+      <Box sx={{ justifyContent: 'center', alignItems: 'center', mt: 2 }}>
+        {status === 'loading' ? (
+          <Typography>Loading...</Typography>
+        ) : status === 'failed' ? (
+          <Typography color='error'>{error || 'Failed to fetch campus drives'}</Typography>
+        ) : collegeDrives.length === 0 ? (
+          <Typography>No campus drives found</Typography>
+        ) : viewMode === 'grid' ? (
+          <CampusDriveGridView drives={collegeDrives} />
+        ) : (
+          <CampusDriveTableView
+            drives={collegeDrives}
+            totalCount={totalCount}
+            page={localPage}
+            limit={localLimit}
+            setPage={setLocalPage}
+            setLimit={setLocalLimit}
+          />
+        )}
+      </Box>
     </Box>
   )
 }
-
-// Sample data for campus drives
-const campusDrivesData: CampusDrive[] = [
-  {
-    id: '1',
-    job_role: 'Software Engineer',
-    drive_date: '2025-08-15',
-    expected_candidates: 50,
-    status: 'Active',
-    college: 'ABC College',
-    college_coordinator: 'John Doe',
-    invite_status: 'Sent',
-    response_status: 'Interested',
-    spoc_notified_at: '2025-07-28T15:30:00Z',
-    remarks: 'Drive scheduled for final-year students'
-  },
-  {
-    id: '2',
-    job_role: 'Data Analyst',
-    drive_date: '2025-09-10',
-    expected_candidates: 30,
-    status: 'Active',
-    college: 'XYZ University',
-    college_coordinator: 'Jane Smith',
-    invite_status: 'Pending',
-    response_status: 'Not Responded',
-    spoc_notified_at: '2025-07-29T09:00:00Z',
-    remarks: 'Awaiting confirmation from SPOC'
-  },
-  {
-    id: '3',
-    job_role: 'Product Manager',
-    drive_date: '2025-10-05',
-    expected_candidates: 20,
-    status: 'Inactive',
-    college: 'PQR Institute',
-    college_coordinator: 'Alice Johnson',
-    invite_status: 'Failed',
-    response_status: 'Not Interested',
-    spoc_notified_at: '2025-07-29T11:00:00Z',
-    remarks: 'Rescheduling required'
-  }
-]
 
 export default CampusDriveListingPage

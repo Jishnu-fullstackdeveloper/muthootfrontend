@@ -14,7 +14,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EventIcon from '@mui/icons-material/Event'
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { fetchCollegeCoordinators } from '@/redux/CampusManagement/collegeAndSpocSlice'
 
 interface College {
   collegeCode: string
@@ -420,7 +420,7 @@ const CollegeDetails = ({ college }: CollegeDetailProps) => {
                 variant='body1'
                 className="font-['Public_Sans',_Roboto,_sans-serif] font-medium text-[16px] leading-[20px] text-[#23262F]"
               >
-                {college.last_visited_date || 'N/A'}
+                {college.last_visited_date.split('T')[0] || 'N/A'}
               </Typography>
             </Box>
           </Box>
@@ -603,7 +603,7 @@ const CollegeDetailWrapper = () => {
   useEffect(() => {
     if (id) {
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page: 1,
           limit: 1,
           collegeId: id as string

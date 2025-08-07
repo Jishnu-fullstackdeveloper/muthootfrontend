@@ -1,13 +1,25 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
-import { Box, Typography, Button, TextField, Autocomplete, Grid, Divider, Chip } from '@mui/material'
+import { Box, Typography, Button, TextField, Autocomplete, Grid, Divider, Chip, CircularProgress } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+
+import {
+  fetchJobRoles,
+  createCollegeDrive,
+  fetchCollegeDriveById,
+  updateCollegeDrive
+} from '@/redux/CampusManagement/campusDriveSlice'
+import { fetchCollegeList, fetchCollegeCoordinators } from '@/redux/CampusManagement/collegeAndSpocSlice'
 
 // Campus Drive interface
 interface CampusDrive {
@@ -16,7 +28,7 @@ interface CampusDrive {
   drive_date: string
   expected_candidates: number | null
   status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled'
-  college: string
+  college: string | string[]
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
   response_status: 'Not Responded' | 'Interested' | 'Not Interested'
@@ -24,83 +36,223 @@ interface CampusDrive {
   remarks: string | null
 }
 
+// Props interface
 interface AddOrEditCampusDriveProps {
   mode: 'add' | 'edit'
-  id?: string
 }
 
 // Sample options for Autocomplete fields
-const jobRoleOptions = ['Software Engineer', 'Data Analyst', 'Product Manager', 'DevOps Engineer']
 const statusOptions = ['Planned', 'Ongoing', 'Completed', 'Cancelled']
 const inviteStatusOptions = ['Pending', 'Sent', 'Failed']
 const responseStatusOptions = ['Not Responded', 'Interested', 'Not Interested']
-const collegeOptions = ['ABC College', 'XYZ University', 'PQR Institute']
-const spocOptions = ['John Doe', 'Jane Smith', 'Alice Johnson']
-
-// Validation schema
-const validationSchema = Yup.object().shape({
-  // Campus Drive Section
-  job_role: Yup.string().oneOf(jobRoleOptions, 'Invalid job role').required('Job role is required'),
-  drive_date: Yup.date()
-    .min(new Date(), 'Drive date must be today or in the future')
-    .required('Drive date is required'),
-  expected_candidates: Yup.number().min(0, 'Must be 0 or greater').nullable().optional(),
-  status: Yup.string().oneOf(statusOptions, 'Invalid status').default('Planned'),
-
-  // Campus Drive Colleges Section
-  college: Yup.string().oneOf(collegeOptions, 'College must exist in the list').required('College is required'),
-  college_coordinator: Yup.string()
-    .oneOf(spocOptions, 'Coordinator must exist in the list')
-    .required('College coordinator is required'),
-  invite_status: Yup.string().oneOf(inviteStatusOptions, 'Invalid invite status').default('Pending'),
-  response_status: Yup.string().oneOf(responseStatusOptions, 'Invalid response status').default('Not Responded'),
-  spoc_notified_at: Yup.date().nullable().optional(),
-  remarks: Yup.string().max(2000, 'Must be 2000 characters or less').nullable().optional()
-})
 
 const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [step, setStep] = useState(1) // 1 for Campus Drive, 2 for Campus Drive Colleges
+  const dispatch = useAppDispatch()
 
-  // Create initial values from URL params if in edit mode
-  const getInitialValues = (): Partial<CampusDrive> => {
-    if (mode !== 'edit')
-      return {
-        job_role: '',
-        drive_date: '',
-        expected_candidates: null,
-        status: 'Planned',
-        college: '',
-        college_coordinator: '',
-        invite_status: 'Pending',
-        response_status: 'Not Responded',
-        spoc_notified_at: null,
-        remarks: null
+  const {
+    jobRoles,
+    collegeDrive,
+    status: jobStatus,
+    error: jobError,
+    collegeDriveStatus,
+    collegeDriveError
+  } = useAppSelector(state => state.campusDriveReducer)
+
+  const {
+    collegeList,
+    colleges,
+    status: collegeStatus,
+    error: collegeError
+  } = useAppSelector(state => state.collegeAndSpocReducer)
+
+  const [step, setStep] = useState(1) // 1 for Campus Drive, 2 for Campus Drive Colleges
+  const [isLoading, setIsLoading] = useState(mode === 'edit') // Loading state for edit mode
+
+  // Derived options from Redux state
+  const collegeNames = collegeList.map(college => college.collegeName)
+  const coordinatorNames = colleges.map(college => college.spoc_name)
+
+  // Get id from URL in edit mode
+  const id = mode === 'edit' ? searchParams.get('id') : null
+
+  // Fetch job roles, colleges, coordinators, and campus drive data (for edit mode) on component mount
+  useEffect(() => {
+    dispatch(fetchJobRoles({ page: 1, limit: 10 }))
+
+    dispatch(fetchCollegeList({ page: 1, limit: 10 }))
+    dispatch(fetchCollegeCoordinators({ page: 1, limit: 10 }))
+
+    if (mode === 'edit' && id && collegeDriveStatus === 'idle') {
+      dispatch(fetchCollegeDriveById(id))
+        .unwrap()
+        .then(() => setIsLoading(false))
+        .catch(() => setIsLoading(false))
+    }
+  }, [collegeDriveStatus, dispatch, mode, id])
+
+  // Show toast notifications for errors and validate id in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && !id) {
+      toast.error('Invalid campus drive ID')
+      router.push('/hiring-management/campus-management/campus-drive')
+    }
+
+    if (jobError) {
+      toast.error(jobError)
+    }
+
+    if (collegeError) {
+      toast.error(collegeError)
+    }
+
+    if (collegeDriveError) {
+      toast.error(collegeDriveError)
+    }
+
+    // Show error if jobRoles is empty after fetch
+    // if (jobStatus === 'succeeded' && jobRoles.length === 0) {
+    //   toast.error('No job roles available. Please contact the administrator.')
+    // }
+  }, [jobError, collegeError, collegeDriveError, jobStatus, jobRoles, mode, id, router])
+
+  // Validation schema
+  const validationSchema = Yup.object().shape({
+    // Campus Drive Section
+    job_role: Yup.string().oneOf(jobRoles, 'Invalid job role').required('Job role is required'),
+    drive_date: Yup.date()
+      .min(
+        (() => {
+          const today = new Date()
+
+          today.setUTCHours(0, 0, 0, 0)
+
+          return today
+        })(),
+        'Drive date must be today or in the future'
+      )
+      .required('Drive date is required')
+      .test('is-valid-date', 'Drive date must be a valid date', value => {
+        return value instanceof Date && !isNaN(value.getTime())
+      }),
+    expected_candidates: Yup.number().min(0, 'Must be 0 or greater').nullable().optional(),
+    status: Yup.string().oneOf(statusOptions, 'Invalid status').default('Planned'),
+
+    // Campus Drive Colleges Section
+    college: Yup.mixed<string | string[]>()
+      .test(
+        'is-string-or-array',
+        'College must be a string or array of strings',
+        (value): value is string | string[] => typeof value === 'string' || Array.isArray(value)
+      )
+      .test('valid-college', 'College must exist in the list', (value: string | string[]) => {
+        const validOptions = collegeNames.length > 0 ? collegeNames : ['ABC College', 'XYZ University', 'PQR Institute']
+
+        if (Array.isArray(value)) {
+          return value.every(v => validOptions.includes(v))
+        }
+
+        return validOptions.includes(value)
+      })
+      .required('College is required'),
+    college_coordinator: Yup.string()
+      .oneOf(
+        coordinatorNames.length > 0 ? coordinatorNames : ['John Doe', 'Jane Smith', 'Alice Johnson'],
+        'Coordinator must exist in the list'
+      )
+      .required('College coordinator is required'),
+    invite_status: Yup.string().oneOf(inviteStatusOptions, 'Invalid invite status').default('Pending'),
+    response_status: Yup.string().oneOf(responseStatusOptions, 'Invalid response status').default('Not Responded'),
+    spoc_notified_at: Yup.date().nullable().optional(),
+    remarks: Yup.string().max(2000, 'Must be 2000 characters or less').nullable().optional()
+  })
+
+  // Initial values for add mode or populated from collegeDrive for edit mode
+  const initialValues: Partial<CampusDrive> =
+    mode === 'edit' && collegeDrive
+      ? {
+          id: collegeDrive.id,
+          job_role: collegeDrive.job_role,
+          drive_date: collegeDrive.drive_date,
+          expected_candidates: collegeDrive.expected_candidates,
+          status: collegeDrive.status, // Remove redundant mapping
+          college: collegeDrive.college,
+          college_coordinator: collegeDrive.college_coordinator,
+          invite_status: collegeDrive.invite_status,
+          response_status: collegeDrive.response_status,
+          spoc_notified_at: collegeDrive.spoc_notified_at,
+          remarks: collegeDrive.remarks
+        }
+      : {
+          job_role: '',
+          drive_date: '',
+          expected_candidates: null,
+          status: 'Planned',
+          college: [],
+          college_coordinator: '',
+          invite_status: 'Pending',
+          response_status: 'Not Responded',
+          spoc_notified_at: null,
+          remarks: null
+        }
+
+  const handleSubmit = async (values: Partial<CampusDrive>) => {
+    // Map form values to API request body
+    const selectedCollege = Array.isArray(values.college) ? values.college[0] : values.college
+    const college = collegeList.find(c => c.collegeName === selectedCollege)
+    const coordinator = colleges.find(c => c.spoc_name === values.college_coordinator)
+
+    if (!college || !coordinator) {
+      toast.error('Please select valid college and coordinator')
+
+      return
+    }
+
+    // Convert drive_date (YYYY-MM-DD) to ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)
+    let driveDate = ''
+
+    if (values.drive_date) {
+      const date = new Date(values.drive_date)
+
+      driveDate = date.toISOString() // e.g., "2025-08-07T00:00:00.000Z"
+    }
+
+    const driveData = {
+      collegeId: college.id,
+      collegeCoordinatorId: coordinator.coordinatorId,
+      jobId: null, // Set jobId to null
+      jobRole: values.job_role || '',
+      driveDate,
+      expectedCandidates: values.expected_candidates || 0,
+      driveStatus: values.status || 'Planned'
+    }
+
+    try {
+      if (mode === 'edit' && id) {
+        // In edit mode, include id in the payload for update
+        await dispatch(updateCollegeDrive({ id, data: driveData })).unwrap()
+        toast.success('Campus drive updated successfully')
+      } else {
+        // In add mode, create new campus drive
+        await dispatch(createCollegeDrive(driveData)).unwrap()
+        toast.success('Campus drive created successfully')
       }
 
-    return {
-      job_role: searchParams.get('job_role') || '',
-      drive_date: searchParams.get('drive_date') || '',
-      expected_candidates: searchParams.has('expected_candidates')
-        ? Number(searchParams.get('expected_candidates'))
-        : null,
-      status: (searchParams.get('status') as CampusDrive['status']) || 'Planned',
-      college: searchParams.get('college') || '',
-      college_coordinator: searchParams.get('college_coordinator') || '',
-      invite_status: (searchParams.get('invite_status') as CampusDrive['invite_status']) || 'Pending',
-      response_status: (searchParams.get('response_status') as CampusDrive['response_status']) || 'Not Responded',
-      spoc_notified_at: searchParams.get('spoc_notified_at'),
-      remarks: searchParams.get('remarks')
+      router.push('/hiring-management/campus-management/campus-drive')
+    } catch (error: any) {
+      console.error(`${mode === 'edit' ? 'Update' : 'Create'} college drive error:`, error) // Log error for debugging
+      toast.error(error || `Failed to ${mode === 'edit' ? 'update' : 'create'} campus drive`)
     }
   }
 
-  const initialValues = getInitialValues()
-
-  const handleSubmit = (values: Partial<CampusDrive>) => {
-    // Replace with API call to save data
-    console.log('Form submitted:', values)
-    router.push('/hiring-management/campus-management/campus-drive')
+  // Show loading spinner while fetching data in edit mode
+  if (isLoading) {
+    return (
+      <Box className='flex justify-center items-center h-[50vh]'>
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
@@ -115,7 +267,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
             variant='h5'
             className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[20px] leading-[26px] text-[#23262F]"
           >
-            {mode === 'add' ? 'Add New Campus Drive' : 'Edit Campus Drive'}
+            {mode === 'edit' ? 'Edit Campus Drive' : 'Add New Campus Drive'}
           </Typography>
         </Box>
         <Button
@@ -132,19 +284,19 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
       <Divider className='mb-6 border-[#eee]' />
 
       <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
-        {({ errors, touched, setFieldValue, values }) => (
+        {({ errors, touched, setFieldValue, values, isSubmitting }) => (
           <Form>
             {/* Campus Drive Information (Step 1) */}
             <Typography
               variant='h6'
               className="font-['Public_Sans',_Roboto,_sans-serif] font-bold text-[16px] leading-[20px] text-[#23262F] mb-4"
             >
-              Campus Drive Creation
+              Campus Drive {mode === 'edit' ? 'Update' : 'Creation'}
             </Typography>
             <Grid container spacing={4} className='mb-6'>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
-                  options={jobRoleOptions}
+                  options={jobRoles}
                   value={values.job_role || ''}
                   onChange={(_, value) => setFieldValue('job_role', value || '')}
                   renderInput={params => (
@@ -156,6 +308,8 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                       className="font-['Public_Sans',_Roboto,_sans-serif]"
                     />
                   )}
+                  loading={jobStatus === 'loading'}
+                  disabled={jobStatus === 'loading'}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -206,6 +360,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                   variant='contained'
                   onClick={() => setStep(2)}
                   className="bg-[#0096DA] hover:bg-[#007BB8] text-white font-['Public_Sans',_Roboto,_sans-serif]"
+                  disabled={jobRoles.length === 0}
                 >
                   Next
                 </Button>
@@ -224,28 +379,20 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                 </Typography>
                 <Grid container spacing={4} className='mb-6'>
                   <Grid item xs={12} sm={6}>
-                    {/* <Autocomplete
-                      options={collegeOptions}
-                      value={values.college || ''}
-                      onChange={(_, value) => setFieldValue('college', value || '')}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          label='College'
-                          error={touched.college && !!errors.college}
-                          helperText={touched.college && errors.college}
-                          className="font-['Public_Sans',_Roboto,_sans-serif]"
-                        />
-                      )}
-                    /> */}
-
                     <Autocomplete
                       multiple
-                      options={['Select All', ...collegeOptions]}
+                      options={
+                        collegeNames.length > 0
+                          ? ['Select All', ...collegeNames]
+                          : ['Select All', 'ABC College', 'XYZ University', 'PQR Institute']
+                      }
                       value={values.college ? (Array.isArray(values.college) ? values.college : [values.college]) : []}
                       onChange={(_, value) => {
                         if (value.includes('Select All')) {
-                          setFieldValue('college', collegeOptions)
+                          const validOptions =
+                            collegeNames.length > 0 ? collegeNames : ['ABC College', 'XYZ University', 'PQR Institute']
+
+                          setFieldValue('college', validOptions)
                         } else {
                           setFieldValue('college', value)
                         }
@@ -271,11 +418,14 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                           />
                         ))
                       }
+                      loading={collegeStatus === 'loading'}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Autocomplete
-                      options={spocOptions}
+                      options={
+                        coordinatorNames.length > 0 ? coordinatorNames : ['John Doe', 'Jane Smith', 'Alice Johnson']
+                      }
                       value={values.college_coordinator || ''}
                       onChange={(_, value) => setFieldValue('college_coordinator', value || '')}
                       renderInput={params => (
@@ -287,6 +437,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                           className="font-['Public_Sans',_Roboto,_sans-serif]"
                         />
                       )}
+                      loading={collegeStatus === 'loading'}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -321,19 +472,6 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                       )}
                     />
                   </Grid>
-                  {/* <Grid item xs={12} sm={6}>
-                    <Field
-                      as={TextField}
-                      name='spoc_notified_at'
-                      label='SPOC Notified At'
-                      type='datetime-local'
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                      error={touched.spoc_notified_at && !!errors.spoc_notified_at}
-                      helperText={touched.spoc_notified_at && errors.spoc_notified_at}
-                      className="font-['Public_Sans',_Roboto,_sans-serif]"
-                    />
-                  </Grid> */}
                   <Grid item xs={12}>
                     <Field
                       as={TextField}
@@ -360,8 +498,9 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
                     type='submit'
                     variant='contained'
                     className="bg-[#0096DA] hover:bg-[#007BB8] text-white font-['Public_Sans',_Roboto,_sans-serif]"
+                    disabled={isSubmitting || collegeDriveStatus === 'loading'}
                   >
-                    Submit
+                    {collegeDriveStatus === 'loading' ? 'Submitting...' : mode === 'edit' ? 'Update' : 'Submit'}
                   </Button>
                 </Box>
               </>
@@ -369,6 +508,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
           </Form>
         )}
       </Formik>
+      <ToastContainer />
     </Box>
   )
 }

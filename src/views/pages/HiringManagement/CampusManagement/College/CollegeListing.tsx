@@ -11,7 +11,7 @@ import { ToastContainer } from 'react-toastify'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 
 import 'react-toastify/dist/ReactToastify.css'
-import { fetchColleges } from '@/redux/CampusManagement/collegeAndSpocSlice'
+import { fetchCollegeCoordinators } from '@/redux/CampusManagement/collegeAndSpocSlice'
 import CollegeGridView from './CollegeCardView'
 import CollegeTableView from './CollegeTableView'
 import DynamicButton from '@/components/Button/dynamicButton'
@@ -65,22 +65,36 @@ const CollegeListingPage = () => {
 
   const { colleges, totalCount, status } = useAppSelector((state: any) => state.collegeAndSpocReducer)
 
+  // useEffect(() => {
+  //   // Initial fetch with no filters to load all data
+  //   dispatch(
+  //     fetchCollegeCoordinators({
+  //       page,
+  //       limit,
+  //       search
+  //     })
+  //   )
+  // }, [dispatch, page, limit, search])
+
   useEffect(() => {
-    // Initial fetch with no filters to load all data
     dispatch(
-      fetchColleges({
+      fetchCollegeCoordinators({
         page,
         limit,
-        search
+        search: search || undefined,
+        engagementType: filters.engagementType || undefined,
+        status: filters.status || undefined,
+        isPrimary: filters.isPrimary || undefined,
+        collegeId: filters.collegeId || undefined
       })
     )
-  }, [dispatch, page, limit, search])
+  }, [dispatch, page, limit, search, filters.engagementType, filters.status, filters.isPrimary, filters.collegeId])
 
   // Apply filters only when changed or reset when both are cleared
   useEffect(() => {
     if (filters.engagementType || filters.status) {
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page,
           limit,
           search,
@@ -93,7 +107,7 @@ const CollegeListingPage = () => {
     } else if (!filters.engagementType && !filters.status) {
       // Reset to fetch all data when both filters are cleared
       dispatch(
-        fetchColleges({
+        fetchCollegeCoordinators({
           page,
           limit,
           search,

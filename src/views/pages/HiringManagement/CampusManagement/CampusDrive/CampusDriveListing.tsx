@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 import React, { useState, useEffect } from 'react'
 
@@ -32,7 +33,7 @@ interface CampusDrive {
 const CampusDriveListingPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { collegeDrives, status, error, page, limit, totalCount } = useAppSelector(state => state.campusDriveReducer)
+  const { collegeDrives, status, error, totalCount } = useAppSelector(state => state.campusDriveReducer)
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [search, setSearch] = useState('')
 
@@ -48,6 +49,26 @@ const CampusDriveListingPage = () => {
   const statusOptions = Array.from(new Set(collegeDrives.map(drive => drive.status))).sort()
 
   // Fetch drives on mount and when search, filters, or pagination change
+  // useEffect(() => {
+  //   const formatDriveDate = (date: string) => {
+  //     if (!date) return undefined
+  //     const [year, month, day] = date.split('-')
+
+  //     return `${month}-${day}-${year.slice(2)}` // Convert YYYY-MM-DD to MM-DD-YY
+  //   }
+
+  //   dispatch(
+  //     fetchCollegeDrives({
+  //       page: localPage,
+  //       limit: localLimit,
+  //       search: search || undefined,
+  //       driveStatus: filters.status || undefined,
+  //       driveDate: formatDriveDate(filters.driveDate)
+  //     })
+  //   )
+  // }, [dispatch, localPage, localLimit, search, filters.status, filters.driveDate])
+
+  // Fetch drives on mount and when search, filters, or pagination change
   useEffect(() => {
     const formatDriveDate = (date: string) => {
       if (!date) return undefined
@@ -58,7 +79,7 @@ const CampusDriveListingPage = () => {
 
     dispatch(
       fetchCollegeDrives({
-        page: localPage,
+        page: localPage, // Use one-based page for API
         limit: localLimit,
         search: search || undefined,
         driveStatus: filters.status || undefined,

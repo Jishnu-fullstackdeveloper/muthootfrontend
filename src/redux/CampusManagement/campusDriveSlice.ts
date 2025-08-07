@@ -27,7 +27,7 @@ export interface CampusDrive {
   job_role: string
   drive_date: string
   expected_candidates: number
-  status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
+  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' // Updated to match CollegeDrive
   college: string
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -178,6 +178,19 @@ export const updateCollegeDrive = createAsyncThunk(
   }
 )
 
+export const deleteCollegeDrive = createAsyncThunk(
+  'job/deleteCollegeDrive',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await AxiosLib.delete(`${API_ENDPOINTS.postCampusDrive}?id=${id}`)
+
+      return { id, message: response.data.message }
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete college drive')
+    }
+  }
+)
+
 export const fetchCollegeDrives = createAsyncThunk(
   'job/fetchCollegeDrives',
   async (
@@ -200,7 +213,12 @@ export const fetchCollegeDrives = createAsyncThunk(
           job_role: item.jobRole,
           drive_date: item.driveDate.split('T')[0], // Convert ISO 8601 to YYYY-MM-DD
           expected_candidates: item.expectedCandidates,
-          status: item.driveStatus,
+          status:
+            item.driveStatus === 'Active'
+              ? 'Ongoing'
+              : item.driveStatus === 'Inactive'
+                ? 'Cancelled'
+                : item.driveStatus, // Map Active to Ongoing, Inactive to Cancelled
           college: item.college.collegeName,
           college_coordinator: item.collegeCoordinator.name,
           invite_status: 'Pending' as 'Pending' | 'Sent' | 'Failed', // Default, not in API
@@ -230,7 +248,8 @@ export const fetchCollegeDriveById = createAsyncThunk(
         job_role: item.jobRole,
         drive_date: item.driveDate.split('T')[0], // Convert ISO 8601 to YYYY-MM-DD
         expected_candidates: item.expectedCandidates,
-        status: item.driveStatus,
+        status:
+          item.driveStatus === 'Active' ? 'Ongoing' : item.driveStatus === 'Inactive' ? 'Cancelled' : item.driveStatus, // Map Active to Ongoing, Inactive to Cancelled
         college: item.college.collegeName,
         college_coordinator: item.collegeCoordinator.name,
         invite_status: 'Pending' as 'Pending' | 'Sent' | 'Failed', // Default, not in API
@@ -322,6 +341,20 @@ const campusDriveSlice = createSlice({
         state.collegeDriveError = null
       })
       .addCase(updateCollegeDrive.rejected, (state, action) => {
+        state.collegeDriveStatus = 'failed'
+        state.collegeDriveError = action.payload as string
+      })
+
+      // Handle deleteCollegeDrive
+      .addCase(deleteCollegeDrive.pending, state => {
+        state.collegeDriveStatus = 'loading'
+      })
+      .addCase(deleteCollegeDrive.fulfilled, (state, action) => {
+        state.collegeDriveStatus = 'succeeded'
+        state.collegeDrives = state.collegeDrives.filter(drive => drive.id !== action.payload.id)
+        state.collegeDriveError = null
+      })
+      .addCase(deleteCollegeDrive.rejected, (state, action) => {
         state.collegeDriveStatus = 'failed'
         state.collegeDriveError = action.payload as string
       })

@@ -1,5 +1,5 @@
 'use client'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +9,11 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
+import { toast } from 'react-toastify'
+
+import { useAppDispatch } from '@/lib/hooks'
+import { deleteCollegeDrive } from '@/redux/CampusManagement/campusDriveSlice'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Adjust path as needed
 
 import DynamicTable from '@/components/Table/dynamicTable'
 
@@ -17,7 +22,7 @@ interface CampusDrive {
   job_role: string
   drive_date: string
   expected_candidates: number
-  status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
+  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' // Updated to match CampusDrive in slice
   college: string
   college_coordinator: string
   invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -38,6 +43,22 @@ interface CampusDriveTableViewProps {
 const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLimit }: CampusDriveTableViewProps) => {
   const columnHelper = createColumnHelper<CampusDrive>()
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedDriveId, setSelectedDriveId] = useState<string | null>(null)
+
+  const handleDelete = async (id?: string | number) => {
+    if (!id) return
+
+    try {
+      await dispatch(deleteCollegeDrive(id as string)).unwrap()
+      toast.success('College Drive deleted successfully.')
+      setOpenModal(false)
+      setSelectedDriveId(null)
+    } catch (error: any) {
+      toast.error(error || 'Failed to delete college drive')
+    }
+  }
 
   const tableData = useMemo(() => {
     return {
@@ -69,13 +90,13 @@ const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLim
             color='text.primary'
             sx={{
               color:
-                row.original.status === 'Active' || row.original.status === 'Planned'
+                row.original.status === 'Planned'
                   ? '#90EE90'
-                  : row.original.status === 'Inactive'
-                    ? '#ED960B'
+                  : row.original.status === 'Ongoing'
+                    ? '#00CED1'
                     : row.original.status === 'Completed'
                       ? '#00CED1'
-                      : '#FF4500' // For Ongoing, Cancelled
+                      : '#FF4500' // For Cancelled
             }}
           >
             {row.original.status}
@@ -155,22 +176,7 @@ const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLim
             <Tooltip title='Edit Drive'>
               <IconButton
                 onClick={() => {
-                  const queryParams = new URLSearchParams()
-
-                  // Convert drive object to URL params
-                  Object.entries(row.original).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined) {
-                      // Handle date fields
-                      if (key === 'drive_date' || key === 'spoc_notified_at') {
-                        queryParams.set(key, new Date(value).toISOString())
-                      } else {
-                        queryParams.set(key, String(value))
-                      }
-                    }
-                  })
-                  router.push(
-                    `/hiring-management/campus-management/campus-drive/edit/${row.original.id}?${queryParams.toString()}`
-                  )
+                  router.push(`/hiring-management/campus-management/campus-drive/edit/detail?id=${row.original.id}`)
                 }}
                 aria-label={`Edit ${row.original.job_role}`}
                 sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
@@ -180,7 +186,10 @@ const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLim
             </Tooltip>
             <Tooltip title='Delete Drive'>
               <IconButton
-                onClick={() => console.log(`Delete drive ${row.original.id}`)} // Placeholder for delete logic
+                onClick={() => {
+                  setSelectedDriveId(row.original.id)
+                  setOpenModal(true)
+                }}
                 aria-label={`Delete ${row.original.job_role}`}
                 sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
               >
@@ -203,18 +212,28 @@ const CampusDriveTableView = ({ drives, totalCount, page, limit, setPage, setLim
           </Typography>
         </Box>
       ) : (
-        <DynamicTable
-          columns={columns}
-          data={tableData.data}
-          totalCount={tableData.totalCount}
-          pagination={{ pageIndex: page - 1, pageSize: limit }}
-          onPageChange={newPage => setPage(newPage + 1)}
-          onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
-          tableName='Campus Drive Table'
-          sorting={undefined}
-          onSortingChange={undefined}
-          initialState={undefined}
-        />
+        <>
+          <DynamicTable
+            columns={columns}
+            data={tableData.data}
+            totalCount={tableData.totalCount}
+            pagination={{ pageIndex: page - 1, pageSize: limit }} // Ensure zero-based pageIndex for table
+            onPageChange={newPage => setPage(newPage + 1)} // Convert back to one-based page for API
+            onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
+            tableName='Campus Drive Table'
+            sorting={undefined}
+            onSortingChange={undefined}
+            initialState={undefined}
+          />
+          <ConfirmModal
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+            onConfirm={handleDelete}
+            id={selectedDriveId}
+            title='Confirm Delete'
+            description='Are you sure you want to delete this campus drive? This action cannot be undone.'
+          />
+        </>
       )}
     </Box>
   )

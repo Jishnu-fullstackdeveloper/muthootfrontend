@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { Box, Typography, IconButton, Tooltip, Modal, Button, DialogActions } from '@mui/material'
+import { Box, Typography, IconButton, Tooltip } from '@mui/material'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createColumnHelper } from '@tanstack/react-table'
 import VisibilityIcon from '@mui/icons-material/Visibility'
@@ -14,6 +14,7 @@ import { toast } from 'react-toastify'
 import DynamicTable from '@/components/Table/dynamicTable'
 import { deleteCollegeCoordinator } from '@/redux/CampusManagement/collegeAndSpocSlice'
 import { useAppDispatch } from '@/lib/hooks'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog'
 
 interface College {
   coordinatorId: string
@@ -58,100 +59,6 @@ interface CollegeTableViewProps {
   setPage: (page: number) => void
   limit: number
   setLimit: (limit: number) => void
-}
-
-// ConfirmModal Component
-type ConfirmModalProps = {
-  open: boolean
-  onClose: () => void
-  onConfirm: (id?: string | number) => void
-  title?: string
-  description?: string
-  id?: string | number
-}
-
-const ConfirmModal = ({ open, onClose, onConfirm, title, description, id }: ConfirmModalProps) => {
-  const handleConfirm = () => {
-    onConfirm(id)
-  }
-
-  return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: 'white',
-          padding: 4,
-          borderRadius: 2,
-          boxShadow: 24,
-          maxWidth: '400px',
-          width: '100%'
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 2
-          }}
-        >
-          <i
-            className='tabler-exclamation-circle'
-            style={{
-              fontSize: '100px',
-              color: 'red'
-            }}
-          ></i>
-        </Box>
-
-        <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
-          <Typography variant='h5' gutterBottom>
-            {title || 'Are you sure?'}
-          </Typography>
-          <Typography variant='body1' color='textSecondary'>
-            {description || "Do you really want to delete this data? This process can't be undone."}
-          </Typography>
-        </Box>
-
-        <DialogActions sx={{ justifyContent: 'center' }}>
-          <Button
-            onClick={onClose}
-            sx={{
-              padding: 1.5,
-              marginX: 2,
-              backgroundColor: '#757575',
-              color: '#f5f5f5',
-              '&:hover': {
-                backgroundColor: '#ffcccc',
-                color: 'darkred'
-              }
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            sx={{
-              padding: 1.5,
-              marginX: 2,
-              backgroundColor: '#e53935',
-              color: '#f5f5f5',
-              '&:hover': {
-                backgroundColor: '#ffcccc',
-                color: 'darkred'
-              }
-            }}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Box>
-    </Modal>
-  )
 }
 
 const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit }: CollegeTableViewProps) => {
@@ -383,8 +290,8 @@ const CollegeTableView = ({ colleges, totalCount, page, setPage, limit, setLimit
             data={tableData.data}
             totalCount={tableData.totalCount}
             pagination={{ pageIndex: page - 1, pageSize: limit }}
-            onPageChange={setPage}
-            onRowsPerPageChange={setLimit}
+            onPageChange={newPage => setPage(newPage + 1)} // Convert zero-based to one-based page
+            onRowsPerPageChange={newPageSize => setLimit(newPageSize)}
             tableName='College & SPOC Table List'
             sorting={undefined}
             onSortingChange={undefined}

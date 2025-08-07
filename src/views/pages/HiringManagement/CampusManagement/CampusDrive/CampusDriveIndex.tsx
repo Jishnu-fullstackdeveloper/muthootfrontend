@@ -20,7 +20,7 @@ const CampusDriveIndex = () => {
   return (
     <>
       {mode === 'add' && <AddOrEditCampusDrive mode='add' />}
-      {mode === 'edit' && id && <AddOrEditCampusDrive mode='edit' id={id} />}
+      {mode === 'edit' && id && <AddOrEditCampusDrive mode='edit' />}
       {mode === 'view' && id && <CampusDriveDetails />}
     </>
   )

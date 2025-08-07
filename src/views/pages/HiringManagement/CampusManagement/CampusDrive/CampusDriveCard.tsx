@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -7,6 +7,11 @@ import { Box, Typography, IconButton, Tooltip } from '@mui/material'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { toast } from 'react-toastify'
+
+import { useAppDispatch } from '@/lib/hooks'
+import { deleteCollegeDrive } from '@/redux/CampusManagement/campusDriveSlice'
+import ConfirmModal from '@/@core/components/dialogs/Delete_confirmation_Dialog' // Adjust path as needed
 
 interface CampusDriveGridViewProps {
   drives: {
@@ -14,7 +19,7 @@ interface CampusDriveGridViewProps {
     job_role: string
     drive_date: string
     expected_candidates: number
-    status: 'Active' | 'Inactive' | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled'
+    status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' // Updated to match CampusDrive
     college: string
     college_coordinator: string
     invite_status: 'Pending' | 'Sent' | 'Failed'
@@ -26,6 +31,22 @@ interface CampusDriveGridViewProps {
 
 const CampusDriveGridView = ({ drives }: CampusDriveGridViewProps) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedDriveId, setSelectedDriveId] = useState<string | null>(null)
+
+  const handleDelete = async (id?: string | number) => {
+    if (!id) return
+
+    try {
+      await dispatch(deleteCollegeDrive(id as string)).unwrap()
+      toast.success('College Drive deleted successfully.')
+      setOpenModal(false)
+      setSelectedDriveId(null)
+    } catch (error: any) {
+      toast.error(error || 'Failed to delete college drive')
+    }
+  }
 
   return (
     <Box className='py-2'>
@@ -52,17 +73,7 @@ const CampusDriveGridView = ({ drives }: CampusDriveGridViewProps) => {
                     <Tooltip title='Edit Drive'>
                       <IconButton
                         onClick={() => {
-                          const queryParams = new URLSearchParams()
-
-                          // Add all drive properties to URL params
-                          Object.entries(drive).forEach(([key, value]) => {
-                            if (value !== null && value !== undefined) {
-                              queryParams.set(key, String(value))
-                            }
-                          })
-                          router.push(
-                            `/hiring-management/campus-management/campus-drive/edit/${drive.id}?${queryParams.toString()}`
-                          )
+                          router.push(`/hiring-management/campus-management/campus-drive/edit/detail?id=${drive.id}`)
                         }}
                         aria-label={`Edit ${drive.job_role}`}
                         sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
@@ -72,7 +83,10 @@ const CampusDriveGridView = ({ drives }: CampusDriveGridViewProps) => {
                     </Tooltip>
                     <Tooltip title='Delete Drive'>
                       <IconButton
-                        onClick={() => console.log(`Delete drive ${drive.id}`)} // Placeholder for delete logic
+                        onClick={() => {
+                          setSelectedDriveId(drive.id)
+                          setOpenModal(true)
+                        }}
                         aria-label={`Delete ${drive.job_role}`}
                         sx={{ color: 'grey', '&:hover': { color: '#007BB8' } }}
                       >
@@ -129,6 +143,14 @@ const CampusDriveGridView = ({ drives }: CampusDriveGridViewProps) => {
           </Box>
         ))}
       </Box>
+      <ConfirmModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onConfirm={handleDelete}
+        id={selectedDriveId}
+        title='Confirm Delete'
+        description='Are you sure you want to delete this campus drive? This action cannot be undone.'
+      />
     </Box>
   )
 }

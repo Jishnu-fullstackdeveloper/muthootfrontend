@@ -81,10 +81,8 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
   useEffect(() => {
     dispatch(fetchJobRoles({ page: 1, limit: 10 }))
 
-    if (collegeStatus === 'idle') {
-      dispatch(fetchCollegeList({ page: 1, limit: 10 }))
-      dispatch(fetchCollegeCoordinators({ page: 1, limit: 10 }))
-    }
+    dispatch(fetchCollegeList({ page: 1, limit: 10 }))
+    dispatch(fetchCollegeCoordinators({ page: 1, limit: 10 }))
 
     if (mode === 'edit' && id && collegeDriveStatus === 'idle') {
       dispatch(fetchCollegeDriveById(id))
@@ -92,7 +90,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
         .then(() => setIsLoading(false))
         .catch(() => setIsLoading(false))
     }
-  }, [collegeStatus, collegeDriveStatus, dispatch, mode, id])
+  }, [collegeDriveStatus, dispatch, mode, id])
 
   // Show toast notifications for errors and validate id in edit mode
   useEffect(() => {
@@ -178,7 +176,7 @@ const AddOrEditCampusDrive = ({ mode }: AddOrEditCampusDriveProps) => {
           job_role: collegeDrive.job_role,
           drive_date: collegeDrive.drive_date,
           expected_candidates: collegeDrive.expected_candidates,
-          status: collegeDrive.status,
+          status: collegeDrive.status, // Remove redundant mapping
           college: collegeDrive.college,
           college_coordinator: collegeDrive.college_coordinator,
           invite_status: collegeDrive.invite_status,

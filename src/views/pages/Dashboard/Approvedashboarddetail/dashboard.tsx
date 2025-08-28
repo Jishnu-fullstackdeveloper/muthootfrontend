@@ -5,7 +5,6 @@ import {
   CardContent,
   CardHeader,
   Typography,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -21,14 +20,16 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  LinearProgress
+  IconButton,
+  Checkbox
 } from '@mui/material'
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   Download as DownloadIcon,
   ArrowUpward as ChevronUpIcon,
-  ArrowDownward as ChevronDownIcon
+  ArrowDownward as ChevronDownIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material'
 
 interface Employee {
@@ -38,7 +39,8 @@ interface Employee {
   lastName: string
   email: string
   designation: string
-  status: string
+  status: 'approve' | 'reject'
+  selected: boolean
 }
 
 interface BranchDetails {
@@ -62,6 +64,68 @@ const ApprovalDashboard: React.FC = () => {
   const [sortField, setSortField] = useState<keyof Employee>('id')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [employees, setEmployees] = useState<Employee[]>([
+    {
+      id: 'EMP987',
+      firstName: 'SRADHA',
+      middleName: '',
+      lastName: 's',
+      email: 'sradha@gmxsolutions.in',
+      designation: 'Manager',
+      status: 'approve',
+      selected: false
+    },
+    {
+      id: 'EMP018',
+      firstName: 'NAJMA',
+      middleName: '',
+      lastName: 'A P',
+      email: 'najma@gmxsolutions.in',
+      designation: 'HR',
+      status: 'reject',
+      selected: false
+    },
+    {
+      id: 'EMP611',
+      firstName: 'ASWANY',
+      middleName: '',
+      lastName: 'K',
+      email: 'aswany@gmxsolutions.in',
+      designation: 'Financial Analyst',
+      status: 'approve',
+      selected: false
+    },
+    {
+      id: 'EMP112',
+      firstName: 'MEGHA',
+      middleName: '',
+      lastName: 'C J',
+      email: 'megha@gmxsolutions.in',
+      designation: 'Manager',
+      status: 'approve',
+      selected: false
+    },
+    {
+      id: 'EMP789',
+      firstName: 'SHARUN',
+      middleName: '',
+      lastName: 'T M',
+      email: 'sharun@gmxsolutions.in',
+      designation: 'System Admin',
+      status: 'approve',
+      selected: false
+    },
+    {
+      id: 'EMP003',
+      firstName: 'SABEERA',
+      middleName: '',
+      lastName: 'S',
+      email: 'sabeera@gmxsolutions.in',
+      designation: 'Manager',
+      status: 'reject',
+      selected: false
+    }
+  ])
 
   // Mock data for demonstration
   const branchDetails: BranchDetails = {
@@ -75,63 +139,6 @@ const ApprovalDashboard: React.FC = () => {
     cityClassification: 'THRISSUR',
     state: 'KERALA'
   }
-
-  const employees: Employee[] = [
-    {
-      id: 'EMP987',
-      firstName: 'SRADHA',
-      middleName: 's',
-      lastName: '',
-      email: 'sradha@gmxsolutions.in',
-      designation: 'Manager',
-      status: 'Active'
-    },
-    {
-      id: 'EMP018',
-      firstName: 'NAJMA',
-      middleName: 'A P',
-      lastName: '',
-      email: 'najma@gmxsolutions.in',
-      designation: 'HR',
-      status: 'Active'
-    },
-    {
-      id: 'EMP611',
-      firstName: 'ASWANY',
-      middleName: 'K',
-      lastName: '',
-      email: 'aswany@gmxsolutions.in',
-      designation: 'Financial Analyst',
-      status: 'Active'
-    },
-    {
-      id: 'EMP112',
-      firstName: 'MEGHA',
-      middleName: 'C J',
-      lastName: '',
-      email: 'megha@gmxsolutions.in',
-      designation: 'Manager',
-      status: 'Active'
-    },
-    {
-      id: 'EMP789',
-      firstName: 'SHARUN',
-      middleName: 'T M',
-      lastName: '',
-      email: 'sharun@gmxsolutions.in',
-      designation: 'System Admin',
-      status: 'Active'
-    },
-    {
-      id: 'EMP003',
-      firstName: 'SABEERA',
-      middleName: 's',
-      lastName: '',
-      email: 'sabeera@gmxsolutions.in',
-      designation: 'Manager',
-      status: 'Resigned'
-    }
-  ]
 
   // Filter and sort employees
   const filteredEmployees = employees
@@ -165,6 +172,45 @@ const ApprovalDashboard: React.FC = () => {
     // In a real app, this would export data
     console.log('Exporting data...')
     alert('Export functionality would be implemented here')
+  }
+
+  const handleStatusChange = (employeeId: string, newStatus: 'approve' | 'reject') => {
+    setEmployees(prevEmployees =>
+      prevEmployees.map(employee => (employee.id === employeeId ? { ...employee, status: newStatus } : employee))
+    )
+    console.log(`Changing status for employee ${employeeId} to ${newStatus}`)
+  }
+
+  const handleViewPayroll = (employeeId: string) => {
+    // In a real app, this would open the payroll file
+    console.log(`Viewing payroll for employee ${employeeId}`)
+    alert(`View payroll file for employee ${employeeId}`)
+  }
+
+  const handleSelectEmployee = (employeeId: string) => {
+    setEmployees(prevEmployees =>
+      prevEmployees.map(employee =>
+        employee.id === employeeId ? { ...employee, selected: !employee.selected } : employee
+      )
+    )
+  }
+
+  const handleSelectAll = () => {
+    const allSelected = employees.every(employee => employee.selected)
+    setEmployees(prevEmployees => prevEmployees.map(employee => ({ ...employee, selected: !allSelected })))
+  }
+
+  const handleBulkReject = () => {
+    const selectedEmployees = employees.filter(employee => employee.selected)
+    if (selectedEmployees.length === 0) {
+      alert('Please select at least one employee to reject')
+      return
+    }
+
+    setEmployees(prevEmployees =>
+      prevEmployees.map(employee => (employee.selected ? { ...employee, status: 'reject' } : employee))
+    )
+    alert(`Rejected ${selectedEmployees.length} employee(s)`)
   }
 
   const SortIcon: React.FC<SortIconProps> = ({ field }) => {
@@ -208,57 +254,27 @@ const ApprovalDashboard: React.FC = () => {
           <Grid container spacing={4}>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant='subtitle2' fontWeight='medium'>
-                Branch Name
+                Month
               </Typography>
               <Typography variant='body1'>{branchDetails.branchName}</Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant='subtitle2' fontWeight='medium'>
-                Branch Code
+                Year
               </Typography>
               <Typography variant='body1'>{branchDetails.branchCode}</Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant='subtitle2' fontWeight='medium'>
-                Territory
+                Amount
               </Typography>
               <Typography variant='body1'>{branchDetails.territory}</Typography>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant='subtitle2' fontWeight='medium'>
-                Zone
+                Status
               </Typography>
               <Typography variant='body1'>{branchDetails.zone}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant='subtitle2' fontWeight='medium'>
-                Region
-              </Typography>
-              <Typography variant='body1'>{branchDetails.region}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant='subtitle2' fontWeight='medium'>
-                Area
-              </Typography>
-              <Typography variant='body1'>{branchDetails.area}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant='subtitle2' fontWeight='medium'>
-                Cluster
-              </Typography>
-              <Typography variant='body1'>{branchDetails.cluster}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant='subtitle2' fontWeight='medium'>
-                City Classification
-              </Typography>
-              <Typography variant='body1'>{branchDetails.cityClassification}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant='subtitle2' fontWeight='medium'>
-                State
-              </Typography>
-              <Typography variant='body1'>{branchDetails.state}</Typography>
             </Grid>
           </Grid>
         </CardContent>
@@ -281,10 +297,18 @@ const ApprovalDashboard: React.FC = () => {
                 <InputLabel>Status</InputLabel>
                 <Select value={selectedStatus} label='Status' onChange={e => setSelectedStatus(e.target.value)}>
                   <MenuItem value='all'>All Status</MenuItem>
-                  <MenuItem value='Active'>Active</MenuItem>
-                  <MenuItem value='Resigned'>Resigned</MenuItem>
+                  <MenuItem value='approve'>Approve</MenuItem>
+                  <MenuItem value='reject'>Reject</MenuItem>
                 </Select>
               </FormControl>
+              <Button
+                variant='outlined'
+                color='error'
+                onClick={handleBulkReject}
+                disabled={!employees.some(employee => employee.selected)}
+              >
+                Reject Selected
+              </Button>
             </Box>
           }
           sx={{
@@ -300,6 +324,15 @@ const ApprovalDashboard: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell padding='checkbox'>
+                    <Checkbox
+                      indeterminate={
+                        employees.some(employee => employee.selected) && !employees.every(employee => employee.selected)
+                      }
+                      checked={employees.every(employee => employee.selected)}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
                   <TableCell
                     onClick={() => handleSort('id')}
                     sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
@@ -354,22 +387,17 @@ const ApprovalDashboard: React.FC = () => {
                       <SortIcon field='designation' />
                     </Box>
                   </TableCell>
-                  <TableCell
-                    onClick={() => handleSort('status')}
-                    sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      Status
-                      <SortIcon field='status' />
-                    </Box>
-                  </TableCell>
+                  <TableCell>Payroll File</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredEmployees.length > 0 ? (
                   filteredEmployees.map(employee => (
-                    <TableRow key={employee.id}>
+                    <TableRow key={employee.id} selected={employee.selected}>
+                      <TableCell padding='checkbox'>
+                        <Checkbox checked={employee.selected} onChange={() => handleSelectEmployee(employee.id)} />
+                      </TableCell>
                       <TableCell>{employee.id}</TableCell>
                       <TableCell>{employee.firstName}</TableCell>
                       <TableCell>{employee.middleName}</TableCell>
@@ -377,22 +405,39 @@ const ApprovalDashboard: React.FC = () => {
                       <TableCell>{employee.email}</TableCell>
                       <TableCell>{employee.designation}</TableCell>
                       <TableCell>
-                        <Chip
-                          label={employee.status}
-                          color={employee.status === 'Active' ? 'success' : 'error'}
-                          size='small'
-                        />
+                        <IconButton
+                          color='primary'
+                          onClick={() => handleViewPayroll(employee.id)}
+                          title='View Payroll File'
+                        >
+                          <ViewIcon />
+                        </IconButton>
                       </TableCell>
                       <TableCell>
-                        <Button variant='outlined' size='small'>
-                          Review
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant={employee.status === 'approve' ? 'contained' : 'outlined'}
+                            size='small'
+                            color='success'
+                            onClick={() => handleStatusChange(employee.id, 'approve')}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant={employee.status === 'reject' ? 'contained' : 'outlined'}
+                            size='small'
+                            color='error'
+                            onClick={() => handleStatusChange(employee.id, 'reject')}
+                          >
+                            Reject
+                          </Button>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} align='center' sx={{ height: 120 }}>
+                    <TableCell colSpan={9} align='center' sx={{ height: 120 }}>
                       No employees found.
                     </TableCell>
                   </TableRow>
@@ -402,86 +447,6 @@ const ApprovalDashboard: React.FC = () => {
           </TableContainer>
         </CardContent>
       </Card>
-
-      {/* Budget and Vacancy Management */}
-      {/* <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardHeader title='Budget Management' />
-            <CardContent> */}
-      {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Total Budget
-                  </Typography>
-                  <Typography variant='body1' fontWeight='bold'>
-                    ₹2,45,000
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Allocated
-                  </Typography>
-                  <Typography variant='body1' color='success.main'>
-                    ₹1,87,500
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Remaining
-                  </Typography>
-                  <Typography variant='body1' color='info.main'>
-                    ₹57,500
-                  </Typography>
-                </Box>
-                <LinearProgress variant='determinate' value={76} sx={{ height: 10, borderRadius: 5 }} color='success' />
-              </Box> */}
-      {/* </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}> */}
-      {/* <Card>
-            <CardHeader title='Vacancy Management' />
-            <CardContent>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box>
-                  <Typography variant='body2' fontWeight='medium' component='span'>
-                    Bucket Name:{' '}
-                  </Typography>
-                  <Typography variant='body1' component='span'>
-                    Q3 2024 Recruitment
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Total Positions
-                  </Typography>
-                  <Typography variant='body1' fontWeight='bold'>
-                    12
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Filled
-                  </Typography>
-                  <Typography variant='body1' color='success.main'>
-                    8
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant='body2' fontWeight='medium'>
-                    Vacant
-                  </Typography>
-                  <Typography variant='body1' color='error.main'>
-                    4
-                  </Typography>
-                </Box>
-                <LinearProgress variant='determinate' value={66} sx={{ height: 10, borderRadius: 5 }} color='success' />
-              </Box>
-            </CardContent>
-          </Card> */}
-      {/* </Grid> */}
-      {/* </Grid> */}
     </Container>
   )
 }

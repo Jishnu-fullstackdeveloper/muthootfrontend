@@ -27,7 +27,9 @@ import InterviewManagementReducer from './InterviewManagement/InterviewManagemen
 import jdManagementReducer from './jdManagemenet/jdManagemnetSlice'
 import collegeAndSpocReducer from './CampusManagement/collegeAndSpocSlice'
 import campusDriveReducer from './CampusManagement/campusDriveSlice'
-
+import payrollSliceReducer from './Payroll/payrollSlice'
+import { ConfigureStoreOptions } from '@reduxjs/toolkit'
+import approvalReducer from './approvalDashboard/approvaldashboardSlice'
 export const makeStore = () =>
   configureStore({
     reducer: {
@@ -58,7 +60,9 @@ export const makeStore = () =>
       InterviewManagementReducer,
       jdManagementReducer,
       collegeAndSpocReducer,
-      campusDriveReducer
+      campusDriveReducer,
+      payrollSliceReducer,
+      approvalReducer
     }
   })
 

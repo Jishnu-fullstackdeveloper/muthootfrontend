@@ -1,6 +1,8 @@
+// src/views/pages/Dashboard/ApprovalDashboard/dashboard.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Box,
   Typography,
@@ -20,7 +22,9 @@ import {
   Grid,
   ToggleButton,
   ToggleButtonGroup,
-  Chip
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
@@ -29,88 +33,107 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import BlockIcon from '@mui/icons-material/Block'
 import DashboardCard from '@/components/cards/approvaldashboardCard'
+import { RootState, AppDispatch } from '@/redux/store'
+import {
+  fetchApprovalData,
+  setSearchFilter,
+  setDepartmentFilter,
+  setStatusFilter,
+  resetFilters,
+  clearError
+} from '@/redux/approvalDashboard/approvaldashboardSlice'
 
-const DATA_GRID = [
+// Dummy data to simulate a populated payroll_inputs array
+const DUMMY_PAYROLL_INPUTS = [
   {
-    id: 1,
-    fileName: 'Q4 2023 Financial Report',
-    submitter: 'Alice Johnson',
-    department: 'Finance',
-    submissionDate: '2024-03-01',
+    payroll_input_id: '1',
+    payroll_config: 'Deduction File 1',
+    month: 'September',
+    year: '2025',
     status: 'Pending',
-    approvedCount: 0,
-    pendingCount: 1,
-    rejectedCount: 0
+    type: 'Deduction'
   },
   {
-    id: 2,
-    fileName: 'New Marketing Campaign Plan',
-    submitter: 'Carol Parker',
-    department: 'Marketing',
-    submissionDate: '2024-02-28',
+    payroll_input_id: '2',
+    payroll_config: 'Incentive File 1',
+    month: 'September',
+    year: '2025',
     status: 'Approved',
-    approvedCount: 1,
-    pendingCount: 0,
-    rejectedCount: 0
+    type: 'Incentive'
   },
   {
-    id: 3,
-    fileName: 'HR Policy Updated 2024',
-    submitter: 'Chris Evans',
-    department: 'HR',
-    submissionDate: '2024-02-25',
-    status: 'Rejected',
-    approvedCount: 0,
-    pendingCount: 0,
-    rejectedCount: 1
-  },
-  {
-    id: 4,
-    fileName: 'HR Policy Updated 2024',
-    submitter: 'Alice Johnson',
-    department: 'Engineering',
-    submissionDate: '2024-02-18',
-    status: 'Approved',
-    approvedCount: 1,
-    pendingCount: 0,
-    rejectedCount: 0
-  },
-  {
-    id: 5,
-    fileName: 'HR Policy Updated 2024',
-    submitter: 'Tom Hiddleston',
-    department: 'Marketing',
-    submissionDate: '2024-03-01',
-    status: 'Rejected',
-    approvedCount: 0,
-    pendingCount: 0,
-    rejectedCount: 1
-  },
-  {
-    id: 6,
-    fileName: 'Product Features v1.3',
-    submitter: 'Chris Hemsworth',
-    department: 'Marketing',
-    submissionDate: '2024-02-25',
-    status: 'Approved',
-    approvedCount: 1,
-    pendingCount: 0,
-    rejectedCount: 0
-  },
-  {
-    id: 7,
-    fileName: 'Q4 2023 Financial Report',
-    submitter: 'Chris Evans',
-    department: 'Engineering',
-    submissionDate: '2024-04-19',
+    payroll_input_id: '3',
+    payroll_config: 'Bonus File 1',
+    month: 'September',
+    year: '2025',
     status: 'Pending',
-    approvedCount: 0,
-    pendingCount: 1,
-    rejectedCount: 0
+    type: 'Bonus'
+  },
+  {
+    payroll_input_id: '4',
+    payroll_config: 'Deduction File 2',
+    month: 'September',
+    year: '2025',
+    status: 'Rejected',
+    type: 'Deduction'
+  },
+  {
+    payroll_input_id: '5',
+    payroll_config: 'Gift File 1',
+    month: 'September',
+    year: '2025',
+    status: 'Approved',
+    type: 'Gift'
   }
 ]
 
-function BasicTable() {
+// Helper function to map type to department
+const getDepartmentFromType = (type: string) => {
+  const departmentMap: { [key: string]: string } = {
+    Deduction: 'Finance',
+    Incentive: 'HR',
+    Gift: 'HR',
+    Bonus: 'Finance'
+  }
+  return departmentMap[type] || 'General'
+}
+
+// Transform API data to match your existing card structure
+const transformApiDataToCardFormat = (apiData: any) => {
+  const dataToUse = apiData?.payroll_inputs?.length > 0 ? apiData.payroll_inputs : DUMMY_PAYROLL_INPUTS
+
+  return dataToUse.map((item: any, index: number) => ({
+    id: item.payroll_input_id || index + 1,
+    fileName: item.payroll_config || 'Payroll Configuration',
+    submitter: 'System Generated',
+    department: getDepartmentFromType(item.type) || 'Finance',
+    submissionDate: `${item.month} ${item.year}`,
+    status: item.status || 'Pending',
+    approvedCount: item.status === 'Approved' ? 1 : 0,
+    pendingCount: item.status === 'Pending' ? 1 : 0,
+    rejectedCount: item.status === 'Rejected' ? 1 : 0
+  }))
+}
+
+function BasicTable({ data, loading }: { data: any[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' height={200}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' height={200}>
+        <Typography variant='h6' color='textSecondary'>
+          No approval data available
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label='basic table'>
@@ -128,7 +151,7 @@ function BasicTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {DATA_GRID.map(row => (
+          {data.map(row => (
             <TableRow key={row.id}>
               <TableCell>
                 <Typography component='span' variant='body2' noWrap>
@@ -167,10 +190,28 @@ function BasicTable() {
   )
 }
 
-function GridView() {
+function GridView({ data, loading }: { data: any[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' height={200}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' height={200}>
+        <Typography variant='h6' color='textSecondary'>
+          No approval data available
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <Grid container spacing={2}>
-      {DATA_GRID.map(item => (
+      {data.map(item => (
         <Grid item xs={12} sm={4} key={item.id}>
           <MuiCard sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardContent sx={{ flexGrow: 1 }}>
@@ -253,8 +294,12 @@ function GridView() {
 }
 
 export function DataGridView() {
+  const dispatch = useDispatch<AppDispatch>()
+  const { data, loading, error, filters } = useSelector((state: RootState) => state.approvalReducer)
+
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed' | 'rejected'>('all')
+  const [employeeCode] = useState('AP10000192')
 
   const handleViewModeChange = (event: React.MouseEvent<HTMLElement>, newViewMode: 'grid' | 'table') => {
     if (newViewMode !== null) {
@@ -262,40 +307,105 @@ export function DataGridView() {
     }
   }
 
-  const filteredData = DATA_GRID.filter(item => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'pending') return item.status === 'Pending'
-    if (activeTab === 'completed') return item.status === 'Approved'
-    if (activeTab === 'rejected') return item.status === 'Rejected'
-    return true
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSearchFilter(event.target.value))
+  }
+
+  const handleDepartmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setDepartmentFilter(event.target.value))
+  }
+
+  const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setStatusFilter(event.target.value))
+  }
+
+  const handleResetFilters = () => {
+    dispatch(resetFilters())
+  }
+
+  const handleClearError = () => {
+    dispatch(clearError())
+  }
+
+  // Transform API data to match your card structure
+  const transformedData = transformApiDataToCardFormat(data)
+
+  // Filter data based on current filters
+  const filteredData = transformedData.filter(item => {
+    const matchesSearch = filters.search ? item.fileName.toLowerCase().includes(filters.search.toLowerCase()) : true
+    const matchesDepartment = filters.department !== 'All' ? item.department === filters.department : true
+    const matchesStatus = filters.status !== 'All' ? item.status === filters.status : true
+
+    // Filter based on active tab
+    const matchesTab = (() => {
+      switch (activeTab) {
+        case 'pending':
+          return item.status === 'Pending'
+        case 'completed':
+          return item.status === 'Approved'
+        case 'rejected':
+          return item.status === 'Rejected'
+        case 'all':
+        default:
+          return true
+      }
+    })()
+
+    return matchesSearch && matchesDepartment && matchesStatus && matchesTab
   })
-  const cardData = [
-    {
-      title: 'Pending Reviews',
-      value: 1128,
-      description: 'Currently Operational Templates'
-    },
-    {
-      title: 'Approved Last Week',
-      value: 145,
-      description: 'Archive or Inactive Templates'
-    },
-    {
-      title: 'Rejected Last Week',
-      value: 1128,
-      description: 'Templates Awaiting Admin Approvals'
-    },
-    {
-      title: 'Total Processed',
-      value: 1128,
-      description: 'Added This Month'
-    }
-  ]
+
+  // Calculate dashboard card statistics from API data
+  const calculateStats = () => {
+    // Use the API data if it exists, otherwise use dummy data
+    const payrollInputs = data?.payroll_inputs?.length > 0 ? data.payroll_inputs : DUMMY_PAYROLL_INPUTS
+
+    const pendingCount = payrollInputs.filter((item: any) => item.status === 'Pending').length
+    const approvedCount = payrollInputs.filter((item: any) => item.status === 'Approved').length
+    const rejectedCount = payrollInputs.filter((item: any) => item.status === 'Rejected').length
+    const totalCount = payrollInputs.length
+
+    return [
+      {
+        title: 'Pending Reviews',
+        value: pendingCount,
+        description: 'Items awaiting your approval'
+      },
+      {
+        title: 'Approved Last Week',
+        value: approvedCount,
+        description: 'Items you have approved'
+      },
+      {
+        title: 'Rejected Last Week',
+        value: rejectedCount,
+        description: 'Items you have rejected'
+      },
+      {
+        title: 'Total Processed',
+        value: totalCount,
+        description: 'Total items in queue'
+      }
+    ]
+  }
+
+  const cardData = calculateStats()
+
+  // Fetch data on component mount
+  useEffect(() => {
+    dispatch(fetchApprovalData(employeeCode))
+  }, [dispatch, employeeCode])
+
   return (
     <Box sx={{ p: 4, backgroundColor: '#EFF1FF', minHeight: '100vh' }}>
       <Typography variant='h4' mb={4}>
         Approval Dashboard
       </Typography>
+
+      {error && (
+        <Alert severity='error' onClose={handleClearError} sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Box
@@ -341,14 +451,17 @@ export function DataGridView() {
                   </InputAdornment>
                 )
               }}
+              value={filters.search}
+              onChange={handleSearchChange}
             />
             <TextField
               select
               size='small'
               label='Department'
-              defaultValue='All'
+              value={filters.department}
               sx={{ backgroundColor: 'white', minWidth: 120 }}
               SelectProps={{ native: true }}
+              onChange={handleDepartmentChange}
             >
               <option value='All'>All</option>
               <option value='Finance'>Finance</option>
@@ -360,16 +473,19 @@ export function DataGridView() {
               select
               size='small'
               label='Status'
-              defaultValue='All'
+              value={filters.status}
               sx={{ backgroundColor: 'white', minWidth: 120 }}
               SelectProps={{ native: true }}
+              onChange={handleStatusChange}
             >
               <option value='All'>All</option>
               <option value='Pending'>Pending</option>
               <option value='Approved'>Approved</option>
               <option value='Rejected'>Rejected</option>
             </TextField>
-            <Button variant='outlined'>Reset Filters</Button>
+            <Button variant='outlined' onClick={handleResetFilters}>
+              Reset Filters
+            </Button>
           </Stack>
 
           <ToggleButtonGroup value={viewMode} exclusive onChange={handleViewModeChange} aria-label='view mode'>
@@ -384,10 +500,10 @@ export function DataGridView() {
       </Box>
 
       {viewMode === 'grid' ? (
-        <GridView />
+        <GridView data={filteredData} loading={loading} />
       ) : (
         <Box sx={{ height: 640, width: '100%' }}>
-          <BasicTable />
+          <BasicTable data={filteredData} loading={loading} />
         </Box>
       )}
     </Box>

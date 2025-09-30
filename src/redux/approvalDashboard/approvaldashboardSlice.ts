@@ -1,4 +1,3 @@
-// store/slices/approvalSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import axios from 'axios'
 
@@ -9,6 +8,7 @@ interface ApprovalItem {
   year: number
   status: 'Pending' | 'Approved' | 'Rejected'
   remarks: string | null
+  type: string
 }
 
 interface ConfigItem {
@@ -50,11 +50,10 @@ export const fetchApprovalData = createAsyncThunk(
   async (employeeCode: string, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/approval/checker/review/?employeeCode=${employeeCode}`
+        `https://payroll-dev.gnxsolutions.app/api/v1/approval/approver/review/?employeeCode=${employeeCode}`
       )
       return response.data
     } catch (error: any) {
-      // Extract error message from response or use default
       const errorMessage =
         error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to fetch approval data'
       return rejectWithValue(errorMessage)
@@ -95,7 +94,6 @@ const approvalSlice = createSlice({
       })
       .addCase(fetchApprovalData.rejected, (state, action) => {
         state.loading = false
-        // Type guard to ensure we're dealing with a string
         if (typeof action.payload === 'string') {
           state.error = action.payload
         } else {
